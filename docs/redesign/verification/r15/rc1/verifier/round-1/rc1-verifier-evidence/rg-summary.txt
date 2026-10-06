@@ -1,0 +1,10 @@
+place order: code-files=       0 doc-files=       5
+buy now: code-files=       0 doc-files=      14
+execute trade: code-files=       0 doc-files=       2
+paper trading: code-files=       0 doc-files=      13
+simulated account: code-files=       0 doc-files=      10
+live mode: code-files=      10 doc-files=      35
+broker: code-files=      34 doc-files=     358
+demat: code-files=       2 doc-files=      24
+leverage: code-files=       5 doc-files=      73
+margin: code-files=      69 doc-files=     285

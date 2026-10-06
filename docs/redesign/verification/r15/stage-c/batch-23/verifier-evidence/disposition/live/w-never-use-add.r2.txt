@@ -1,0 +1,6 @@
+[   2.0s] done: {"kind": "done", "usage": {"input_tokens": 2741, "output_tokens": 33, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I can't fulfill that request. I can help with researching or tracking the company though. Would you like me to dig into TCS's fundamentals and news?
+
+=== ok · 2.0s · events {'delta': 34, 'done': 1} · usage in=2741 out=33 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,3 @@
+status done
+host_actions [{'tool_call_id': 'auto-backtest-call_01d906d2b7ad4aee8a4ec279f784da70', 'name': 'open_panel', 'input': {'panel': 'backtest', 'run_id': 'f9e2a0a5-228d-413d-a9de-05f21ea38081'}}]
+keys ['activity', 'agentId', 'agentName', 'agent_id', 'agent_name', 'answer', 'brief', 'budget', 'checkpointMessages', 'checkpoint_messages', 'cost', 'createdAt', 'created_at', 'detail', 'hostActions', 'host_actions', 'id', 'mode', 'model', 'plan', 'provider', 'question', 'status', 'transcript', 'updatedAt', 'updated_at']

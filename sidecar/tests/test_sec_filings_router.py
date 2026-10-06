@@ -185,13 +185,18 @@ def test_filing_detail(
         total_chars=sum(len(s.text) for s in sections),
     )
 
-    async def _fake(accession: str, *, cik_or_symbol: str | None = None) -> FilingDetail:
+    async def _fake(
+        accession: str, *, cik_or_symbol: str | None = None, form_type: str | None = None
+    ) -> FilingDetail:
         assert accession == "0000320193-24-000123"
         assert cik_or_symbol == "AAPL"
+        assert form_type == "10-K"  # R15-LEAD-010: the listed row's form rides as a hint
         return fixture
 
     monkeypatch.setattr(sec_filings_provider, "get_filing", _fake)
-    response = client.get("/sec/filings/0000320193-24-000123", params={"identifier": "AAPL"})
+    response = client.get(
+        "/sec/filings/0000320193-24-000123", params={"identifier": "AAPL", "form_type": "10-K"}
+    )
     assert response.status_code == 200
     body = response.json()
     assert body["filing"]["form_type"] == "10-K"
@@ -203,24 +208,57 @@ def test_filing_detail_requires_identifier(client: TestClient, available_provide
     assert response.status_code == 422  # FastAPI's missing-query error
 
 
-def test_filing_sections_route(
+def test_filing_detail_not_found_maps_to_404(
     client: TestClient,
     available_provider: None,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    sections = [_sample_section(i) for i in range(1, 4)]
+    """R15-DATA-007: a not_found ProviderError (accession outside the
+    issuer's recent-filings window) is a 404, never the generic 502 an
+    upstream tool failure gets."""
+    from services.errors import ProviderError
 
-    async def _fake(accession: str, *, cik_or_symbol: str | None = None) -> list[FilingSection]:
-        return sections
+    async def _fake(
+        accession: str, *, cik_or_symbol: str | None = None, form_type: str | None = None
+    ) -> FilingDetail:
+        raise ProviderError(f"filing metadata unavailable for {accession!r}", kind="not_found")
 
-    monkeypatch.setattr(sec_filings_provider, "get_filing_sections", _fake)
+    monkeypatch.setattr(sec_filings_provider, "get_filing", _fake)
+    response = client.get("/sec/filings/0000000000-99-999999", params={"identifier": "AAPL"})
+    assert response.status_code == 404
+
+
+def test_filing_detail_other_provider_error_stays_502(
+    client: TestClient,
+    available_provider: None,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """For a case the fix was not written against: an unclassified
+    ProviderError (e.g. the upstream MCP call itself failing) still 502s,
+    not 404 — only ``kind == "not_found"`` gets the honest 404."""
+    from services.errors import ProviderError
+
+    async def _fake(
+        accession: str, *, cik_or_symbol: str | None = None, form_type: str | None = None
+    ) -> FilingDetail:
+        raise ProviderError("sec-edgar-mcp call failed")
+
+    monkeypatch.setattr(sec_filings_provider, "get_filing", _fake)
+    response = client.get("/sec/filings/0000320193-24-000123", params={"identifier": "AAPL"})
+    assert response.status_code == 502
+
+
+def test_sections_route_is_gone(
+    client: TestClient,
+    available_provider: None,
+) -> None:
+    """R15-CODE-DATA-013: the caller-less ``/sections`` pass-through route was
+    deleted (the docstring's claimed "cheaper path" it took was never real);
+    ``get_filing`` already returns the full sections list."""
     response = client.get(
         "/sec/filings/0000320193-24-000123/sections", params={"identifier": "AAPL"}
     )
-    assert response.status_code == 200
-    body = response.json()
-    assert "sections" in body
-    assert len(body["sections"]) == 3
+    assert response.status_code == 404
 
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,4 @@
+CMD: sidecar/.venv/bin/python scratch b23_set81.py (in-process probe of services.fundamentals_warm at ace7dd76; IN region, stubs for network/loops)
+fundamentals warm: crawl cycle: 1 of 3 symbols failed (first: RuntimeError('sqlite write error'))
+030: seed calls after IN boot + sweep first cycle = 1 (want 1)
+EXIT=0

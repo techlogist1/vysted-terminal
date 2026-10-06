@@ -1,0 +1,707 @@
+{
+  "task": "R12 data-battery redrive (isolated re-collection) — Bombay Oxygen Investments, BSE 509470",
+  "collected_at": "2026-07-10",
+  "sidecar_base_url": "http://127.0.0.1:50534",
+  "sidecar_health": {
+    "status": "ok",
+    "version": "0.8.0"
+  },
+  "step1_resolve": {
+    "by_name": {
+      "query": "Bombay Oxygen Investments",
+      "result": {
+        "ok": true,
+        "query": "Bombay Oxygen Investments",
+        "region": "IN",
+        "resolved": {
+          "symbol": "BOMOXY-B1",
+          "name": "Bombay Oxygen Investments Ltd",
+          "exchange": "BSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "BOMOXY-B1.BO",
+          "confidence": 1.0
+        },
+        "needs_disambiguation": false,
+        "candidates": [
+          {
+            "symbol": "BOMOXY-B1",
+            "name": "Bombay Oxygen Investments Ltd",
+            "exchange": "BSE",
+            "region": "IN",
+            "asset_class": "equity",
+            "yahoo_symbol": "BOMOXY-B1.BO",
+            "confidence": 1.0
+          },
+          {
+            "symbol": "GEMSI",
+            "name": "Gemstone Investments Ltd",
+            "exchange": "BSE",
+            "region": "IN",
+            "asset_class": "equity",
+            "yahoo_symbol": "GEMSI.BO",
+            "confidence": 0.6122
+          },
+          {
+            "symbol": "ZGOLDINV",
+            "name": "Gold Rock Investments Ltd",
+            "exchange": "BSE",
+            "region": "IN",
+            "asset_class": "equity",
+            "yahoo_symbol": "ZGOLDINV.BO",
+            "confidence": 0.6
+          },
+          {
+            "symbol": "AGNC",
+            "name": "AGNC Investment Corp.",
+            "exchange": "US",
+            "region": "US",
+            "asset_class": "equity",
+            "yahoo_symbol": "AGNC",
+            "confidence": 0.6087
+          },
+          {
+            "symbol": "AGNCL",
+            "name": "AGNC Investment Corp.",
+            "exchange": "US",
+            "region": "US",
+            "asset_class": "equity",
+            "yahoo_symbol": "AGNCL",
+            "confidence": 0.6087
+          },
+          {
+            "symbol": "AGNCM",
+            "name": "AGNC Investment Corp.",
+            "exchange": "US",
+            "region": "US",
+            "asset_class": "equity",
+            "yahoo_symbol": "AGNCM",
+            "confidence": 0.6087
+          }
+        ]
+      }
+    },
+    "by_bse_code": {
+      "query": "509470",
+      "result": {
+        "ok": false,
+        "query": "509470",
+        "region": "IN",
+        "message": "No instrument matched '509470'.",
+        "resolved": null,
+        "needs_disambiguation": false,
+        "candidates": []
+      },
+      "finding": "FAIL — resolve endpoint does NOT match a bare BSE numeric code; only name-based resolution works for this instrument. /resolve?q=509470 returned ok:false / 'No instrument matched'."
+    }
+  },
+  "step2_fundamentals": {
+    "form_BOMOXY-B1_no_suffix": {
+      "http_status": 404,
+      "body": {
+        "detail": "No instrument matches 'BOMOXY-B1' — check the symbol."
+      },
+      "finding": "FAIL — bare BSE symbol without .BO Yahoo suffix is rejected."
+    },
+    "form_BOMOXY-B1.BO": {
+      "http_status": 200,
+      "body": {
+        "symbol": "BOMOXY-B1.BO",
+        "name": "Bombay Oxygen Investments Limited",
+        "sector": "Financial Services",
+        "industry": "Asset Management",
+        "currency": "INR",
+        "market_cap": 2829097472.0,
+        "pe_ratio": null,
+        "forward_pe": null,
+        "peg_ratio": null,
+        "price_to_book": 0.59859097,
+        "price_to_sales": -144.05507,
+        "ev_to_ebitda": -73.998,
+        "book_value": 31508.412,
+        "dividend_yield": 0.0013,
+        "dividend_per_share": 25.0,
+        "eps": -215.54,
+        "beta": 0.086,
+        "fifty_two_week_high": 31998.0,
+        "fifty_two_week_low": 18500.35,
+        "fifty_two_week_change": -0.2508374,
+        "roe": -0.00678,
+        "roa": -0.0049900003,
+        "gross_margin": 0.0,
+        "operating_margin": 1.0168099,
+        "profit_margin": 0.0,
+        "debt_to_equity": null,
+        "current_ratio": 28.213,
+        "quick_ratio": 14.054,
+        "revenue_ttm": -19639000.0,
+        "net_income_ttm": -32406000.0,
+        "free_cash_flow": -23672500.0,
+        "shares_outstanding": 150000.0,
+        "revenue_growth": null,
+        "earnings_growth": null,
+        "growth_basis": "mrq_yoy",
+        "held_percent_insiders": 0.75806,
+        "held_percent_institutions": 0.08455,
+        "dividend_per_share_ttm": null,
+        "revenue_growth_computed": null,
+        "earnings_growth_computed": null,
+        "growth_computed_quarters": null,
+        "provider": "yfinance"
+      },
+      "finding": "OK — this is the correctly-grounded form. name='Bombay Oxygen Investments Limited', market_cap ~Rs283cr, book_value/share ~31508, 52w high/low exact match to reference pack."
+    },
+    "form_509470.BO": {
+      "http_status": 200,
+      "body": {
+        "symbol": "509470.BO",
+        "name": "509470.BO,0P0000BN3V,31",
+        "sector": null,
+        "industry": null,
+        "currency": "INR",
+        "market_cap": 3908935936.0,
+        "pe_ratio": 5.4256787,
+        "forward_pe": null,
+        "peg_ratio": null,
+        "price_to_book": 0.7365935,
+        "price_to_sales": null,
+        "ev_to_ebitda": null,
+        "book_value": 35094.934,
+        "dividend_yield": null,
+        "dividend_per_share": null,
+        "eps": null,
+        "beta": null,
+        "fifty_two_week_high": 38800.0,
+        "fifty_two_week_low": 15602.0,
+        "fifty_two_week_change": null,
+        "roe": null,
+        "roa": null,
+        "gross_margin": null,
+        "operating_margin": null,
+        "profit_margin": null,
+        "debt_to_equity": null,
+        "current_ratio": null,
+        "quick_ratio": null,
+        "revenue_ttm": null,
+        "net_income_ttm": null,
+        "free_cash_flow": null,
+        "shares_outstanding": 150000.0,
+        "revenue_growth": null,
+        "earnings_growth": null,
+        "growth_basis": "mrq_yoy",
+        "held_percent_insiders": null,
+        "held_percent_institutions": null,
+        "dividend_per_share_ttm": null,
+        "revenue_growth_computed": null,
+        "earnings_growth_computed": null,
+        "growth_computed_quarters": null,
+        "provider": "yfinance"
+      },
+      "finding": "MISMATCH/CONTAMINATED — same endpoint, different symbol form, returns a GARBLED name field ('509470.BO,0P0000BN3V,31') and numerically DIFFERENT data (market_cap 390.9cr vs 282.9cr, pe_ratio 5.43 vs null/NM, 52w high/low 38800/15602 vs 31998/18500.35). This is NOT the same clean snapshot as the BOMOXY-B1.BO form despite referring to the same BSE code — evidence of imperfect fundamentals-tool symbol grounding on the raw-BSE-code-as-ticker path specifically. The agent's own research flow did NOT hit this path (it used the resolved BOMOXY-B1 symbol via quote+fundamentals), so the final narrative was unaffected — but this is a live latent bug for any caller that queries '<bsecode>.BO' directly instead of going through /resolve first."
+    },
+    "which_form_answered_for_agent_flow": "BOMOXY-B1.BO (confirmed via the structured publish_brief payload's fundamentals.data.symbol)"
+  },
+  "step2b_quote": {
+    "endpoint": "/quotes/BOMOXY-B1.BO",
+    "body": {
+      "symbol": "BOMOXY-B1",
+      "price": 18860.65,
+      "change": 118.10000000000218,
+      "change_percent": 0.630117033167857,
+      "volume": null,
+      "currency": "INR",
+      "market_state": "CLOSED",
+      "timestamp": "2026-07-10T00:00:00Z",
+      "provider": "bse",
+      "freshness": "eod"
+    },
+    "note": "price 18860.65, EOD close 2026-07-10, provider bse. One trading day newer than the reference pack's 2026-07-09 close of 18853.00 (+0.04%, immaterial)."
+  },
+  "step3_agent_invoke": {
+    "provider": "openrouter",
+    "model": "z-ai/glm-5.2",
+    "mode": "agent",
+    "autonomy": "auto",
+    "requested_options": {
+      "research_depth": "normal"
+    },
+    "prompt": "Research Bombay Oxygen Investments (BSE 509470) — fundamentals, valuation, dividends.",
+    "sse_event_count": 454,
+    "sse_event_kind_counts": {
+      "thinking": 253,
+      "delta": 184,
+      "research_step": 10,
+      "tool_use": 6,
+      "done": 1
+    },
+    "note_on_depth": "Model's own research tool call requested depth='quick', but execution.requested_depth in the autobrief shows 'normal' (from options.research_depth) with loop='fast' — consistent with CLAUDE.md's documented design that research depth is authoritative via the ContextVar/options, not the LLM's tool arg. Not a bug.",
+    "research_tool_call": {
+      "query": "Bombay Oxygen Investments (BSE 509470) — fundamentals, valuation, dividends",
+      "depth": "quick"
+    },
+    "research_steps": [
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_7321a25821894feb955d221b",
+        "tool": "research",
+        "step_kind": "engine",
+        "detail": "research:begin e1418fe70f1f4643ad696c852567facb depth=normal query=Bombay Oxygen Investments (BSE 509470) — fundamentals, valuation, dividends",
+        "latency_ms": null,
+        "status": "ok",
+        "index": 1
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_7321a25821894feb955d221b",
+        "tool": "research",
+        "step_kind": "plan",
+        "detail": "resolving \"Bombay Oxygen Investments (BSE 509470) — fundamentals, valuation, dividends\"",
+        "latency_ms": null,
+        "status": "ok",
+        "index": 2
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_7321a25821894feb955d221b",
+        "tool": "research",
+        "step_kind": "plan",
+        "detail": "resolved → BOMOXY-B1",
+        "latency_ms": 916,
+        "status": "ok",
+        "index": 3
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_7321a25821894feb955d221b",
+        "tool": "research",
+        "step_kind": "tool",
+        "detail": "pulling market data for BOMOXY-B1",
+        "latency_ms": null,
+        "status": "ok",
+        "index": 4
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_7321a25821894feb955d221b",
+        "tool": "research",
+        "step_kind": "tool",
+        "detail": "pulled 4/4 data sources",
+        "latency_ms": 10752,
+        "status": "ok",
+        "index": 5
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_7321a25821894feb955d221b",
+        "tool": "research",
+        "step_kind": "search",
+        "detail": "searching the web for Bombay Oxygen Investments Ltd",
+        "latency_ms": null,
+        "status": "ok",
+        "index": 6
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_7321a25821894feb955d221b",
+        "tool": "research",
+        "step_kind": "search",
+        "detail": "0 web source(s)",
+        "latency_ms": 1672,
+        "status": "ok",
+        "index": 7
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_7321a25821894feb955d221b",
+        "tool": "research",
+        "step_kind": "synthesize",
+        "detail": "assembling the research bundle",
+        "latency_ms": null,
+        "status": "ok",
+        "index": 8
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_7321a25821894feb955d221b__autobrief",
+        "tool": "publish_brief",
+        "step_kind": "engine",
+        "detail": "The brief panel did not confirm the publish — treat it as NOT rendered until get_terminal_state shows it.",
+        "latency_ms": null,
+        "status": "error",
+        "index": 1
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_bf75e54bf1db4c3d8b04ad43",
+        "tool": "publish_brief",
+        "step_kind": "engine",
+        "detail": "The brief panel did not confirm the publish — treat it as NOT rendered until get_terminal_state shows it.",
+        "latency_ms": null,
+        "status": "error",
+        "index": 2
+      }
+    ],
+    "autobrief_publish_brief_structured_payload": {
+      "price": {
+        "ok": true,
+        "provider": "bse",
+        "data": {
+          "symbol": "BOMOXY-B1",
+          "price": 18860.65,
+          "change": 118.10000000000218,
+          "change_percent": 0.630117033167857,
+          "volume": null,
+          "currency": "INR",
+          "market_state": "CLOSED",
+          "timestamp": "2026-07-10T00:00:00Z",
+          "provider": "bse",
+          "freshness": null
+        }
+      },
+      "fundamentals": {
+        "ok": true,
+        "provider": "yfinance",
+        "data": {
+          "symbol": "BOMOXY-B1.BO",
+          "name": "Bombay Oxygen Investments Limited",
+          "sector": "Financial Services",
+          "industry": "Asset Management",
+          "currency": "INR",
+          "market_cap": 2829097472.0,
+          "pe_ratio": null,
+          "forward_pe": null,
+          "peg_ratio": null,
+          "price_to_book": 0.59859097,
+          "price_to_sales": -144.05507,
+          "ev_to_ebitda": -73.998,
+          "book_value": 31508.412,
+          "dividend_yield": 0.0013,
+          "dividend_per_share": 25.0,
+          "eps": -215.54,
+          "beta": 0.086,
+          "fifty_two_week_high": 31998.0,
+          "fifty_two_week_low": 18500.35,
+          "fifty_two_week_change": -0.2508374,
+          "roe": -0.00678,
+          "roa": -0.0049900003,
+          "gross_margin": 0.0,
+          "operating_margin": 1.0168099,
+          "profit_margin": 0.0,
+          "debt_to_equity": null,
+          "current_ratio": 28.213,
+          "quick_ratio": 14.054,
+          "revenue_ttm": -19639000.0,
+          "net_income_ttm": -32406000.0,
+          "free_cash_flow": -23672500.0,
+          "shares_outstanding": 150000.0,
+          "revenue_growth": null,
+          "earnings_growth": null,
+          "growth_basis": "mrq_yoy",
+          "held_percent_insiders": 0.75806,
+          "held_percent_institutions": 0.08455,
+          "dividend_per_share_ttm": null,
+          "revenue_growth_computed": null,
+          "earnings_growth_computed": null,
+          "growth_computed_quarters": null,
+          "provider": "yfinance"
+        }
+      },
+      "derived": {
+        "ok": true,
+        "provider": "derived",
+        "data": {
+          "drawdown_from_high": {
+            "value": 0.41056784799049933,
+            "label": "Below 52-week high",
+            "basis": "vs 52w high",
+            "formula": "(52w high - price) / 52w high",
+            "unit": "percent"
+          },
+          "fifty_two_week_change": {
+            "value": -0.2508374,
+            "label": "52-week price change (Yahoo)",
+            "basis": "trailing 52 weeks",
+            "unit": "percent"
+          },
+          "dividend_yield": {
+            "value": 0.0013255110507856304,
+            "label": "Dividend yield",
+            "basis": "fraction of price",
+            "formula": "dividend per share / price",
+            "unit": "percent"
+          },
+          "dividend_per_share": {
+            "value": 25.0,
+            "label": "Dividend per share",
+            "basis": "per share, INR",
+            "unit": "currency"
+          },
+          "revenue_growth": {
+            "value": null,
+            "label": "Revenue growth",
+            "basis": "quarterly YoY (MRQ)",
+            "unit": "percent"
+          },
+          "earnings_growth": {
+            "value": null,
+            "label": "Earnings growth",
+            "basis": "quarterly YoY (MRQ)",
+            "unit": "percent"
+          },
+          "conflicts": []
+        }
+      },
+      "news": {
+        "ok": true,
+        "provider": "rss",
+        "data": [
+          {
+            "id": "a06dbac75c684ff0",
+            "title": "US stocks today: Nasdaq rallies to sharply higher close; chip surge offsets Iran worries",
+            "summary": "US markets closed higher led by chip stocks, with Micron boosting sentiment through a massive investment plan tied to AI demand. Gains came despite rising US-Iran tensions. Stable jobless claims signaled labor resilience, while Fed rate hike expectations linger. Investors now shift focus to upcoming earnings season and valuations.",
+            "url": "https://economictimes.indiatimes.com/markets/us-stocks/news/us-stocks-today-nasdaq-rallies-to-sharply-higher-close-chip-surge-offsets-iran-worries/articleshow/132297839.cms",
+            "source": "Markets-Economic Times",
+            "published_at": "2026-07-09T20:04:02Z",
+            "symbols": [],
+            "sentiment": null,
+            "sentiment_label": null,
+            "provider": "rss"
+          },
+          {
+            "id": "421e8b6918d61090",
+            "title": "World News Today Live Updates on July 10, 2026 : US launches third straight day of strikes: Explosions heard in Bushehr, Konarak",
+            "summary": "World News Today Live Updates on July 10, 2026: Stay informed on global events with our in-depth world news coverage, bringing you the latest developments across politics, economy, and culture. Discover insights into international affairs, breaking news, and the trends shaping our interconnected world, all in one place.",
+            "url": "https://www.livemint.com/news/world/total-world-latest-news-on-july-10-2026-live-updates-11783623502664.html",
+            "source": "mint - news",
+            "published_at": "2026-07-09T18:58:22Z",
+            "symbols": [],
+            "sentiment": null,
+            "sentiment_label": null,
+            "provider": "rss"
+          },
+          {
+            "id": "8df8a871d89180fd",
+            "title": "US launches third straight day of strikes on Iran: Explosions heard in Bushehr, Konarak and Choghadak",
+            "summary": "At least six explosions were heard in Bushehr and Choghadak, while blasts were also reported in Konarak. Bushehr is home to Iran's only civilian nuclear power plant.",
+            "url": "https://www.livemint.com/news/world/us-launches-third-straight-day-of-strikes-explosions-heard-in-bushehr-konarak-11783623069502.html",
+            "source": "mint - news",
+            "published_at": "2026-07-09T18:58:12Z",
+            "symbols": [],
+            "sentiment": null,
+            "sentiment_label": null,
+            "provider": "rss"
+          }
+        ],
+        "_note": "137 total news items returned (generic market/macro feed, none company-specific to Bombay Oxygen); truncated to first 3 for this evidence file"
+      },
+      "filings": {
+        "ok": true,
+        "provider": null,
+        "data": {
+          "cik": "BOMOXY-B1",
+          "company_name": "",
+          "symbol": null,
+          "filings": []
+        }
+      }
+    },
+    "autobrief_execution_meta": {
+      "run_id": "e1418fe70f1f4643ad696c852567facb",
+      "requested_depth": "normal",
+      "loop": "fast",
+      "backend": null,
+      "started_at": 1783629045.01491,
+      "finished_at": 1783629058.355566,
+      "degraded_reason": null
+    },
+    "manual_publish_brief": {
+      "markdown": "# Bombay Oxygen Investments Ltd — BSE 509470 (`$BOMOXY-B1`)\n\n*A quick fundamentals + valuation workup, 09 Jul 2026 (market close).*\n\n## Snapshot\n\n| Metric | Value |\n|---|---|\n| Last price | **₹18,860.65** (+0.63% on the day) |\n| Market cap | **₹2,829 crore** |\n| Shares outstanding | **1.5 lakh** (extremely thin float) |\n| Sector / Industry | Financial Services — Asset Management |\n| 52-week high / low | ₹31,998 / ₹18,500 |\n| 52-week change | **−25.1%** |\n| Drawdown from high | **−41.1%** |\n| Beta | 0.086 (near-zero market correlation) |\n\nSource: BSE quote + Yahoo Finance fundamentals [1].\n\n---\n\n## Valuation — trading at a steep discount to book\n\n- **Price / Book: 0.60×** — the stock trades at a ~40% discount to its book value of **₹31,508 per share**.\n- **P/E: N/A** — the company is loss-making (TTM EPS **−₹215.54**), so earnings-based multiples are undefined.\n- **EV/EBITDA: N/A** (negative EBITDA).\n- **Price/Sales: N/A** (TTM revenue is negative at −₹1.96 cr, suggesting write-backs or non-operational income/cost structure rather than a going-concern revenue line).\n\n**Interpretation:** The entire investment case rests on the **book-value discount**. At 0.60× book, the market is pricing in either asset-quality concerns, illiquidity, or a persistent inability to monetise the underlying assets. There is no earnings power to underwrite.\n\n---\n\n## Dividends — token yield, not an income stock\n\n- **Dividend per share: ₹25** (annualised).\n- **Dividend yield: ~0.13%** on the current price.\n- TTM dividend field was null in the feed, so the ₹25 figure should be treated as the most recent declared dividend, not a confirmed trailing-twelve-month payout.\n\nA 0.13% yield on a ₹18,860 stock is negligible — this is not a dividend-income play. The payout appears symbolic relative to the share price.\n\n---\n\n## Quality & financials — loss-making, no revenue engine\n\n| Metric | Value |\n|---|---|\n| Revenue (TTM) | **−₹1.96 crore** |\n| Net income (TTM) | **−₹3.24 crore** |\n| Free cash flow (TTM) | **−₹2.37 crore** |\n| ROE | **−0.68%** |\n| ROA | **−0.50%** |\n| Gross margin | 0% |\n| Operating margin | 101.7%* |\n| Current ratio | 28.2× |\n| Quick ratio | 14.1× |\n| Debt/equity | N/A |\n\n*The 101.7% operating margin on negative revenue is a mathematical artefact, not a sign of profitability.\n\n**Takeaway:** Despite a fortress balance sheet (current ratio 28×, virtually no debt), the company generates **no operating revenue and is bleeding cash**. The liquidity is real but unproductive — it sits idle while the P&L deteriorates. The \"Investments\" in the name suggests the company is an investment-holding vehicle; its returns depend on asset/portfolio performance, not operations.\n\n---\n\n## Ownership — promoter-controlled, illiquid\n\n- **Promoter / insider holding: 75.8%**\n- **Institutional holding: 8.5%**\n- Public float: ~15.7% of 1.5 lakh shares = **~23,600 shares** in public hands.\n\nWith only ~24,000 shares in public hands at ~₹18,860 each, the total public float is worth roughly **₹44 crore**. Daily volumes are negligible (the feed reported null volume on the last close). This is a **structurally illiquid** stock — entry/exit will move the price and bid-ask spreads will be wide.\n\n---\n\n## Price action\n\n- Down **25%** over the trailing 52 weeks and **41%** off its 52-week high of ₹31,998.\n- Currently sitting just above the 52-week low of ₹18,500 — the stock is near its cheapest level in a year.\n- Beta of 0.086 means it moves almost independently of the broader market; price action is driven by idiosyncratic, low-volume trading.\n\n---\n\n## Bottom line\n\n**Bombay Oxygen Investments is a deep-value/asset-play stock with no earnings and negligible dividends.** The thesis is purely: *can you buy assets at 60 paise on the rupee and eventually realise that value?*\n\n| Bull case | Bear case |\n|---|---|\n| 0.60× book value — large margin of safety if assets are real and realisable | No revenue, consistent losses, negative free cash flow |\n| Fortress liquidity (28× current ratio, no debt) | Cash is idle, not compounding — no operating engine |\n| Promoter skin in the game (75.8%) | Extreme illiquidity — ~24k public shares, near-zero volume |\n| Near 52-week low — mean-reversion candidate | 0.13% dividend yield offers no income support |\n| | No identified catalyst for value unlock in this run |\n\n**This is a speculative deep-value situation, not a quality compounder.** The book-value discount is the only real pillar; everything else (earnings, dividends, growth) is absent. Proceed only if you have a view on the underlying asset portfolio and a path to value realisation.\n\n---\n\n### Coverage notes\n- No company-specific news or corporate announcements were retrieved in this run. No SEC/BSE filings were fetched. The analysis is built entirely from live price + fundamentals data.\n- Web search was available but returned no Bombay Oxygen–specific results — no fabricated sources are used in this brief.\n\n*Want Buffett's value take on this name? I can hand it off for a rigorous asset-value workup.*",
+      "other_fields": {
+        "mode": "FAST",
+        "query": "Bombay Oxygen Investments (BSE 509470) — fundamentals, valuation, dividends",
+        "symbol": "BOMOXY-B1",
+        "sources": [
+          {
+            "title": "BSE quote — Bombay Oxygen Investments Ltd (BOMOXY-B1)",
+            "domain": "bseindia.com",
+            "url": "https://www.bseindia.com",
+            "excerpt": "Last traded price ₹18,860.65, market state closed, quote as of 2026-07-10."
+          },
+          {
+            "title": "Yahoo Finance fundamentals — BOMOXY-B1.BO",
+            "domain": "finance.yahoo.com",
+            "url": "https://finance.yahoo.com/quote/BOMOXY-B1.BO",
+            "excerpt": "Market cap ₹2,829 cr, P/B 0.60, book value ₹31,508, EPS −₹215.54, ROE −0.68%, dividend ₹25/share, 52w high ₹31,998 / low ₹18,500, 75.8% insider holding, 1.5 lakh shares outstanding."
+          }
+        ],
+        "web_available": true,
+        "depth": "quick",
+        "note": "Web search backend returned no company-specific results; brief built from live price + fundamentals data only.",
+        "execution": {
+          "run_id": "e1418fe70f1f4643ad696c852567facb",
+          "requested_depth": "normal",
+          "loop": "fast",
+          "backend": null,
+          "started_at": 1783629045.01491,
+          "finished_at": 1783629058.355566,
+          "degraded_reason": null
+        }
+      }
+    },
+    "final_narration_text": "I'll kick off the full research flow for Bombay Oxygen Investments (BSE: 509470). Let me run the research and set up the cockpit.Now let me set up the research cockpit with the chart and indicators.Now let me publish the research brief.Built you a research brief on **Bombay Oxygen Investments (BSE 509470)** — it's at the top of the cockpit with the daily chart and indicators loaded. Here's the headline:\n\n**It's a deep-value/asset-play stock with no earnings and negligible dividends.** The stock trades at **₹18,860** — a **0.60× discount to its book value of ₹31,508/share** — but the company is loss-making (TTM EPS −₹215.54), generates no operating revenue, and pays a token ₹25/share dividend (0.13% yield). With only **1.5 lakh shares outstanding** and ~24,000 in public hands, it's extremely illiquid. The entire thesis rests on whether the underlying asset portfolio can be realised at book value.\n\nKey numbers:\n- **P/B: 0.60×** | P/E: N/A | Market cap: ₹2,829 cr\n- **Down 25%** over 52 weeks, **41% off its high** of ₹31,998\n- **Promoter holding: 75.8%**, institutional: 8.5%\n- Fortress liquidity (28× current ratio, no debt) but idle — negative FCF of −₹2.37 cr\n\nThe brief has the full bull/bear breakdown and coverage notes. Click any ticker chip to dig deeper, or want me to escalate this to a deeper research run or hand it off for a Buffett-style asset-value workup?",
+    "done_event": {
+      "kind": "done",
+      "usage": {
+        "input_tokens": 45224,
+        "output_tokens": 339,
+        "cache_read_input_tokens": null,
+        "cache_creation_input_tokens": null
+      },
+      "finish_reason": "stop"
+    }
+  },
+  "step4_verification": {
+    "identity_check": "PASS — every layer (resolve, fundamentals via BOMOXY-B1.BO, quote, autobrief structured payload, manual brief markdown, final narration) consistently names 'Bombay Oxygen Investments (Ltd/Limited)', BSE 509470, symbol BOMOXY-B1. No cross-contamination with any other company (the resolve candidate list included Gemstone Investments, Gold Rock Investments, AGNC Investment Corp as low-confidence alternates — none of these leaked into the fundamentals/agent output).",
+    "company_profile_check": "PASS — narrative correctly frames it as an investment/asset-holding company (Financial Services / Asset Management), NOT an industrial-gas manufacturer (correctly notes the old gas business, matching the reference pack's 'formerly manufactured industrial gases... discontinued 1 Aug 2019' fact was not contradicted, though the agent did not explicitly surface the historical gas business — it inferred 'investment-holding vehicle' from the current Yahoo sector tag alone, which is directionally correct but shallower than the reference pack's history).",
+    "market_cap_check": "PASS — mcap ~Rs 283 cr, squarely inside the requested Rs 280-320cr band.",
+    "price_check": "PASS — price ~Rs 18,860, i.e. tens-of-thousands per share as expected.",
+    "drawdown_52w_check": "PASS — derived.drawdown_from_high present (41.06%, computed vs price + 52w high) and fundamentals.fifty_two_week_change present (-25.08%, raw Yahoo trailing figure). Both are non-null and internally consistent with the raw price/52w-high/52w-low inputs, confirming D66/D68-style derived-value plumbing is live and firing whenever the raw inputs exist."
+  },
+  "diff_vs_reference_pack": [
+    {
+      "figure": "legal name",
+      "reference": "Bombay Oxygen Investments Limited",
+      "sidecar": "Bombay Oxygen Investments Limited",
+      "verdict": "ok"
+    },
+    {
+      "figure": "bse_symbol",
+      "reference": "BOMOXY-B1",
+      "sidecar": "BOMOXY-B1",
+      "verdict": "ok"
+    },
+    {
+      "figure": "shares_outstanding",
+      "reference": 150000,
+      "sidecar": 150000.0,
+      "verdict": "ok"
+    },
+    {
+      "figure": "latest price",
+      "reference": "18853.00 (as of 2026-07-09)",
+      "sidecar": "18860.65 (as of 2026-07-10)",
+      "verdict": "ok",
+      "note": "one trading day newer, +0.04%, immaterial"
+    },
+    {
+      "figure": "market_cap",
+      "reference": "~Rs 283 cr (range 281.14-283 cr across sources)",
+      "sidecar": "Rs 282.91 cr",
+      "verdict": "ok"
+    },
+    {
+      "figure": "pe_ttm",
+      "reference": "NM (negative TTM EPS)",
+      "sidecar": "null (BOMOXY-B1.BO form) — correctly NM",
+      "verdict": "ok"
+    },
+    {
+      "figure": "pe_ttm via 509470.BO form",
+      "reference": "NM (negative TTM EPS)",
+      "sidecar": "5.4256787 (contaminated/stale snapshot from the raw-bsecode ticker path)",
+      "verdict": "mismatch",
+      "note": "only reproduces via the ungrounded 509470.BO query path, not the agent's actual flow"
+    },
+    {
+      "figure": "eps_ttm",
+      "reference": -216.0,
+      "sidecar": -215.54,
+      "verdict": "ok"
+    },
+    {
+      "figure": "book_value_per_share",
+      "reference": 31509,
+      "sidecar": 31508.412,
+      "verdict": "ok"
+    },
+    {
+      "figure": "52_week_high",
+      "reference": 31998,
+      "sidecar": 31998.0,
+      "verdict": "ok"
+    },
+    {
+      "figure": "52_week_low",
+      "reference": 18500.35,
+      "sidecar": 18500.35,
+      "verdict": "ok"
+    },
+    {
+      "figure": "drawdown_from_52w_high_pct",
+      "reference": -41.08,
+      "sidecar": -41.06,
+      "verdict": "ok"
+    },
+    {
+      "figure": "52_week_price_change_pct",
+      "reference": "-25.77% (stated as an estimate range of approx -25% to -26%)",
+      "sidecar": "-25.08% (raw Yahoo fifty_two_week_change)",
+      "verdict": "ok",
+      "note": "within reference's own stated uncertainty band; different computation basis (Yahoo trailing calc vs reference's manual historical-close calc) but converges to the same ballpark"
+    },
+    {
+      "figure": "roe_pct",
+      "reference": -0.68,
+      "sidecar": -0.678,
+      "verdict": "ok"
+    },
+    {
+      "figure": "dividend_per_share",
+      "reference": "35 (trailing-12mo PAID, primary) / 25 (declared FY26, not yet paid)",
+      "sidecar": 25.0,
+      "verdict": "watch",
+      "note": "sidecar surfaces the newer DECLARED-NOT-YET-PAID dividend (25) as 'dividend_per_share' rather than the reference's primary trailing-12-month PAID figure (35). Not fabricated — 25 is a real, correctly-sourced number — but conflates declared vs. paid status. The agent's own brief self-caveated this correctly in prose ('should be treated as the most recent declared dividend, not a confirmed TTM payout')."
+    },
+    {
+      "figure": "dividend_yield_pct",
+      "reference": "0.19 (primary, Rs35-based) / 0.13 (flagged by reference itself as a stale alternate using the old Rs25 figure)",
+      "sidecar": 0.1326,
+      "verdict": "watch",
+      "note": "matches the reference's own flagged-as-stale 0.13% figure, not its primary 0.19% figure — downstream of the dividend_per_share issue above"
+    },
+    {
+      "figure": "promoter/insider holding pct",
+      "reference": 73.29,
+      "sidecar": 75.806,
+      "verdict": "watch",
+      "note": "~2.5pp gap; likely different as-of quarter or insider-vs-promoter definition mismatch between Yahoo and BSE shareholding-pattern filings"
+    },
+    {
+      "figure": "institutional holding pct",
+      "reference": "0.06 (DII only; FII not separately disclosed/negligible)",
+      "sidecar": 8.455,
+      "verdict": "mismatch",
+      "note": "sidecar's held_percent_institutions (8.46%) is two orders of magnitude above the reference's DII figure — Yahoo's institutional-holding classification for this thin BSE micro-cap looks unreliable/miscategorized; worth a closer look if this field is surfaced to users as authoritative"
+    },
+    {
+      "figure": "revenue_growth / earnings_growth (YoY MRQ)",
+      "reference": "-157.1% / -158.3% (reference explicitly caveats these as not economically meaningful, negative-base artefacts)",
+      "sidecar": "null / null",
+      "verdict": "ok",
+      "note": "sidecar declines to compute a growth figure rather than emit a not-meaningful number — arguably the safer behavior; not treated as a mismatch"
+    },
+    {
+      "figure": "sector/industry",
+      "reference": "NBFC / investment-holding co (qualitative, no Yahoo-style tag given)",
+      "sidecar": "Financial Services / Asset Management",
+      "verdict": "ok"
+    },
+    {
+      "figure": "final agent narrative company identity",
+      "reference": "Bombay Oxygen Investments Ltd, BSE 509470",
+      "sidecar": "Bombay Oxygen Investments Ltd, BSE 509470 — correctly and consistently through resolve/fundamentals/quote/brief/narration, no contamination",
+      "verdict": "ok"
+    }
+  ],
+  "overall_verdict": "PASS with two flagged watch-items and one confirmed mismatch. Isolated re-collection is CLEAN: no cross-contamination in the actual agent flow (resolve -> BOMOXY-B1 -> fundamentals via BOMOXY-B1.BO -> quote -> publish_brief -> narration), all core valuation figures (price, market cap, book value, 52w high/low, EPS, ROE, drawdown) match the reference pack within immaterial tolerance. Genuine findings: (1) /resolve?q=509470 (bare BSE numeric code) fails to resolve — name-based resolve is the only working path for this instrument; (2) querying /fundamentals/509470.BO directly (bypassing /resolve) returns a differently-grounded, apparently contaminated/stale snapshot (garbled name, wrong PE, wrong 52w range, ~38% higher market cap) versus the correctly-grounded BOMOXY-B1.BO form — a latent fundamentals-tool symbol-grounding gap on the raw-BSE-code path specifically, even though tonight's D68 fix protected the actual agent-driven flow; (3) dividend_per_share/dividend_yield fields surface the latest DECLARED-not-yet-PAID dividend rather than the trailing-12-month PAID dividend (self-caveated correctly in the agent's prose, but a data-completeness nuance); (4) held_percent_institutions is off by ~8.4pp vs ground truth DII — looks like a Yahoo data-quality issue for this illiquid micro-cap, not a Vysted bug, but notable if ever surfaced as authoritative."
+}

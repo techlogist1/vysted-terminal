@@ -1,0 +1,2 @@
+curl -s --max-time 15 -X POST http://127.0.0.1:52352/llm/keys/validate -H 'Content-Type: application/json' -d '{"provider":"ollama","model":"llama3.1:8b"}'
+{"ok":true,"reason":null,"detail":null}EXIT:0

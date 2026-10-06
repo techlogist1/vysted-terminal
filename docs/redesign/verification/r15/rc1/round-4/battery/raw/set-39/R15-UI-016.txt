@@ -1,0 +1,7 @@
+NOT RUN LIVE: frontend-only (keydown dispatcher resolving through bindingFor+matchesEvent), needs jsdom + a live keyboard event; source read + pinned test named instead.
+SOURCE CHECK (candidate HEAD 1006c6da):
+  src/store/keybindings.ts: registerAction(id, handler) + one global keydown listener resolving via bindingFor/matchesEvent (grep 'registerAction' present); keybindings.test.ts:263 "registers, calls and unregisters a handler".
+PINNED TEST (ci_pinned):
+  src/store/keybindings.test.ts:284 it("resolves EVERY DEFAULT_KEYBINDINGS id on its own default chord (class pin: no dead defaults)")
+  src/store/keybindings.test.ts:300 it("a remapped palette.open fires only on the new chord, never the old default")
+VERDICT BASIS: pinned tests above directly encode the register's repro (rebind palette.open -> new chord fires, old chord (Mod+K) no longer does).

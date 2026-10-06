@@ -1,0 +1,23 @@
+# R15-DATA-075 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:33:33+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py6/R15-DATA-075.py 2>&1 | grep -v '^DEBUG\|falling through' | tail -c 9000
+[exit 0] [1.20s]
+BSE attachment urls in HDFCBANK feed: 11 ['https://www.bseindia.com/xml-data/corpfiling/AttachLive/709c1ca1-bbc6-4432-949f-6a84683a6ebe.pdf', 'https://www.bseindia.com/xml-data/corpfiling/AttachHis/baa67aec-6e29-4518-9677-0883060b793c.pdf', 'https://www.bseindia.com/xml-data/corpfiling/AttachHis/a9ab4a0d-8f0c-4255-bc2b-0e22e71e935f.pdf']
+curl AttachLive 200
+forced-404 AttachLive -> {'ok': False, 'url': 'https://www.bseindia.com/xml-data/corpfiling/AttachLive/709c1ca1-bbc6-4432-949f-6a84683a6ebe.pdf', 'error': 'HTTP 404'} fetch calls: ['AttachLive/709c1ca1-', 'AttachHis/709c1ca1-b']
+curl AttachLive 200
+forced-404 AttachLive -> {'ok': True, 'title': 'Microsoft Word - SEIntimationBoardmeeting October 2026', 'content': 'Regd. Office: HDFC Bank Limited, HDFC Bank House, Senapati Bapat Marg, Lower Parel (West), Mumbai – 400 013\n\nRef. No. SE/2026-27/109\n\nSeptember 22, 2026\n\nBSE Limited National Stock Exchange of India L', 'truncated': True, 'chars': 527, 'pages_used': [1], 'page_count': 1, 'pages_empty': 0, 'url': 'https://www.bseindia.com/xml-data/corpfiling/AttachLive/baa67aec-6e29-4518-9677-0883060b793c.pdf', 'final_url': 'https://www.bseindia.com/xml-data/corpfiling/AttachLive/baa67aec-6e29-4518-9677-0883060b793c.pdf', 'content_type': 'application/pdf'} fetch calls: ['AttachLive/baa67aec-', 'AttachHis/baa67aec-6']
+
+
+$ echo '--- earlier probe of this id (batch4) ---'; /bin/cat /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/old/R15-DATA-075.txt
+[exit 0] [0.00s]
+--- earlier probe of this id (batch4) ---
+# R15-DATA-075 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:30:15+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py4/R15-DATA-075.py 2>&1 | grep -v '^DEBUG' | tail -c 9000
+[exit 0] [11.77s]
+https://www.bseindia.com/xml-data/corpfiling/AttachLive/dc301295-dc00-47dc-8385-a52e59934ac5.pdf curl -> 200
+https://www.bseindia.com/xml-data/corpfiling/AttachHis/dc301295-dc00-47dc-8385-a52e59934ac5.pdf curl -> 200
+fetch_page(AttachLive) -> {'ok': False, 'url': 'https://www.bseindia.com/xml-data/corpfiling/AttachLive/dc301295-dc00-47dc-8385-a52e59934ac5.pdf', 'error': 'fetch failed: PDF exceeds the 15MB cap'}
+
+

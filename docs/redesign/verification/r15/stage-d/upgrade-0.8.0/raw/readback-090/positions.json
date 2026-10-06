@@ -1,0 +1,29 @@
+[
+    {
+        "asset_class": "equity",
+        "cost_basis": 172.35,
+        "id": 1,
+        "note": "Core holding - bought on the March dip; trim above 260.",
+        "opened_at": "2026-03-14T15:30:00",
+        "quantity": 25.0,
+        "symbol": "AAPL"
+    },
+    {
+        "asset_class": "crypto",
+        "cost_basis": 61250.5,
+        "id": 2,
+        "note": "Long-term crypto sleeve, cold wallet.",
+        "opened_at": "2026-05-02T09:00:00",
+        "quantity": 0.42,
+        "symbol": "BTC/USDT"
+    },
+    {
+        "asset_class": "equity",
+        "cost_basis": 121.1,
+        "id": 3,
+        "note": "Added 5 on the pullback.",
+        "opened_at": null,
+        "quantity": 45.0,
+        "symbol": "NVDA"
+    }
+]

@@ -1,0 +1,3 @@
+CMD: grep -n 'no string or JSX text under src/ contains' src/lib/source-guards.test.ts; grep -rn '⌘' src --include=*.ts --include=*.tsx | grep -v 'src/store/keybindings.ts' | grep -v '\.test\.' | grep -v '^[^:]*:[0-9]*:\s*//' | grep -v '^[^:]*:[0-9]*:\s*\*' | head
+50:  it("no string or JSX text under src/ contains ⌘ outside src/store/keybindings.ts", () => {
+EXIT=0

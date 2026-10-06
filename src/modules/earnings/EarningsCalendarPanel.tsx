@@ -1,23 +1,32 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React from "react";
 import { Calendar, ChevronDown, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/EmptyState";
+import { currencyAffix, formatPrice } from "@/lib/format";
+import { loadSymbolIntoChart } from "@/lib/host-actions";
+import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
+import { usePanelContextBus } from "@/store/panel-context";
 import { useEarningsStore } from "@/store/earnings";
 
 import type { EarningsEvent } from "../../../types/earnings";
+import { fmtDate } from "../analyst-ratings/format";
 import { EarningsSurpriseChart } from "./EarningsSurpriseChart";
 import { EpsEstimateGrid } from "./EpsEstimateGrid";
 
-type SortKey =
-  | "scheduled_date"
-  | "symbol"
-  | "time_of_day"
-  | "consensus"
-  | "dispersion"
-  | "analysts";
+type SortKey = "scheduled_date" | "symbol" | "time_of_day" | "consensus" | "dispersion";
 type SortDirection = "asc" | "desc";
+
+/** Money-valued sort keys — a mixed-currency watchlist must never rank a
+ *  USD row against an INR row by raw magnitude (R15-DATA-031). */
+const MONEY_SORT_KEYS: readonly SortKey[] = ["consensus", "dispersion"];
+
+/** Shared by the skeleton and loaded tables' <colgroup> so they never drift
+ *  apart (R15-CODE-DATA-015). */
+const COL_WIDTHS = ["5%", "16%", "14%", "23%", "16%", "14%", "12%"] as const;
 
 const TIME_OF_DAY_LABEL: Record<string, string> = {
   "before-open": "Pre-open",
@@ -26,27 +35,33 @@ const TIME_OF_DAY_LABEL: Record<string, string> = {
   unknown: "—",
 };
 
-function fmt(value: number | null, digits = 2): string {
+/** An EPS / dispersion figure in its row's currency — the event's own
+ *  ISO-4217 code (R15-DATA-031: EPS and revenue render unlabelled, and a
+ *  mixed-currency watchlist sorts USD against INR by raw magnitude).
+ *  `currency === null` means the provider could not determine it
+ *  (R15-DATA-113) — render the bare number, never a guessed code. */
+function fmt(value: number | null, currency: string | null, digits = 2): string {
   if (value === null) return "—";
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
+  if (currency === null) return formatPrice(value, digits);
+  const { prefix, suffix } = currencyAffix(currency);
+  return `${prefix}${formatPrice(value, digits)}${suffix}`;
 }
 
-function fmtDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
-function compare(a: number | string, b: number | string, direction: SortDirection): number {
+/** R15-DATA-032: a missing value sorts last in either direction — an absent
+ *  estimate is not "lowest". */
+function compare(
+  a: number | string | null,
+  b: number | string | null,
+  direction: SortDirection,
+): number {
   if (a === b) return 0;
+  if (a === null) return 1;
+  if (b === null) return -1;
   const cmp = a < b ? -1 : 1;
   return direction === "asc" ? cmp : -cmp;
 }
 
-function sortValue(event: EarningsEvent, key: SortKey): number | string {
+function sortValue(event: EarningsEvent, key: SortKey): number | string | null {
   switch (key) {
     case "scheduled_date":
       return event.scheduled_date;
@@ -55,11 +70,9 @@ function sortValue(event: EarningsEvent, key: SortKey): number | string {
     case "time_of_day":
       return event.time_of_day;
     case "consensus":
-      return event.eps_estimate_mean ?? Number.NEGATIVE_INFINITY;
+      return event.eps_estimate_mean;
     case "dispersion":
-      return event.eps_estimate_stddev ?? Number.NEGATIVE_INFINITY;
-    case "analysts":
-      return event.estimate_analyst_count;
+      return event.eps_estimate_stddev;
   }
 }
 
@@ -82,9 +95,12 @@ export function EarningsCalendarPanel() {
   const histories = useEarningsStore((s) => s.histories);
   const surprises = useEarningsStore((s) => s.surprises);
   const estimates = useEarningsStore((s) => s.estimates);
+  const surpriseErrors = useEarningsStore((s) => s.surpriseErrors);
+  const estimateErrors = useEarningsStore((s) => s.estimateErrors);
   const getHistory = useEarningsStore((s) => s.getHistory);
   const getSurprises = useEarningsStore((s) => s.getSurprises);
   const getEstimates = useEarningsStore((s) => s.getEstimates);
+  const refreshEarnings = useEarningsStore((s) => s.refresh);
 
   const [daysDraft, setDaysDraft] = useState<string>(String(lastDays));
   const [watchlistDraft, setWatchlistDraft] = useState<string>(
@@ -94,11 +110,35 @@ export function EarningsCalendarPanel() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [expandedSymbol, setExpandedSymbol] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (upcomingStatus === "idle") {
-      void loadUpcoming();
+  // R15-AGENT-053: publish the current window so the copilot can see which
+  // symbols are on screen and which row is drilled into.
+  const publishPanelContext = usePanelContextBus((s) => s.publish);
+  const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
+
+  // Once the user applies a window / watchlist, the auto-retry default loader
+  // goes inert so it never overwrites an explicit query on a reconnect re-fire.
+  const userInteractedRef = useRef(false);
+
+  // Default upcoming-window load on mount. Auto-retries on a cold-boot sidecar
+  // bind (and re-arms on reconnect) so a panel mounted before the sidecar was
+  // ready self-heals instead of latching the error banner. `loadUpcoming`
+  // swallows its error into store state — re-throw on the error status to drive
+  // the retry hook.
+  const loadDefault = useCallback(async () => {
+    if (userInteractedRef.current) {
+      return;
     }
-  }, [upcomingStatus, loadUpcoming]);
+    await loadUpcoming();
+    const state = useEarningsStore.getState();
+    if (state.upcomingStatus === "error") {
+      // R15-UI-015: re-throw the ORIGINAL caught error (a SidecarError for a
+      // real sidecar answer) rather than a flattened new Error(string) — a
+      // flattened error always reads as transient to isTransientSidecarFailure,
+      // so a deterministic 502 was retried instead of settling after one try.
+      throw state.upcomingCause ?? new Error(state.upcomingError ?? "earnings load failed");
+    }
+  }, [loadUpcoming]);
+  useRetryOnSidecarReady(loadDefault, []);
 
   useEffect(() => {
     if (!expandedSymbol) return;
@@ -109,10 +149,42 @@ export function EarningsCalendarPanel() {
 
   const sortedEvents = useMemo(() => {
     if (!upcoming) return [];
-    return [...upcoming.events].sort((a, b) =>
-      compare(sortValue(a, sortKey), sortValue(b, sortKey), sortDirection),
-    );
+    const events = [...upcoming.events];
+    if (MONEY_SORT_KEYS.includes(sortKey)) {
+      // R15-DATA-031: group by currency first (never interleave USD/INR
+      // rows), then order within the group by the chosen direction.
+      events.sort((a, b) => {
+        if (a.currency !== b.currency) {
+          // R15-DATA-113: a null (undetermined) currency groups last, never
+          // interleaved with — or ordered ahead of — a real currency code.
+          if (a.currency === null) return 1;
+          if (b.currency === null) return -1;
+          return a.currency < b.currency ? -1 : 1;
+        }
+        return compare(sortValue(a, sortKey), sortValue(b, sortKey), sortDirection);
+      });
+      return events;
+    }
+    events.sort((a, b) => compare(sortValue(a, sortKey), sortValue(b, sortKey), sortDirection));
+    return events;
   }, [upcoming, sortKey, sortDirection]);
+
+  const eventSymbols = useMemo(() => sortedEvents.map((e) => e.symbol), [sortedEvents]);
+
+  useEffect(() => {
+    publishPanelContext({
+      source: "earnings",
+      kind: "snapshot",
+      payload: { symbols: eventSymbols, windowDays: lastDays, expandedSymbol },
+      emittedAt: Date.now(),
+    });
+  }, [publishPanelContext, eventSymbols, lastDays, expandedSymbol]);
+
+  useEffect(() => {
+    return () => {
+      unregisterPanelContext("earnings");
+    };
+  }, [unregisterPanelContext]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -125,6 +197,7 @@ export function EarningsCalendarPanel() {
 
   const handleApply = (event: React.FormEvent) => {
     event.preventDefault();
+    userInteractedRef.current = true;
     const days = Math.max(1, Math.min(60, Number.parseInt(daysDraft, 10) || 7));
     const watchlist = watchlistDraft
       .split(",")
@@ -135,66 +208,132 @@ export function EarningsCalendarPanel() {
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
+      {/* Filter row — micro labels over 32px-ladder inputs, button on the same
+          baseline (items-end) so the control row never staggers. */}
       <form
         onSubmit={handleApply}
-        className="border-charcoal-700 flex flex-wrap items-center gap-2 border-b p-3"
+        className="border-charcoal-700 flex flex-wrap items-end gap-3 border-b p-3"
       >
-        <label className="text-charcoal-300 font-mono text-xs">
-          Window (days)
+        <label className="flex flex-col gap-1">
+          <span className="text-charcoal-500 text-micro">Window (days)</span>
           <input
             type="number"
             min={1}
             max={60}
             value={daysDraft}
             onChange={(e) => setDaysDraft(e.target.value)}
-            className="bg-charcoal-800 text-charcoal-100 ml-2 h-7 w-16 rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 w-20 border px-3 tabular-nums outline-none"
             aria-label="Window in days"
           />
         </label>
-        <label className="text-charcoal-300 flex-1 font-mono text-xs">
-          Watchlist (comma-separated)
+        <label className="flex min-w-0 flex-1 flex-col gap-1" title="Comma-separated symbols">
+          {/* Short eyebrow — the placeholder demonstrates the comma format, so
+              the label never wraps at narrow panel widths (law §3.1). */}
+          <span className="text-charcoal-500 text-micro">Watchlist</span>
           <input
             type="text"
             value={watchlistDraft}
             onChange={(e) => setWatchlistDraft(e.target.value)}
             placeholder="AAPL, MSFT, NVDA"
-            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 ml-2 h-7 w-full max-w-xs rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-500 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 w-full max-w-xs border px-3 outline-none"
             aria-label="Watchlist"
           />
         </label>
-        <Button type="submit" size="sm" variant="outline" disabled={upcomingStatus === "loading"}>
+        {/* Default (h-8) size — the Apply button shares the form rung with its
+            sibling h-8 inputs so the row never misaligns. */}
+        <Button type="submit" variant="outline" disabled={upcomingStatus === "loading"}>
           <Calendar />
           Apply
         </Button>
       </form>
 
       {upcomingError !== null && (
-        <p className="text-negative border-charcoal-700 border-b px-3 py-2 font-mono text-xs">
-          {upcomingError}
-        </p>
+        <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
+          <span className="text-negative text-caption">{upcomingError}</span>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="text-charcoal-300 hover:text-charcoal-100 shrink-0"
+            onClick={() => {
+              userInteractedRef.current = true;
+              void loadUpcoming(lastDays, lastWatchlist);
+            }}
+          >
+            Retry
+          </Button>
+        </div>
       )}
 
       <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto p-3">
-        {upcomingStatus === "loading" ? (
-          <p className="text-charcoal-400 font-mono text-xs">Loading earnings calendar…</p>
+        {upcomingStatus === "loading" || upcomingStatus === "idle" ? (
+          <table className="w-full table-fixed border-collapse">
+            <colgroup>
+              {COL_WIDTHS.map((width, i) => (
+                <col key={i} style={{ width }} />
+              ))}
+            </colgroup>
+            <tbody>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <tr key={i} className="border-charcoal-800 border-b">
+                  <td className="px-1 py-2">
+                    <div className="bg-charcoal-800 h-3 w-3 animate-pulse rounded-none" />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div
+                      className="bg-charcoal-800 h-3 animate-pulse rounded-none"
+                      style={{ width: `${60 + (i % 3) * 15}%` }}
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="bg-charcoal-800 h-3 w-4/5 animate-pulse rounded-none" />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="bg-charcoal-800 h-3 w-3/4 animate-pulse rounded-none" />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="bg-charcoal-800 h-3 w-2/3 animate-pulse rounded-none" />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="bg-charcoal-800 ml-auto h-3 w-1/2 animate-pulse rounded-none" />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="bg-charcoal-800 ml-auto h-3 w-2/3 animate-pulse rounded-none" />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : upcomingStatus === "error" ? (
+          <EmptyState
+            icon={Calendar}
+            headline="Could not load earnings calendar"
+            hint="The calendar fetch failed. Retry — if it persists, narrow the window or check the data engine."
+            cta={{
+              label: "Retry",
+              primary: true,
+              onClick: () => {
+                userInteractedRef.current = true;
+                void loadUpcoming(lastDays, lastWatchlist);
+              },
+            }}
+          />
         ) : sortedEvents.length === 0 ? (
-          <p className="text-charcoal-400 font-mono text-xs">
-            No upcoming earnings in this window.
-          </p>
+          <EmptyState
+            icon={Calendar}
+            headline="No upcoming earnings"
+            hint="No companies report in this window. Widen the day range or clear the watchlist filter."
+          />
         ) : (
           <table className="w-full table-fixed border-collapse">
             <colgroup>
-              <col style={{ width: "5%" }} />
-              <col style={{ width: "16%" }} />
-              <col style={{ width: "14%" }} />
-              <col style={{ width: "23%" }} />
-              <col style={{ width: "16%" }} />
-              <col style={{ width: "14%" }} />
-              <col style={{ width: "12%" }} />
+              {COL_WIDTHS.map((width, i) => (
+                <col key={i} style={{ width }} />
+              ))}
             </colgroup>
             <thead>
-              <tr className="text-charcoal-400 border-charcoal-800 border-b text-left font-mono text-[0.6rem] uppercase">
-                <th aria-hidden className="px-1 py-1.5" />
+              <tr className="border-charcoal-800 border-b text-left">
+                <th aria-hidden className="px-1 py-1" />
                 <SortableHeader
                   label="Symbol"
                   active={sortKey === "symbol"}
@@ -234,72 +373,160 @@ export function EarningsCalendarPanel() {
               {sortedEvents.map((event) => {
                 const isExpanded = expandedSymbol === event.symbol;
                 return (
-                  <>
+                  <React.Fragment key={event.symbol}>
                     <tr
-                      key={event.symbol}
                       onClick={() =>
                         setExpandedSymbol((current) =>
                           current === event.symbol ? null : event.symbol,
                         )
                       }
-                      className="border-charcoal-800 hover:bg-charcoal-800 cursor-pointer border-b font-mono text-xs"
+                      className="border-charcoal-800 hover:bg-charcoal-800/50 text-body cursor-pointer border-b"
                       data-testid={`earnings-row-${event.symbol}`}
                     >
-                      <td className="text-charcoal-400 px-1 py-1.5">
+                      <td className="text-charcoal-400 px-1 py-1">
                         {isExpanded ? (
                           <ChevronDown className="size-3" />
                         ) : (
                           <ChevronRight className="size-3" />
                         )}
                       </td>
-                      <td className="px-3 py-1.5 font-semibold text-amber-400">{event.symbol}</td>
-                      <td className="text-charcoal-100 px-3 py-1.5">
+                      <td className="text-charcoal-100 px-3 py-1 font-medium">
+                        <button
+                          type="button"
+                          className="text-charcoal-100 hover:underline"
+                          title={`Load ${event.symbol} into the chart`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            loadSymbolIntoChart(event.symbol);
+                          }}
+                          data-testid={`earnings-symbol-${event.symbol}`}
+                        >
+                          {event.symbol}
+                        </button>
+                      </td>
+                      <td className="text-charcoal-100 px-3 py-1">
                         {fmtDate(event.scheduled_date)}
                       </td>
                       <td
-                        className="text-charcoal-200 truncate px-3 py-1.5"
+                        className="text-charcoal-200 truncate px-3 py-1"
                         title={event.company_name ?? ""}
                       >
                         {event.company_name ?? "—"}
                       </td>
-                      <td className="text-charcoal-200 px-3 py-1.5">
+                      <td className="text-charcoal-200 px-3 py-1">
                         {TIME_OF_DAY_LABEL[event.time_of_day] ?? event.time_of_day}
                       </td>
-                      <td className="text-charcoal-100 px-3 py-1.5 text-right">
-                        {fmt(event.eps_estimate_mean)}
+                      <td className="text-charcoal-100 px-3 py-1 text-right tabular-nums">
+                        {fmt(event.eps_estimate_mean, event.currency)}
                       </td>
-                      <td className="text-charcoal-200 px-3 py-1.5 text-right">
-                        {fmt(event.eps_estimate_stddev, 3)} / {event.estimate_analyst_count}
+                      <td className="text-charcoal-200 px-3 py-1 text-right tabular-nums">
+                        {fmt(event.eps_estimate_stddev, event.currency, 3)} /{" "}
+                        {event.estimate_analyst_count ?? "—"}
                       </td>
                     </tr>
                     {isExpanded && (
-                      <tr key={`${event.symbol}-drill`} className="border-charcoal-800 border-b">
+                      <tr className="border-charcoal-800 border-b">
                         <td colSpan={7} className="bg-charcoal-950 px-4 py-3">
                           <div className="flex flex-col gap-3">
                             <div className="flex flex-col gap-1">
-                              <h4 className="text-charcoal-200 font-mono text-xs uppercase">
-                                {event.symbol} — Last quarters&apos; surprises
-                              </h4>
-                              <EarningsSurpriseChart
-                                surprises={surprises[event.symbol]?.surprises ?? []}
-                              />
+                              <div className="flex items-center justify-between">
+                                <h4 className="text-charcoal-200 text-micro">
+                                  {event.symbol} — Last quarters&apos; surprises
+                                </h4>
+                                <div className="flex items-center gap-2">
+                                  {surprises[event.symbol]?.fetchedAt !== undefined && (
+                                    <span
+                                      className="text-charcoal-500 text-micro"
+                                      title={new Date(
+                                        surprises[event.symbol]!.fetchedAt,
+                                      ).toLocaleString()}
+                                    >
+                                      As of{" "}
+                                      {new Date(
+                                        surprises[event.symbol]!.fetchedAt,
+                                      ).toLocaleTimeString()}
+                                    </span>
+                                  )}
+                                  <button
+                                    type="button"
+                                    className="text-caption text-charcoal-300 underline"
+                                    onClick={() => void refreshEarnings(event.symbol)}
+                                  >
+                                    Refresh
+                                  </button>
+                                </div>
+                              </div>
+                              {surpriseErrors[event.symbol] ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-negative text-caption">
+                                    {surpriseErrors[event.symbol]}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="text-caption text-charcoal-300 underline"
+                                    onClick={() => void getSurprises(event.symbol)}
+                                  >
+                                    Retry
+                                  </button>
+                                </div>
+                              ) : surprises[event.symbol] === undefined ? (
+                                <div className="flex gap-2">
+                                  {Array.from({ length: 4 }).map((_, i) => (
+                                    <div
+                                      key={i}
+                                      className="bg-charcoal-800 h-16 w-8 animate-pulse rounded-none"
+                                    />
+                                  ))}
+                                </div>
+                              ) : (
+                                <EarningsSurpriseChart
+                                  surprises={surprises[event.symbol]?.payload?.surprises ?? []}
+                                />
+                              )}
                             </div>
                             <div className="flex flex-col gap-1">
-                              <h4 className="text-charcoal-200 font-mono text-xs uppercase">
+                              <h4 className="text-charcoal-200 text-micro">
                                 Next-quarter estimate detail
                               </h4>
-                              <EpsEstimateGrid estimate={estimates[event.symbol] ?? null} />
+                              {estimateErrors[event.symbol] ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-negative text-caption">
+                                    {estimateErrors[event.symbol]}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="text-caption text-charcoal-300 underline"
+                                    onClick={() => void getEstimates(event.symbol)}
+                                  >
+                                    Retry
+                                  </button>
+                                </div>
+                              ) : estimates[event.symbol] === undefined ? (
+                                <div className="grid grid-cols-3 gap-x-6 gap-y-2">
+                                  {Array.from({ length: 6 }).map((_, i) => (
+                                    <div
+                                      key={i}
+                                      className="bg-charcoal-800 h-3 animate-pulse rounded-none"
+                                    />
+                                  ))}
+                                </div>
+                              ) : (
+                                <EpsEstimateGrid
+                                  estimate={estimates[event.symbol]?.payload ?? null}
+                                />
+                              )}
                             </div>
                             {histories[event.symbol] !== undefined && (
-                              <p className="text-charcoal-500 font-mono text-[0.65rem]">
-                                History rows cached: {histories[event.symbol]?.history.length ?? 0}
+                              <p className="text-charcoal-500 text-micro">
+                                History rows cached:{" "}
+                                {histories[event.symbol]?.payload?.history.length ?? 0}
                               </p>
                             )}
                           </div>
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 );
               })}
             </tbody>
@@ -327,14 +554,14 @@ function SortableHeader({
 }) {
   return (
     <th
-      className={`px-3 py-1.5 font-medium ${align === "right" ? "text-right" : "text-left"} ${
-        disabled ? "cursor-default" : "cursor-pointer"
-      }`}
+      className={`text-micro text-charcoal-400 px-3 py-1 ${
+        align === "right" ? "text-right" : "text-left"
+      } ${disabled ? "cursor-default" : "hover:text-charcoal-200 cursor-pointer select-none"}`}
       onClick={disabled ? undefined : onSort}
       aria-sort={active ? (direction === "asc" ? "ascending" : "descending") : "none"}
     >
       {label}
-      {active && <span className="text-amber-400"> {direction === "asc" ? "▲" : "▼"}</span>}
+      {active && <span className="text-charcoal-300"> {direction === "asc" ? "▲" : "▼"}</span>}
     </th>
   );
 }

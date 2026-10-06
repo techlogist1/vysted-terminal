@@ -1,0 +1,3 @@
+REGION=US SYM=%5ECNXIT
+{"symbol":"^CNXIT","price":28160.900390625,"change":-47.94921875,"change_percent":-0.1699793483746478,"volume":27900.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":null,"timestamp":"2026-09-25T10:02:14Z","provider":"yfinance","freshness":"eod"}
+HTTP_STATUS:200

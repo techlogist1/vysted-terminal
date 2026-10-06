@@ -1,0 +1,7 @@
+COMMAND: curl http://127.0.0.1:52359/disclosures/{shareholding,announcements,results}?symbol=SIFY ; /disclosures/shareholding?symbol=AAPL (own sidecar, candidate 949c3c9f)
+EXIT: 0 all four (HTTP 200; all were 502 pre-fix)
+SIFY announcements: coverage="not_applicable", note "SIFY is not an NSE/BSE instrument; Indian exchange disclosures do not apply".
+SIFY results: coverage="not_applicable", same note.
+SIFY shareholding: coverage="covered", provider="sec-20f", major_shareholders=[Ramanand Core Investment 67.98%, Raju Vegesna Infotech 7.90%, Infinity Capital Ventures 7.56%, Vegesna Family Trust 0.34%] = 83.78% total, source_url the 2026-06-26 20-F filing. Matches the register's "83.78% family control" exactly (live SEC fetch succeeded this run, unlike batch-7's cert which needed a workaround for a sec-edgar-mcp timeout).
+AAPL shareholding: coverage="not_applicable", note "AAPL is not an NSE/BSE instrument".
+VERDICT: holds. Both the wrong-502 fix and the 20-F ownership lane are live and correct.

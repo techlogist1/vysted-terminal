@@ -1,0 +1,11 @@
+# probe at ace7dd76 (candidate worktree /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand)
+$ grep -n 'fn write_text_atomic\|fn write_bytes_atomic\|fn write_atomic\|sync_all\|write_atomic_inner' src-tauri/src/lib.rs; grep -n 'fn write_atomic_text_and_bytes' src-tauri/src/lib.rs
+563:fn write_atomic(path: &str, bytes: &[u8]) -> Result<(), String> {
+581:        f.sync_all().map_err(|e| e.to_string())?;
+602:        let _ = dir.sync_all();
+610:fn write_text_atomic(path: String, contents: String) -> Result<(), String> {
+620:fn write_bytes_atomic(path: String, contents: Vec<u8>) -> Result<(), String> {
+870:    fn write_atomic_text_and_bytes() {
+884:    fn write_atomic_round_trip_leaves_no_tmp() {
+870:    fn write_atomic_text_and_bytes() {
+EXIT=0

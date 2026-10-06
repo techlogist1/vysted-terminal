@@ -1,0 +1,21 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98, sidecar/.venv (in-process python call).
+Script (probe_094.py):
+  from services.agent_runtime import _coerce, _normalise_tool_args
+  from services.llm.base import LLMToolUseEvent
+  schema = {"type": "object", "properties": {"panels": {"type": ["array","string"], "items": {"type":"string"}}}}
+  v = _coerce({"panels": ["watchlist","chart"]}, schema)   # union-typed nested schema
+  ev = LLMToolUseEvent(tool_call_id="t1", name="arrange_layout",
+                        input={"pattern":"custom","panels":["watchlist","chart"]})
+  _normalise_tool_args(ev)
+
+Exit: 0
+Output:
+OK union-list coerce: {'panels': ['watchlist', 'chart']}
+normalise OK: {'pattern': 'custom', 'panels': ['watchlist', 'chart']}
+
+No TypeError ("unhashable type: list") raised.
+Source: sidecar/services/agent_runtime.py:908-943 (_coerce): "expected = schema.get('type'); # A
+union type (['string','object']) is left to the validator (R15-AGENT-094). if not isinstance(expected, str): return value" — the union-type branch that used to hash a list is now short-circuited before any set/dict-key operation touches it.
+
+VERDICT: holds. arrange_layout (and any tool) with a union-typed JSON-schema param no longer
+crashes _coerce; confirmed live in-process, not just by source read.

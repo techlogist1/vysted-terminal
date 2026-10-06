@@ -1,0 +1,262 @@
+[
+ {
+  "key": "rc1-verifier:1",
+  "kind": "new_defect",
+  "severity": "high",
+  "register_id": null,
+  "title": "Foreign-reporter ADR price/book is served status ok on a mixed currency basis (TSM 92.17 vs ~10 at home; HDB 9.32 vs ~1.87) while the same payload withholds price/sales for the identical reason; adjacent to R15-DATA-005, same class as R15-DATA-008",
+  "repro": "Sidecar from candidate 5ff9be04: curl -s $P/fundamentals/TSM -> currency USD, financial_currency TWD, book_value 4.889 (ok), price_to_book 92.1669 (field_meta ok), price_to_sales null (withheld: 'mixes bases: the listing trades in USD but reports its statements in TWD'). curl $P/fundamentals/HDB -> price_to_book 9.32324 ok (INR statements). Truth via yfinance home listings: 2330.TW P/B 9.978, HDFCBANK.NS P/B 1.868. A 5-9x wrong valuation ratio on two mega-caps carries a verified badge.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/sample/DATA-005-adjacent-pb-vs-ps.txt",
+  "suspected_files": [
+   "sidecar/services/yfinance_provider.py:420 (_MIXED_BASIS_RATIOS lists price_to_sales and ev_to_ebitda only, not price_to_book/book_value)",
+   "sidecar/services/correctness_gate.py:770 (reconcile_book_value returns early for any financial_currency)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:2",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-LEAD-026",
+  "title": "Empty history series still carry reason null for a suffixed unknown symbol (QQZZFAKE.NS/.BO, RELIANC.NS) and for a valid scrip with no trades in range (DAL.BO); LEAD-026's own repro (ZZZZNOTREAL) is fixed",
+  "repro": "curl $P/history/ZZZZNOTREAL -> reason unknown_symbol (own repro fixed); $P/history/QQZZFAKE.NS, QQZZFAKE.BO, RELIANC.NS -> bars 0, provider none, reason null; $P/history/DAL.BO -> bars 0, reason null (yfinance 1y: 252 bars, 0 traded, all forward-filled and dropped by DATA-016 design).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/sample/LEAD-026-rerun.txt; docs/redesign/verification/r15/rc1/round-3/verifier/sample/LEAD-026-adjacent-untraded.txt",
+  "suspected_files": [
+   "sidecar/routers/history.py (_is_unknown_symbol returns False for any .NS/.BO symbol by design)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:3",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "title": "Untraded scrip: 52-week high/low DATES are served status ok (2025-09-25) while the 52-week high/low values are withheld ('no trades in 52 weeks'); adjacent to R15-DATA-016 (own repro fixed)",
+  "repro": "curl $P/fundamentals/DAL (region IN -> DAL.BO): fifty_two_week_high/low null withheld 'no trades in 52 weeks (last trade 2025-03-12)'; fifty_two_week_high_date and fifty_two_week_low_date 2025-09-25 with status ok.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/sample/DATA-016-rerun.txt",
+  "suspected_files": [
+   "sidecar/services/yfinance_provider.py (52-week leg; not opened past the withhold reason)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:4",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "title": "Concur rc1-vshard-0:3: TM EPS estimate triple served null with estimate_analyst_count 1",
+  "repro": "curl $P/earnings/TM/estimates -> eps_estimate_mean/median/high/low null, estimate_analyst_count 1, revenue_currency JPY.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/sample/adjacent-lows.txt",
+  "suspected_files": [
+   "sidecar/services/yfinance_provider.py (earnings estimates leg; not opened)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:5",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-PLATFORM-020",
+  "title": "Concur rc1-vshard-0:4: GET /workflow/saved/{id} answers a bare 500 for an unreadable row, while the list route reports it under 'unreadable'",
+  "repro": "Own data copy: insert workflows row rv-junk spec_json 'not json{'; curl -si $P/workflow/saved/rv-junk -> 500 'Internal Server Error' text/plain; curl $P/workflow/saved -> {workflows:[], unreadable:[{id:rv-junk,...}]}.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/sample/adjacent-lows.txt",
+  "suspected_files": [
+   "sidecar/routers/workflow.py (not opened)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:6",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DATA-090",
+  "title": "Concur rc1-vshard-0:5: a corrupt workspace with no .bak is quarantined but the route answers 404 'not found', so the user is never told it was corrupt",
+  "repro": "Own data copy: POST workspace rvtest, delete its .bak, truncate the file; curl -si $P/workspace/rvtest -> 404 {detail: Workspace 'rvtest' not found.}; the file is moved to rvtest.vysted-workspace.corrupt-1790444711541.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/sample/adjacent-lows.txt",
+  "suspected_files": [
+   "sidecar/routers/workspace.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:7",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DATA-061",
+  "title": "Unknown/malformed symbols on sibling data routes: statements and ratings answer 200 empty with no reason for an unknown bare symbol (rewritten to .NS under region IN), and a malformed symbol quote is a 502 'provider_error, retry'",
+  "repro": "curl $P/fundamentals/ZZZZNOTREAL/income and /balance -> 200 {symbol: ZZZZNOTREAL.NS, periods: [], lines: [], gaps: []}; /ratings -> 200 all-zero counts; /quotes/ZZZZNOTREAL -> 404 not_found (DATA-061 own shape holds); /quotes/%24%24%25%5E -> 502 code provider_error 'Retry, or try again later.'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/spot-failure/data061-replay.txt",
+  "suspected_files": [
+   "sidecar/services/yfinance_provider.py:300-318 (_yahoo_symbol keeps .NS for a name in neither master 'so Yahoo 404s an unknown symbol'; the statements route answers 200 empty instead)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:8",
+  "kind": "concurrence",
+  "severity": "critical",
+  "register_id": "R15-DATA-002",
+  "title": "DATA-002 concurrence note (adjudicated to the operator, DECISIONS_FOR_OPERATOR 4.15; no fix round): the agent read tools carry no region, so bare DAL binds to DAL.BO under region IN and the model labels it Delta",
+  "repro": "Scenario SC1c (llama3.1:8b): fundamentals tool on bare DAL returns Dynamic Archistructures (BSE) while the answer names Delta Air Lines. Own leg: seed settings.region=IN; curl $P/fundamentals/DAL -> DAL.BO Dynamic Archistructures, pe 5.6045; curl '$P/resolve?q=DAL&region=US' -> DELTA AIR LINES.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/sample/DATA-002-agent-leg.txt; docs/redesign/verification/r15/rc1/round-3/scenarios/rc1-scenarios-SC1c-llama3.1-8b.jsonl",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:9",
+  "kind": "concurrence",
+  "severity": "medium",
+  "register_id": "R15-RESEARCH-043",
+  "title": "Concur with the Tier-4 deferral of rc1-drive-research-briefs:1: a non-numeric bracket token shipping through the citation net is the RESEARCH-043 class, adjudicated to the operator (DECISIONS_FOR_OPERATOR 4.14); filed as a concurrence note, no fix round",
+  "repro": "Per rc1-drive-research-briefs:1 raw evidence; same net as RESEARCH-043 (MARKER_RE matches only a bare [n]).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/findings/rc1-drive-research-briefs.json",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:10",
+  "kind": "fix_loop",
+  "severity": "medium",
+  "register_id": null,
+  "title": "rc1-drive-composer-chat:1 closed: a missing cloud key now surfaces the humanized 'No <provider> API key is set' message with code auth",
+  "repro": "Own sidecar: vy.py openai and /llm/chat for groq, openrouter, deepseek and xai with no key -> code auth, 'No ... API key is set — add it in Settings.'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/sample/composer-chat-1-recheck.txt",
+  "suspected_files": [
+   "sidecar/services/errors.py",
+   "sidecar/services/llm/openai.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:11",
+  "kind": "harness_gap",
+  "severity": "high",
+  "register_id": null,
+  "title": "Fixed-name battery ran 3 of 75 planned sets: raw output exists for 27 fixed ids of 392 (+28 unplanned); the battery cannot pass",
+  "repro": "ls battery/raw -> set-0 (12 files), set-1 (8), set-2 (7); INDEX.json sets 75, fixed_total 392, sha 01d6920a.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/battery/INDEX.json",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:12",
+  "kind": "harness_gap",
+  "severity": "high",
+  "register_id": null,
+  "title": "Agent scenarios ran one lane, one trial, ungraded: 7 transcripts on llama3.1:8b; the OpenRouter lane (7) was skipped no_key in the isolated profile",
+  "repro": "ls scenarios -> 7 *-llama3.1-8b.jsonl ending in done; 7 *-openrouter.jsonl each {kind: skipped, reason: no_key}; no pass/fail grading rows.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/scenarios/",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:13",
+  "kind": "fixed_uncertified",
+  "severity": "low",
+  "register_id": "R15-CODE-DATA-023",
+  "title": "R15-CODE-DATA-023 is fixed with no VERDICTS certification; my probe does not reproduce it (both named comments now describe composition, not counts). The separate stale count at screener_universe_india.py:95 is R15-LEAD-029 (open, low)",
+  "repro": "git show 5ff9be04:sidecar/services/screener_universe_india.py lines 1-20 and models/screener.py 25-45; grep counts -> only line 95 '~5,156' remains.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/sample/CODE-DATA-023-probe.txt",
+  "suspected_files": [
+   "sidecar/services/screener_universe_india.py:95"
+  ]
+ },
+ {
+  "key": "rc1-verifier:14",
+  "kind": "refutation_rejected",
+  "severity": "critical",
+  "register_id": "R15-DATA-005",
+  "title": "rc1-vshard-0:1 refutation of R15-DATA-005 does not stand: the entry's own repro (VERTEX/JNPR/JUMBO book value on a stale share count) does not reproduce; TSM/HDB is a different mechanism, filed as rc1-verifier:1",
+  "repro": "curl $P/fundamentals/{VERTEX,JNPR,JUMBO,ONC} -> book_value and price_to_book flagged (not ok) at candidate 5ff9be04.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/sample/DATA-005-rerun.txt",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:15",
+  "kind": "refutation_rejected",
+  "severity": "medium",
+  "register_id": "R15-LEAD-026",
+  "title": "rc1-vshard-0:2 refutation of R15-LEAD-026 does not stand: the own repro GET /history/ZZZZNOTREAL now carries reason unknown_symbol; the suffixed case is the residual the register note already records, filed as rc1-verifier:2 (low)",
+  "repro": "curl '$P/history/ZZZZNOTREAL?timeframe=1d' -> reason unknown_symbol.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/sample/LEAD-026-rerun.txt",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:16",
+  "kind": "concurrence",
+  "severity": "high",
+  "register_id": "R15-CODE-PLATFORM-001",
+  "title": "CONCUR R15-CODE-PLATFORM-001 (ui-panels): removed_with_feature: kill_switch.rs and kill_switch.py are absent at the candidate; no order entry exists to guard",
+  "repro": "Read at candidate 5ff9be04; see concurrence evidence.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/concur-four-areas.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/first-launch-terms.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/tools-own.txt",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:17",
+  "kind": "concurrence",
+  "severity": "medium",
+  "register_id": "R15-UI-042",
+  "title": "CONCUR R15-UI-042 (ui-panels): removed_with_feature: the Audit Log viewer and sidecar/models/audit_log.py are absent; the only 'audit-log' string is a test fixture (src/lib/workspace.test.ts:1071)",
+  "repro": "Read at candidate 5ff9be04; see concurrence evidence.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/concur-four-areas.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/first-launch-terms.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/tools-own.txt",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:18",
+  "kind": "concurrence",
+  "severity": "medium",
+  "register_id": "R15-UI-043",
+  "title": "CONCUR R15-UI-043 (ui-panels): removed_with_feature: same removal as UI-042; no audit-log filter or export surface exists",
+  "repro": "Read at candidate 5ff9be04; see concurrence evidence.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/concur-four-areas.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/first-launch-terms.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/tools-own.txt",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:19",
+  "kind": "concurrence",
+  "severity": "medium",
+  "register_id": "R15-UI-041",
+  "title": "CONCUR R15-UI-041 (ui-panels): not_a_defect: the first-launch terms now read 'Vysted has no brokerage connection. It cannot place, route or simulate orders.'; the copy review is DECISIONS_FOR_OPERATOR 3.2",
+  "repro": "Read at candidate 5ff9be04; see concurrence evidence.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/concur-four-areas.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/first-launch-terms.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/tools-own.txt",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:20",
+  "kind": "concurrence",
+  "severity": "medium",
+  "register_id": "R15-UI-047",
+  "title": "CONCUR R15-UI-047 (ui-panels): not_a_defect: panel pop-out is labelled v1.0 roadmap in BLUEPRINT; building it needs a Tier-1 tauri.conf.json change",
+  "repro": "Read at candidate 5ff9be04; see concurrence evidence.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/concur-four-areas.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/first-launch-terms.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/tools-own.txt",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:21",
+  "kind": "concurrence",
+  "severity": "medium",
+  "register_id": "R15-UI-059",
+  "title": "CONCUR R15-UI-059 (ui-panels, research-search, data-smallcaps): not_a_defect: no spec, BLUEPRINT or constitution text promises a composite score; roadmap",
+  "repro": "Read at candidate 5ff9be04; see concurrence evidence.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/concur-four-areas.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/first-launch-terms.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/tools-own.txt",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:22",
+  "kind": "concurrence",
+  "severity": "medium",
+  "register_id": "R15-AGENT-083",
+  "title": "CONCUR R15-AGENT-083 (agent-chat): not_a_defect: MCP surface (40 tools) carries no host action or portfolio write; the spec was amended to say the external surface is read-only for host actions",
+  "repro": "Read at candidate 5ff9be04; see concurrence evidence.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/concur-four-areas.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/first-launch-terms.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/tools-own.txt",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:23",
+  "kind": "concurrence",
+  "severity": "medium",
+  "register_id": "R15-DATA-080",
+  "title": "CONCUR R15-DATA-080 (research-search, data-smallcaps): not_a_defect: segment and operational-metric data is not promised by spec or BLUEPRINT; roadmap",
+  "repro": "Read at candidate 5ff9be04; see concurrence evidence.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/concur-four-areas.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/first-launch-terms.txt; docs/redesign/verification/r15/rc1/round-3/verifier/gate8/tools-own.txt",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:24",
+  "kind": "harness_gap",
+  "severity": "high",
+  "register_id": null,
+  "title": "Owner-drive onboarding-stranger (round 3) saved no raw output: only a narrative write-up, so its claims are unevidenced",
+  "repro": "ls docs/redesign/verification/r15/surface/onboarding-stranger/rc1/round-3/ -> RC1-R3-ONBOARDING-STRANGER.md only. My spot replay of its resolve checks (eternal/zomato -> ETERNAL with rename) agrees: verifier/spot-onboarding/onboarding-replay.txt.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-3/verifier/spot-onboarding/onboarding-replay.txt",
+  "suspected_files": []
+ }
+]

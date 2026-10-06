@@ -1,0 +1,66 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_aed81e5d655c4c81aa46348c2ecec4a9", "name": "get_terminal_state", "input": {}}
+{"kind": "tool_use", "tool_call_id": "call_6a9bca181fcc4417a2f1125be07c3133", "name": "price_data", "input": {"asset_class": "equity", "range": "1d", "symbol": "ZOMATO.NS", "timeframe": "1d"}}
+{"kind": "delta", "text": "We"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Our"}
+{"kind": "delta", "text": " provider"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " missing"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " name"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " checking"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " updates"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " see"}
+{"kind": "delta", "text": " if"}
+{"kind": "delta", "text": " there"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " performance"}
+{"kind": "delta", "text": " today"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " open"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": " panel"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2821, "output_tokens": 62, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

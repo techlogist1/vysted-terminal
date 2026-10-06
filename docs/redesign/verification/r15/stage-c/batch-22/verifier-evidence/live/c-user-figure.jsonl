@@ -1,0 +1,97 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_b1dcda0823b04b05b4099f163b5e9320", "name": "get_terminal_state", "input": {}}
+{"kind": "tool_use", "tool_call_id": "call_b823826694a74af1afe2dc821913d627", "name": "get_terminal_state", "input": {}}
+{"kind": "tool_use", "tool_call_id": "call_d23755054c864f91bc8a0887a721398f", "name": "price_data", "input": {"symbol": "HDFCBANK.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_b1dcda0823b04b05b4099f163b5e9320", "name": "get_terminal_state", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_b823826694a74af1afe2dc821913d627", "name": "get_terminal_state", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_d23755054c864f91bc8a0887a721398f", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " bought"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": " HDF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "650"}
+{"kind": "delta", "text": " each"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " checked"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " HDF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "According"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "735"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " would"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "826"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": " x"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "735"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": ").\n\n"}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": " if"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'d"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " view"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " chart"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " other"}
+{"kind": "delta", "text": " details"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 6901, "output_tokens": 85, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

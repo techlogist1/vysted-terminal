@@ -1,0 +1,6 @@
+agent zz-rc1b6-bad.json: schema violation at ['defaultProvider']: 'notaprovider' is not one of ['anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai', 'openrouter']
+roster count: 13
+degraded: [{'file': 'zz-rc1b6-bad.json', 'reason': "schema violation: ['defaultProvider']: 'notaprovider' is not one of ['anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai', 'openrouter']"}]
+roster count: 14
+degraded: []
+zz-rc1b6-or in roster: True

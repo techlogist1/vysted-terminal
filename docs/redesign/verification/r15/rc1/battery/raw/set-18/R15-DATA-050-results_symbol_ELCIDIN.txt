@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+date: Fri, 25 Sep 2026 00:26:22 GMT
+server: uvicorn
+content-length: 1303
+content-type: application/json
+vary: Origin
+
+{"symbol":"ELCIDIN","count":10,"events":[{"symbol":"ELCIDIN","company":"ELCID INV","purpose":"Results","description":null,"date":"2026-08-13","exchange":"BSE"},{"symbol":"ELCIDIN","company":"ELCID INV","purpose":"Dividend","description":null,"date":"2026-05-25","exchange":"BSE"},{"symbol":"ELCIDIN","company":"ELCID INV","purpose":"Results","description":null,"date":"2026-05-25","exchange":"BSE"},{"symbol":"ELCIDIN","company":"ELCID INV","purpose":"Results","description":null,"date":"2026-01-28","exchange":"BSE"},{"symbol":"ELCIDIN","company":"ELCID INV","purpose":"Results","description":null,"date":"2025-11-07","exchange":"BSE"},{"symbol":"ELCIDIN","company":"ELCID INV","purpose":"Results","description":null,"date":"2025-08-08","exchange":"BSE"},{"symbol":"ELCIDIN","company":"ELCID INV","purpose":"Dividend","description":null,"date":"2025-05-28","exchange":"BSE"},{"symbol":"ELCIDIN","company":"ELCID INV","purpose":"Results","description":null,"date":"2025-05-28","exchange":"BSE"},{"symbol":"ELCIDIN","company":"ELCID INV","purpose":"Results","description":null,"date":"2025-01-30","exchange":"BSE"},{"symbol":"ELCIDIN","company":"ELCID INV","purpose":"Results","description":null,"date":"2024-11-12","exchange":"BSE"}],"sources":["NSE","BSE"],"errors":{},"coverage":"covered","note":null}

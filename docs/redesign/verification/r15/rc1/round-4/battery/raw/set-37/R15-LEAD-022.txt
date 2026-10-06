@@ -1,0 +1,19 @@
+COMMAND (live curl, candidate sidecar :52357, sha 1006c6da): re-ran the exact register repro
+symbols against /quotes/<symbol> -- one per non-Indian foreign suffix (.AX, .HK, .T, .L):
+
+curl -s http://127.0.0.1:52357/quotes/BHP.AX
+curl -s http://127.0.0.1:52357/quotes/0700.HK
+curl -s http://127.0.0.1:52357/quotes/7203.T
+curl -s http://127.0.0.1:52357/quotes/VOD.L
+
+OUTPUT:
+BHP.AX  -> {"price":60.72,...,"currency":"AUD",...,"provider":"yfinance","freshness":"eod"}
+0700.HK -> {"price":436.60,...,"currency":"HKD",...,"provider":"yfinance","freshness":"eod"}
+7203.T  -> {"price":2989.5,...,"currency":"JPY",...,"provider":"yfinance","freshness":"eod"}
+VOD.L   -> {"price":125.80,...,"currency":"GBp",...,"provider":"yfinance","freshness":"eod"}
+
+VERDICT: holds.
+All four non-Indian foreign listings the register named quote successfully (a live 404
+"possibly delisted" per the original bug would have surfaced as an error body, not a priced
+quote) with the correct exchange-native currency for each (AUD/HKD/JPY/GBp) -- the dash-rewrite
+that mangled BHP.AX -> BHP-AX etc. is not corrupting these symbols on the live yfinance path.

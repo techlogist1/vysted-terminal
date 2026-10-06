@@ -1,0 +1,4 @@
+d38b5d1a:CHANGELOG.md:341:  trading path — no order/broker/kill-switch/audit route, `audit_orders` absent; tracked-portfolio round-trip
+d38b5d1a:CHANGELOG.md:452:  `audit_orders` absent, tracked-portfolio round-trip clean), the regression chain passed
+d38b5d1a:CHANGELOG.md:1512:`audit_orders` log and its viewer, every agent tool exposing any of it (`broker_portfolio`,
+d38b5d1a:sidecar/tests/test_no_trading_surface.py:135:    "audit_orders",

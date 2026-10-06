@@ -1,0 +1,98 @@
+{
+  "certified": [
+    "R15-LEAD-022",
+    "R15-LEAD-023",
+    "R15-LEAD-016",
+    "R15-DATA-069",
+    "R15-UI-015",
+    "R15-DATA-052",
+    "R15-DATA-065",
+    "R15-DATA-062",
+    "R15-DATA-066",
+    "R15-LIFECYCLE-021",
+    "R15-DATA-073",
+    "R15-UI-053",
+    "R15-UI-051",
+    "R15-CODE-AGENT-005",
+    "R15-LIFECYCLE-025",
+    "R15-AGENT-046",
+    "R15-CODE-AGENT-008",
+    "R15-RESEARCH-027",
+    "R15-LIFECYCLE-018",
+    "R15-DATA-094",
+    "R15-UI-033",
+    "R15-CROSS-PLATFORM-002",
+    "R15-UI-016",
+    "R15-CODE-FRONTEND-016",
+    "R15-UI-086",
+    "R15-CROSS-PLATFORM-004",
+    "R15-UI-058",
+    "R15-DATA-092",
+    "R15-UI-052"
+  ],
+  "needs_gui": [
+    "R15-UI-083",
+    "R15-UI-050"
+  ],
+  "not_certified": [
+    {
+      "id": "R15-DATA-054",
+      "reason": "basis is hard-coded 'consolidated' for every .NS/.BO (yfinance_provider `basis = 'consolidated' if yahoo.endswith(('.NS','.BO'))`). This is false live for SMR, whose BSE intimation reads 'Audited STANDALONE' and which has no consolidated filing, and for the single-entity ICON. No basis chip renders in the panel. The result is a new mislabel, not a derived basis."
+    },
+    {
+      "id": "R15-DATA-055",
+      "reason": "The wire fields hold: DHOOTTRANS listing_date 2026-08-17; SMR 2026-06-08 with 52w leg dates 06-22/06-16; forward_pe_fiscal_year 2027-03-31. But NAPEROL listing_date 2002-07-01 is Yahoo's first-trade date (data start), not the listing date. The plan's EquityOverviewPanel leg (a since-listing label) was not delivered: the panel still shows '52w' / '1Y change' for a 38-day-old listing."
+    },
+    {
+      "id": "R15-DATA-048",
+      "reason": "ROCE is in the contract and derived (CREST 3.69%, NAPEROL 1.21% vs screener 1.07, DHOOTTRANS 21.4% vs screener 24.4 consolidated, ICON 16.7% vs 23.3; the TA-CL definition diverges). The lead repro ELCIDIN is still unavailable (no share count or equity). The panel never renders ROCE: metrics.ts has no roce row, so the plan's panel leg is undelivered."
+    },
+    {
+      "id": "R15-DATA-061",
+      "reason": "The entry repros are fixed: /macro/GDP gives a generic sentence; /quotes/ZZZZNOTREAL gives 404 not_found. A fresh case of the class fails: GET /macro/GDP?provider=worldbank returns 502 with the raw openbb-mcp 422 dict text as detail. An openbb ProviderError with no __cause__ is treated as authored (D-B9-1), and the series route passes an unvalidated provider value upstream."
+    },
+    {
+      "id": "R15-UI-028",
+      "reason": "Vega and theta are now in market units and labelled; an independent Black-Scholes check matches (price 9.2181, delta 0.5417, vega 0.3063/vol pt, theta -0.1087/day). The fresh class case fails: Rho 13.5565 is still shown unlabelled in QuantLib per-unit-rate units (market convention per 1% is 0.1356). This is the same unit-honesty defect on the same panel."
+    },
+    {
+      "id": "R15-RESEARCH-028",
+      "reason": "The integrator marked it partial (the Settings SearXNG row has no 'degraded'). The sidecar leg also fails live: /search/searxng/status reads 'ready' while the container returns 0 results for 'KPIT Technologies share', 'NVIDIA earnings' and 'Reliance Industries results' with unresponsive_engines brave/duckduckgo/startpage. The probe query 'test' returns one wikipedia hit, and _apply_quality checks has_results before unresponsive_engines. The live research brief got backend keyless-fallback with web_reason None, never 'searxng_degraded'."
+    },
+    {
+      "id": "R15-AGENT-082",
+      "reason": "Integrator-partial. The sidecar leg holds (the done frame carries spend_usd, 0.0 on the local run). The footer leg is undelivered: ChatSidebar.tsx still hard-codes `spendUsd: 0`, and streaming.ts does not parse spend_usd."
+    },
+    {
+      "id": "R15-DATA-068",
+      "reason": "Integrator-partial. The earnings history, surprises and estimates responses carry as_of. The analyst routes (ratings, price-target-history, individual targets) carry none."
+    },
+    {
+      "id": "R15-AGENT-063",
+      "reason": "Tool-path scoring and tagging now hold (AAPL: 18 items, all scored and tagged). The plan's own crypto case still fails: symbols=BTC/USDT returns 0 items although the live feed carries 'What Bitcoin's $16 billion options expiry...'. news_provider._aliases yields ['BTC/USDT','BTC'] with no 'Bitcoin'."
+    },
+    {
+      "id": "R15-AGENT-049",
+      "reason": "No live native-search lane could be exercised under the guard. The OpenAI gpt-4o(-mini)-search-preview models that the per-model gate targets return 404 model_not_found ('deprecated') upstream; the OpenRouter paid lane is unfunded; no Gemini/Anthropic key is reachable through vy.py. Only the focused tests ran (test_native_search, test_budget_guard, test_tool_call_identity: 58 passed). Nothing reached the product boundary."
+    },
+    {
+      "id": "R15-UI-032",
+      "reason": "Still dead end to end. The sidecar decode and the no-empty-cache change are in place, but live GET /sec/filings/search?q=Apple (also Tesla, Palantir, AAPL, Microsoft) returns {\"results\": []}. The installed sec-edgar-mcp 1.0.8 search_companies returns {success: true, companies: [], count: 0} for every query: core/client.py wraps edgar `search()` and swallows every exception to []. On a hit, tools/company.py reads `result.cik` off the dict rows the client returns, which would raise AttributeError. The writer's 'live-shaped fixture' is a shape the installed server never produces with rows, so the new autocomplete never shows a suggestion. get_cik_by_ticker works (AAPL -> 0000320193), and SEC's company_tickers.json is reachable, so a working local path exists."
+    },
+    {
+      "id": "R15-UI-027",
+      "reason": "The recorder half holds (Cmd+K on macOS records mod+k). conflicts() still groups raw combo strings, and the plan's 'compares resolved chords' leg was not delivered. Fresh case, executed through the real resolveKeyboardAction on macOS: remap chart.open to shift+mod+p while palette.open is mod+p. conflicts() returns [], and Cmd+Shift+P resolves to palette.open because matchesEvent ignores an unrequested Shift. The new binding is silently dead and nothing is flagged. The same holds for a recorded Cmd+Shift+K against the mod+k default, and for mod+p vs meta+p."
+    },
+    {
+      "id": "R15-AGENT-088",
+      "reason": "The fast path works for short symbols (AAPL, @AAPL, SPY, TCS.NS, INFY.NS, BRK.B go to bare-ticker; 'AAPL earnings?' and ZZZZ stay raw). But BARE_TICKER_SHAPE `^@?([A-Za-z][A-Za-z0-9.]{0,9})$` caps a symbol at 10 characters. In the India-first default region, RELIANCE.NS, HDFCBANK.NS and BAJFINANCE.NS on the watchlist still pay the LLM round-trip, although the code comment claims RELIANCE.NS is covered. A bare 'RELIANCE' with RELIANCE.NS watched also stays raw."
+    },
+    {
+      "id": "R15-UI-018",
+      "reason": "Every site the register names now uses ConfirmButton: Agent Builder, the workspace dialog, both portfolio sites, and Settings key removal, reset and layouts. The fresh class case fails. ScreenerPanel's 'Delete saved screen' (deleteScreen filters the user-authored screen out with no undo) and Marketplace 'Remove' still act on one unconfirmed click."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-9-int@a3b82180b26c0b143ba2c11663e9c15061264933"
+}

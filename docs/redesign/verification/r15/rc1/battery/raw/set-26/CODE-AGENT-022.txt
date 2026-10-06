@@ -1,0 +1,5 @@
+=== CODE-AGENT-022: MCP protocol version ===
+{"ready":true,"toolCount":40,"endpoint":"/mcp","protocolVersion":"2025-06-18"}
+event: message
+data: {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-11-25","capabilities":{"experimental":{},"logging":{},"prompts":{"listChanged":true},"resources":{"subscribe":false,"listChanged":true},"tools":{"listChanged":true},"extensions":{"io.modelcontextprotocol/ui":{}}},"serverInfo":{"name":"vysted","version":"3.2.4"}}}
+

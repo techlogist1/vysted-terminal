@@ -1,0 +1,19 @@
+interpreter: main-repo sidecar/.venv (pytest 9.0.3; candidate venv has no pytest), cwd candidate sidecar
+============================= test session starts ==============================
+platform darwin -- Python 3.13.13, pytest-9.0.3, pluggy-1.6.0 -- /Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/.venv/bin/python
+rootdir: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar
+plugins: asyncio-1.3.0, anyio-4.13.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 8 items
+
+tests/test_no_trading_surface.py::test_no_trading_routes_mounted PASSED  [ 12%]
+tests/test_no_trading_surface.py::test_no_trading_capability_in_catalog_or_registry PASSED [ 25%]
+tests/test_no_trading_surface.py::test_no_trading_tool_on_mcp_surface PASSED [ 37%]
+tests/test_no_trading_surface.py::test_trading_modules_are_gone PASSED   [ 50%]
+tests/test_no_trading_surface.py::test_trading_files_absent PASSED       [ 62%]
+tests/test_no_trading_surface.py::test_no_trading_identifiers_in_source PASSED [ 75%]
+tests/test_no_trading_surface.py::test_proposed_change_kind_has_no_order PASSED [ 87%]
+tests/test_no_trading_surface.py::test_tracked_portfolio_legacy_ledger_still_imports PASSED [100%]
+
+============================== 8 passed in 1.43s ===============================
+EXIT=0

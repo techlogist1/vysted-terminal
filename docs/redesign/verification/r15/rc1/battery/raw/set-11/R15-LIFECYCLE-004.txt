@@ -1,0 +1,5 @@
+provider nse_direct failed for ohlcv, falling through: nse_direct: historical row for 2026-09-22 lacks CH_OPENING_PRICE, CH_TRADE_HIGH_PRICE, CH_TRADE_LOW_PRICE, CH_TOT_TRADED_QTY (payload shape changed)
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+A0 real historicalOR rows: 10
+A2 registry.get_history SERVED: {'provider': 'nse', 'n': 27, 'flat_bars': 0, 'zero_volume_bars': 0}

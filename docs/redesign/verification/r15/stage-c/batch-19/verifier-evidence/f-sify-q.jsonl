@@ -1,0 +1,38 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_0d77e8f3841d4e10a6b12727b6fec16c", "name": "financial_statements", "input": {"period": "quarterly", "statement": "income", "symbol": "SIFY.US"}}
+{"kind": "tool_result", "tool_call_id": "call_0d77e8f3841d4e10a6b12727b6fec16c", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " did"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " return"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " value"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " quarter"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " does"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " include"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " quarterly"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " figures"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2896, "output_tokens": 33, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,1 @@
+RAISED ProviderError (typed): Yahoo returned a price with no trade time

@@ -1,0 +1,31 @@
+CMD: curl -s -X POST http://127.0.0.1:52356/llm/keys/validate -d '{"provider":"openrouter"}'
+{"ok":false,"reason":"not_configured","detail":"No API key is set for OpenRouter."}
+CMD: curl -s -X POST http://127.0.0.1:52356/llm/keys/validate -d '{"provider":"openai","api_key":"sk-fake..."}'
+{"ok":false,"reason":"invalid","detail":"OpenAI rejected this key."}
+CMD: curl -s -X POST http://127.0.0.1:52356/llm/keys/validate -d '{"provider":"ollama","model":"gemma3:4b"}' (unpulled) / '{"provider":"ollama","model":"llama3.1:8b"}' (pulled) -- reused from R15-AGENT-028 probe, same call
+{"ok":false,"reason":"model_not_pulled","detail":"gemma3:4b is not downloaded in Ollama (local) yet."}
+{"ok":true,"reason":null,"detail":null}
+-- unreachable/timeout rows not re-run live (would require killing the shared read-only sidecar or a 15s deliberate hang, both out of scope for a shared stack) -- confirmed present in source instead:
+    (``invalid``), a provider or daemon that cannot be reached (``unreachable``)
+    and a local model that is not pulled (``model_not_pulled``). The key is
+    stripped here: a pasted trailing newline is not a different key.
+    """
+    api_key = (payload.api_key or "").strip() or None
+    info = next(p for p in list_provider_info() if p.id == payload.provider)
+    if info.requires_key and api_key is None:
+        return LLMKeyValidationResponse(
+            ok=False, reason="not_configured", detail=f"No API key is set for {info.label}."
+        )
+    adapter = get_provider(payload.provider, base_url=payload.base_url)
+    try:
+        ok = await adapter.validate_key(api_key)
+    except Exception as exc:  # noqa: BLE001 — any transport failure means unreachable
+        logger.warning("provider %s validation transport error: %s", payload.provider, exc)
+        return LLMKeyValidationResponse(
+            ok=False,
+            reason="unreachable",
+            detail=f"Could not reach {info.label} ({type(exc).__name__}: {exc}).",
+        )
+    if not ok:
+
+VERDICT: holds -- 4 of 7 rows re-run live and match batch-8 exactly: not_configured, invalid, model_not_pulled, ok. The unreachable/timeout rows are confirmed present in sidecar/routers/llm.py:105-125 (any transport failure -> reason=unreachable) and were not independently re-timed live (would need to kill the shared read-only sidecar or force a 15s hang on it); no contradicting evidence found.

@@ -1,0 +1,27 @@
+CMD: sed -n '1,40p' /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/region.test.ts
+import { describe, expect, it } from "vitest";
+
+import { DEFAULT_REGION, regionConfig } from "@/lib/region";
+
+// R15-DATA-092: the default region is India, not REGIONS[0] (US) — a copy or
+// fallback that assumes US is stale/wrong.
+describe("region", () => {
+  it("DEFAULT_REGION is India", () => {
+    expect(DEFAULT_REGION).toBe("IN");
+  });
+
+  it("regionConfig falls back to DEFAULT_REGION (India), not REGIONS[0]", () => {
+    expect(regionConfig("does-not-exist" as never).id).toBe("IN");
+  });
+
+  it("regionConfig resolves a known region to itself", () => {
+    expect(regionConfig("US").id).toBe("US");
+  });
+});
+CMD: grep -n 'DEFAULT_REGION' /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/region.ts
+37:// R10 (E1): India-first default, mirroring the sidecar's `config._DEFAULT_REGION`
+39:export const DEFAULT_REGION: Region = "IN";
+50:    REGIONS.find((r) => r.id === DEFAULT_REGION) ??
+CMD: grep -n 'Defaults to' /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/components/SettingsPanel.tsx
+1427:            sidecar request — not just number formatting. Defaults to
+1429:        <SettingRow label="Region" hint={`Defaults to ${regionConfig(DEFAULT_REGION).label}.`}>

@@ -1,0 +1,29 @@
+[
+  {
+    "raw_id": "INT-pdd-readme-0-1",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds as stated. PRODUCT_DESIGN_DECISIONS.md:3-4 still reads 'RATIFIED ... the single document every teammate obeys' and :13-21/:80-93 prescribe the retired Warm Graphite ramp + amber #d89a4e lockstep, while styles/tokens.css:1-21,35,54 ships pure-neutral #161616 + peach #fab283 and still points readers to that doc (:21). No superseded/retired banner exists (grep of the doc for 'superseded' = 0; the only 'retired' hit is :21 about an older system), and DECISIONS.md has no R6 section (jumps R8 -> R9 at :39, D26-D28 only) and CHANGELOG.md has 0 hits for 'Warm Graphite|Pure Black|OpenCode|#fab283'; live source still cites its sections as authority (globals.css:69,199,232, DataTable.tsx:14, SuggestionChips.tsx:11, NotesToolbar.tsx:4, workspace.ts:34,112).",
+    "evidence": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md:1-21,80-93; styles/tokens.css:1-21,35,54; docs/redesign/R9_DESIGN_SYSTEM.md:79; docs/redesign/VYSTED_DESIGN.md:10-20; docs/redesign/DECISIONS.md:1-45; src/app/globals.css:69,199,231-232; src/components/DataTable.tsx:14; src/modules/chat/SuggestionChips.tsx:11; src/modules/notes/NotesToolbar.tsx:4; src/store/workspace.ts:34,112",
+    "evidence_checked": "code/doc-only at HEAD d7b7167 (design finding, no runtime repro applicable); opened the doc header + FR-030 section, tokens.css header/palette, R9 sec4, VYSTED_DESIGN intro, DECISIONS.md section index, grep of CHANGELOG/DECISIONS for the reversal and grep of src/styles for doc citations.",
+    "repro_check": "grep -rn PRODUCT_DESIGN_DECISIONS src styles -> 9 live citations; grep -n 'Warm Graphite\\|Pure Black\\|#fab283\\|OpenCode' CHANGELOG.md -> 0 hits; sed -n 1,21p the doc -> 'RATIFIED' banner, no superseded marker."
+  },
+  {
+    "raw_id": "INT-pdd-readme-0-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The 27 stale colour fallbacks are real and exactly as listed (e.g. globals.css:201,208,222 amber-400 fallback #d89a4e vs token #fab283; :346,:352,:444 charcoal-900 fallback #1a1814 vs #161616; :502,:511 charcoal-300 #d4d4d4 vs #cccccc), contradicting the comment at :18-20 ('never warm'). Corrections: the non-colour count is 10 not 17 — :421 and :519 use a 4px fallback for --radius-control, which equals the token 0.25rem, so they do not disagree (the real ones are :73,:242,:244,:249,:251,:255,:257,:301,:304,:383). Severity lowered to low: the finding itself verifies no fallback ever fires (every token is emitted), so there is zero runtime effect; the harm is a misleading comment and a grep trap for a maintainer, i.e. polish/hygiene.",
+    "evidence": "src/app/globals.css:18-20,73,76,189,201-222,237-257,287-304,320,346-355,383,421,444,502,511,519; styles/tokens.css:35,54,63-64,115-126,145-146,164",
+    "evidence_checked": "code-only (design finding): grep of every var(--x, fallback) in globals.css diffed by hand against the @theme values in styles/tokens.css at HEAD d7b7167.",
+    "repro_check": "grep -n 'var(--[a-z0-9-]*, ' src/app/globals.css then compare to styles/tokens.css -> 27 colour mismatches confirmed, 10 non-colour mismatches (421/519 4px == 0.25rem are equal, not stale)."
+  },
+  {
+    "raw_id": "INT-pdd-readme-0-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The overloading is real: text-warning/bg-warning carries synthetic provenance (DataBadges.tsx:57), 'Docker not found' (SettingsPanel.tsx:744), keybinding conflict (:1482), plugin initializing/stopping (PluginManagerPanel.tsx:136,138), agent paused (AgentsRail.tsx:96), budget exhausted (:134) and chart compare no-data (ChartPanel.tsx:1385), against the documented 'stale / paper / caution badge' role (tokens.css:83) and the PDD:92-93 'only ever a labelled badge' promise. Correction on the colour-only claim: the StatusChrome dot is labelled (StatusChrome.tsx:217-219 renders connLabel 'Connecting…' beside it, plus a title), and the ChartPanel mark is a '!' glyph with title 'No data' beside a dimmed chip, not colour-only; the genuinely colour-only uses are AgentsRail's aria-hidden budget bar (:131-135) and the aria-hidden paused dot (:95-99). Severity low unchanged.",
+    "evidence": "styles/tokens.css:83; docs/redesign/PRODUCT_DESIGN_DECISIONS.md:90-93; src/components/DataBadges.tsx:17,52-60; src/components/SettingsPanel.tsx:743-744,1482; src/components/PluginManagerPanel.tsx:134-138; src/modules/chat/AgentsRail.tsx:95-99,131-135; src/components/StatusChrome.tsx:203-219; src/modules/chart/ChartPanel.tsx:1378-1388",
+    "evidence_checked": "code-only (design/UI-semantics finding, no stack repro needed): opened every cited use site and the surrounding markup to check for adjacent labels.",
+    "repro_check": "sed -n on each cited line range -> 7+ distinct meanings share --color-warning; StatusChrome.tsx:219 shows the dot is text-labelled; AgentsRail.tsx:131-135 budget bar is aria-hidden with no text."
+  }
+]

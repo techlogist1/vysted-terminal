@@ -1,0 +1,16 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: in-process mcp_tool_ids + LIVE MCP list_tools against :52349/mcp/ (streamable-http client)
+mcp tool count 31
+run_custom_backtest on MCP surface: False
+backtest_summary on MCP surface: False
+broker_portfolio on MCP surface: False
+all MCP-projected read_only: True
+run_custom_backtest.read_only = True
+ToolKind members: ('read_handler', 'per_invocation', 'host_action')
+mcp-projected non-read_handler kinds: {'read_handler'}
+live MCP tools 39
+run_custom_backtest listed: False | backtest_summary listed: False
+readOnlyHint values: ['None', 'True']
+sample [('price_data', True), ('resolve_symbol', True), ('compare_symbols', True), ('fundamentals', True)]
+pinned test: 124:def test_run_custom_backtest_not_read_only_on_mcp() -> None:
+EXIT=0

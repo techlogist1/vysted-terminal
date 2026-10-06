@@ -1,0 +1,110 @@
+[
+  {
+    "raw_id": "COD-research-extraction-synthesis-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The bypass is real and I reproduced it live. fetch_page checks is_public_http_url once, on the input URL only (extract.py:593). httpx_fetch then follows redirects (transport.py:108), the PDF lane does too (extract.py:307), and nothing re-checks fetched.url. Two corrections: the sidecar's own loopback JSON endpoints (the raw finding's /agents example) are rejected by the content-type filter at extract.py:620-621, so only HTML/text/PDF internal targets reach `content`. And the extracted text goes to the user's own brief and their BYOK model, not back to the attacker. That makes this a real guard bypass with no demonstrated exfiltration channel, so high rather than critical.",
+    "evidence": "sidecar/services/search/extract.py:593, sidecar/services/search/extract.py:620, sidecar/services/search/extract.py:635, sidecar/services/search/extract.py:307, sidecar/services/search/transport.py:108, sidecar/services/search/extract.py:12",
+    "evidence_checked": "Read fetch_page, visit_for_research, _default_pdf_fetch and httpx_fetch. Grepped the search package for any redirect/event-hook re-validation (none). Ran a live repro through a public redirector to the isolated stack.",
+    "repro_check": "sidecar/.venv/bin/python: httpx_fetch('https://httpbin.org/redirect-to?url=http%3A%2F%2F127.0.0.1%3A52152%2Fhealth') -> 200, url=http://127.0.0.1:52152/health, returned the sidecar /health JSON body. is_public_http_url on that URL -> True. fetch_page on it -> ok:False 'unsupported content type: application/json' (reached loopback and was stopped only by the content-type filter). Direct fetch_page('http://127.0.0.1:52152/health') -> blocked."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Real. The research llm_call wraps oneshot.complete, which returns only a str (deep_research.py:322-325, oneshot.py:46-53), so every research record() call passes None and cost() reports tokens 0 / spend 0.0, which the cockpit then omits. Mechanism correction: the research BudgetGuard is built with only max_steps and max_wall_seconds (deep_research.py:232-235), so its token and spend ceilings are never set at all. The more serious consequence is that research-internal LLM spend never reaches ANY guard, including a durable delegate run's own spend ceiling.",
+    "evidence": "sidecar/services/research/deep.py:54, sidecar/services/agent_tools/deep_research.py:232, sidecar/services/agent_tools/deep_research.py:322, sidecar/services/llm/oneshot.py:46, sidecar/services/budget_guard.py:116, sidecar/services/budget_guard.py:152, sidecar/services/research/citecheck.py:266, sidecar/services/research/models.py:168, src/lib/brief-ingest.ts:445, src/lib/brief-ingest.ts:459",
+    "evidence_checked": "Code-only. Read the LLMCall type, BudgetGuard.record/breach/cost, the _run_native llm_call closure, oneshot.complete's return type, all six record(None, ...) call sites (grep) and both frontend formatters.",
+    "repro_check": "grep -n '\\.record(' over services/research: all six call sites pass None. oneshot.complete is annotated -> str. No max_tokens/max_spend_usd anywhere in the agent_tools or research guard construction (grep: empty)."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-3",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Reproduced exactly. _looks_like_ir does a substring match of '/investor' anywhere in the path, and also accepts any 'ir.'-prefixed host (finance.py:72, finance.py:127-132). That puts a Medium post, a wordpress '/ir/' path and even a newspaper article path ('/markets/investors-rush') in TIER_PRIMARY. rank_sources gives such a page marker [1] ahead of Reuters, and priority_note tells the synthesis model that [1] is the exchange/regulator/filings/IR record.",
+    "evidence": "sidecar/services/research/finance.py:72, sidecar/services/research/finance.py:127, sidecar/services/research/finance.py:135, sidecar/services/research/finance.py:155, sidecar/services/research/finance.py:166, sidecar/services/research/deep.py:368, sidecar/services/research/iter.py:845",
+    "evidence_checked": "Read the finance.py tier table, _looks_like_ir, domain_tier, source_tier, rank_sources and priority_note, plus the rank call sites in deep.py and iter.py. Ran the functions in the sidecar venv.",
+    "repro_check": "sidecar/.venv/bin/python: domain_tier(medium.com/investor-diary/...)=1, (someblog.wordpress.com/ir/...)=1, (ir.randomshell.com)=1, (thehindubusinessline.com/markets/investors-rush)=1, (reuters.com/markets/x)=2. rank_sources([Reuters, Blog]) -> ['Blog','Reuters']. priority_note -> 'primary record (exchange/regulator/filings/IR): [1]; tier-1 press: [2].'"
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real on the frontend. Both hosted lanes set domain='<host> (via ...)' and never set source_type (sonar.py:197-205, perplexity.py:178-187). hostOf prefers source.domain (brief-ingest.ts:251-253), so hostMatches can never match and every Sonar/Perplexity citation badges as 'web'. Severity corrected: the Python-side consequence the raw finding cites does not bite, because source_tier tiers by URL first and uses the domain label only when the URL is general (finance.py:155-160). Ranking and priority_note are therefore correct on these lanes. What remains is a wrong category badge next to a correct link, which is not a broken core flow.",
+    "evidence": "sidecar/services/research/sonar.py:197, sidecar/services/research/perplexity.py:178, sidecar/services/research/finance.py:155, src/lib/brief-ingest.ts:251, src/lib/brief-ingest.ts:314, src/lib/brief-ingest.ts:326",
+    "evidence_checked": "Read both lanes' _add builders, hostOf/hostMatches/deriveSourceType and finance.source_tier. Grepped for any source_type/sourceType assignment on these lanes or at the tool boundary (none). Ran domain_of/domain_tier on a provenance-suffixed label.",
+    "repro_check": "sidecar/.venv/bin/python: domain_of('nseindia.com (via Perplexity Sonar)') -> 'nseindia.com (via perplexity sonar)', domain_tier -> 3. By inspection, hostOf returns the same suffixed string, so FILING/NEWS host matches fail and the badge is 'web'."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. The agent `news` tool returns fetch_news items raw (news_tool.py:46-55), and fetch_news builds items with symbols=[] and no sentiment (news_provider.py:213, :255). Only the GET /news route scores and tags them (news.py:115-130), which contradicts the tool docstring's 'Mirrors what GET /news serves'. The raw-symbol half is also live: GET /news?symbols=BTC/USDT returns [] while symbols=BTC returns 6 items. Scope nuance: the agent tool does not filter by tag, so the agent gets unfiltered, unscored news rather than an empty list. The empty-list trap bites only raw-symbol callers of the route.",
+    "evidence": "sidecar/services/agent_tools/news_tool.py:4, sidecar/services/agent_tools/news_tool.py:46, sidecar/services/news_provider.py:213, sidecar/routers/news.py:62, sidecar/routers/news.py:115, sidecar/models/news.py:24, src/modules/news/NewsFeedPanel.tsx:170",
+    "evidence_checked": "Read the news tool, router enrichment + _tag_symbols, the NewsItem defaults and the panel's toNewsSymbol projection. Ran live GETs against :52152.",
+    "repro_check": "curl '127.0.0.1:52152/news?symbols=BTC/USDT&limit=10' -> []. curl '127.0.0.1:52152/news?symbols=BTC&limit=10' -> 6 items."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Factually true: BriefDerivedMetrics (types/brief.ts:129-177) omits dividend_per_share_ttm, dividend_declared, promoter_percent_exchange and institutions_percent_exchange, all of which semantics.py emits. However, the omission is documented as deliberate. derivedItems iterates Object.entries over the leg, and brief-blocks.tsx:250-256 says the wire carries more keys than the interface names 'by design'. A test (brief-blocks.test.ts:497-506) pins that the undeclared keys render. With no runtime consequence and no current typed consumer, this is low.",
+    "evidence": "types/brief.ts:129, types/brief.ts:177, src/modules/research/brief-blocks.tsx:244, src/modules/research/brief-blocks.test.ts:497, sidecar/services/research/semantics.py:327, sidecar/services/research/semantics.py:340, sidecar/services/research/semantics.py:565, sidecar/services/research/semantics.py:580",
+    "evidence_checked": "Read the interface, the derivedItems renderer comment and the test that exercises the undeclared keys. Grepped for the four keys across types/ and src/.",
+    "repro_check": "grep over types/ and src/: the four keys appear only in brief-blocks.tsx comments and brief-blocks.test.ts, never in BriefDerivedMetrics."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The gap is real. _PROMPT_KEYS (semantics.py:1168-1186) is a hand list, and grep finds no test referencing it. The only literal pins in the test file cover _EARNINGS_KEY/_RANGE_KEY/_MCAP_WITNESS_KEY (test_research_semantics.py:776-778). Nothing is broken today, though: every emitted key is listed. This is a latent maintenance hazard with a one-line fix, so low rather than medium.",
+    "evidence": "sidecar/services/research/semantics.py:1168, sidecar/services/research/semantics.py:1086, sidecar/services/research/semantics.py:1251, sidecar/tests/test_research_semantics.py:776",
+    "evidence_checked": "Read _PROMPT_KEYS, prompt_block's loop, the derive_semantics leg pipeline and the pinning test. Grepped sidecar/ for _PROMPT_KEYS (no test hits).",
+    "repro_check": "grep -rn _PROMPT_KEYS sidecar/services sidecar/tests -> only semantics.py:1168/1251, no test."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The duplication is real. The cost constants are identical under different names (perplexity.py:70-72 vs sonar.py:75-77) and the _human_http_error bodies are parallel. The only 'drift' shown is that sonar.py:134 has a 402 branch and perplexity.py:100-114 does not. That drift makes the Perplexity lane show the generic-but-honest 'failed with HTTP 402' message rather than a wrong one, and nothing I read shows the direct Perplexity API uses 402 for credits (OpenRouter does). This is maintenance cost, not a user-facing defect, so low.",
+    "evidence": "sidecar/services/research/perplexity.py:70, sidecar/services/research/perplexity.py:100, sidecar/services/research/sonar.py:75, sidecar/services/research/sonar.py:126, sidecar/services/research/sonar.py:134, sidecar/services/agent_tools/deep_research.py:134",
+    "evidence_checked": "Read both files' cost constants and HTTP error mappers. Confirmed the perplexity lane is still live via deep_research.py:134.",
+    "repro_check": "grep -n 402 perplexity.py sonar.py -> only sonar.py:134."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The precondition lives only in the docstring (finance.py:166-174), but every current caller passes an already-ranked list. There are three call sites, not the four the raw finding claims: deep.py:930 via all_sources (ranked at deep.py:368), iter.py:219 via the same all_sources, and iter.py:1019 via _merge_sources (ranked at iter.py:845). This is a latent trap with no current defect, so low.",
+    "evidence": "sidecar/services/research/finance.py:166, sidecar/services/research/deep.py:368, sidecar/services/research/deep.py:930, sidecar/services/research/iter.py:219, sidecar/services/research/iter.py:845, sidecar/services/research/iter.py:1019",
+    "evidence_checked": "Read priority_note and all its call sites (grep) and confirmed that each feeds a rank_sources output.",
+    "repro_check": "grep -n priority_note services/research -> 3 call sites, each fed by finance.rank_sources output."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-10",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. visit_for_research collapses every distinct fetch_page error to None (extract.py:670-679); scanned PDFs are the only exception. The researcher's _safe_visit then drops a None visit without recording a step (deep.py:639-646, deep.py:768-786). A primary exchange filing that hits a 403 wall or the SSRF block therefore silently vanishes from the evidence, with no trace step and no prompt signal.",
+    "evidence": "sidecar/services/search/extract.py:593, sidecar/services/search/extract.py:612, sidecar/services/search/extract.py:621, sidecar/services/search/extract.py:670, sidecar/services/search/extract.py:674, sidecar/services/research/deep.py:639, sidecar/services/research/deep.py:768",
+    "evidence_checked": "Read fetch_page's error returns, visit_for_research, and the researcher's visit and companion-visit handling in deep.py.",
+    "repro_check": "Code inspection: `if page_url and page_text: visited_pages.append(...)` has no else and records no step, so a failed visit leaves no trace."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-11",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds as stated. _dividend_leg returns a positional 4-tuple (semantics.py:863-865) that is unpacked at :1048, while its sibling legs return (facts, conflicts). _dividend_ttm_leg takes a currency parameter that it discards via '_ = currency  # ... for symmetry' (semantics.py:291, :349).",
+    "evidence": "sidecar/services/research/semantics.py:291, sidecar/services/research/semantics.py:349, sidecar/services/research/semantics.py:863, sidecar/services/research/semantics.py:1048",
+    "evidence_checked": "Read both signatures, the discard line and the call-site unpack.",
+    "repro_check": "sed -n 290,296p / 345,352p / 863,870p / 1044,1052p semantics.py confirmed both shapes."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-12",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The failure as stated cannot happen. _claim_sentences keeps the [n] markers inside the claim string (citecheck.py:108-122), so a duplicated sentence citing DIFFERENT sources is a different string, and cleaned.replace(sentence, ..., 1) (citecheck.py:273) cannot land on the other occurrence. A collision needs byte-identical text AND identical markers. At that point the two claims have the same content and the same sources, so which copy gets softened carries no honesty inversion, only audit-verdict noise.",
+    "evidence": "sidecar/services/research/citecheck.py:92, sidecar/services/research/citecheck.py:108, sidecar/services/research/citecheck.py:122, sidecar/services/research/citecheck.py:262, sidecar/services/research/citecheck.py:273",
+    "evidence_checked": "Read _claim_sentences and the softening loop, then ran _claim_sentences on the raw finding's scenario in the sidecar venv.",
+    "repro_check": "sidecar/.venv/bin/python: _claim_sentences('- Revenue rose 12% in FY24 [1].\\n\\nBody text. Revenue rose 12% in FY24 [2].', 2, srcs) -> two claims '...[1].' and '...[2].'. md.count('Revenue rose 12% in FY24 [2].') == 1, so the replace can only hit its own occurrence."
+  }
+]

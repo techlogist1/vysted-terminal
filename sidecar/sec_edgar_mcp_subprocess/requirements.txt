@@ -12,3 +12,9 @@
 # ``Command::new`` from ``src-tauri/src/sec_edgar_mcp.rs`` — the v0.4.0
 # Phase-2 deadlock fix pattern.
 sec-edgar-mcp==1.0.8
+
+# The MCP stack, pinned to the known-good freeze (R15-LEAD-001): unpinned, a
+# fresh venv resolved an mcp built on httpx2, and the build's
+# --copy-metadata=httpx then failed. Bump these together, deliberately.
+mcp==1.27.1
+httpx==0.28.1

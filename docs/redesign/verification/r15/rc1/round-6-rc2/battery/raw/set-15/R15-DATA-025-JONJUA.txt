@@ -1,0 +1,9 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52340
+$ curl -s -m 90 '127.0.0.1:52340/disclosures/corporate-actions?symbol=JONJUA' | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('count'));[print(a) for a in d.get('actions',d.get('items',[]))[:6]]"
+exit=0
+5
+{'symbol': 'JONJUA', 'kind': 'bonus', 'purpose': 'Bonus issue 7:24', 'ratio': '7:24', 'amount_per_share': None, 'ex_date': '2026-09-04', 'record_date': '2026-09-04', 'payment_date': None, 'exchange': 'BSE'}
+{'symbol': 'JONJUA', 'kind': 'bonus', 'purpose': 'Bonus issue 5:40', 'ratio': '5:40', 'amount_per_share': None, 'ex_date': '2026-01-23', 'record_date': '2026-01-23', 'payment_date': None, 'exchange': 'BSE'}
+{'symbol': 'JONJUA', 'kind': 'dividend', 'purpose': 'Final Dividend', 'ratio': None, 'amount_per_share': 0.1, 'ex_date': '2025-09-19', 'record_date': '2025-09-20', 'payment_date': '2025-10-27', 'exchange': 'BSE'}
+{'symbol': 'JONJUA', 'kind': 'bonus', 'purpose': 'Bonus issue 1:20', 'ratio': '1:20', 'amount_per_share': None, 'ex_date': '2025-07-28', 'record_date': '2025-07-28', 'payment_date': None, 'exchange': 'BSE'}
+{'symbol': 'JONJUA', 'kind': 'rights', 'purpose': 'Right Issue of Equity Shares', 'ratio': None, 'amount_per_share': None, 'ex_date': '2024-11-29', 'record_date': '2024-11-29', 'payment_date': None, 'exchange': 'BSE'}

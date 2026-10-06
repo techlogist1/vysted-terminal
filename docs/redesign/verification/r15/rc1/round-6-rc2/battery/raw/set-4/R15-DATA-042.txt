@@ -1,0 +1,4 @@
+CMD: grep -rn 'R15-DATA-042' src --include=*.test.*
+src/modules/portfolio/metrics.test.ts:108:    // R15-DATA-042 / R15-CODE-PLATFORM-053: weight and concentration are a
+src/modules/portfolio/PortfolioPanel.test.tsx:592:  it("R15-DATA-042: CSV export gets a Currency column and a blank Weight % when mixed", async () => {
+EXIT=0

@@ -1,0 +1,123 @@
+## runs_store list_runs/update_run
+152:    columns = {row[1] for row in conn.execute("PRAGMA table_info(runs)")}
+166:def _connect() -> Iterator[sqlite3.Connection]:
+206:        conn.execute("DELETE FROM runs")
+209:def _row_to_summary(row: sqlite3.Row) -> RunSummary:
+334:        row = conn.execute("SELECT * FROM runs WHERE id = ?", (run_id,)).fetchone()
+338:def list_runs() -> list[RunSummary]:
+341:        rows = conn.execute("SELECT * FROM runs ORDER BY created_at DESC, id DESC").fetchall()
+345:def update_run(
+## list_runs body
+338:def list_runs() -> list[RunSummary]:
+339-    """Return every run, newest first (by ``created_at`` then ``id``)."""
+340-    with _connect() as conn:
+341-        rows = conn.execute("SELECT * FROM runs ORDER BY created_at DESC, id DESC").fetchall()
+342-    return [_row_to_summary(row) for row in rows]
+343-
+344-
+345-def update_run(
+346-    run_id: str,
+347-    *,
+348-    status: RunStatus | None = None,
+349-    from_status: frozenset[RunStatus] | None = None,
+350-    cost: RunCost | dict[str, Any] | None = None,
+351-    detail: str | None = None,
+352-    question: str | None = None,
+## update_run body
+345:def update_run(
+346-    run_id: str,
+347-    *,
+348-    status: RunStatus | None = None,
+349-    from_status: frozenset[RunStatus] | None = None,
+350-    cost: RunCost | dict[str, Any] | None = None,
+351-    detail: str | None = None,
+352-    question: str | None = None,
+353-    checkpoint: dict[str, Any] | list[Any] | None = None,
+354-    output: dict[str, Any] | None = None,
+355-    plan: dict[str, Any] | None = None,
+356-    activity: list[dict[str, str]] | None = None,
+357-    clear_question: bool = False,
+358-    now: int | None = None,
+359-) -> RunDetail:
+360-    """Patch the mutable fields on a run and return the updated row.
+361-
+362-    Only the explicitly-provided fields change — a ``None`` argument leaves the
+363-    column untouched (so a cost update does not wipe a stored ``detail``). The
+364-    one exception is ``question``: pass ``clear_question=True`` to null it out
+365-    (resolving a human-in-the-loop pause), since ``None`` means "leave as-is".
+366-
+367-    A ``status`` change is applied only from a status :data:`TRANSITIONS`
+## run_manager update_run/on_round_usage call sites
+14:  :class:`~services.budget_guard.BudgetGuard` via the ``on_round_usage``
+208:        runs_store.update_run(run_id, checkpoint=_checkpoint(), activity=steps)
+210:    def _on_round_usage(usage: LLMUsage, used_model: str, used_provider: str) -> bool:
+217:        runs_store.update_run(
+255:                runs_store.update_run(
+272:                on_round_usage=_on_round_usage,
+309:            runs_store.update_run(
+322:            runs_store.update_run(
+333:        runs_store.update_run(
+357:        runs_store.update_run(
+363:        runs_store.update_run(run_id, checkpoint=_checkpoint())
+367:        runs_store.update_run(
+456:    runs_store.update_run(run_id, status="cancelled", detail="cancelled by user")
+540:    runs_store.update_run(
+## delegate-runs.ts poll
+108:const POLL_MS = 2000;
+109:let pollTimer: ReturnType<typeof setInterval> | null = null;
+133:  pollTimer = setInterval(() => void pollDelegateRuns(), POLL_MS);
+
+/** Poll the sidecar runs and sync cost/status into the rail. */
+export async function pollDelegateRuns(): Promise<void> {
+  const active = useAgentRunsStore
+    .getState()
+    .runs.some((r) => r.sidecarRunId && isLiveRun(r.status));
+  if (!active) {
+    // No active runs — clear any residual failure count so a NEW run can't
+    // inherit a near-threshold count and badge stale on its very first dropped
+    // poll (adversarial-review finding).
+    pollFailures = 0;
+    return;
+  }
+## sidecarGet timeout
+177:    if (init?.signal?.aborted) {
+215:  signal?: AbortSignal;
+257:  const init: RequestInit = { method, headers: requestHeaders, signal: opts.signal };
+## runs_store.py:198-208
+    """Drop every row so a test starts from an empty store.
+
+    The store has no module-level cache — the database file is the only state —
+    so this is a ``DELETE`` rather than a singleton reset. Tests that point
+    ``VYSTED_DATA_DIR`` at a fresh ``tmp_path`` already get an empty store; this
+    helper is for tests that share a data dir within one run.
+    """
+    with _connect() as conn:
+        conn.execute("DELETE FROM runs")
+
+
+## run_manager.py:205-225
+        # Checkpoint every step, not only at exit, so a killed process leaves a
+        # run that resumes without re-paying its tools (R15-LIFECYCLE-012); the
+        # rail reads the step from the same write (R15-AGENT-039).
+        runs_store.update_run(run_id, checkpoint=_checkpoint(), activity=steps)
+
+    def _on_round_usage(usage: LLMUsage, used_model: str, used_provider: str) -> bool:
+        # Fold the round's usage into the guard at the RESOLVED provider's rate
+        # (R15-AGENT-074), persist the running cost so GET /runs reflects
+        # spend-so-far, and refuse the next round on a breach: invoke_agent then
+        # stops before dispatching this round's tools (R15-AGENT-037).
+        guard.record(usage, used_model, used_provider)
+        spent = guard.cost()
+        runs_store.update_run(
+            run_id,
+            checkpoint=_checkpoint(),
+            cost=RunCost(
+                tokens=prior.tokens + int(spent["tokens"]),
+                spend_usd=round(prior.spend_usd + spent["spend_usd"], 6),
+                steps=prior.steps + int(spent["steps"]),
+            ),
+        )
+## delegate-runs.ts sidecarGet calls + guards
+23:import { sidecarGet, sidecarRequest } from "@/lib/sidecar-client";
+90:  const wire = await sidecarGet<{ runs?: RunWire[] } | RunWire[]>("/runs");
+259:    output = await sidecarGet<RunOutputWire>(`/runs/${encodeURIComponent(sidecarRunId)}`);

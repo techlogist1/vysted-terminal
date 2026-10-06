@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { BarChart3 } from "lucide-react";
 import {
   createChart,
   HistogramSeries,
@@ -10,6 +11,7 @@ import {
   type UTCTimestamp,
 } from "lightweight-charts";
 
+import { EmptyState } from "@/components/EmptyState";
 import {
   CHART_BORDER,
   CHART_CROSSHAIR,
@@ -19,6 +21,7 @@ import {
   NEGATIVE as NEGATIVE_COLOR,
   POSITIVE as POSITIVE_COLOR,
 } from "@/lib/chart-theme";
+import { currencyAffix } from "@/lib/format";
 import type { EarningsSurprise } from "../../../types/earnings";
 
 const CHART_THEME = {
@@ -53,25 +56,44 @@ interface Props {
  * Histogram chart of recent earnings surprises (EPS actual minus estimate).
  * Positive surprises render in the green positive colour, negatives in red.
  * The chart renders at the parent container's intrinsic size; the caller
- * is responsible for giving it a sized div.
+ * is responsible for giving it a sized div. With no history the surface is
+ * the composed dense EmptyState — never an empty chart frame with a prose
+ * overlay.
  */
 export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
 
+  const hasData = surprises.length > 0;
+  // R15-DATA-031: the title hard-coded "EPS $" regardless of the reporting
+  // currency — take the unit from the data instead (a rupee-denominated
+  // surprise chart labelled "$" mislabels every bar).
+  const currency = surprises[0]?.currency ?? null;
+
   useEffect(() => {
+    if (!hasData) {
+      return;
+    }
     const container = containerRef.current;
     if (!container) {
       return;
     }
     const chart = createChart(container, { ...CHART_THEME, autoSize: true });
     chartRef.current = chart;
+    // R15-DATA-113: `currency === null` means the provider could not
+    // determine the EPS currency — the title omits the affix rather than
+    // falling back to `currencyAffix`'s guessed default.
+    let affix = "";
+    if (currency !== null) {
+      const { prefix, suffix } = currencyAffix(currency);
+      affix = ` ${prefix}${suffix}`;
+    }
     const series = chart.addSeries(HistogramSeries, {
       priceFormat: { type: "price", precision: 2, minMove: 0.01 },
       priceLineVisible: false,
       lastValueVisible: false,
-      title: "Surprise (EPS $)",
+      title: `Surprise (EPS${affix})`,
     });
     seriesRef.current = series;
     return () => {
@@ -79,7 +101,7 @@ export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
       chartRef.current = null;
       seriesRef.current = null;
     };
-  }, []);
+  }, [hasData, currency]);
 
   useEffect(() => {
     const series = seriesRef.current;
@@ -90,17 +112,18 @@ export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
       series.setData([]);
       return;
     }
-    // Sort newest-first → reverse for chart (oldest-first).
+    // Sort by period_end (R15-LEAD-016: the fiscal quarter end, never null —
+    // reported_date can be null when no announcement date was found).
     const trimmed = [...surprises].sort(
-      (a, b) => new Date(a.reported_date).getTime() - new Date(b.reported_date).getTime(),
+      (a, b) => new Date(a.period_end).getTime() - new Date(b.period_end).getTime(),
     );
     const tail = trimmed.slice(-limit);
     const data: HistogramData<UTCTimestamp>[] = tail.map((entry) => ({
-      time: toChartTime(entry.reported_date),
+      time: toChartTime(entry.period_end),
       value: entry.eps_surprise,
       color: entry.eps_surprise >= 0 ? POSITIVE : NEGATIVE,
     }));
-    // Two surprises sharing a reported_date floor to the same second-resolution
+    // Two surprises sharing a period_end floor to the same second-resolution
     // timestamp; lightweight-charts throws "data must be asc ordered by time"
     // on duplicates, so collapse equal-time points (keep the latest) before
     // setData — mirrors MacroChart's dedupe (hunt-data-edge).
@@ -117,5 +140,25 @@ export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
     chartRef.current?.timeScale().fitContent();
   }, [surprises, limit]);
 
-  return <div ref={containerRef} className="h-48 w-full" data-testid="earnings-surprise-chart" />;
+  if (!hasData) {
+    return (
+      <div data-testid="earnings-surprise-chart">
+        <EmptyState
+          dense
+          icon={BarChart3}
+          headline="No surprise history"
+          hint="Reported-vs-estimate EPS bars chart here once the provider has past quarters."
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={"h-48 w-full" /* tokens-ok: chart canvas height — layout, not rhythm */}
+      data-testid="earnings-surprise-chart"
+    >
+      <div ref={containerRef} className="h-full w-full" />
+    </div>
+  );
 }

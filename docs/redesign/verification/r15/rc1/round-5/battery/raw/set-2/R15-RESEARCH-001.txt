@@ -1,0 +1,7 @@
+R15-RESEARCH-001: in-process probe (see probe_set2.py, probe_set2_output.json), key 'RESEARCH-001'
+{
+  "kept_urls": [
+    "https://x.example/2"
+  ],
+  "note": null
+}

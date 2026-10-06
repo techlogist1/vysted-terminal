@@ -1,0 +1,5 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "{\"name\": \"calculate_total_proceeds\", \"parameters\": {\"shares_sold\": 5, \"price_per_share\": 3100.0, \"currency\": \"\u20b9\"}}"}
+{"kind": "done", "usage": {"input_tokens": 7483, "output_tokens": 39, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,79 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_8eed65b731cb4a5d846b5b44e556afe8", "name": "get_terminal_state", "input": {}}
+{"kind": "tool_use", "tool_call_id": "call_9d07f6c165db4074a326ecb7e71f8a43", "name": "resolve_symbol", "input": {"query": "Zomato", "region": "IN"}}
+{"kind": "tool_use", "tool_call_id": "call_4146fad0863d4ca78d87120298fa631a", "name": "price_data", "input": {"symbol": "$ZOMATO.NS", "timeframe": "1d", "asset_class": "equity", "range": "1d"}}
+{"kind": "delta", "text": "Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " right"}
+{"kind": "delta", "text": " now"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " We"}
+{"kind": "delta", "text": "'re"}
+{"kind": "delta", "text": " unable"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " live"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " suggest"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " official"}
+{"kind": "delta", "text": " website"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " other"}
+{"kind": "delta", "text": " reliable"}
+{"kind": "delta", "text": " sources"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'d"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " researching"}
+{"kind": "delta", "text": " E"}
+{"kind": "delta", "text": "TERNAL"}
+{"kind": "delta", "text": " LIMITED"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " name"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "OM"}
+{"kind": "delta", "text": "ATO"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " using"}
+{"kind": "delta", "text": " our"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 3286, "output_tokens": 74, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

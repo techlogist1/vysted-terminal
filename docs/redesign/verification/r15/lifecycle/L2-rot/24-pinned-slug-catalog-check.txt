@@ -1,0 +1,44 @@
+source: curl -s https://openrouter.ai/api/v1/models (public, no auth), fetched 2026-09-23 ~10:05 IST; catalog size 454
+LIVE  deepseek/deepseek-v4-flash         src/store/model-selection.ts:34 DEFAULT openrouter tools=True expiration_date=None
+LIVE  minimax/minimax-m3                 src/store/model-selection.ts:51-59 KNOWN openrouter tools=True expiration_date=None
+LIVE  moonshotai/kimi-k2.6                tools=True expiration_date=None
+LIVE  deepseek/deepseek-v4-pro            tools=True expiration_date=None
+LIVE  qwen/qwen3.7-max                    tools=True expiration_date=None
+LIVE  qwen/qwen3.7-plus                   tools=True expiration_date=None
+LIVE  z-ai/glm-5.1                        tools=True expiration_date=None
+LIVE  qwen/qwen3.6-flash                  tools=True expiration_date=None
+LIVE  openrouter/auto                     tools=True expiration_date=None
+LIVE  perplexity/sonar                   src/store/search-settings.ts:85-89 DEFAULT_RESEARCH_MODELS tools=False expiration_date=None
+LIVE  perplexity/sonar-reasoning-pro      tools=False expiration_date=None
+LIVE  perplexity/sonar-deep-research      tools=False expiration_date=None
+LIVE  perplexity/sonar-pro               src/store/search-settings.ts:112-161 RESEARCH_MODEL_OPTIONS tools=False expiration_date=None
+LIVE  perplexity/sonar-pro-search         tools=False expiration_date=None
+GONE  openai/o4-mini-deep-research       
+GONE  openai/o3-deep-research            
+LIVE  x-ai/grok-4.3                       tools=True expiration_date=None
+GONE  perplexity/sonar-reasoning         sidecar/services/research/sonar.py:49-55 SONAR_MODELS
+GONE  z-ai/glm-4.5-air:free              induced (L2)
+LIVE  z-ai/glm-4.5-air                    tools=True expiration_date=None
+
+models the catalog itself flags with an expiration_date: 21
+   2026-09-25 nex-agi/nex-n2.5-mini:free
+   2026-09-25 nex-agi/nex-n2.5-pro:free
+   2026-09-28 deepseek/deepseek-r1-distill-llama-70b
+   2026-09-28 deepseek/deepseek-v3.1-terminus
+   2026-09-28 deepseek/deepseek-v3.2
+   2026-09-28 deepseek/deepseek-v3.2-exp
+   2026-10-08 baidu/ernie-4.5-vl-424b-a47b
+   2026-10-08 minimax/minimax-m2.1
+   2026-10-20 google/gemini-2.5-flash
+   2026-10-20 google/gemini-2.5-flash-lite
+   2026-10-20 google/gemini-2.5-flash:batch
+   2026-10-20 google/gemini-2.5-pro
+   2026-10-20 google/gemini-2.5-pro:batch
+   2026-11-11 bytedance-seed/seed-1.6
+   2026-11-11 bytedance-seed/seed-1.6-flash
+   2026-11-11 bytedance-seed/seed-2.0-code
+   2026-12-31 dots-studio/dots-3-note-preview:free
+   2026-12-31 z-ai/glm-4.5
+   2027-03-15 google/gemini-2.5-flash-image
+   2098-12-31 z-ai/glm-5-turbo
+   2098-12-31 z-ai/glm-5v-turbo

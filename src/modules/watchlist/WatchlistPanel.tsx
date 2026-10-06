@@ -1,28 +1,150 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Plus, X } from "lucide-react";
+import { ChevronDown, Download, ListPlus, Plus, X } from "lucide-react";
 
+import { DataTable, type DataColumn } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
+import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
+import { EmptyState } from "@/components/EmptyState";
+import { buildCsv, downloadCsv } from "@/lib/csv";
+import { formatPercent, formatPrice } from "@/lib/format";
+import { loadSymbolIntoChart, openCompanyOverview } from "@/lib/host-actions";
+import { isLiveQuote, useMarketSession } from "@/lib/market-session";
 import { SidecarError } from "@/lib/sidecar-client";
+import { type SymbolCandidate, useSymbolAutocompleteResult } from "@/lib/symbol-autocomplete";
+import { useContainerWidth } from "@/lib/use-container-width";
+import { useTickFlash } from "@/lib/use-flash-value";
 import { cn } from "@/lib/utils";
 import { usePanelContextBus } from "@/store/panel-context";
 import { fetchWatchlistQuotes, type WatchlistRow } from "./api";
-import { useSymbolsStore as useWatchlistStore } from "@/store/symbols";
+import { entryKey, type SymbolEntry, useSymbolsStore as useWatchlistStore } from "@/store/symbols";
 
 /** Poll interval for quote refreshes — a few seconds keeps it near-real-time. */
 const POLL_INTERVAL_MS = 5_000;
+/** Poll interval when no row carries a live tick — an EOD close does not move
+ *  between polls, so re-asking every 5 s only loads the providers (R15-DATA-066). */
+const EOD_POLL_INTERVAL_MS = 60_000;
+/** Ceiling of the error backoff (the interval doubles per consecutive failure). */
+const POLL_MAX_BACKOFF_MS = 60_000;
 
-function formatPrice(value: number): string {
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+/**
+ * R8 overflow law §3.2 — the watchlist's explicit column tracks. Price/change
+ * are fixed px tracks sized to their widest sane content at the caption step
+ * (12px mono · tabular), with the cells' own px-3 padding supplying a ≥8px
+ * gutter — price and change can never collide. The symbol column is the one
+ * flexible track. When the measured panel is narrower than the tracks' minimum
+ * the row drops a column by priority: provenance chips first, then change%;
+ * price always survives.
+ */
+const PRICE_TRACK = "6.5rem"; // fits "61,446.08" + padding at caption/mono
+const CHANGE_TRACK = "5.25rem"; // fits "+100.00%" + padding
+const ACTION_TRACK = "3rem"; // the 24px remove control + padding
+/** Below this measured width the provenance/freshness chips drop (priority 1).
+ *  The chips live in the flexible symbol column — the fixed tracks total
+ *  ~236px, so this floor leaves the column ≥ ~104px (the "YF" + "EOD" pair). */
+const DROP_CHIPS_BELOW = 340;
+/** Below this measured width the change% column drops too (priority 2). */
+const DROP_CHANGE_BELOW = 300;
+
+/** A signed percent ("+1.31%") — the watchlist change column. */
+function fmtChange(value: number): string {
+  return formatPercent(value);
 }
 
-function formatPercent(value: number): string {
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(2)}%`;
+/** A brief green/red wash on the cell when its number ticks (reduced-motion
+ *  aware via {@link useTickFlash}); fades out over the same duration. */
+function flashClass(dir: "up" | "down" | null): string {
+  if (dir === "up") return "bg-positive/15";
+  if (dir === "down") return "bg-negative/15";
+  return "bg-transparent";
+}
+
+/**
+ * The Symbol cell — the ticker plus its provenance / freshness badges and the
+ * humanized session label, so a closed/weekend/after-hours price is plainly
+ * flagged as not-live (FR-041 / FR-118 / SC-019).
+ */
+function SymbolCell({ row, showChips }: { row: WatchlistRow; showChips: boolean }) {
+  const { entry, quote } = row;
+  const session = useMarketSession(quote?.market_state ?? null, quote?.freshness ?? null);
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <span className="text-charcoal-100 text-caption truncate">
+        {entry.symbol}
+        {entry.region && <span className="text-charcoal-500 text-micro ml-1">{entry.region}</span>}
+      </span>
+      {/* Drop-priority 1 (law §3.2): the provenance/freshness chips drop WHOLE
+          at narrow widths — never a mid-word clip ("YFINAN"). flex-wrap stacks
+          whole chips if an unusually long provider outgrows the column. */}
+      {showChips && quote !== null && (
+        <span className="flex flex-wrap items-center gap-1 overflow-hidden">
+          <ProvenanceBadge provider={quote.provider} />
+          {quote.freshness != null && (
+            <StalenessBadge freshness={quote.freshness} asOf={Date.parse(quote.timestamp)} />
+          )}
+        </span>
+      )}
+      {session.label !== null && session.tone === "muted" && (
+        <span className="text-charcoal-500 text-micro truncate" title={`Session: ${session.label}`}>
+          {session.label}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The Price cell — owns its own `useTickFlash` hook so a live tick paints a
+ * transient up/down wash (the Bloomberg "it moved" signal a polled terminal
+ * otherwise lacks). A stale / closed-session quote never flashes.
+ */
+function PriceCell({ row }: { row: WatchlistRow }) {
+  const { quote } = row;
+  const live = isLiveQuote(quote?.freshness);
+  const flash = useTickFlash(live ? (quote?.price ?? null) : null);
+  return (
+    <span
+      className={cn(
+        "text-charcoal-200 block text-right tabular-nums transition-colors duration-700",
+        flashClass(flash),
+      )}
+    >
+      {quote !== null ? (
+        formatPrice(quote.price)
+      ) : row.unavailable ? (
+        <span className="text-charcoal-500 text-micro" title="No provider returned a quote">
+          unavailable
+        </span>
+      ) : (
+        "—"
+      )}
+    </span>
+  );
+}
+
+/** The Change cell — only a LIVE quote carries the green/red sign colour; a stale
+ *  or closed-session change greys to the muted tier so it never reads as a move. */
+function ChangeCell({ row }: { row: WatchlistRow }) {
+  const { quote } = row;
+  const change = quote?.change_percent ?? null;
+  const positive = change !== null && change >= 0;
+  const live = isLiveQuote(quote?.freshness);
+  return (
+    <span
+      className={cn(
+        "block text-right tabular-nums",
+        change === null || !live
+          ? "text-charcoal-400"
+          : positive
+            ? "text-positive"
+            : "text-negative",
+      )}
+      title={quote !== null && !live ? "Not a live tick — last known change" : undefined}
+    >
+      {change !== null ? fmtChange(change) : "—"}
+    </span>
+  );
 }
 
 /**
@@ -37,18 +159,47 @@ export function WatchlistPanel() {
   const addSymbol = useWatchlistStore((state) => state.addSymbol);
   const removeSymbol = useWatchlistStore((state) => state.removeSymbol);
 
-  // `rows` is `null` until the first refresh resolves — that drives the loading
-  // state without a synchronous setState inside the effect. Subsequent entry
-  // changes refresh in place rather than flashing the loading view.
-  const [rows, setRows] = useState<WatchlistRow[] | null>(null);
+  // Latest quote per listing ({@link entryKey}), joined to the live entry list at
+  // render (R15-UI-026): an added symbol shows at once, a removed one never
+  // reappears from an in-flight poll. `null` until the first refresh resolves
+  // (the loading state).
+  const [quotes, setQuotes] = useState<Map<string, WatchlistRow["quote"]> | null>(null);
+  const rows = useMemo<WatchlistRow[] | null>(
+    () =>
+      quotes === null
+        ? null
+        : entries.map((entry) => ({
+            entry,
+            quote: quotes.get(entryKey(entry)) ?? null,
+            // A refresh completed without it (C14) — not still loading.
+            unavailable: quotes.get(entryKey(entry)) === null,
+          })),
+    [entries, quotes],
+  );
+  const failuresRef = useRef(0);
+  const noLiveRowRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
+  // R15-UI-009: the CSV export now writes a real file via the Rust atomic-write
+  // path — this surfaces the saved path (or a write failure) since there is no
+  // browser download UI to confirm it landed.
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [inFlight, setInFlight] = useState(false);
   const inFlightRef = useRef(false);
   const [draftAssetClass, setDraftAssetClass] = useState<"equity" | "crypto">("equity");
-  // Tracks the symbol the user last interacted with via the row hover; null
-  // when the user has not selected anything yet. Used as the publisher's
-  // `selectedSymbol` payload field.
-  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+  // Live name/ticker autocomplete (R7): the resolver knows "Route Mobile" ->
+  // ROUTE; until now this input never asked it. Equity-only (crypto pairs
+  // aren't in the masters); keyboard-navigable; escape/blur dismisses.
+  const { query: candidatesQuery, candidates } = useSymbolAutocompleteResult(
+    draftAssetClass === "equity" ? draft : "",
+  );
+  const [acOpen, setAcOpen] = useState(false);
+  const [acActive, setAcActive] = useState(0);
+  // Tracks the listing the user last clicked; null when the user has not
+  // selected anything yet. Its symbol is the publisher's `selectedSymbol`
+  // payload field.
+  const [selected, setSelected] = useState<SymbolEntry | null>(null);
+  const selectedSymbol = selected?.symbol ?? null;
 
   // --- panel-context bus: publish selection on change ---------------------
   const publishPanelContext = usePanelContextBus((state) => state.publish);
@@ -56,9 +207,7 @@ export function WatchlistPanel() {
 
   // Project the entry list into a primitive-friendly tuple of symbol strings
   // so the effect's deps array stays referentially stable across re-renders
-  // that don't actually change the symbol list. The snapshot is re-memoised
-  // off `symbolsKey` (a primitive string) so a re-rendered identical list
-  // does not mint a fresh array.
+  // that don't actually change the symbol list.
   const symbolsKey = useMemo(() => entries.map((e) => e.symbol).join(","), [entries]);
   const symbolsSnapshot = useMemo(
     () => (symbolsKey === "" ? [] : symbolsKey.split(",")),
@@ -88,33 +237,75 @@ export function WatchlistPanel() {
       return;
     }
     inFlightRef.current = true;
+    setInFlight(true);
     try {
       const next = await fetchWatchlistQuotes(entries);
-      setRows(next);
+      setQuotes((prev) => {
+        const merged = new Map(prev ?? []);
+        for (const row of next) merged.set(entryKey(row.entry), row.quote);
+        return merged;
+      });
+      noLiveRowRef.current = next.every((row) => !isLiveQuote(row.quote?.freshness));
       setError(null);
+      failuresRef.current = 0;
     } catch (err) {
       const message = err instanceof SidecarError ? err.message : "Failed to load watchlist quotes";
       setError(message);
+      failuresRef.current += 1;
     } finally {
       inFlightRef.current = false;
+      setInFlight(false);
     }
   }, [entries]);
 
   useEffect(() => {
-    // Polling effect: `refresh` only sets state after an awaited fetch resolves
-    // (never synchronously), so the cascading-render concern does not apply.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void refresh();
-    const timer = setInterval(() => {
-      void refresh();
-    }, POLL_INTERVAL_MS);
+    // Polling: backs off (doubling, capped) on consecutive errors and skips
+    // the fetch while the document is hidden; becoming visible polls at once.
+    let alive = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const tick = async () => {
+      if (!document.hidden) {
+        await refresh();
+      }
+      if (!alive) return;
+      const delay = noLiveRowRef.current
+        ? EOD_POLL_INTERVAL_MS
+        : Math.min(POLL_INTERVAL_MS * 2 ** failuresRef.current, POLL_MAX_BACKOFF_MS);
+      clearTimeout(timer); // one pending poll, even if a visibility tick overlapped
+      timer = setTimeout(() => void tick(), delay);
+    };
+    const onVisibility = () => {
+      if (!document.hidden) {
+        clearTimeout(timer);
+        void tick();
+      }
+    };
+    void tick();
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
-      clearInterval(timer);
+      alive = false;
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [refresh]);
 
+  // The picked listing's region rides the entry (R15-DATA-002): AMAL · US is
+  // Amalgamated, not the session region's Amal Ltd. A typed draft stays region-less.
+  const pickCandidate = (c: SymbolCandidate) => {
+    addSymbol(c.symbol, "equity", c.region);
+    setDraft("");
+    setAcOpen(false);
+    setAcActive(0);
+  };
+
   const handleAdd = (event: React.FormEvent) => {
     event.preventDefault();
+    // Enter takes a candidate only when the list belongs to what is typed;
+    // a list still showing the previous query's matches adds the draft.
+    if (acOpen && candidates.length > 0 && candidatesQuery === draft.trim()) {
+      pickCandidate(candidates[Math.min(acActive, candidates.length - 1)]);
+      return;
+    }
     if (draft.trim() === "") {
       return;
     }
@@ -122,104 +313,266 @@ export function WatchlistPanel() {
     setDraft("");
   };
 
+  // Export the watchlist to CSV — uses the live quotes when they've loaded, else
+  // falls back to the tracked symbols alone. No-op on an empty watchlist.
+  const handleExport = useCallback(async () => {
+    const source: { entry: (typeof entries)[number]; quote: WatchlistRow["quote"] }[] =
+      rows ?? entries.map((entry) => ({ entry, quote: null }));
+    if (source.length === 0) {
+      return;
+    }
+    const csv = buildCsv(
+      ["Symbol", "Asset class", "Price", "Change %", "Provider"],
+      source.map(({ entry, quote }) => [
+        entry.symbol,
+        entry.assetClass,
+        quote?.price ?? "",
+        quote?.change_percent ?? "",
+        quote?.provider ?? "",
+      ]),
+    );
+    try {
+      const r = await downloadCsv("vysted-watchlist.csv", csv);
+      setExportStatus(r.path ? `Saved ${r.path}` : "Downloaded .csv");
+    } catch (e) {
+      setExportStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }, [entries, rows]);
+
+  // Measured panel width drives the §3.2 drop-priority ladder. `null` (first
+  // paint) renders the full layout; the observer corrects on the next frame.
+  const { ref: tableAreaRef, width: tableWidth } = useContainerWidth<HTMLDivElement>();
+  const showChips = tableWidth === null || tableWidth >= DROP_CHIPS_BELOW;
+  const showChange = tableWidth === null || tableWidth >= DROP_CHANGE_BELOW;
+
+  const columns = useMemo<DataColumn<WatchlistRow>[]>(() => {
+    const cols: DataColumn<WatchlistRow>[] = [
+      // The one flexible track — takes whatever the fixed tracks leave.
+      {
+        key: "symbol",
+        header: "Symbol",
+        cell: (row) => <SymbolCell row={row} showChips={showChips} />,
+      },
+      {
+        key: "price",
+        header: "Price",
+        numeric: true,
+        width: PRICE_TRACK,
+        cell: (row) => <PriceCell row={row} />,
+      },
+    ];
+    if (showChange) {
+      cols.push({
+        key: "change",
+        header: "Change",
+        numeric: true,
+        width: CHANGE_TRACK,
+        cell: (row) => <ChangeCell row={row} />,
+      });
+    }
+    cols.push({
+      key: "remove",
+      action: true,
+      width: ACTION_TRACK,
+      cell: (row) => (
+        <Button
+          type="button"
+          size="icon-xs"
+          variant="ghost"
+          aria-label={`Remove ${row.entry.symbol}${row.entry.region ? ` ${row.entry.region}` : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            removeSymbol(row.entry.symbol, row.entry.region ?? null);
+          }}
+        >
+          <X />
+        </Button>
+      ),
+    });
+    return cols;
+  }, [removeSymbol, showChips, showChange]);
+
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
       <form
         onSubmit={handleAdd}
         className="border-charcoal-700 flex items-center gap-2 border-b p-3"
       >
-        <input
-          aria-label="Add symbol"
-          placeholder="Add symbol"
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
-        />
-        <select
-          aria-label="Asset class"
-          value={draftAssetClass}
-          onChange={(event) =>
-            setDraftAssetClass(event.target.value === "crypto" ? "crypto" : "equity")
-          }
-          className="bg-charcoal-800 text-charcoal-200 h-8 rounded-md px-2 font-mono text-xs outline-none"
-        >
-          <option value="equity">Equity</option>
-          <option value="crypto">Crypto</option>
-        </select>
-        <Button type="submit" size="icon-sm" variant="outline" aria-label="Add to watchlist">
+        <div className="relative flex-1">
+          <input
+            aria-label="Add symbol"
+            placeholder="Add symbol"
+            title="Add a ticker or company name"
+            value={draft}
+            onChange={(event) => {
+              setDraft(event.target.value);
+              setAcOpen(true);
+              setAcActive(0);
+            }}
+            onFocus={() => setAcOpen(true)}
+            onBlur={() => setTimeout(() => setAcOpen(false), 120)}
+            onKeyDown={(event) => {
+              if (!acOpen || candidates.length === 0) return;
+              if (event.key === "ArrowDown") {
+                event.preventDefault();
+                setAcActive((i) => Math.min(i + 1, candidates.length - 1));
+              } else if (event.key === "ArrowUp") {
+                event.preventDefault();
+                setAcActive((i) => Math.max(i - 1, 0));
+              } else if (event.key === "Escape") {
+                setAcOpen(false);
+              }
+            }}
+            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 text-body rounded-control focus:ring-charcoal-500 h-8 w-full truncate px-3 outline-none focus:ring-1"
+          />
+          {acOpen && candidates.length > 0 && (
+            <ul
+              role="listbox"
+              aria-label="Symbol matches"
+              className="bg-charcoal-875 border-charcoal-700 rounded-control absolute top-full right-0 left-0 z-20 mt-1 overflow-hidden border"
+            >
+              {candidates.map((c, i) => (
+                <li key={`${c.symbol}-${c.exchange}`}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={i === acActive}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      pickCandidate(c);
+                    }}
+                    onMouseEnter={() => setAcActive(i)}
+                    className={cn(
+                      "flex w-full items-center gap-2 px-3 py-1 text-left",
+                      i === acActive ? "bg-charcoal-800" : "bg-transparent",
+                    )}
+                  >
+                    <span className="text-charcoal-100 text-body shrink-0">{c.symbol}</span>
+                    <span className="text-charcoal-500 text-micro shrink-0">{c.exchange}</span>
+                    <span className="text-charcoal-400 text-caption min-w-0 flex-1 truncate">
+                      {c.name}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="relative">
+          <select
+            aria-label="Asset class"
+            value={draftAssetClass}
+            onChange={(event) =>
+              setDraftAssetClass(event.target.value === "crypto" ? "crypto" : "equity")
+            }
+            className="bg-charcoal-800 text-charcoal-200 text-caption rounded-control focus:ring-charcoal-500 h-8 appearance-none px-3 pr-6 outline-none focus:ring-1"
+          >
+            <option value="equity">Equity</option>
+            <option value="crypto">Crypto</option>
+          </select>
+          <ChevronDown className="text-charcoal-400 pointer-events-none absolute top-1/2 right-1.5 size-3 -translate-y-1/2" />
+        </div>
+        <Button type="submit" size="icon-xs" variant="outline" aria-label="Add to watchlist">
           <Plus />
+        </Button>
+        <Button
+          type="button"
+          size="icon-xs"
+          variant="ghost"
+          aria-label="Export watchlist to CSV"
+          title="Export watchlist to CSV"
+          onClick={() => void handleExport()}
+          disabled={entries.length === 0}
+        >
+          <Download />
         </Button>
       </form>
 
       {error !== null && (
-        <p className="text-negative border-charcoal-700 border-b px-3 py-2 font-mono text-xs">
-          {error}
-        </p>
+        <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
+          <span className="text-negative text-caption">Could not refresh quotes</span>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => void refresh()}
+            disabled={inFlight}
+          >
+            Retry
+          </Button>
+        </div>
       )}
 
-      <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto">
+      {exportStatus !== null && (
+        <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
+          <span className="text-charcoal-200 text-caption">{exportStatus}</span>
+          <Button
+            type="button"
+            size="icon-xs"
+            variant="ghost"
+            aria-label="Dismiss export status"
+            onClick={() => setExportStatus(null)}
+          >
+            <X />
+          </Button>
+        </div>
+      )}
+
+      <div
+        ref={tableAreaRef}
+        className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto"
+      >
         {rows === null ? (
-          <p className="text-charcoal-400 p-4 font-mono text-xs">Loading quotes…</p>
-        ) : rows.length === 0 ? (
-          <p className="text-charcoal-400 p-4 font-mono text-xs">No symbols tracked.</p>
-        ) : (
           <table className="w-full table-fixed border-collapse">
-            <thead>
-              <tr className="text-charcoal-400 border-charcoal-700 border-b text-left font-mono text-[0.65rem] uppercase">
-                <th className="px-3 py-2 font-medium">Symbol</th>
-                <th className="px-3 py-2 text-right font-medium">Price</th>
-                <th className="px-3 py-2 text-right font-medium">Change</th>
-                <th className="px-3 py-2" />
-              </tr>
-            </thead>
+            <colgroup>
+              <col />
+              <col style={{ width: PRICE_TRACK }} />
+              {showChange && <col style={{ width: CHANGE_TRACK }} />}
+              <col style={{ width: ACTION_TRACK }} />
+            </colgroup>
             <tbody>
-              {rows.map(({ entry, quote }) => {
-                const change = quote?.change_percent ?? 0;
-                const positive = change >= 0;
-                const isSelected = selectedSymbol === entry.symbol;
-                return (
-                  <tr
-                    key={entry.symbol}
-                    onClick={() => setSelectedSymbol(entry.symbol)}
-                    className={cn(
-                      "border-charcoal-800 hover:bg-charcoal-800/50 cursor-pointer border-b",
-                      isSelected && "bg-charcoal-800/40",
-                    )}
-                  >
-                    <td className="text-charcoal-100 truncate px-3 py-2 font-mono text-sm">
-                      {entry.symbol}
+              {Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="border-charcoal-800 border-b">
+                  <td className="px-3 py-1">
+                    <div className="bg-charcoal-800 h-3 w-3/4 animate-pulse rounded-none" />
+                  </td>
+                  <td className="px-3 py-1">
+                    <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded-none" />
+                  </td>
+                  {showChange && (
+                    <td className="px-3 py-1">
+                      <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded-none" />
                     </td>
-                    <td className="text-charcoal-200 px-3 py-2 text-right font-mono text-sm">
-                      {quote !== null ? formatPrice(quote.price) : "—"}
-                    </td>
-                    <td
-                      className={cn(
-                        "px-3 py-2 text-right font-mono text-sm",
-                        quote === null
-                          ? "text-charcoal-400"
-                          : positive
-                            ? "text-positive"
-                            : "text-negative",
-                      )}
-                    >
-                      {quote !== null ? formatPercent(change) : "—"}
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <Button
-                        type="button"
-                        size="icon-xs"
-                        variant="ghost"
-                        aria-label={`Remove ${entry.symbol}`}
-                        onClick={() => removeSymbol(entry.symbol)}
-                      >
-                        <X />
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
+                  )}
+                  <td className="px-1 py-1" />
+                </tr>
+              ))}
             </tbody>
           </table>
+        ) : rows.length === 0 ? (
+          <EmptyState
+            icon={ListPlus}
+            headline="Your watchlist is empty"
+            hint="Add a ticker in the field above to start tracking live quotes."
+          />
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={rows}
+            rowKey={(row) => entryKey(row.entry)}
+            isRowSelected={(row) => selected !== null && entryKey(selected) === entryKey(row.entry)}
+            onRowClick={(row) => {
+              setSelected(row.entry);
+              // The equity overview has no crypto path: a pair opens its chart.
+              if (row.entry.assetClass === "crypto") {
+                loadSymbolIntoChart(row.entry.symbol);
+              } else {
+                openCompanyOverview(row.entry.symbol, undefined, row.entry.region);
+              }
+            }}
+            className={cn(error !== null && "opacity-50")}
+            data-testid="watchlist-table"
+          />
         )}
       </div>
     </div>

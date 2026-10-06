@@ -1,0 +1,101 @@
+    """A transport-level failure (DNS, TLS, timeout, broken impersonation lib)."""
+
+
+class RedirectBlocked(TransportError):
+    """A redirect pointed at a URL the caller's ``url_allowed`` guard refused."""
+
+
+#: Redirect hops a lane follows by hand before giving up.
+MAX_REDIRECTS = 5
+
+#: Statuses that carry a ``Location`` to follow.
+_REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
+
+#: A per-hop URL guard (e.g. the extractor's public-host SSRF check).
+UrlGuard = Callable[[str], bool]
+
+
+def redirect_target(
+    current: str, status: int, location: str | None, url_allowed: UrlGuard | None
+) -> str | None:
+    """The absolute next hop for a redirect reply, or ``None`` when final.
+
+    Raises :class:`RedirectBlocked` when ``url_allowed`` refuses the target —
+    before any request to it is made.
+    """
+    if status not in _REDIRECT_STATUSES or not location:
+        return None
+    target = urljoin(current, location)
+    if url_allowed is not None and not url_allowed(target):
+        raise RedirectBlocked(f"redirect from {current} to a refused URL was blocked")
+    return target
+
+
+@dataclass(slots=True)
+class FetchResult:
+    """The uniform reply both lanes produce."""
+
+    status_code: int
+    text: str
+    url: str
+    content_type: str = ""
+
+
+def _merged_headers(headers: dict[str, str] | None) -> dict[str, str]:
+    merged = dict(BROWSER_HEADERS)
+    if headers:
+        merged.update(headers)
+    return merged
+
+
+async def httpx_fetch(
+    url: str,
+    *,
+    params: dict[str, Any] | None = None,
+    data: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
+    timeout: float = DEFAULT_TIMEOUT_SECS,
+    client: httpx.AsyncClient | None = None,
+    url_allowed: UrlGuard | None = None,
+) -> FetchResult:
+    """Fetch via httpx (GET, or POST when ``data`` is given) — the friendly lane.
+
+    ``client`` is injectable for tests/pooling; without one a one-shot client
+    that does NOT auto-follow redirects is used, and redirects are walked here
+    with every hop vetted by ``url_allowed`` (:func:`redirect_target`). A
+    303/301/302 re-issues as GET; 307/308 keep the method and body. Raises
+    :class:`TransportError` on any transport failure (HTTP statuses are
+    returned, not raised — the caller decides what a 403/429 means for ITS
+    engine) and :class:`RedirectBlocked` on a refused hop.
+    """
+
+    async def _go(http: httpx.AsyncClient) -> FetchResult:
+        current, body, query = url, data, params
+        for _ in range(MAX_REDIRECTS + 1):
+            try:
+                if body is not None:
+                    resp = await http.post(
+                        current, params=query, data=body, headers=_merged_headers(headers)
+                    )
+                else:
+                    resp = await http.get(current, params=query, headers=_merged_headers(headers))
+            except httpx.HTTPError as exc:
+                raise TransportError(f"httpx transport failed for {url}: {exc}") from exc
+            nxt = redirect_target(
+                str(resp.url), resp.status_code, resp.headers.get("location"), url_allowed
+            )
+            if nxt is None:
+                return FetchResult(
+                    status_code=resp.status_code,
+                    text=resp.text,
+                    url=str(resp.url),
+                    content_type=resp.headers.get("content-type", ""),
+                )
+            if resp.status_code not in (307, 308):
+                body = None
+            current, query = nxt, None
+        raise TransportError(f"too many redirects for {url}")
+
+    if client is not None:
+        return await _go(client)
+    async with httpx.AsyncClient(timeout=timeout, follow_redirects=False) as http:

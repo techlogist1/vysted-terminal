@@ -1,0 +1,16 @@
+# rc1-drive-panels-layouts:1 triage, 2026-09-26T23:02:43Z
+The two 'off-topic' items in GET /news?symbols=INFY.NS (IN) are 247wallst articles from Yahoo's INFY.NS per-symbol feed. Fetched the article pages directly:
+
+== https://247wallst.com/investing/cryptocurrency/2026/09/25/chainlink-jumped-12-in-a-day-can-it-reach-15-by-the-end-of-october/
+HTTP 200
+publisher ticker metadata: tickers=NYSE:INFY,CRYPTO:BTC,CRYPTO:ETH,CRYPTO:LINK,CRYPTO:XRP primary_tickers=NYSE:INFY
+  body: So, can Chainlink reach $15 by the end of October, or has this rally already outpaced potential buyers? Chainlink Jumped 12% Two Days After Falling on Its Infosys Deal Travis Wolfe / Shutterstock.
+  body: com The recent jump followed a slight downturn on September 22, when Chainlink announced a partnership with Infosys, an IT firm whose software supports approximately 1.
+
+== https://247wallst.com/investing/cryptocurrency/2026/09/25/litecoin-cardano-stellar-and-chainlink-all-outperformed-bitcoin-this-week-which-rally-has-the-strongest-support/
+HTTP 200
+publisher ticker metadata: tickers=NYSE:IBM,NYSE:INFY,CRYPTO:ADA,CRYPTO:BTC,CRYPTO:LINK,CRYPTO:LTC,CRYPTO:XLM primary_tickers=NYSE:IBM
+  body: Chainlink's rally carries the strongest support, backed by two banking tech deals with Infosys and Bottomline that together cover $16 trillion in annual SWIFT transactions.
+  body: Different news drove each rally, including a Litecoin fund filing and a Chainlink partnership with IT company Infosys.
+
+Text-alias gate check over the 15 served items: 6 items carry no Infosys/INFY alias in title+summary, 4 of which are genuine Infosys-related Reuters/company pieces (H-1B rule, 'AI reshapes India IT services', 'Indian shares log weekly losses', Virtusa chairman) that a text gate would drop along with the 2 crypto pieces.

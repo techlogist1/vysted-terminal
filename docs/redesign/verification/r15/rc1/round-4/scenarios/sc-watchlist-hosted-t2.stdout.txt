@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+It seems you don't have any symbols currently on your watchlist. Would you like to add any specific stocks or funds?
+
+=== ok · 3.0s · events {'tool_use': 2, 'tool_result': 2, 'delta': 25, 'done': 1} · usage in=10474 out=25 · est $0.00159 · gpt-4o-mini

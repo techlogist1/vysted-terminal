@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { cn } from "@/lib/utils";
 import { useAnalystRatingsStore } from "@/store/analyst-ratings";
+import { usePanelContextBus } from "@/store/panel-context";
 
 import { IndividualAnalystTable } from "./IndividualAnalystTable";
 import { PriceTargetTimeline } from "./PriceTargetTimeline";
@@ -22,12 +25,32 @@ type Tab = "history" | "price-targets" | "individual";
  * - Individual — per-firm currently-active forecasts.
  *
  * Each tab fetches via the store; switching tabs is instant on cache hit.
- * Errors land inline per-tab so a failure on one slice does not blank
- * the others.
+ * A slice failure with cached data keeps the table and shows an inline
+ * banner; with NO data it renders the composed error EmptyState (with a
+ * Retry CTA) — an error is never disguised as an empty result, and the
+ * fetch window is a table-shaped skeleton, never a pulsing prose line.
  */
+const DEFAULT_SYMBOL = "AAPL";
+
+/** Table-shaped pulse skeleton for the fetch window. */
+function TabSkeleton() {
+  return (
+    <div className="flex animate-pulse flex-col" data-testid="analyst-tab-skeleton">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="border-charcoal-800 flex gap-6 border-b px-3 py-2">
+          <div className="bg-charcoal-800 h-3 w-1/6 rounded-none" />
+          <div className="bg-charcoal-800 h-3 w-1/4 rounded-none" />
+          <div className="bg-charcoal-800 h-3 w-1/5 rounded-none" />
+          <div className="bg-charcoal-800 ml-auto h-3 w-1/6 rounded-none" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function AnalystRatingsPanel() {
-  const [draft, setDraft] = useState("");
-  const [symbol, setSymbol] = useState<string | null>(null);
+  const [draft, setDraft] = useState(DEFAULT_SYMBOL);
+  const [symbol, setSymbol] = useState<string | null>(DEFAULT_SYMBOL);
   const [tab, setTab] = useState<Tab>("history");
 
   const histories = useAnalystRatingsStore((s) => s.histories);
@@ -39,6 +62,12 @@ export function AnalystRatingsPanel() {
   const getHistory = useAnalystRatingsStore((s) => s.getHistory);
   const getPriceTargets = useAnalystRatingsStore((s) => s.getPriceTargets);
   const getIndividual = useAnalystRatingsStore((s) => s.getIndividual);
+  const refreshAnalyst = useAnalystRatingsStore((s) => s.refresh);
+
+  // R15-AGENT-053: publish the loaded symbol + active tab so the copilot can
+  // see what's on screen.
+  const publishPanelContext = usePanelContextBus((s) => s.publish);
+  const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
 
   useEffect(() => {
     if (!symbol) return;
@@ -46,6 +75,21 @@ export function AnalystRatingsPanel() {
     void getPriceTargets(symbol);
     void getIndividual(symbol);
   }, [symbol, getHistory, getPriceTargets, getIndividual]);
+
+  useEffect(() => {
+    publishPanelContext({
+      source: "analyst-ratings",
+      kind: "snapshot",
+      payload: { symbol, tab },
+      emittedAt: Date.now(),
+    });
+  }, [publishPanelContext, symbol, tab]);
+
+  useEffect(() => {
+    return () => {
+      unregisterPanelContext("analyst-ratings");
+    };
+  }, [unregisterPanelContext]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -55,9 +99,9 @@ export function AnalystRatingsPanel() {
     }
   };
 
-  const history = symbol ? (histories[symbol]?.history ?? null) : null;
-  const targets = symbol ? (priceTargets[symbol]?.history ?? null) : null;
-  const individual = symbol ? (individuals[symbol]?.analysts ?? null) : null;
+  const history = symbol ? (histories[symbol]?.payload?.history ?? null) : null;
+  const targets = symbol ? (priceTargets[symbol]?.payload?.history ?? null) : null;
+  const individual = symbol ? (individuals[symbol]?.payload?.analysts ?? null) : null;
 
   const historyError = symbol ? historyErrors[symbol] : null;
   const priceTargetError = symbol ? priceTargetErrors[symbol] : null;
@@ -65,6 +109,32 @@ export function AnalystRatingsPanel() {
 
   const tabError =
     tab === "history" ? historyError : tab === "price-targets" ? priceTargetError : individualError;
+  const tabData = tab === "history" ? history : tab === "price-targets" ? targets : individual;
+  const tabSlice = symbol
+    ? tab === "history"
+      ? histories[symbol]
+      : tab === "price-targets"
+        ? priceTargets[symbol]
+        : individuals[symbol]
+    : undefined;
+  const tabFetchedAt = tabSlice?.fetchedAt;
+  // R15-DATA-068: prefer the server-stated as_of (C16) — the moment the
+  // DATA is current as of, not the moment this client happened to fetch it —
+  // falling back to the client fetch clock until the sidecar sends one.
+  const tabAsOf = tabSlice?.asOf ?? null;
+
+  // A slice is "loading" while its symbol is set, the data hasn't arrived, and
+  // no error has landed — gate the child empty-states behind this so the fetch
+  // window isn't mislabelled as an empty result.
+  const tabLoading = symbol !== null && tabData === null && !tabError;
+
+  // Re-fire the active tab's fetch (the store re-fetches on a cache miss).
+  const retryTab = () => {
+    if (!symbol) return;
+    if (tab === "history") void getHistory(symbol);
+    else if (tab === "price-targets") void getPriceTargets(symbol);
+    else void getIndividual(symbol);
+  };
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
@@ -77,7 +147,7 @@ export function AnalystRatingsPanel() {
           placeholder="Symbol (e.g. AAPL)"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+          className="bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-500 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 flex-1 border px-3 outline-none"
         />
         <Button type="submit" size="sm" variant="outline">
           <Search />
@@ -86,9 +156,11 @@ export function AnalystRatingsPanel() {
       </form>
 
       {symbol === null ? (
-        <p className="text-charcoal-400 p-3 font-mono text-xs">
-          Enter a symbol to load rating history, price targets, and individual analyst tracks.
-        </p>
+        <EmptyState
+          icon={Search}
+          headline="No symbol loaded"
+          hint="Enter a ticker above to load rating history, price targets, and individual analyst tracks."
+        />
       ) : (
         <>
           <nav
@@ -110,27 +182,81 @@ export function AnalystRatingsPanel() {
               active={tab === "individual"}
               onSelect={() => setTab("individual")}
             />
+            <div className="ml-auto flex items-center gap-2 pb-2">
+              {tabAsOf !== null ? (
+                <span
+                  className="text-charcoal-500 text-caption"
+                  title={new Date(tabAsOf).toLocaleString()}
+                  data-testid="analyst-as-of-chip"
+                >
+                  As of {new Date(tabAsOf).toLocaleString()}
+                </span>
+              ) : (
+                tabFetchedAt !== undefined && (
+                  <span
+                    className="text-charcoal-500 text-caption"
+                    title={new Date(tabFetchedAt).toLocaleString()}
+                    data-testid="analyst-as-of-chip"
+                  >
+                    As of {new Date(tabFetchedAt).toLocaleTimeString()}
+                  </span>
+                )
+              )}
+              <Button
+                type="button"
+                size="xs"
+                variant="ghost"
+                onClick={() => symbol && void refreshAnalyst(symbol)}
+              >
+                Refresh
+              </Button>
+            </div>
           </nav>
 
-          {tabError && (
-            <p className="text-negative border-charcoal-700 border-b px-3 py-2 font-mono text-xs">
-              {tabError}
-            </p>
-          )}
-
           <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto p-3">
-            <header className="text-charcoal-100 mb-3 font-mono text-sm">
-              {symbol}
-              <span className="text-charcoal-500 ml-2 text-xs">
-                {tab === "history" && history !== null && `${history.length} rating changes`}
-                {tab === "price-targets" && targets !== null && `${targets.length} target updates`}
-                {tab === "individual" && individual !== null && `${individual.length} analysts`}
+            <header className="text-charcoal-100 text-body mb-3">
+              <button
+                type="button"
+                className="text-charcoal-100 hover:underline"
+                title={`Load ${symbol} into the chart`}
+                onClick={() => symbol && loadSymbolIntoChart(symbol)}
+                data-testid={`analyst-symbol-${symbol}`}
+              >
+                {symbol}
+              </button>
+              <span className="text-charcoal-500 text-caption ml-2">
+                {!tabLoading &&
+                  tab === "history" &&
+                  history !== null &&
+                  `${history.length} rating changes`}
+                {!tabLoading &&
+                  tab === "price-targets" &&
+                  targets !== null &&
+                  `${targets.length} target updates`}
+                {!tabLoading &&
+                  tab === "individual" &&
+                  individual !== null &&
+                  `${individual.length} analysts`}
               </span>
             </header>
 
-            {tab === "history" && <RatingsHistoryTable history={history ?? []} />}
-            {tab === "price-targets" && <PriceTargetTimeline history={targets ?? []} />}
-            {tab === "individual" && <IndividualAnalystTable analysts={individual ?? []} />}
+            {tabLoading ? (
+              <TabSkeleton />
+            ) : tabError && tabData === null ? (
+              <EmptyState
+                icon={Search}
+                variant="error"
+                headline={`Could not load ${symbol}`}
+                hint={tabError}
+                cta={{ label: "Retry", onClick: retryTab, primary: true }}
+              />
+            ) : (
+              <>
+                {tab === "history" && <RatingsHistoryTable history={history ?? []} />}
+                {tab === "price-targets" && <PriceTargetTimeline history={targets ?? []} />}
+                {tab === "individual" && <IndividualAnalystTable analysts={individual ?? []} />}
+              </>
+            )}
           </div>
         </>
       )}
@@ -152,9 +278,9 @@ function TabButton({
       type="button"
       onClick={onSelect}
       className={cn(
-        "rounded-t-md px-3 py-1 font-mono text-xs",
+        "text-caption rounded-control flex h-8 items-center px-3",
         active
-          ? "bg-charcoal-800 border-charcoal-700 border-x border-t text-amber-400"
+          ? "bg-charcoal-800 border-charcoal-700 text-charcoal-200 -mb-px border-x border-t"
           : "text-charcoal-400 hover:text-charcoal-200",
       )}
       aria-pressed={active}

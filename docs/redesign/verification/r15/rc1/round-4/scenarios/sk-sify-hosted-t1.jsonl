@@ -1,0 +1,104 @@
+{"kind": "tool_use", "tool_call_id": "call_65fbc154896e48faa2065fef8590f4c3", "name": "resolve_symbol", "input": {"query": "SIFY", "region": "US"}}
+{"kind": "tool_result", "tool_call_id": "call_65fbc154896e48faa2065fef8590f4c3", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_3580199988234a668f0210d8289bbc68", "name": "sec_filings_list", "input": {"symbol": "SIFY", "form_type": "8-K", "limit": 20}}
+{"kind": "tool_result", "tool_call_id": "call_3580199988234a668f0210d8289bbc68", "name": "sec_filings_list", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_21b2fca0e03d4f968802ed8a587af6d0", "name": "sec_filings_list", "input": {"symbol": "SIFY"}}
+{"kind": "tool_result", "tool_call_id": "call_21b2fca0e03d4f968802ed8a587af6d0", "name": "sec_filings_list", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_a1c9745e90c04c018f40028456b2b716", "name": "web_search", "input": {"query": "SIFY ADR ordinary shares representation", "category": "financial"}}
+{"kind": "tool_result", "tool_call_id": "call_a1c9745e90c04c018f40028456b2b716", "name": "web_search", "ok": true, "error": null}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources. "}
+{"kind": "delta", "text": "Typically"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " ADR"}
+{"kind": "delta", "text": "s"}
+{"kind": "delta", "text": " represent"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " specific"}
+{"kind": "delta", "text": " number"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " foreign"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " often"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " but"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " vary"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "For"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": " Ltd"}
+{"kind": "delta", "text": ".,"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " recommend"}
+{"kind": "delta", "text": " checking"}
+{"kind": "delta", "text": " their"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " SEC"}
+{"kind": "delta", "text": " filings"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " corporate"}
+{"kind": "delta", "text": " announcements"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " accurate"}
+{"kind": "delta", "text": " details"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " their"}
+{"kind": "delta", "text": " ADR"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": " representation"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " access"}
+{"kind": "delta", "text": " their"}
+{"kind": "delta", "text": " filings"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " ["}
+{"kind": "delta", "text": "SEC"}
+{"kind": "delta", "text": " Archive"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": "]("}
+{"kind": "delta", "text": "https"}
+{"kind": "delta", "text": "://"}
+{"kind": "delta", "text": "www"}
+{"kind": "delta", "text": ".sec"}
+{"kind": "delta", "text": ".gov"}
+{"kind": "delta", "text": "/cgi"}
+{"kind": "delta", "text": "-bin"}
+{"kind": "delta", "text": "/b"}
+{"kind": "delta", "text": "rowse"}
+{"kind": "delta", "text": "-ed"}
+{"kind": "delta", "text": "gar"}
+{"kind": "delta", "text": "?action"}
+{"kind": "delta", "text": "=get"}
+{"kind": "delta", "text": "company"}
+{"kind": "delta", "text": "&"}
+{"kind": "delta", "text": "owner"}
+{"kind": "delta", "text": "="}
+{"kind": "delta", "text": "exclude"}
+{"kind": "delta", "text": "&"}
+{"kind": "delta", "text": "count"}
+{"kind": "delta", "text": "="}
+{"kind": "delta", "text": "40"}
+{"kind": "delta", "text": "&"}
+{"kind": "delta", "text": "search"}
+{"kind": "delta", "text": "_text"}
+{"kind": "delta", "text": "=S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": ")."}
+{"kind": "done", "usage": {"input_tokens": 11313, "output_tokens": 119, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.029674}

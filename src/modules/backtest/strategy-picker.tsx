@@ -17,6 +17,8 @@ export interface StrategyPickerProps {
   onSelect: (id: string) => void;
   /** Disable selection while a backtest is streaming. */
   disabled?: boolean;
+  /** Show skeleton placeholders while the catalogue is loading. */
+  loading?: boolean;
 }
 
 export function StrategyPicker({
@@ -24,16 +26,23 @@ export function StrategyPicker({
   selectedId,
   onSelect,
   disabled,
+  loading,
 }: StrategyPickerProps) {
   const empty = strategies.length === 0;
 
   return (
-    <div className="flex flex-col gap-1.5" data-testid="strategy-picker">
-      <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
+    <div className="flex flex-col gap-2" data-testid="strategy-picker">
+      <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
         Strategy
       </span>
-      {empty ? (
-        <p className="text-charcoal-400 font-mono text-xs">
+      {loading ? (
+        <div className="flex flex-col gap-1">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-charcoal-800 rounded-control h-12 w-full animate-pulse" />
+          ))}
+        </div>
+      ) : empty ? (
+        <p className="text-charcoal-400 text-caption font-mono">
           No strategies registered. The sidecar must be running.
         </p>
       ) : (
@@ -48,15 +57,15 @@ export function StrategyPicker({
                   disabled={disabled}
                   aria-pressed={active}
                   className={cn(
-                    "rounded-control w-full border px-2 py-1.5 text-left transition-colors",
+                    "rounded-control w-full border px-2 py-2 text-left transition-colors",
                     active
-                      ? "border-amber-500 bg-amber-500/15 text-amber-300"
+                      ? "bg-charcoal-875 text-charcoal-100 border-charcoal-600 border"
                       : "border-charcoal-700 text-charcoal-200 hover:border-charcoal-600",
                     disabled && "cursor-not-allowed opacity-50",
                   )}
                 >
-                  <div className="font-mono text-xs font-medium">{spec.name}</div>
-                  <div className="text-charcoal-400 mt-0.5 font-mono text-[10px] leading-snug">
+                  <div className="text-caption font-mono font-medium">{spec.name}</div>
+                  <div className="text-charcoal-400 text-micro mt-0.5 font-mono leading-snug">
                     {spec.description}
                   </div>
                 </button>
@@ -88,6 +97,8 @@ interface FieldSpec {
   type: "integer" | "number" | "string";
   defaultValue: unknown;
   description?: string;
+  minimum?: number;
+  maximum?: number;
 }
 
 function pickFields(schema: Record<string, unknown> | undefined): FieldSpec[] {
@@ -99,15 +110,39 @@ function pickFields(schema: Record<string, unknown> | undefined): FieldSpec[] {
     return [];
   }
   return Object.entries(props as Record<string, unknown>).map(([key, raw]) => {
-    const def = (raw ?? {}) as { type?: string; default?: unknown; description?: string };
+    const def = (raw ?? {}) as {
+      type?: string;
+      default?: unknown;
+      description?: string;
+      minimum?: number;
+      maximum?: number;
+    };
     const type = def.type === "integer" ? "integer" : def.type === "number" ? "number" : "string";
     return {
       key,
       type,
       defaultValue: def.default,
       description: def.description,
+      minimum: def.minimum,
+      maximum: def.maximum,
     };
   });
+}
+
+/**
+ * The committed value of a numeric field on blur (R15-UI-010): a cleared or
+ * unparseable entry falls back to the schema default, anything else is
+ * clamped into ``[minimum, maximum]`` (and rounded for an integer).
+ */
+function commitNumber(field: FieldSpec, raw: unknown): unknown {
+  const parsed = typeof raw === "number" ? raw : parseFloat(String(raw));
+  if (!Number.isFinite(parsed)) {
+    return field.defaultValue;
+  }
+  let next = field.type === "integer" ? Math.round(parsed) : parsed;
+  if (field.minimum !== undefined) next = Math.max(field.minimum, next);
+  if (field.maximum !== undefined) next = Math.min(field.maximum, next);
+  return next;
 }
 
 export function ParamsForm({ schema, values, onChange, disabled }: ParamsFormProps) {
@@ -116,8 +151,8 @@ export function ParamsForm({ schema, values, onChange, disabled }: ParamsFormPro
     return null;
   }
   return (
-    <div className="flex flex-col gap-1.5" data-testid="params-form">
-      <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
+    <div className="flex flex-col gap-2" data-testid="params-form">
+      <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
         Params
       </span>
       <div className="grid grid-cols-2 gap-2">
@@ -127,13 +162,22 @@ export function ParamsForm({ schema, values, onChange, disabled }: ParamsFormPro
             current === undefined ? (field.defaultValue ?? "") : (current as string | number);
           return (
             <label key={field.key} className="flex flex-col gap-1">
-              <span className="text-charcoal-300 font-mono text-[10px]" title={field.description}>
+              <span className="text-charcoal-300 text-micro font-mono" title={field.description}>
                 {field.key}
+                {(field.minimum !== undefined || field.maximum !== undefined) && (
+                  <span className="text-charcoal-500">
+                    {" "}
+                    {field.minimum ?? "…"}–{field.maximum ?? "…"}
+                  </span>
+                )}
               </span>
               <input
                 type={field.type === "string" ? "text" : "number"}
                 inputMode={field.type === "string" ? "text" : "decimal"}
                 aria-label={field.key}
+                min={field.minimum}
+                max={field.maximum}
+                step={field.type === "integer" ? 1 : "any"}
                 value={String(displayValue)}
                 onChange={(event) => {
                   const raw = event.target.value;
@@ -147,8 +191,17 @@ export function ParamsForm({ schema, values, onChange, disabled }: ParamsFormPro
                   }
                   onChange({ ...values, [field.key]: next });
                 }}
+                onBlur={() => {
+                  if (field.type === "string") {
+                    return;
+                  }
+                  const next = commitNumber(field, values[field.key]);
+                  if (next !== values[field.key]) {
+                    onChange({ ...values, [field.key]: next });
+                  }
+                }}
                 disabled={disabled}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
               />
             </label>
           );

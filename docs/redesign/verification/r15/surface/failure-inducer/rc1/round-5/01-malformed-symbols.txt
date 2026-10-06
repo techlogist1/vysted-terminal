@@ -1,0 +1,31 @@
+=== /quotes/%20%20%20 (whitespace) ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+
+=== /quotes/%24%24%24 (dollar signs) ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+
+=== /quotes/<300 chars> ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+
+=== /quotes/<sql-injection> ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+=== /quotes/'%3B%20DROP%20TABLE%20users%3B--  (path form) ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+
+=== /quotes/<script>alert(1)</script> (HTML/XSS) ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+
+=== /quotes/unicode rupee-sign-doubled ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+
+=== /quotes/RELIANCE.NS.NS (double-suffix) ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+

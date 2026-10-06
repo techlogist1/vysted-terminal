@@ -1,0 +1,23 @@
+NOT A LIVE PROBE (ci_pinned): register's own repro is the exact shape of the committed regression test
+sidecar/tests/test_run_manager.py::test_a_halted_rounds_host_actions_are_not_proposed
+(mocks _NoteThenOverBudgetProvider, RunBudget(max_tokens=1000), asserts dispatched==[] and row.host_actions==[])
+Per battery instructions: entries certified only through a pinned test get ci_pinned, never run via the heavy pytest lane here.
+---code confirms the fix is still present at candidate 949c3c9f---
+    host_actions: list[dict[str, Any]] = []
+    # A round's host actions (publish_brief included) wait here, keyed by call
+    # id, until the runtime dispatches them: a budget halt stops before
+    # dispatch, and an action the model never got a result for is never
+    # proposed or delivered as the brief (R15-AGENT-092).
+    undispatched: dict[str, dict[str, Any]] = {}
+    # Ids the runtime has dispatched. An event it derives from one (the research
+    # auto-brief, the backtest auto-open) is emitted after that dispatch and
+    # carries the source id, so it is delivered as is.
+    dispatched: list[str] = []
+
+    def _deliver(action: dict[str, Any]) -> None:
+        nonlocal brief
+        if action["name"] == "publish_brief":
+            brief = action["input"]
+        else:
+            host_actions.append(action)
+

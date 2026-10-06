@@ -1,0 +1,23 @@
+# R15-AGENT-045 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:29:02+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py4/R15-AGENT-045.py 2>&1 | grep -v '^DEBUG' | tail -c 9000
+[exit 0] [26.12s]
+provider nse_direct failed for quote, falling through: nse_direct: 'MAZAGONDOCK' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'MAZAGONDOCK' is not a known NSE instrument
+provider bse failed for quote, falling through: bse: 'MAZAGONDOCK' is not a known BSE instrument
+provider yfinance failed for quote, falling through: yfinance quote rate-limited for 'MAZAGONDOCK': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'COCHINSHIP': Too Many Requests. Rate limited. Try after a while.
+provider nse_direct failed for quote, falling through: nse_direct: 'Cochin Shipyard' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'Cochin Shipyard' is not a known NSE instrument
+provider bse failed for quote, falling through: bse: 'Cochin Shipyard' is not a known BSE instrument
+provider nse_direct failed for quote, falling through: nse_direct: 'Mazagon Dock' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'Mazagon Dock' is not a known NSE instrument
+provider bse failed for quote, falling through: bse: 'Mazagon Dock' is not a known BSE instrument
+provider yfinance failed for quote, falling through: yfinance quote rate-limited for 'Mazagon Dock': Too Many Requests. Rate limited. Try after a while.
+provider health: yahoo circuit OPEN for 48s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+provider yfinance failed for quote, falling through: yfinance quote rate-limited for 'Cochin Shipyard': argument of type 'NoneType' is not iterable
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'COCHINSHIP.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'MAZDOCK.NS': Too Many Requests. Rate limited. Try after a while.
+COCHINSHIP+MAZAGONDOCK: {"ok": false, "symbols": [{"symbol": "COCHINSHIP", "provider": "nse_direct", "quote": {"price": 1287.0, "change_percent": -2.129277566539924, "currency": "INR"}, "fundamentals": null, "return_pct_window": 2.4029280712921652, "bars": 128, "window_start": "2026-03-27", "window_end": "2026-10-01"}, {"symbol": "MAZAGONDOCK", "error": "unresolved name: 'MAZAGONDOCK' is not a known ticker and matched no listing \u2014 retry with the company name or the exact exchange ticker", "note": "unresolved name: 'MAZAGONDOCK' is not a known ticker and matched no listing \u2014 retry with the company name or the exact exchange ticker"}], "message": "fewer than two symbols resolved \u2014 1 of 2 returned a quote. MAZAGONDOCK: unresolved name: 'MAZAGONDOCK' is not a known ticker and matched no listing \u2014 retry with the company name or the exact exchange ticker"}
+names: {"ok": true, "timeframe": "1d", "symbols": [{"symbol": "COCHINSHIP", "requested": "Cochin Shipyard", "note": "resolved 'Cochin Shipyard' \u2192 'COCHINSHIP.NS'", "provider": "nse_direct", "quote": {"price": 1287.0, "change_percent": -2.129277566539924, "currency": "INR"}, "fundamentals": null, "return_pct_window": 2.4029280712921652, "bars": 128, "window_start": "2026-03-27", "window_end": "2026-10-01"}, {"symbol": "MAZDOCK", "requested": "Mazagon Dock", "note": "resolved 'Mazagon Dock' \u2192 'MAZDOCK.NS'", "provider": "nse_direct", "quote": {"price": 2064.0, "change_percent": -2.318977756743966, "currency": "INR"}, "fundamentals": null, "return_pct_window": -4.572564612326047, "bars": 128, "window_start": "2026-03-27", "window_end": "2026-10-01"}], "relative": {"best": "COCHINSHIP", "worst": "MAZDOCK"}}
+

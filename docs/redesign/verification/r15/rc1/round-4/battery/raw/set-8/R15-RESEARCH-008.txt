@@ -1,0 +1,30 @@
+CMD: pytest -q tests/test_web_search.py::test_keyless_hanging_ddg_serves_brave_inside_the_tool_cap (isolated, 3 repeats), then pytest -q tests/test_web_search.py (whole file) as a control
+host load at time of isolated runs: 'uptime' -> load averages 2.11 2.62 2.95 (concurrent sibling battery-shard sidecars on this Mac: ports 52152,52353,52355,52356,52354 all doing universe-warmup Yahoo-quote storms)
+
+--- isolated attempt 1/2/3 (all FAIL only on the elapsed<1.0 wall-clock assert; ok/url assertions all pass) ---
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_web_search.py::test_keyless_hanging_ddg_serves_brave_inside_the_tool_cap
+1 failed, 1 warning in 1.73s
+.venv/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1 passed, 1 warning in 0.83s
+.venv/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1 passed, 1 warning in 0.80s
+
+--- control: whole file test_web_search.py, quiet ---
+.venv/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+52 passed, 1 warning in 0.84s

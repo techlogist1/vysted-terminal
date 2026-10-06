@@ -1,0 +1,5 @@
+SOURCE CHECK: grep -n run_deep_research sidecar/services/agent_tools/deep_research.py -> 0 hits (the drifted second loop is gone).
+(no matches — confirmed gone)
+
+_run_loop (deep_research.py:239-317) dispatches to iter_research.run_heavy_research or iter_research.run_iter_research only, each wrapped in its own try/except that returns _loop_failed(loop, exc) on any exception -> {ok:false, message:'Deep research could not finish — the <loop> research loop failed: <Type>: <exc>.', execution_loop:<loop>}. Exact register/batch-8 shape.
+VERDICT: holds

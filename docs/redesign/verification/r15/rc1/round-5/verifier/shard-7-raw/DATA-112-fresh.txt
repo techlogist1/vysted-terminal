@@ -1,0 +1,8 @@
+== DATA-112 fresh (in-process run_screener, VYSTED_DATA_DIR=scratch, registry stubbed; MANIKA-like row: fundamentals currency None, quote currency None, market_cap None)
+cwd=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-9bc600e-fix-int/sidecar sha=633f844071d972b337f4c3526d86555c80df0568
+limit=2 matched=4 served=[('RELIANCE.NS', 16550000000000.0, 'INR'), ('MANIKA.NS', None, None)]
+   coverage: screened 4 of 4 — 0 unavailable
+limit=3 matched=4 served=[('RELIANCE.NS', 16550000000000.0, 'INR'), ('HDFCBANK.NS', 11300000000000.0, 'INR'), ('MANIKA.NS', None, None)]
+   coverage: screened 4 of 4 — 0 unavailable
+limit=200 matched=4 served=[('RELIANCE.NS', 16550000000000.0, 'INR'), ('HDFCBANK.NS', 11300000000000.0, 'INR'), ('TCS.NS', 7550000000000.0, 'INR'), ('MANIKA.NS', None, None)]
+   coverage: screened 4 of 4 — 0 unavailable

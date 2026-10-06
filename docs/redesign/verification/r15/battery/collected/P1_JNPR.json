@@ -1,0 +1,1945 @@
+{
+ "slot": "P1",
+ "symbol": "JNPR",
+ "manifest_name": "Juniper Green Energy Ltd",
+ "exchange": "NSE+BSE",
+ "bse_code": "544853",
+ "collected_at": "2026-09-19T15:08:40+0530",
+ "sidecar": "http://127.0.0.1:52152",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52152/resolve?q=JNPR",
+   "status": 200,
+   "elapsed_ms": 20907,
+   "body": {
+    "ok": true,
+    "query": "JNPR",
+    "region": "IN",
+    "resolved": null,
+    "needs_disambiguation": true,
+    "candidates": [
+     {
+      "symbol": "JNPR",
+      "name": "JUNIPER GREEN ENERGY LTD",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "JNPR.NS",
+      "confidence": 0.6,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "JNPR",
+      "name": "Juniper Green Energy Limited",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "JNPR.BO",
+      "confidence": 0.6,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52152/resolve?q=Juniper+Green+Energy+Ltd",
+   "status": 200,
+   "elapsed_ms": 31880,
+   "body": {
+    "ok": true,
+    "query": "Juniper Green Energy Ltd",
+    "region": "IN",
+    "resolved": null,
+    "needs_disambiguation": true,
+    "candidates": [
+     {
+      "symbol": "NTPCGREEN",
+      "name": "NTPC Green Energy Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "NTPCGREEN.NS",
+      "confidence": 0.7755,
+      "isin": "INE0ONG01011",
+      "bse_code": "544289",
+      "industry": "Power / Power Generation",
+      "former_name": null
+     },
+     {
+      "symbol": "TRUEGREEN",
+      "name": "True Green Bio Energy Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "TRUEGREEN.BO",
+      "confidence": 0.7755,
+      "isin": "INE672K01025",
+      "bse_code": "533407",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "ADANIGREEN",
+      "name": "Adani Green Energy Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "ADANIGREEN.NS",
+      "confidence": 0.76,
+      "isin": "INE364U01010",
+      "bse_code": "541450",
+      "industry": "Power / Power Generation",
+      "former_name": null
+     },
+     {
+      "symbol": "KPIGREEN",
+      "name": "KPI Green Energy Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "KPIGREEN.NS",
+      "confidence": 0.75,
+      "isin": "INE542W01025",
+      "bse_code": "542323",
+      "industry": "Power / Power Generation",
+      "former_name": null
+     },
+     {
+      "symbol": "SOLARIUM",
+      "name": "Solarium Green Energy Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "SOLARIUM.BO",
+      "confidence": 0.7347,
+      "isin": "INE0W0H01017",
+      "bse_code": "544354",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "KPGEL",
+      "name": "KP Green Engineering Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "KPGEL.BO",
+      "confidence": 0.7083,
+      "isin": "INE0QVH01025",
+      "bse_code": "544150",
+      "industry": null,
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52152/resolve?q=544853",
+   "status": 200,
+   "elapsed_ms": 8550,
+   "body": {
+    "ok": false,
+    "query": "544853",
+    "region": "IN",
+    "message": "No instrument matched '544853'.",
+    "resolved": null,
+    "needs_disambiguation": false,
+    "candidates": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 48.6
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52152/quotes/JNPR?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 7258,
+   "body": {
+    "symbol": "JNPR.NS",
+    "price": 265.1499938964844,
+    "change": 8.149993896484375,
+    "change_percent": 3.17120385077213,
+    "volume": 720178.0,
+    "currency": "INR",
+    "market_state": null,
+    "timestamp": "2026-09-19T09:36:46.218656Z",
+    "provider": "yfinance",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52152/fundamentals/JNPR",
+   "status": 200,
+   "elapsed_ms": 29488,
+   "body": {
+    "symbol": "JNPR.NS",
+    "name": "Juniper Green Energy Limited",
+    "sector": "Utilities",
+    "industry": "Utilities - Renewable",
+    "currency": "INR",
+    "market_cap": 150869934080.0,
+    "pe_ratio": 358.3108,
+    "forward_pe": 21.333532,
+    "peg_ratio": null,
+    "price_to_book": 3.7867754,
+    "price_to_sales": 17.760645,
+    "ev_to_ebitda": 35.354,
+    "book_value": 70.02,
+    "dividend_yield": null,
+    "dividend_per_share": null,
+    "eps": 0.74,
+    "beta": null,
+    "fifty_two_week_high": 282.0,
+    "fifty_two_week_low": 232.11,
+    "fifty_two_week_change": 0.020946383,
+    "roe": null,
+    "roa": null,
+    "gross_margin": 0.99194,
+    "operating_margin": 0.64203,
+    "profit_margin": 0.061479997,
+    "debt_to_equity": 4.01898,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "revenue_ttm": 8494620160.0,
+    "net_income_ttm": 522289984.0,
+    "free_cash_flow": null,
+    "shares_outstanding": 568998442.0,
+    "revenue_growth": 0.812,
+    "earnings_growth": 0.545,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.85939,
+    "held_percent_institutions": 0.038340002,
+    "dividend_per_share_ttm": null,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "pe_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "forward_pe": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "price_to_book": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "ev_to_ebitda": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "book_value": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "dividend_yield": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "dividend_per_share": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "beta": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "roe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "roa": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "debt_to_equity": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "current_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "quick_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "free_cash_flow": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "held_percent_insiders": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "held_percent_institutions": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": null,
+      "label": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:37:07.524496+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52152/fundamentals/JNPR/income",
+   "status": 200,
+   "elapsed_ms": 6248,
+   "body": {
+    "symbol": "JNPR.NS",
+    "periods": [
+     "2026",
+     "2025",
+     "2024"
+    ],
+    "lines": [
+     {
+      "label": "Tax Effect Of Unusual Items",
+      "values": {
+       "2026": 50247570.388086,
+       "2025": 25510448.468068,
+       "2024": 7788544.916949
+      }
+     },
+     {
+      "label": "Tax Rate For Calcs",
+      "values": {
+       "2026": 0.266877,
+       "2025": 0.335531,
+       "2024": 0.303174
+      }
+     },
+     {
+      "label": "Normalized EBITDA",
+      "values": {
+       "2026": 6555410000.0,
+       "2025": 4732700000.0,
+       "2024": 3659700000.0
+      }
+     },
+     {
+      "label": "Total Unusual Items",
+      "values": {
+       "2026": 188280000.0,
+       "2025": 76030000.0,
+       "2024": 25690000.0
+      }
+     },
+     {
+      "label": "Total Unusual Items Excluding Goodwill",
+      "values": {
+       "2026": 188280000.0,
+       "2025": 76030000.0,
+       "2024": 25690000.0
+      }
+     },
+     {
+      "label": "Net Income From Continuing Operation Net Minority Interest",
+      "values": {
+       "2026": 404640000.0,
+       "2025": 364780000.0,
+       "2024": 400640000.0
+      }
+     },
+     {
+      "label": "Reconciled Depreciation",
+      "values": {
+       "2026": 2368640000.0,
+       "2025": 1663780000.0,
+       "2024": 1221520000.0
+      }
+     },
+     {
+      "label": "Reconciled Cost Of Revenue",
+      "values": {
+       "2026": 23230000.0,
+       "2025": 0.0,
+       "2024": 0.0
+      }
+     },
+     {
+      "label": "EBITDA",
+      "values": {
+       "2026": 6743690000.0,
+       "2025": 4808730000.0,
+       "2024": 3685390000.0
+      }
+     },
+     {
+      "label": "EBIT",
+      "values": {
+       "2026": 4375050000.0,
+       "2025": 3144950000.0,
+       "2024": 2463870000.0
+      }
+     },
+     {
+      "label": "Net Interest Income",
+      "values": {
+       "2026": -3222120000.0,
+       "2025": -2147260000.0,
+       "2024": -1633380000.0
+      }
+     },
+     {
+      "label": "Interest Expense",
+      "values": {
+       "2026": 3823110000.0,
+       "2025": 2595970000.0,
+       "2024": 1888920000.0
+      }
+     },
+     {
+      "label": "Interest Income",
+      "values": {
+       "2026": 614910000.0,
+       "2025": 496830000.0,
+       "2024": 278580000.0
+      }
+     },
+     {
+      "label": "Normalized Income",
+      "values": {
+       "2026": 266607570.388086,
+       "2025": 314260448.468068,
+       "2024": 382738544.916949
+      }
+     },
+     {
+      "label": "Net Income From Continuing And Discontinued Operation",
+      "values": {
+       "2026": 404640000.0,
+       "2025": 364780000.0,
+       "2024": 400640000.0
+      }
+     },
+     {
+      "label": "Total Expenses",
+      "values": {
+       "2026": 3370100000.0,
+       "2025": 2408120000.0,
+       "2024": 1622800000.0
+      }
+     },
+     {
+      "label": "Rent Expense Supplemental",
+      "values": {
+       "2026": 6620000.0,
+       "2025": 1390000.0,
+       "2024": 1690000.0
+      }
+     },
+     {
+      "label": "Diluted Average Shares",
+      "values": {
+       "2026": null,
+       "2025": 568998442.0,
+       "2024": 568998442.0
+      }
+     },
+     {
+      "label": "Basic Average Shares",
+      "values": {
+       "2026": null,
+       "2025": 568998442.0,
+       "2024": 568998442.0
+      }
+     },
+     {
+      "label": "Diluted EPS",
+      "values": {
+       "2026": null,
+       "2025": 0.641091,
+       "2024": 0.704114
+      }
+     },
+     {
+      "label": "Basic EPS",
+      "values": {
+       "2026": null,
+       "2025": 0.641091,
+       "2024": 0.704114
+      }
+     },
+     {
+      "label": "Diluted NI Availto Com Stockholders",
+      "values": {
+       "2026": 404640000.0,
+       "2025": 364780000.0,
+       "2024": 400640000.0
+      }
+     },
+     {
+      "label": "Net Income Common Stockholders",
+      "values": {
+       "2026": 404640000.0,
+       "2025": 364780000.0,
+       "2024": 400640000.0
+      }
+     },
+     {
+      "label": "Otherunder Preferred Stock Dividend",
+      "values": {
+       "2026": 0.0,
+       "2025": 0.0,
+       "2024": 0.0
+      }
+     },
+     {
+      "label": "Net Income",
+      "values": {
+       "2026": 404640000.0,
+       "2025": 364780000.0,
+       "2024": 400640000.0
+      }
+     },
+     {
+      "label": "Net Income Including Noncontrolling Interests",
+      "values": {
+       "2026": 404640000.0,
+       "2025": 364780000.0,
+       "2024": 400640000.0
+      }
+     },
+     {
+      "label": "Net Income Continuous Operations",
+      "values": {
+       "2026": 404640000.0,
+       "2025": 364780000.0,
+       "2024": 400640000.0
+      }
+     },
+     {
+      "label": "Tax Provision",
+      "values": {
+       "2026": 147300000.0,
+       "2025": 184200000.0,
+       "2024": 174310000.0
+      }
+     },
+     {
+      "label": "Pretax Income",
+      "values": {
+       "2026": 551940000.0,
+       "2025": 548980000.0,
+       "2024": 574950000.0
+      }
+     },
+     {
+      "label": "Other Non Operating Income Expenses",
+      "values": {
+       "2026": 28760000.0,
+       "2025": 32710000.0,
+       "2024": 6650000.0
+      }
+     },
+     {
+      "label": "Special Income Charges",
+      "values": {
+       "2026": -25560000.0,
+       "2025": -3290000.0,
+       "2024": -17470000.0
+      }
+     },
+     {
+      "label": "Other Special Charges",
+      "values": {
+       "2026": 25560000.0,
+       "2025": 3290000.0,
+       "2024": 17470000.0
+      }
+     },
+     {
+      "label": "Net Non Operating Interest Income Expense",
+      "values": {
+       "2026": -3222120000.0,
+       "2025": -2147260000.0,
+       "2024": -1633380000.0
+      }
+     },
+     {
+      "label": "Total Other Finance Cost",
+      "values": {
+       "2026": 13920000.0,
+       "2025": 48120000.0,
+       "2024": 23040000.0
+      }
+     },
+     {
+      "label": "Interest Expense Non Operating",
+      "values": {
+       "2026": 3823110000.0,
+       "2025": 2595970000.0,
+       "2024": 1888920000.0
+      }
+     },
+     {
+      "label": "Interest Income Non Operating",
+      "values": {
+       "2026": 614910000.0,
+       "2025": 496830000.0,
+       "2024": 278580000.0
+      }
+     },
+     {
+      "label": "Operating Income",
+      "values": {
+       "2026": 3722420000.0,
+       "2025": 2586110000.0,
+       "2024": 2175410000.0
+      }
+     },
+     {
+      "label": "Operating Expense",
+      "values": {
+       "2026": 3346870000.0,
+       "2025": 2408120000.0,
+       "2024": 1622800000.0
+      }
+     },
+     {
+      "label": "Other Operating Expenses",
+      "values": {
+       "2026": 580870000.0,
+       "2025": 491840000.0,
+       "2024": 274810000.0
+      }
+     },
+     {
+      "label": "Depreciation And Amortization In Income Statement",
+      "values": {
+       "2026": 2368640000.0,
+       "2025": 1663780000.0,
+       "2024": 1221520000.0
+      }
+     },
+     {
+      "label": "Amortization",
+      "values": {
+       "2026": 750000.0,
+       "2025": 1060000.0,
+       "2024": 2130000.0
+      }
+     },
+     {
+      "label": "Depreciation Income Statement",
+      "values": {
+       "2026": 2367890000.0,
+       "2025": 1662720000.0,
+       "2024": 1219390000.0
+      }
+     },
+     {
+      "label": "Selling General And Administration",
+      "values": {
+       "2026": 170770000.0,
+       "2025": 109240000.0,
+       "2024": 100770000.0
+      }
+     },
+     {
+      "label": "General And Administrative Expense",
+      "values": {
+       "2026": 170770000.0,
+       "2025": 109240000.0,
+       "2024": 100770000.0
+      }
+     },
+     {
+      "label": "Rent And Landing Fees",
+      "values": {
+       "2026": 6620000.0,
+       "2025": 1390000.0,
+       "2024": 1690000.0
+      }
+     },
+     {
+      "label": "Gross Profit",
+      "values": {
+       "2026": 7069290000.0,
+       "2025": 4994230000.0,
+       "2024": 3798210000.0
+      }
+     },
+     {
+      "label": "Cost Of Revenue",
+      "values": {
+       "2026": 23230000.0,
+       "2025": 0.0,
+       "2024": 0.0
+      }
+     },
+     {
+      "label": "Total Revenue",
+      "values": {
+       "2026": 7092520000.0,
+       "2025": 4994230000.0,
+       "2024": 3798210000.0
+      }
+     },
+     {
+      "label": "Operating Revenue",
+      "values": {
+       "2026": 7092520000.0,
+       "2025": 4994230000.0,
+       "2024": 3798210000.0
+      }
+     }
+    ],
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 54.7
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52152/fundamentals/JNPR/balance",
+   "status": 200,
+   "elapsed_ms": 7398,
+   "body": {
+    "symbol": "JNPR.NS",
+    "periods": [
+     "2026",
+     "2025",
+     "2024"
+    ],
+    "lines": [
+     {
+      "label": "Ordinary Shares Number",
+      "values": {
+       "2026": 568998442.0,
+       "2025": 568998442.0,
+       "2024": 568998442.0
+      }
+     },
+     {
+      "label": "Share Issued",
+      "values": {
+       "2026": 568998442.0,
+       "2025": 568998442.0,
+       "2024": 568998442.0
+      }
+     },
+     {
+      "label": "Net Debt",
+      "values": {
+       "2026": 118185540000.0,
+       "2025": 52269770000.0,
+       "2024": 26496290000.0
+      }
+     },
+     {
+      "label": "Total Debt",
+      "values": {
+       "2026": 137605250000.0,
+       "2025": 59706800000.0,
+       "2024": 28941300000.0
+      }
+     },
+     {
+      "label": "Tangible Book Value",
+      "values": {
+       "2026": 34238330000.0,
+       "2025": 33597730000.0,
+       "2024": 17314960000.0
+      }
+     },
+     {
+      "label": "Invested Capital",
+      "values": {
+       "2026": 163444240000.0,
+       "2025": 88624270000.0,
+       "2024": 44033780000.0
+      }
+     },
+     {
+      "label": "Working Capital",
+      "values": {
+       "2026": -1275980000.0,
+       "2025": 18920940000.0,
+       "2024": 4921650000.0
+      }
+     },
+     {
+      "label": "Net Tangible Assets",
+      "values": {
+       "2026": 34238330000.0,
+       "2025": 33597730000.0,
+       "2024": 17314960000.0
+      }
+     },
+     {
+      "label": "Capital Lease Obligations",
+      "values": {
+       "2026": 8399840000.0,
+       "2025": 4681510000.0,
+       "2024": 2224290000.0
+      }
+     },
+     {
+      "label": "Common Stock Equity",
+      "values": {
+       "2026": 34238830000.0,
+       "2025": 33598980000.0,
+       "2024": 17316770000.0
+      }
+     },
+     {
+      "label": "Total Capitalization",
+      "values": {
+       "2026": 146656070000.0,
+       "2025": 87289430000.0,
+       "2024": 41419450000.0
+      }
+     },
+     {
+      "label": "Total Equity Gross Minority Interest",
+      "values": {
+       "2026": 34238830000.0,
+       "2025": 33598980000.0,
+       "2024": 17316770000.0
+      }
+     },
+     {
+      "label": "Stockholders Equity",
+      "values": {
+       "2026": 34238830000.0,
+       "2025": 33598980000.0,
+       "2024": 17316770000.0
+      }
+     },
+     {
+      "label": "Other Equity Interest",
+      "values": {
+       "2026": 239270000.0,
+       "2025": null,
+       "2024": 1500000000.0
+      }
+     },
+     {
+      "label": "Retained Earnings",
+      "values": {
+       "2026": 575040000.0,
+       "2025": 174460000.0,
+       "2024": 779060000.0
+      }
+     },
+     {
+      "label": "Additional Paid In Capital",
+      "values": {
+       "2026": 28534750000.0,
+       "2025": 28534750000.0,
+       "2024": 14772450000.0
+      }
+     },
+     {
+      "label": "Capital Stock",
+      "values": {
+       "2026": 4889900000.0,
+       "2025": 4889900000.0,
+       "2024": 259060000.0
+      }
+     },
+     {
+      "label": "Common Stock",
+      "values": {
+       "2026": 4889900000.0,
+       "2025": 4889900000.0,
+       "2024": 259060000.0
+      }
+     },
+     {
+      "label": "Total Liabilities Net Minority Interest",
+      "values": {
+       "2026": 161145700000.0,
+       "2025": 69969080000.0,
+       "2024": 32547670000.0
+      }
+     },
+     {
+      "label": "Total Non Current Liabilities Net Minority Interest",
+      "values": {
+       "2026": 122041050000.0,
+       "2025": 59411010000.0,
+       "2024": 27184920000.0
+      }
+     },
+     {
+      "label": "Non Current Pension And Other Postretirement Benefit Plans",
+      "values": {
+       "2026": 61560000.0,
+       "2025": 46020000.0,
+       "2024": 31880000.0
+      }
+     },
+     {
+      "label": "Non Current Deferred Taxes Liabilities",
+      "values": {
+       "2026": 476930000.0,
+       "2025": 503660000.0,
+       "2024": 389940000.0
+      }
+     },
+     {
+      "label": "Long Term Debt And Capital Lease Obligation",
+      "values": {
+       "2026": 120730400000.0,
+       "2025": 58180700000.0,
+       "2024": 26258620000.0
+      }
+     },
+     {
+      "label": "Long Term Capital Lease Obligation",
+      "values": {
+       "2026": 8313160000.0,
+       "2025": 4490250000.0,
+       "2024": 2155940000.0
+      }
+     },
+     {
+      "label": "Long Term Debt",
+      "values": {
+       "2026": 112417240000.0,
+       "2025": 53690450000.0,
+       "2024": 24102680000.0
+      }
+     },
+     {
+      "label": "Long Term Provisions",
+      "values": {
+       "2026": 772160000.0,
+       "2025": 680630000.0,
+       "2024": 504480000.0
+      }
+     },
+     {
+      "label": "Current Liabilities",
+      "values": {
+       "2026": 39104650000.0,
+       "2025": 10558070000.0,
+       "2024": 5362750000.0
+      }
+     },
+     {
+      "label": "Current Deferred Taxes Liabilities",
+      "values": {
+       "2026": 4610000.0,
+       "2025": 620000.0,
+       "2024": 26250000.0
+      }
+     },
+     {
+      "label": "Current Debt And Capital Lease Obligation",
+      "values": {
+       "2026": 16874850000.0,
+       "2025": 1526100000.0,
+       "2024": 2682680000.0
+      }
+     },
+     {
+      "label": "Current Capital Lease Obligation",
+      "values": {
+       "2026": 86680000.0,
+       "2025": 191260000.0,
+       "2024": 68350000.0
+      }
+     },
+     {
+      "label": "Current Debt",
+      "values": {
+       "2026": 16788170000.0,
+       "2025": 1334840000.0,
+       "2024": 2614330000.0
+      }
+     },
+     {
+      "label": "Pensionand Other Post Retirement Benefit Plans Current",
+      "values": {
+       "2026": 89060000.0,
+       "2025": 90740000.0,
+       "2024": 63480000.0
+      }
+     },
+     {
+      "label": "Payables",
+      "values": {
+       "2026": 22130640000.0,
+       "2025": 8940610000.0,
+       "2024": 2581350000.0
+      }
+     },
+     {
+      "label": "Other Payable",
+      "values": {
+       "2026": 21919850000.0,
+       "2025": 8798770000.0,
+       "2024": 2491170000.0
+      }
+     },
+     {
+      "label": "Accounts Payable",
+      "values": {
+       "2026": 210790000.0,
+       "2025": 141840000.0,
+       "2024": 90180000.0
+      }
+     },
+     {
+      "label": "Total Assets",
+      "values": {
+       "2026": 195384530000.0,
+       "2025": 103568060000.0,
+       "2024": 49864440000.0
+      }
+     },
+     {
+      "label": "Total Non Current Assets",
+      "values": {
+       "2026": 157555860000.0,
+       "2025": 74089050000.0,
+       "2024": 39580040000.0
+      }
+     },
+     {
+      "label": "Other Non Current Assets",
+      "values": {
+       "2026": -10000.0,
+       "2025": null,
+       "2024": null
+      }
+     },
+     {
+      "label": "Non Current Prepaid Assets",
+      "values": {
+       "2026": 539510000.0,
+       "2025": 306840000.0,
+       "2024": 111640000.0
+      }
+     },
+     {
+      "label": "Non Current Deferred Taxes Assets",
+      "values": {
+       "2026": 383830000.0,
+       "2025": 254410000.0,
+       "2024": 116720000.0
+      }
+     },
+     {
+      "label": "Financial Assets",
+      "values": {
+       "2026": 144140000.0,
+       "2025": 0.0,
+       "2024": 0.0
+      }
+     },
+     {
+      "label": "Investmentin Financial Assets",
+      "values": {
+       "2026": 44500000.0,
+       "2025": 245200000.0,
+       "2024": 92980000.0
+      }
+     },
+     {
+      "label": "Available For Sale Securities",
+      "values": {
+       "2026": 44500000.0,
+       "2025": 245200000.0,
+       "2024": 92980000.0
+      }
+     },
+     {
+      "label": "Goodwill And Other Intangible Assets",
+      "values": {
+       "2026": 500000.0,
+       "2025": 1250000.0,
+       "2024": 1810000.0
+      }
+     },
+     {
+      "label": "Other Intangible Assets",
+      "values": {
+       "2026": 500000.0,
+       "2025": 1250000.0,
+       "2024": 1810000.0
+      }
+     },
+     {
+      "label": "Net PPE",
+      "values": {
+       "2026": 155173160000.0,
+       "2025": 72671370000.0,
+       "2024": 39136550000.0
+      }
+     },
+     {
+      "label": "Accumulated Depreciation",
+      "values": {
+       "2026": -6758720000.0,
+       "2025": -4489750000.0,
+       "2024": -2919760000.0
+      }
+     },
+     {
+      "label": "Gross PPE",
+      "values": {
+       "2026": 161931880000.0,
+       "2025": 77161120000.0,
+       "2024": 42056310000.0
+      }
+     },
+     {
+      "label": "Construction In Progress",
+      "values": {
+       "2026": 80573570000.0,
+       "2025": 26681280000.0,
+       "2024": 4708800000.0
+      }
+     },
+     {
+      "label": "Machinery Furniture Equipment",
+      "values": {
+       "2026": 69868470000.0,
+       "2025": 43848100000.0,
+       "2024": 34143890000.0
+      }
+     },
+     {
+      "label": "Buildings And Improvements",
+      "values": {
+       "2026": 431670000.0,
+       "2025": 295770000.0,
+       "2024": 37530000.0
+      }
+     },
+     {
+      "label": "Land And Improvements",
+      "values": {
+       "2026": 11058170000.0,
+       "2025": 6335970000.0,
+       "2024": 3166090000.0
+      }
+     },
+     {
+      "label": "Properties",
+      "values": {
+       "2026": 0.0,
+       "2025": 0.0,
+       "2024": 0.0
+      }
+     },
+     {
+      "label": "Current Assets",
+      "values": {
+       "2026": 37828670000.0,
+       "2025": 29479010000.0,
+       "2024": 10284400000.0
+      }
+     },
+     {
+      "label": "Other Current Assets",
+      "values": {
+       "2026": 219870000.0,
+       "2025": 27500000.0,
+       "2024": null
+      }
+     },
+     {
+      "label": "Restricted Cash",
+      "values": {
+       "2026": 18348900000.0,
+       "2025": 20960940000.0,
+       "2024": 6021810000.0
+      }
+     },
+     {
+      "label": "Prepaid Assets",
+      "values": {
+       "2026": 1172730000.0,
+       "2025": 677550000.0,
+       "2024": 199550000.0
+      }
+     },
+     {
+      "label": "Other Receivables",
+      "values": {
+       "2026": 142680000.0,
+       "2025": 205280000.0,
+       "2024": 63080000.0
+      }
+     },
+     {
+      "label": "Accounts Receivable",
+      "values": {
+       "2026": 1119370000.0,
+       "2025": 723790000.0,
+       "2024": 625750000.0
+      }
+     },
+     {
+      "label": "Allowance For Doubtful Accounts Receivable",
+      "values": {
+       "2026": 0.0,
+       "2025": 0.0,
+       "2024": 0.0
+      }
+     },
+     {
+      "label": "Gross Accounts Receivable",
+      "values": {
+       "2026": 1119370000.0,
+       "2025": 723790000.0,
+       "2024": 625750000.0
+      }
+     },
+     {
+      "label": "Cash Cash Equivalents And Short Term Investments",
+      "values": {
+       "2026": 16825120000.0,
+       "2025": 6883950000.0,
+       "2024": 3374210000.0
+      }
+     },
+     {
+      "label": "Other Short Term Investments",
+      "values": {
+       "2026": 5805250000.0,
+       "2025": 4128430000.0,
+       "2024": 3153490000.0
+      }
+     },
+     {
+      "label": "Cash And Cash Equivalents",
+      "values": {
+       "2026": 11019870000.0,
+       "2025": 2755520000.0,
+       "2024": 220720000.0
+      }
+     },
+     {
+      "label": "Cash Equivalents",
+      "values": {
+       "2026": 9281640000.0,
+       "2025": 1800000000.0,
+       "2024": 0.0
+      }
+     },
+     {
+      "label": "Cash Financial",
+      "values": {
+       "2026": 1738230000.0,
+       "2025": 955520000.0,
+       "2024": 220720000.0
+      }
+     }
+    ],
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52152/fundamentals/JNPR/cashflow",
+   "status": 200,
+   "elapsed_ms": 7992,
+   "body": {
+    "symbol": "JNPR.NS",
+    "periods": [
+     "2026",
+     "2025",
+     "2024"
+    ],
+    "lines": [
+     {
+      "label": "Free Cash Flow",
+      "values": {
+       "2026": -61707700000.0,
+       "2025": -22082250000.0,
+       "2024": -5092690000.0
+      }
+     },
+     {
+      "label": "Repurchase Of Capital Stock",
+      "values": {
+       "2026": 0.0,
+       "2025": -369810000.0,
+       "2024": 0.0
+      }
+     },
+     {
+      "label": "Repayment Of Debt",
+      "values": {
+       "2026": -1371390000.0,
+       "2025": -2664340000.0,
+       "2024": -859760000.0
+      }
+     },
+     {
+      "label": "Issuance Of Debt",
+      "values": {
+       "2026": 75598270000.0,
+       "2025": 37217900000.0,
+       "2024": 6225870000.0
+      }
+     },
+     {
+      "label": "Issuance Of Capital Stock",
+      "values": {
+       "2026": 0.0,
+       "2025": 10659000000.0,
+       "2024": 7579440000.0
+      }
+     },
+     {
+      "label": "Capital Expenditure",
+      "values": {
+       "2026": -66407620000.0,
+       "2025": -25732930000.0,
+       "2024": -8314940000.0
+      }
+     },
+     {
+      "label": "End Cash Position",
+      "values": {
+       "2026": 11019870000.0,
+       "2025": 2755520000.0,
+       "2024": 220720000.0
+      }
+     },
+     {
+      "label": "Other Cash Adjustment Outside Changein Cash",
+      "values": {
+       "2026": 160000.0,
+       "2025": 100000.0,
+       "2024": 4610000.0
+      }
+     },
+     {
+      "label": "Beginning Cash Position",
+      "values": {
+       "2026": 2755520000.0,
+       "2025": 220720000.0,
+       "2024": 475490000.0
+      }
+     },
+     {
+      "label": "Changes In Cash",
+      "values": {
+       "2026": 8264190000.0,
+       "2025": 2534700000.0,
+       "2024": -259380000.0
+      }
+     },
+     {
+      "label": "Financing Cash Flow",
+      "values": {
+       "2026": 68661960000.0,
+       "2025": 40712210000.0,
+       "2024": 12313810000.0
+      }
+     },
+     {
+      "label": "Net Other Financing Charges",
+      "values": {
+       "2026": null,
+       "2025": null,
+       "2024": 1500000000.0
+      }
+     },
+     {
+      "label": "Interest Paid Cff",
+      "values": {
+       "2026": -3823910000.0,
+       "2025": -3053050000.0,
+       "2024": -1804930000.0
+      }
+     },
+     {
+      "label": "Net Common Stock Issuance",
+      "values": {
+       "2026": 0.0,
+       "2025": 10289190000.0,
+       "2024": 7579440000.0
+      }
+     },
+     {
+      "label": "Common Stock Payments",
+      "values": {
+       "2026": 0.0,
+       "2025": -369810000.0,
+       "2024": 0.0
+      }
+     },
+     {
+      "label": "Common Stock Issuance",
+      "values": {
+       "2026": 0.0,
+       "2025": 10659000000.0,
+       "2024": 7579440000.0
+      }
+     },
+     {
+      "label": "Net Issuance Payments Of Debt",
+      "values": {
+       "2026": 74226880000.0,
+       "2025": 34553560000.0,
+       "2024": 5366110000.0
+      }
+     },
+     {
+      "label": "Net Short Term Debt Issuance",
+      "values": {
+       "2026": 0.0,
+       "2025": -1713750000.0,
+       "2024": 1226870000.0
+      }
+     },
+     {
+      "label": "Short Term Debt Payments",
+      "values": {
+       "2026": 0.0,
+       "2025": -1713750000.0,
+       "2024": -24500000.0
+      }
+     },
+     {
+      "label": "Short Term Debt Issuance",
+      "values": {
+       "2026": 0.0,
+       "2025": null,
+       "2024": 1251370000.0
+      }
+     },
+     {
+      "label": "Net Long Term Debt Issuance",
+      "values": {
+       "2026": 74226880000.0,
+       "2025": 36267310000.0,
+       "2024": 4139240000.0
+      }
+     },
+     {
+      "label": "Long Term Debt Payments",
+      "values": {
+       "2026": -1371390000.0,
+       "2025": -950590000.0,
+       "2024": -835260000.0
+      }
+     },
+     {
+      "label": "Long Term Debt Issuance",
+      "values": {
+       "2026": 75598270000.0,
+       "2025": 37217900000.0,
+       "2024": 4974500000.0
+      }
+     },
+     {
+      "label": "Investing Cash Flow",
+      "values": {
+       "2026": -65097690000.0,
+       "2025": -41828190000.0,
+       "2024": -15795440000.0
+      }
+     },
+     {
+      "label": "Interest Received Cfi",
+      "values": {
+       "2026": 689160000.0,
+       "2025": 354990000.0,
+       "2024": 225470000.0
+      }
+     },
+     {
+      "label": "Net Investment Purchase And Sale",
+      "values": {
+       "2026": 551750000.0,
+       "2025": -16480090000.0,
+       "2024": -7692240000.0
+      }
+     },
+     {
+      "label": "Sale Of Investment",
+      "values": {
+       "2026": 761310000.0,
+       "2025": null,
+       "2024": null
+      }
+     },
+     {
+      "label": "Purchase Of Investment",
+      "values": {
+       "2026": -209560000.0,
+       "2025": -16480090000.0,
+       "2024": -7692240000.0
+      }
+     },
+     {
+      "label": "Net Business Purchase And Sale",
+      "values": {
+       "2026": -19830000.0,
+       "2025": -2500000.0,
+       "2024": -43010000.0
+      }
+     },
+     {
+      "label": "Purchase Of Business",
+      "values": {
+       "2026": -19830000.0,
+       "2025": -2500000.0,
+       "2024": -43010000.0
+      }
+     },
+     {
+      "label": "Net Intangibles Purchase And Sale",
+      "values": {
+       "2026": 0.0,
+       "2025": -500000.0,
+       "2024": -1350000.0
+      }
+     },
+     {
+      "label": "Purchase Of Intangibles",
+      "values": {
+       "2026": 0.0,
+       "2025": -500000.0,
+       "2024": -1350000.0
+      }
+     },
+     {
+      "label": "Net PPE Purchase And Sale",
+      "values": {
+       "2026": -66318770000.0,
+       "2025": -25700090000.0,
+       "2024": -8284310000.0
+      }
+     },
+     {
+      "label": "Sale Of PPE",
+      "values": {
+       "2026": 88850000.0,
+       "2025": 32340000.0,
+       "2024": 29280000.0
+      }
+     },
+     {
+      "label": "Purchase Of PPE",
+      "values": {
+       "2026": -66407620000.0,
+       "2025": -25732430000.0,
+       "2024": -8313590000.0
+      }
+     },
+     {
+      "label": "Operating Cash Flow",
+      "values": {
+       "2026": 4699920000.0,
+       "2025": 3650680000.0,
+       "2024": 3222250000.0
+      }
+     },
+     {
+      "label": "Taxes Refund Paid",
+      "values": {
+       "2026": -377240000.0,
+       "2025": -318180000.0,
+       "2024": -39270000.0
+      }
+     },
+     {
+      "label": "Change In Working Capital",
+      "values": {
+       "2026": -1131260000.0,
+       "2025": -311870000.0,
+       "2024": -142640000.0
+      }
+     },
+     {
+      "label": "Change In Other Current Liabilities",
+      "values": {
+       "2026": 1520000.0,
+       "2025": 330230000.0,
+       "2024": 79310000.0
+      }
+     },
+     {
+      "label": "Change In Other Current Assets",
+      "values": {
+       "2026": -860000000.0,
+       "2025": -623970000.0,
+       "2024": -128220000.0
+      }
+     },
+     {
+      "label": "Change In Payable",
+      "values": {
+       "2026": 68970000.0,
+       "2025": 51660000.0,
+       "2024": 18020000.0
+      }
+     },
+     {
+      "label": "Change In Receivables",
+      "values": {
+       "2026": -395580000.0,
+       "2025": -94920000.0,
+       "2024": -126270000.0
+      }
+     },
+     {
+      "label": "Other Non Cash Items",
+      "values": {
+       "2026": 3227910000.0,
+       "2025": 2147260000.0,
+       "2024": 1647280000.0
+      }
+     },
+     {
+      "label": "Stock Based Compensation",
+      "values": {
+       "2026": 88660000.0,
+       "2025": 0.0,
+       "2024": 0.0
+      }
+     },
+     {
+      "label": "Depreciation And Amortization",
+      "values": {
+       "2026": 2368640000.0,
+       "2025": 1663780000.0,
+       "2024": 1221520000.0
+      }
+     },
+     {
+      "label": "Amortization Cash Flow",
+      "values": {
+       "2026": 750000.0,
+       "2025": 1060000.0,
+       "2024": 2130000.0
+      }
+     },
+     {
+      "label": "Depreciation",
+      "values": {
+       "2026": 2367890000.0,
+       "2025": 1662720000.0,
+       "2024": 1219390000.0
+      }
+     },
+     {
+      "label": "Gain Loss On Investment Securities",
+      "values": {
+       "2026": -213840000.0,
+       "2025": -79320000.0,
+       "2024": -43160000.0
+      }
+     },
+     {
+      "label": "Net Foreign Currency Exchange Gain Loss",
+      "values": {
+       "2026": 167850000.0,
+       "2025": 770000.0,
+       "2024": 0.0
+      }
+     },
+     {
+      "label": "Gain Loss On Sale Of PPE",
+      "values": {
+       "2026": 17260000.0,
+       "2025": -740000.0,
+       "2024": 3570000.0
+      }
+     },
+     {
+      "label": "Net Income From Continuing Operations",
+      "values": {
+       "2026": 551940000.0,
+       "2025": 548980000.0,
+       "2024": 574950000.0
+      }
+     }
+    ],
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52152/fundamentals/JNPR/ratings",
+   "status": 200,
+   "elapsed_ms": 2110,
+   "body": {
+    "symbol": "JNPR.NS",
+    "consensus": "buy",
+    "target_mean": 330.0,
+    "target_high": 330.0,
+    "target_low": 330.0,
+    "strong_buy": 0,
+    "buy": 1,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52152/disclosures/shareholding?symbol=JNPR",
+   "status": 502,
+   "elapsed_ms": 331,
+   "body": {
+    "detail": "disclosures: 'JNPR' is not a known NSE/BSE instrument"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52152/disclosures/announcements?symbol=JNPR&limit=25",
+   "status": 502,
+   "elapsed_ms": 12,
+   "body": {
+    "detail": "disclosures: 'JNPR' is not a known NSE/BSE instrument"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52152/disclosures/results?symbol=JNPR",
+   "status": 502,
+   "elapsed_ms": 266,
+   "body": {
+    "detail": "nse_direct: 'JNPR' is not a known NSE instrument"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

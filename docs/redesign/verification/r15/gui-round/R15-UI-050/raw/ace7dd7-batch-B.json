@@ -1,0 +1,18 @@
+[
+ {"cmd":"click","x":502.4,"y":727.7},
+ {"cmd":"wait","seconds":1.5},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-050/ace7dd7-06-after-onboarding-skip.png"},
+ {"cmd":"click","x":192,"y":448},
+ {"cmd":"wait","seconds":0.5},
+ {"cmd":"key","combo":"cmd+down"},
+ {"cmd":"key","combo":"return"},
+ {"cmd":"wait","seconds":0.5},
+ {"cmd":"type","text":"/"},
+ {"cmd":"wait","seconds":1.2},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-050/ace7dd7-07-slash-menu-open.png"},
+ {"cmd":"key","combo":"down"},
+ {"cmd":"wait","seconds":0.4},
+ {"cmd":"key","combo":"down"},
+ {"cmd":"wait","seconds":1},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-050/ace7dd7-08-slash-menu-down2-active.png"}
+]

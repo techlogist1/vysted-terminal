@@ -1,0 +1,18 @@
+cwd final-cand/sidecar @ d38b5d1a; register repro strings verbatim
+== R15-RESEARCH-002 (critical, fixed) _parse_verdict
+'UNVERIFIED - no source confirms the 23% operating margin.' -> unverified
+'UNVERIFIED - evidence does not support the figure' -> unverified
+'UNVERIFIED - no matching figure' -> unverified
+== R15-LEAD-060 (medium, open) underscore emphasis
+'_UNVERIFIED_ - no source confirms the 23% operating margin.' -> agree
+'__UNVERIFIED__ - no source confirms the 23% operating margin.' -> agree
+== R15-RESEARCH-004 (high, fixed) _split_claims
+'1. 40.5% revenue growth' -> ['40.5% revenue growth']
+'- -0.4% earnings growth' -> ['-0.4% earnings growth']
+'2. 67.13953 P/E' -> ['67.13953 P/E']
+== R15-RESEARCH-007 (high, blocked_tier4) domain_tier
+https://medium.com/investor-diary/why-i-bought-xyz -> 3
+https://someblog.wordpress.com/ir/2024/hot-tip -> 3
+https://reuters.com/markets/x -> 2
+== R15-RESEARCH-043 (medium, blocked_tier4) MARKER_RE on grouped marker
+['4']

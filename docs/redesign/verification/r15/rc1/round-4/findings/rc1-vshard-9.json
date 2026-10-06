@@ -1,0 +1,81 @@
+[
+ {
+  "key": "rc1-vshard-9:1",
+  "kind": "new_defect",
+  "severity": "high",
+  "register_id": null,
+  "title": "arrange_layout pattern='custom' with panels crashes every agent turn: _coerce (added by the AGENT-093 fix 816f7cac) does 'expected in _JSON_STRING_TYPES' on the panels items schema type ['string','object'] -> TypeError unhashable type 'list'",
+  "repro": "In-process at 68d5573a: _normalise_tool_args(LLMToolUseEvent(name='arrange_layout', input={'pattern':'custom','panels':['chart','news']})) -> TypeError: unhashable type: 'list' (also for [{'panel':'chart'}] and a stringified list). Live on own sidecar :52609, llama3.1:8b AUTO, prompt asking for arrange_layout custom [chart, news]: SSE error frame 'The terminal hit an internal error.' detail 'TypeError: unhashable type: 'list'', sidecar.log 'agent invoke crashed'. Pre-fix loop (816f7cac^) only looked at top-level types and never reached the items schema.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-9-evidence/a093-live-arrange-custom.sse.txt; docs/redesign/verification/r15/rc1/round-4/verifier/shard-9-evidence/sidecar-arrange-crash-traceback.txt; docs/redesign/verification/r15/rc1/round-4/verifier/shard-9-evidence/a093-inprocess.txt",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py (_coerce ~908-943)",
+   "sidecar/services/agent_tools/catalog.py:1447"
+  ]
+ },
+ {
+  "key": "rc1-vshard-9:2",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-AGENT-019",
+  "title": "AGENT-019 not certified: fresh question-shaped write asks still classify read and strip the write tool; live llama3.1:8b types the call as JSON text and the turn ends (the entry's A1 symptom)",
+  "repro": "In-process _agent_tool_ids-equivalent (copilot, ollama, agent mode) at 68d5573a: 'Any chance you could get rid of my TCS position?' -> intent read, signals ['\\?\\s*$'], 42 tools, portfolio_delete_position stripped; 'Mind noting that INFY cut its guidance?' and 'What if you noted that BEL order book is 75k cr?' -> write_note stripped. Live :52609 llama3.1:8b AUTO 'Any chance you could get rid of my TCS position?' -> no tool_use, text '{\"name\": \"portfolio_delete_position\", \"parameters\": {\"asset_class\": \"equity\", \"symbol\": \"TCS.NS\"}}', done. The entry's own acceptance phrasings keep their tools (12/16 fresh phrasings keep; 4 controls still strip). Third certification failure: per lead rule (9) no fix round, left for the lead.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-9-evidence/a019-inprocess.txt; docs/redesign/verification/r15/rc1/round-4/verifier/shard-9-evidence/a019-live-fresh-tcs.sse.txt; docs/redesign/verification/r15/rc1/round-4/verifier/shard-9-evidence/a019-live-scrap-itc.sse.txt",
+  "suspected_files": [
+   "sidecar/services/planner.py (classify_intent trailing-'?' read cue; agent-request cue only matches '(can|could|would|will) you')"
+  ]
+ },
+ {
+  "key": "rc1-vshard-9:3",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-AGENT-053",
+  "title": "AGENT-053 not certified on its acceptance: the news publish carries no headlines (only watchedSymbols + focusedArticleId), genericPanelSummary collapses every array to a count ('watchedSymbols=2 items', earnings 'symbols=N items'), and the context preamble never renders otherPanels (reachable only via get_terminal_state)",
+  "repro": "src/modules/news/NewsFeedPanel.tsx:207-215 publishes {watchedSymbols, focusedArticleId}; src/modules/chat/context-provider.ts:272-273 renders arrays as 'N items'; context-provider.test.ts:236 pins 'watchedSymbols=2 items'. In-process sidecar _build_context_preamble with a __terminal__ carrying otherPanels [earnings, news] -> only 'Focused panel: earnings. Open panels: earnings, news.' Acceptance 'open Backtest and News -> snapshot carries their run id/headlines': run id yes, headlines no. Symbol chips (news/earnings/analyst/SEC) are buttons and the 6 vitest files pass (65 tests).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-9-evidence/a053-vitest.txt",
+  "suspected_files": [
+   "src/modules/news/NewsFeedPanel.tsx",
+   "src/modules/chat/context-provider.ts",
+   "sidecar/services/agent_runtime.py (_render_terminal_preamble)"
+  ]
+ },
+ {
+  "key": "rc1-vshard-9:4",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-LEAD-039",
+  "title": "LEAD-039 not certified on its fix_shape clause 'a stated reason': the 502 is gone but the partial EarningsEstimateDetail carries no reason for the null EPS triple (the model has no reason field; the grid shows the bare null glyph)",
+  "repro": "GET :52609/earnings/{RDY,TM,SONY}/estimates -> 200, eps_estimate_* null, no reason key; fresh HMC/MUFG/SMFG/IX same. sidecar/models/earnings.py:95-121 has no reason field; commit a5a72488 says EpsEstimateGrid needs no change.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-9-evidence/l039_RDY.json",
+  "suspected_files": [
+   "sidecar/models/earnings.py",
+   "sidecar/services/earnings_provider.py",
+   "types/earnings.ts",
+   "src/modules/earnings/EpsEstimateGrid.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-9:5",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "title": "BSE quote volume is served in lakh units as if shares: fetch reads StockTrading TTQ and ignores TTQin '(Lakh)', so INFY.BO shows volume 8.12 (812,000 shares), RELIANCE.BO 5.28, TCS 1.26",
+  "repro": "GET :52609/quotes/INFY.BO -> volume 8.12 provider bse; /quotes/INFY.NS -> 10,240,700. In-process bse_provider._api_json('StockTrading/w', scripcode 500209) -> TTQ '8.12', TTQin '(Lakh)'; small cap 506597 -> TTQ '5406', TTQin '' (raw shares). bse_provider.py:630 quote.volume = _num(trading.get('TTQ')) with no unit scaling. Introduced by the R15-DATA-053 fix.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-9-evidence/bse-ttq-probe.txt",
+  "suspected_files": [
+   "sidecar/services/bse_provider.py:630"
+  ]
+ },
+ {
+  "key": "rc1-vshard-9:6",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "title": "ADR per-share EPS estimates/actuals are in the reporting currency but labelled with the trading currency: PDD eps_estimate_mean 18.84 (CNY) and NVO 5.00 (DKK) served with currency 'USD' (same currency-mislabel class as DATA-113, on the per-share fields)",
+  "repro": "GET :52609/earnings/PDD/estimates -> eps_estimate_mean 18.84143, currency USD; Yahoo info trailingEps 9.28 USD for the whole year, so a quarterly 18.84 USD is impossible (CNY 18.84 ~ USD 2.6). NVO: 5.0045 labelled USD vs trailingEps 3.99 USD annual (DKK). /earnings/PDD/history eps_actual 19.33 labelled USD. TSM/AAPL EPS are genuinely USD. earnings_provider.py:219/253/345/462/576 label every EPS field with info['currency'].",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-9-evidence/adr-eps-currency-probe.txt",
+  "suspected_files": [
+   "sidecar/services/earnings_provider.py",
+   "src/modules/earnings/EpsEstimateGrid.tsx"
+  ]
+ }
+]

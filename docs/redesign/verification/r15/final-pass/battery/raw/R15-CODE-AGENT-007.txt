@@ -1,0 +1,11 @@
+# R15-CODE-AGENT-007 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:25+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/ag7.py 2>&1 | grep -v Warning
+--- output ---
+deepseek registry https://api.deepseek.com dispatch https://api.deepseek.com
+xai registry https://api.x.ai/v1 dispatch https://api.x.ai/v1
+openrouter registry https://openrouter.ai/api/v1 dispatch https://openrouter.ai/api/v1
+after edit deepseek https://edited.deepseek.example/v9
+after edit xai https://edited.x.example/v2
+
+EXIT=0 (0.9s)

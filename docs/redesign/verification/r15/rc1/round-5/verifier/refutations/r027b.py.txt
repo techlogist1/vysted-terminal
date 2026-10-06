@@ -1,0 +1,17 @@
+import os, asyncio, time, json
+os.environ["VYSTED_DATA_DIR"] = "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-verifier-r5/inproc-data"
+os.environ["VYSTED_OPENBB_MCP_PORT"]="52153"; os.environ["VYSTED_SEC_EDGAR_MCP_PORT"]="52154"
+from app import create_app
+create_app()
+import config
+from services import agent_tools
+async def main():
+    config.set_request_region('IN')
+    for q in ("KSE", "Kaveri Seed", "KSE.NS"):
+        t = time.perf_counter()
+        r = await asyncio.wait_for(agent_tools.invoke_tool("research", {"query": q, "depth": "normal"}), 110)
+        s = r.get("structured") or {}
+        print(json.dumps({"q": q, "wall_s": round(time.perf_counter() - t, 1), "keys": sorted(r)[:20], "ok": r.get("ok"), "symbol": r.get("symbol") or (r.get("target") or {}), "error": r.get("error"), "note": str(r.get("note"))[:200],
+          "legs": {k: ((s.get(k) or {}).get("ok"), str((s.get(k) or {}).get("error"))[:80]) for k in ("price","fundamentals","news","filings")},
+          "steps": [(st.get("kind"), st.get("latency_ms"), str(st.get("detail") or st.get("text"))[:60]) for st in (r.get("steps") or [])][:14]}, default=str), flush=True)
+asyncio.run(main())

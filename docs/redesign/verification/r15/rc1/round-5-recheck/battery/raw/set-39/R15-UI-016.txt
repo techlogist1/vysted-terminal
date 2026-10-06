@@ -1,0 +1,9 @@
+Entry: R15-UI-016 (batch-9, W5-frontend-shell)
+Repro per register: rebind palette.open in Settings->Keybindings, new chord does nothing / Mod+K still opens it (pre-fix); Mod+S/O/,/1..4 no-op (pre-fix).
+No GUI/no vitest available to this battery role (rule: never run vitest suites, entry certified only via a pinned test -> ci_pinned).
+Located pinned committed test covering this exact class:
+  src/store/keybindings.test.ts:283 describe("resolveKeyboardAction — the one dispatcher's resolution (R15-UI-016 / R15-CODE-FRONTEND-016)")
+    it("resolves EVERY DEFAULT_KEYBINDINGS id on its own default chord (class pin: no dead defaults)")
+Static source check (read-only, not a substitute for the run): src/store/keybindings.ts exports registerAction/resolveKeyboardAction (grep below); src/app/page.tsx wires registerAction for each action id.
+289:export function registerAction(actionId: string, handler: ActionHandler): () => void {
+311:export function resolveKeyboardAction(

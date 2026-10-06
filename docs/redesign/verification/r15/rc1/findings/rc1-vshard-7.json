@@ -1,0 +1,167 @@
+[
+  {
+    "key": "rc1-vshard-7:1",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-059",
+    "title": "US instruments still carry no ISIN: /resolve?q=ONC and q=SIFY return isin null; the fix_shape step 'add ISIN/CUSIP to the US master' was never done (us_instruments.json rows are [ticker, name])",
+    "repro": "GET http://127.0.0.1:52607/resolve?q=ONC -> resolved.isin null (outside truth US07725L1026); q=SIFY -> isin null (US82655M2061). Former names now resolve (ONC 'BeiGene, Ltd.', XYZ 'Square, Inc.', 'Satyam Infoway' -> SIFY).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/data059.txt",
+    "suspected_files": [
+      "sidecar/services/resolver_masters/us_instruments.json",
+      "sidecar/services/symbol_resolver.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-7:2",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-LEAD-028",
+    "title": "BSE scrip-code addressing still 404s on the fundamentals data route: /fundamentals/506597.BO and /fundamentals/532540.BO 404 while /fundamentals/AMAL.BO and /fundamentals/TCS.BO return 200",
+    "repro": "GET http://127.0.0.1:52607/fundamentals/506597.BO -> 404 'The data provider has no data for this symbol'; GET /fundamentals/AMAL.BO -> 200 'Amal Ltd'. /quotes and /history by scrip code now work (bse provider).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/lead028.txt",
+    "suspected_files": [
+      "sidecar/routers/fundamentals.py",
+      "sidecar/services/yfinance_provider.py",
+      "sidecar/services/provider_registry.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-7:3",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-112",
+    "title": "A row with no fundamentals currency and a null market_cap still displaces a valued row: the DATA-043 round-robin top-K cut treats the missing currency as its own group, so limit=2 serves [RELIANCE, MANIKA(null)] and drops TCS",
+    "repro": "POST http://127.0.0.1:52607/screener/run {universe:custom, custom_symbols:[MANIKA.NS,RELIANCE.NS,TCS.NS], criteria:[], sort_by:market_cap, sort_dir:desc, limit:2} -> rows RELIANCE.NS (1.66e13), MANIKA.NS (market_cap null); TCS.NS (7.53e12) cut. screener.py:823-840 groups by row.currency or '' before the store currency is stamped at :846-850.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/data112-limit2.json",
+    "suspected_files": [
+      "sidecar/services/screener.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-7:4",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-113",
+    "title": "Foreign-reporter revenue estimate still mislabelled: INFY's INR-sized revenue_estimate_mean 491,180,745,790 is served with revenue_currency USD (Yahoo financialCurrency for INFY is USD while its estimate is in INR); INFY.NS likewise",
+    "repro": "GET http://127.0.0.1:52152/earnings/INFY/estimates (X-Vysted-Region: US) -> revenue_estimate_mean 491180745790.0, revenue_currency 'USD' (Infosys annual revenue is ~USD 20.3B per Yahoo totalRevenue, so a USD 491B quarter is impossible). WIT literal repro now reads revenue_currency INR.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/data113.txt",
+    "suspected_files": [
+      "sidecar/services/earnings_provider.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-7:5",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-AGENT-019",
+    "title": "Question-shaped portfolio write asks without a listed cue word still classify as read and lose every write tool: 'Could you drop WIPRO from my portfolio?', 'I exited my ITC position, can you take it out of my portfolio?', 'Can you bump my INFY quantity to 30?'",
+    "repro": "In-process at 81fbfe91 (the test helper's path: agent_runtime.invoke_agent with a capture provider): the three prompts -> planner intent 'read' (trailing '?' positive read cue), tool_ids contain no portfolio_delete_position / portfolio_update_position. See agent019-intent-probe.py/.out.txt. Live on own sidecar :52607 (llama3.1:8b, autonomy auto): POST /agents/copilot/invoke 'Could you drop WIPRO from my portfolio?' -> no tool_use; the model typed {\"name\": \"portfolio_delete_position\", \"parameters\": {\"symbol\": \"WIPRO\"}} as chat text and the turn ended (the entry's A1 symptom).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/agent019-live-llama-drop-wipro.sse",
+    "suspected_files": [
+      "sidecar/services/planner.py",
+      "sidecar/services/agent_runtime.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-7:6",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-AGENT-093",
+    "title": "The schema gate coerces only TOP-LEVEL numeric strings: a nested numeric param sent as a string (add_chart_drawing.points[].price '185.5', yield_curve_value.instruments[].tenor '3') is still rejected",
+    "repro": "In-process _normalise_tool_args at 81fbfe91: add_chart_drawing {kind:'horizontal-line', points:[{price:'185.5'}]} -> invalid args \"'185.5' is not of type 'number'\"; option_chain max_strikes '10' -> 10 (literal fixed).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/agent093-coercion-probe.out.txt",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-7:7",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-UI-090",
+    "title": "Freshness is still not the instrument's exchange calendar for non-IN listings: BHP.AX, 7203.T, 0700.HK, ^N225 and VOD.L are dated on the US calendar, so they read 'live' during US hours while their exchange is closed (the BHP.AX residual named in the entry's own note)",
+    "repro": "In-process routers.quotes._label_freshness at 81fbfe91 with the locale clock frozen at 2026-09-23 15:00 UTC: BHP.AX quote stamped 06:00 UTC (ASX closed) -> 'live'; VOD.L at 18:00 UTC (LSE closed) -> 'live'; BHP.AX at 02:30 UTC (ASX open) -> 'eod'. locale.instrument_region returns US for all of them.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/ui090-freshness-probe.out.txt",
+    "suspected_files": [
+      "sidecar/services/locale.py",
+      "sidecar/routers/quotes.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-7:8",
+    "kind": "regression",
+    "severity": "critical",
+    "register_id": "R15-DATA-002",
+    "title": "The picked listing's region is dropped on the watchlist path: picking 'AMAL (US)' from the watchlist autocomplete stores the bare 'AMAL', so the watchlist quote, chart and Equity Overview all bind to Amal Ltd (INR) in an IN session; the command palette then dedupes the US candidate away",
+    "repro": "Code at 81fbfe91: WatchlistPanel.tsx:286-291 pickCandidate(symbol) -> addSymbol(symbol, 'equity') (no region; SymbolEntry has no region field); row click :556-563 openCompanyOverview(row.entry.symbol)/loadSymbolIntoChart(symbol) with no region; CommandPalette.tsx:150-154 drops live candidates whose bare symbol is already in the watchlist corpus and :207 charts the corpus row with no region. Sidecar: GET /quotes/AMAL (IN session) -> Amal 674.4 INR; /quotes/META -> String Metaverse 8.14 INR; /resolve?q=META returns META BSE + META US both confidence 1.0 with needs_disambiguation false.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/data002.txt",
+    "suspected_files": [
+      "src/modules/watchlist/WatchlistPanel.tsx",
+      "src/store/symbols.ts",
+      "src/components/CommandPalette.tsx"
+    ]
+  },
+  {
+    "key": "rc1-vshard-7:9",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-CODE-PLATFORM-013",
+    "title": "Settings > Reset layout wipes the runtime-derived plugin:<id> flags (setEnabledMap({})), so a plugin disabled via the marketplace gets its panels/commands back while the runtime and plugins.db still say disabled",
+    "repro": "Code at 81fbfe91: plugin-bootstrap.ts:192-193 detach sets plugin:<id>=false but leaves the module registered; store/workspace.ts:176-184 resetToDefaultLayout calls useModulesStore.setEnabledMap({}); modules.ts:77-82 treats a missing flag as enabled, so enabledPanels()/enabledCommands() include the disabled plugin's surfaces. No GUI run (GUI skipped this gate).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7.md",
+    "suspected_files": [
+      "src/store/workspace.ts",
+      "src/store/modules.ts",
+      "src/lib/plugin-bootstrap.ts"
+    ]
+  },
+  {
+    "key": "rc1-vshard-7:10",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "Every 10-Q opens as an empty filing viewer: sec-edgar-mcp get_filing_sections returns only {has_financials: true} for a 10-Q, and get_filing serves 200 with sections [] total_chars 0 (cached 24h) with no fallback or label",
+    "repro": "GET http://127.0.0.1:52607/sec/filings/0000320193-26-000020?identifier=AAPL -> 200 form 10-Q, sections [], total_chars 0; same for NVDA 0001045810-26-000075 and 0001045810-24-000124. 10-Ks (MSFT 0000950170-23-035122, NVDA 0001045810-26-000021) return sections.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7.md",
+    "suspected_files": [
+      "sidecar/services/sec_filings_provider.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-7:11",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "_parse_verdict's marker-scan fallback reads a negated reason as AGREE when the reply has no verdict word: 'Not verified - no source confirms the figure', 'I cannot verify this; no source confirms it', 'Unverifiable: no sources match' -> agree",
+    "repro": "In-process at 81fbfe91: services.research.verify._parse_verdict('Not verified - no source confirms the figure')[0] == 'agree' (the docstring says anything ambiguous is UNVERIFIED; deep._reflect_says_complete has a negation guard, this fallback has none).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7.md",
+    "suspected_files": [
+      "sidecar/services/research/verify.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-7:12",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "fetch_latest_fo still returns None (502) when an older, uncached day's probe fails transiently even though an older good day sits in cache, and re-probes that day on every request",
+    "repro": "In-process at 81fbfe91 (fake _fetch_fo_day, isolated data dir): today Mon 2026-09-28 -> missing, Fri 09-25 -> failed, Thu 09-24 cached -> three requests all serve None; network calls [09-28, 09-25, 09-25, 09-25]. option_chain.py:181-182 'if status == \"failed\": return None'.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/data114-probe.py",
+    "suspected_files": [
+      "sidecar/services/option_chain.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-7:13",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": null,
+    "title": "humanize's credit rule over-matches rate limits whose body mentions billing/quota: a Groq TPM 429 ('Please try again in 5.6s ... settings/billing') and a Gemini free-tier per-minute 429 ('Please retry in 31s') are told the account is out of credit",
+    "repro": "In-process at 81fbfe91: humanize('groq', 429 TPM body).code == 'insufficient_credit'; humanize('gemini', 429 RESOURCE_EXHAUSTED per-minute body).code == 'insufficient_credit' (errors.py _BODY_RULES credit row, statuses {400,403,429}, markers credit/quota/billing). Bodies are reconstructed provider shapes, not live captures.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/agent027-humanize-probe.out.txt",
+    "suspected_files": [
+      "sidecar/services/errors.py"
+    ]
+  }
+]

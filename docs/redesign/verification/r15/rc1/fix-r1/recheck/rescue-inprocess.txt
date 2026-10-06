@@ -1,0 +1,7 @@
+original_zomato -> ('price_data', {'symbol': 'ZOMATO.NS'})
+variant_list_literal -> ('news', {'symbols': ['INFY.NS', 'TCS.NS'], 'limit': 5})
+variant_single_quotes_inline -> ('fundamentals', {'symbol': 'HDFCBANK.NS'})
+neg_bare_name -> None
+neg_not_offered -> None
+neg_positional -> None
+neg_expression -> None

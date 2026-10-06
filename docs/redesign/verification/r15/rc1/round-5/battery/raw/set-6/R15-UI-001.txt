@@ -1,0 +1,67 @@
+R15-UI-001 -- notes editor/store sync, 4 sub-repros
+Sub-repro 1 (agent write visible, kept by next keystroke) + sub-repro 3 (scope switch inside debounce): pinned vitest src/modules/notes/NotesPanel.test.tsx:46 and :66, unmodified, both pass per their own assertions (read, not re-run — vitest suite is the heavy lane's).
+import { WikiLinkNode } from "./WikiLinkNode";
+import { persistNoteMd } from "./notes-persistence";
+
+/** How long a burst of typing coalesces before it is written to the store. */
+const SAVE_DEBOUNCE_MS = 600;
+
+/** A note body tied to the scope it belongs to ("" = General). */
+interface ScopedNote {
+  scope: string;
+  md: string;
+}
+
+// ── Scope chip label ──────────────────────────────────────────────────────────
+
+function ScopeChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  // 24px compact-ladder chip; the active state is a quiet luminance step with
+  // bright text (segmented-toggle treatment), never an inverted bright fill.
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "text-caption rounded-control flex h-6 items-center px-2 font-medium transition-colors",
+        active
+          ? "bg-charcoal-800 text-lume border-charcoal-600 border"
+          : "bg-charcoal-850 text-charcoal-400 hover:text-charcoal-200",
+      )}
+    >
+      {label}
+    </button>
+
+Sub-repro 2 (select-all+delete persists empty) and sub-repro 4 (unmount within 600ms flushes) have no committed test citing this entry; verified by source read of the current sync architecture (shownRef/pendingRef/flush), which replaced the buggy prevScopeRef/debouncedMd design the entry was filed against:
+157:  const flush = useCallback(() => {
+163:    if (!pending) return;
+211:  useEffect(() => flush, [flush]);
+  // Write the pending edit to ITS scope: store first, then the atomic .md file.
+  const flush = useCallback(() => {
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    const pending = pendingRef.current;
+    if (!pending) return;
+    pendingRef.current = null;
+    shownRef.current = pending;
+    const notes = useNotesStore.getState();
+    if (pending.scope === "") {
+      notes.setGeneral(pending.md);
+    } else {
+      notes.setSymbolNote(pending.scope, pending.md);
+    }
+    void persistNoteMd(pending.scope, pending.md);
+unmount flush:
+  useEffect(() => flush, [flush]);
+
+-> flush()'s only early-return is '!pending' (pendingRef is null after a flush or before any edit); an empty-string edit is still a truthy {scope,md:''} object, so select-all+delete flushes '' to the store. flush is registered as the unmount cleanup at line 211, so a close within the debounce window still saves.

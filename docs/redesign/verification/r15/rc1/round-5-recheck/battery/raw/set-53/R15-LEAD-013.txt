@@ -1,0 +1,10 @@
+=== R15-LEAD-013: sp500.json universe pack content check ===
+CMD: python3 -c "json.load(open('sidecar/services/screener_universes/sp500.json'))" at candidate sha 949c3c9f -- check delisted names absent, BXP/NVR/UDR present
+count: 503
+snapshot_date: 2026-09-24
+delisted still present: []
+missing (should be present): []
+
+=== also confirmed live: GET /screener/universe?id=sp500 on my sidecar :52344 ===
+live universe count: 503
+True True True False False

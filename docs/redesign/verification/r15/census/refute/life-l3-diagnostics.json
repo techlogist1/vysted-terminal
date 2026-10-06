@@ -1,0 +1,20 @@
+[
+  {
+    "raw_id": "LIFE-L3-DIAGNOSTICS-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Holds: the only log sinks are println!/eprintln! drains of the sidecar and MCP children, tauri carries no log plugin, and the sidecar configures no Python handler (0 hits for basicConfig/dictConfig/FileHandler/addHandler outside tests), so nothing persists and no bundle/export mechanism exists (the only 'for diagnostics' helpers, data_cache.py:92 and run_manager.py:417, are unexposed). Correction to the stated workaround only: on Windows a release build sets windows_subsystem=\"windows\" (src-tauri/src/main.rs:1), so stdout/stderr have no console even when launched from a terminal and 'relaunch from a terminal and reproduce' yields nothing there - the gap is worse on the primary platform, severity stays high.",
+    "evidence": "src-tauri/src/lib.rs:227-239, src-tauri/src/openbb_mcp.rs:122-136, src-tauri/Cargo.toml:25-32, src-tauri/src/main.rs:1, sidecar/main.py:142, sidecar/services/data_cache.py:92, sidecar/services/run_manager.py:417, src/components/SettingsPanel.tsx:1872-1880, docs/BLUEPRINT.md:315, README.md:5",
+    "evidence_checked": "Opened every cited file at HEAD f763a44; grep for basicConfig|dictConfig|FileHandler|RotatingFileHandler|addHandler over sidecar/ (non-test) = 0; grep for tauri-plugin-log|log::|tracing over src-tauri = 0; grep diagnostic|support.?bundle|bug.?report|export.*log across src/sidecar/src-tauri found only the order-audit CSV/safety paths and two unexposed docstring helpers; read the L3 evidence files (canary-drive.txt, unified-log-19sep.txt: 0 [sidecar]/[vysted]/uvicorn lines). :52152 /health answered 200.",
+    "repro_check": "grep -rnE 'basicConfig|dictConfig|FileHandler|addHandler' sidecar --include=*.py (excluding .venv/tests) -> no output; grep -c '\\[sidecar\\]|uvicorn|\\[vysted\\]' unified-log-19sep.txt -> 0; head -1 src-tauri/src/main.rs -> windows_subsystem = \"windows\" in non-debug builds."
+  },
+  {
+    "raw_id": "LIFE-L3-DIAGNOSTICS-2",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: createRoot(...).render(<StrictMode><Page/></StrictMode>) passes no onUncaughtError/onCaughtError, src/app holds only page.tsx + globals.css, there is no componentDidCatch/getDerivedStateFromError/ErrorBoundary/react-error-boundary anywhere in src or plugins, no window error/unhandledrejection hook, and PanelHost hands dockview the raw panel component map (DockviewReact components={components}) with no per-panel wrapper, so one panel's render throw unmounts the whole tree per React's documented default. Medium stands: a real, owner-hittable total-blank failure, not data loss.",
+    "evidence": "src/main.tsx:17-21, src/components/PanelHost.tsx:224, src-tauri/Cargo.toml:25",
+    "evidence_checked": "Opened src/main.tsx and PanelHost.tsx (component map to DockviewReact); grep componentDidCatch|ErrorBoundary|getDerivedStateFromError|onUncaughtError|onCaughtError|react-error-boundary over src + plugins = 0 hits; grep window.onerror|addEventListener(\"error\")|unhandledrejection over src = 0; dockview main.cjs.js has 3 createPortal sites. Visual crash not demonstrated (NEEDS-GUI), code path is unambiguous.",
+    "repro_check": "grep -rnE 'componentDidCatch|ErrorBoundary|getDerivedStateFromError|onUncaughtError' src plugins -> no output; a GUI repro would throw inside any panel render and observe the full cockpit blank (not run: no GUI lane)."
+  }
+]

@@ -1,0 +1,10 @@
+[  61.5s] tool_use research {"query": "Mazagon Dock Shipbuilders \u2014 latest quarterly results"}
+[  63.8s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "engine", "detail": "research:begin 728fd5fa92c74f538aab780c3d5de505 depth=normal query=Mazagon Dock Shipbuilders \u2014 latest quarterly results", "latency_ms": null, "status": "ok", "index": 1, "_t": 63.79}
+[  63.8s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolving \"Mazagon Dock Shipbuilders \u2014 latest quarterly results\"", "latency_ms": null, "status": "ok", "index": 2, "_t": 63.79}
+[  63.8s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 MAZDOCK", "latency_ms": 2093, "status": "ok", "index": 3, "_t": 63.79}
+[  63.8s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulling market data for MAZDOCK", "latency_ms": null, "status": "ok", "index": 4, "_t": 63.79}
+
+=== TEXT ===
+
+
+=== ok 63.8s kinds={'tool_use': 1, 'research_step': 4} usage={}

@@ -1,0 +1,21 @@
+--- LIFECYCLE-021: /system/provider-health live ---
+{"yahoo":{"open":false,"cooldown_remaining":0.0,"consecutive_throttles":0.0,"consecutive_opens":0,"opens_total":0,"throttles_total":0.0},"fallthroughs":[{"provider":"nse","model_key":"quote","count":2,"last_error":"nse: 'BHP.AX' is not a known NSE instrument","last_at":1790504040.903753},{"provider":"bse","model_key":"quote","count":2,"last_error":"bse: 'BHP.AX' is not a known BSE instrument","last_at":1790504040.9037828}]}
+--- LIFECYCLE-021: /health live ---
+{"status":"ok","service":"vysted-sidecar","version":"0.8.0","providers":{"analyst_rating":"openbb-mcp (yfinance fallback)","balance_sheet":"openbb-mcp (yfinance fallback)","cash_flow":"openbb-mcp (yfinance fallback)","fundamentals":"openbb-mcp (yfinance fallback)","income_statement":"openbb-mcp (yfinance fallback)","macro_series":"openbb-mcp","ohlcv":"ccxt (nse_direct, nse, bse, yfinance fallback)","quote":"ccxt (nse_direct, nse, bse, yfinance fallback)","openbb-mcp":"available"},"agents_degraded":[]}
+--- LIFECYCLE-021: in-process simulated dead nse_direct session (script probe_lifecycle021.py, mirrors test_provider_fallthrough.py::test_three_nse_direct_failures_surface_with_a_count_of_three but run as a standalone in-process script, not via pytest) ---
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+provider nse_direct failed for quote, falling through: nse_direct: transport failure on /api/quote-equity (simulated dead session)
+provider nse failed for quote, falling through: nse: 'RELIANCE.NS' is not listed
+provider nse_direct failed for quote, falling through: nse_direct: transport failure on /api/quote-equity (simulated dead session)
+provider nse failed for quote, falling through: nse: 'RELIANCE.NS' is not listed
+provider nse_direct failed for quote, falling through: nse_direct: transport failure on /api/quote-equity (simulated dead session)
+provider nse failed for quote, falling through: nse: 'RELIANCE.NS' is not listed
+provider nse_direct failed for quote, falling through: nse_direct: transport failure on /api/quote-equity (simulated dead session)
+provider nse failed for quote, falling through: nse: 'RELIANCE.NS' is not listed
+call 0: provider=bse
+call 1: provider=bse
+call 2: provider=bse
+call 3: provider=bse
+fallthroughs: [{'provider': 'nse_direct', 'model_key': 'quote', 'count': 4, 'last_error': 'nse_direct: transport failure on /api/quote-equity (simulated dead session)', 'last_at': 1790504335.899418}]
+health providers.quote: ccxt (nse, bse, yfinance fallback; nse_direct failing)

@@ -1,0 +1,50 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_bfc572b7171b40e1aac266fde32a8c04", "name": "write_note", "input": {"text": "Watch for earnings beat, resistance at 230.", "mode": "append", "scope": "AAPL"}}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " proposed"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " Watch"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " earnings"}
+{"kind": "delta", "text": " beat"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " resistance"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "230"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " reviewed"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Accept"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " proposal"}
+{"kind": "delta", "text": " bar"}
+{"kind": "delta", "text": " when"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'re"}
+{"kind": "delta", "text": " ready"}
+{"kind": "delta", "text": "."}
+{"kind": "research_step", "tool_call_id": "call_bfc572b7171b40e1aac266fde32a8c04", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: write_note AAPL. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+{"kind": "done", "usage": {"input_tokens": 2938, "output_tokens": 38, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

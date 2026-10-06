@@ -1,0 +1,52 @@
+CMD: source read of src/lib/host-actions.test.ts:1827-1856 (pinned test 'arrange_layout's default is a layout-only reset (R15-AGENT-056)'), cross-checked against 1858-1907 (R15-LEAD-048 unrecognised-pattern test)
+EXIT: 0 (source inspection; frontend unit is vitest-only, not runnable via curl -- heavy lane owns the suite)
+OUTPUT:
+describe("arrange_layout's default is a layout-only reset (R15-AGENT-056)", () => {
+  afterEach(() => {
+    useWorkspaceStore.setState({ dockviewApi: null } as never);
+    useModulesStore.getState().setEnabledMap({});
+    useChartDrawingsStore.getState().replaceAll({ byPanel: {} });
+  });
+
+  // Was `[{}, { pattern: "bogus" }]`: an unrecognised pattern like "bogus" used
+  // to silently reset (the R15-LEAD-048 defect). It now fails instead — see
+  // "arrange_layout routes Layout-menu mode ids instead of resetting" below —
+  // so only the missing-pattern and explicit-"default" cases still reset here.
+  it.each([{}, { pattern: "default" }])("keeps drawings and module choices for %o", (input) => {
+    const clear = vi.fn();
+    const addPanel = vi.fn(() => ({ api: { setSize: vi.fn() } }));
+    useWorkspaceStore.setState({
+      resetLayout: realResetLayout,
+      dockviewApi: { clear, addPanel, width: 0, height: 0 },
+    } as never);
+    useModulesStore.getState().setEnabledMap({ news: false });
+    useChartDrawingsStore
+      .getState()
+      .replaceAll({ byPanel: { chart: [{ id: "d1", kind: "hline" }] } } as never);
+
+    expect(describeHostAction("arrange_layout", input).after).toMatch(/drawings and modules kept/);
+    expect(applyHostAction("arrange_layout", input)).toMatch(/drawings and modules kept/);
+    expect(clear).toHaveBeenCalledTimes(1);
+    expect(useModulesStore.getState().enabled).toEqual({ news: false });
+    expect(useChartDrawingsStore.getState().byPanel.chart).toHaveLength(1);
+  });
+});
+--- R15-LEAD-048 companion test (unrecognised pattern no longer resets, fails instead) ---
+  // "constructor" is an inherited Object key, not an own mode id.
+  it.each(["banana", "constructor"])(
+    "an unrecognised pattern (%s) fails, names it, and does not reset",
+    (pattern) => {
+      const resetLayout = vi.fn();
+      useWorkspaceStore.setState({ dockviewApi: null, resetLayout } as never);
+
+      const result = applyIntent(parseHostAction("arrange_layout", { pattern }));
+      expect(result.label).toBeNull();
+      expect(result.reason).toContain(`unrecognised layout "${pattern}"`);
+      expect(resetLayout).not.toHaveBeenCalled();
+
+      const preview = describeHostAction("arrange_layout", { pattern });
+      expect(preview.title).not.toMatch(/^Reset/);
+      expect(preview.after).toMatch(/can't apply/);
+    },
+
+VERDICT: ci_pinned -- src/lib/host-actions.test.ts 'arrange_layout's default is a layout-only reset (R15-AGENT-056)' (it.each on {} and {pattern:'default'}) asserts drawings/module choices survive a reset. The original repro's second case (an unrecognised pattern like 'zzz-not-a-pattern') no longer silently resets at all post R15-LEAD-048 -- it fails with 'unrecognised layout ...' and never calls resetLayout (host-actions.test.ts:1892-1907, it.each(['banana','constructor'])) -- so the wipe this entry named cannot occur via either path. Property holds, superseded by a stricter fix; no live curl probe applies (browser-only React store, no HTTP surface).

@@ -1,0 +1,30 @@
+# R15-DOCS-022 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:46:45+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+sed -n '/Roadmap/,$p' docs/PLUGIN_DEVELOPMENT.md | head -30
+--- output ---
+## Roadmap
+
+**Shipped since v0.3.0:**
+
+- The Tauri-spawned subprocess pattern (`app.shell().sidecar(...)`) —
+  `src-tauri/src/openbb_mcp.rs` and `sec_edgar_mcp.rs` both use it.
+- The node-editor consumer for `usePluginsStore.nodes`
+  (`src/modules/node-editor/node-registry.ts`).
+- Plugin-contributed agents register at boot via `syncPluginAgents`
+  (`src/lib/plugin-bootstrap.ts`), though they aren't yet user-selectable
+  in a picker UI — tracked separately as R15-AGENT-014.
+
+**Still out of scope, on the BLUEPRINT:**
+
+- Filesystem-installed plugins (drop-in `plugins/<id>/` outside the
+  repo at runtime).
+- Signed plugins.
+- An online plugin marketplace (v2.0+).
+
+If you're authoring a plugin against the current version and these limits
+matter to you, file a `Tier-4` request via an issue — extending the
+contract is a high-blast-radius decision and goes through the operator
+(per CLAUDE.md "Decision authority").
+
+EXIT=0 (0.0s)

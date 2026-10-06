@@ -1,0 +1,10 @@
+ace7dd76 candidate venv, cwd sidecar
+COMMAND: _parse_verdict on 3 original UNVERIFIED strings + controls
+EXIT: 0
+OUTPUT:
+'UNVERIFIED - no source confirms the 23% operating margin.' -> ('unverified', 'UNVERIFIED - no source confirms the 23% operating margin.')
+'UNVERIFIED - evidence does not support the figure' -> ('unverified', 'UNVERIFIED - evidence does not support the figure')
+'UNVERIFIED - no matching figure' -> ('unverified', 'UNVERIFIED - no matching figure')
+'**UNVERIFIED**: sources confirm nothing' -> ('unverified', '**UNVERIFIED**: sources confirm nothing')
+'DISAGREE - Reuters says 78%' -> ('disagree', 'DISAGREE - Reuters says 78%')
+'AGREE - both state it' -> ('agree', 'AGREE - both state it')

@@ -1,0 +1,41 @@
+R15-LIFECYCLE-017: pytest+code read. Pinned test present; code confirms the two invariants.
+CMD: grep -n 'LIFECYCLE-017' sidecar/tests/test_b5_screener.py
+73:    """R15-LIFECYCLE-017: an adapter bug (AttributeError) during phase E is
+74-    logged at WARNING with its type, and the enrich progress still reaches m/m."""
+75-    symbols = ["AAA", "BBB", "CCC"]
+76-    _install_v7(symbols)
+
+CODE (services/screener.py:1123-1149) — exception split + finally-emit:
+    region = _UNIVERSE_REGION.get(state.universe.id)
+
+    async def _one(sym: str) -> None:
+        nonlocal done
+        key = sym.upper()
+        try:
+            if provider_health.is_open(provider_health.YAHOO):
+                # D53: open circuit — the field stays missing and the serve-with-
+                # label ladder covers the row from stale/seed basis instead.
+                state.throttled_seen = True
+                return
+            async with sem:
+                try:
+                    with _region_scope(region):
+                        rich = await asyncio.wait_for(
+                            provider_registry.get_fundamentals(key),
+                            timeout=_INFO_TIMEOUT_SECONDS,
+                        )
+                except (TimeoutError, ProviderError) as exc:  # field stays missing
+                    if isinstance(exc, ProviderError) and exc.kind == "rate_limited":
+                        state.throttled_seen = True
+                    logger.debug("screener: enrichment failed for %s: %s", key, exc)
+                    return
+                except Exception as exc:  # noqa: BLE001 — a code bug, not an upstream miss
+                    logger.warning(
+                        "screener: unexpected enrichment error for %s: %s: %s",
+                        key,
+                        type(exc).__name__,
+                        exc,
+                    )
+                    return
+            await fundamentals_store.upsert_info(key, rich)
+        finally:

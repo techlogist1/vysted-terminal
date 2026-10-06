@@ -1,0 +1,35 @@
+[   2.9s] tool_use: {"kind": "tool_use", "tool_call_id": "call_a7309f6f97db44c99572d43b2f5b2267", "name": "resolve_symbol", "input": {"query": "Bharat Dynamics"}}
+[   5.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_e304f22b6ad34ce29459ee56140605b8", "name": "financial_statements", "input": {"symbol": "BDL", "statement": "income", "period": "annual"}}
+[   5.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_955ac4e2eaed42769b10d543d7e2aed0", "name": "fundamentals", "input": {"symbol": "BDL"}}
+[   5.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_74bc4b9b959b40b497bf744e8bcc4397", "name": "sec_filings_list", "input": {"symbol": "BDL", "form_type": "8-K", "limit": 5}}
+[  18.9s] done: {"kind": "done", "usage": {"input_tokens": 19367, "output_tokens": 255, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.024533}
+
+=== ASSISTANT TEXT ===
+Here's the financial and operational overview for Bharat Dynamics Limited (BDL):
+
+### Valuation
+- **Market Cap:** ₹42,338 crore
+- **PE Ratio:** 81.97
+- **Forward PE Ratio:** 37.99
+- **Price to Book Ratio:** 9.98
+- **Price to Sales Ratio:** 15.31
+- **Dividend Yield:** 0.42%
+- **EPS (TTM):** ₹14.21
+
+### Margins
+- **Gross Margin:** 47.92%
+- **Operating Margin:** 10.98%
+- **Profit Margin:** 18.83%
+
+### Recent Income Statement Highlights
+- **2026 Revenue:** ₹24,153.60 million
+- **2026 Cost of Revenue:** ₹12,224.94 million
+- **2026 Net Income:** ₹4,203.38 million
+- **2026 Total Expenses:** ₹22,667.18 million
+
+### Order Book
+While specific order book numbers weren't retrieved in this session, BDL is known for having sizeable contracts from defense and aerospace sectors. The latest filings or announcements may provide more detailed updates.
+
+Would you like to explore the latest news or filings for further details on BDL?
+
+=== ok · 18.9s · events {'tool_use': 4, 'delta': 254, 'done': 1} · usage in=19367 out=255 · est $0.00306 · gpt-4o-mini

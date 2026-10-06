@@ -1,0 +1,4 @@
+$ grep -n 'R15-DATA-031' src/modules/earnings/EarningsCalendarPanel.test.tsx
+149:      // R15-DATA-031: the consensus EPS figure carries its currency affix.
+174:    // R15-DATA-031: the estimate-detail figures carry their currency affix.
+202:  it("R15-DATA-031: labels EPS with currency and never interleaves currencies when sorted", async () => {

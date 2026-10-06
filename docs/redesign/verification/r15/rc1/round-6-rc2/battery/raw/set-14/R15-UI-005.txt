@@ -1,0 +1,7 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand; grep -n 'R15-UI-005' src/modules/portfolio/PortfolioPanel.test.tsx; grep -n 'no live quotes' src/modules/portfolio/PortfolioPanel.tsx | head -3
+141:  it("R15-UI-005: no live quote resolves -> null total with a note, never a fabricated 0", async () => {
+175:  it("R15-UI-005: an all-unresolved portfolio publishes totalValue null, never 0, and never fakes concentration/P&L", async () => {
+415:        ? "no live quotes resolved"
+969:                  : "— (no live quotes)"}
+EXIT=0

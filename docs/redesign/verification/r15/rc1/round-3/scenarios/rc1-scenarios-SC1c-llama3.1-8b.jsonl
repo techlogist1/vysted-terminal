@@ -1,0 +1,90 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_03958b64fc324fb4a4a14a3fcc97cd5b", "name": "fundamentals", "input": {"symbol": "DAL"}}
+{"kind": "heartbeat"}
+{"kind": "tool_result", "tool_call_id": "call_03958b64fc324fb4a4a14a3fcc97cd5b", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " PE"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Delta"}
+{"kind": "delta", "text": " Air"}
+{"kind": "delta", "text": " Lines"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "DAL"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "60"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " worth"}
+{"kind": "delta", "text": " noting"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " result"}
+{"kind": "delta", "text": " mentions"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " provider"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " figure"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": " disagrees"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "77"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " payload"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " net"}
+{"kind": "delta", "text": " income"}
+{"kind": "delta", "text": " /"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " outstanding"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " implied"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "49"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "88"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "24"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "This"}
+{"kind": "delta", "text": " indicates"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " discrepancy"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " figures"}
+{"kind": "delta", "text": " provided"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5799, "output_tokens": 81, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,4 @@
+data: {"kind": "error", "message": "No Anthropic API key is set \u2014 add it in Settings.", "action": "Add your Anthropic API key in Settings.", "detail": "\"Could not resolve authentication method. Expected one of api_key, auth_token, or credentials to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted\"", "code": "auth"}
+
+data: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+

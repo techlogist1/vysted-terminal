@@ -1,0 +1,8 @@
+R15-RESEARCH-029: in-process probe (see probe_set2.py, probe_set2_output.json), key 'RESEARCH-029'
+{
+  "removed": 3,
+  "has_n_marker": false,
+  "has_merged_sources": false,
+  "has_references": false,
+  "cleaned": "Earnings growth: -0.4% "
+}

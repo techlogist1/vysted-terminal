@@ -1,0 +1,92 @@
+[
+  {
+    "raw_id": "INT-deferred-84-1",
+    "title": "SAKSOFT-shaped BSE AttachLive extraction has no retry/backoff for known-intermittent serving",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "corporate_disclosures",
+    "repro": "AttachLive-serving results/companies (e.g. SAKSOFT) -> extraction is honest when it fails, but no retry means an avoidably-recoverable transient BSE outage looks the same as a genuine data gap",
+    "evidence": "sidecar/services/corporate_disclosures.py",
+    "notes": "D31 shipped the honesty/fallback mechanism but not retry/backoff for the specific intermittent-serving failure mode; smallest fix: bounded retry-with-backoff around the AttachLive fetch, mirroring the Yahoo-family breaker pattern used elsewhere."
+  },
+  {
+    "raw_id": "INT-deferred-84-2",
+    "title": "Composer plus-menu bottom-inset scroll-fold behavior unconfirmed since R9",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "composer",
+    "repro": "open plus-menu with enough items to exceed max-h-[min(20rem,50vh)] -> scroll-fold/bottom-inset visual correctness unverified",
+    "evidence": "src/modules/chat/ComposerPlusMenu.tsx:211-214",
+    "notes": "R9 flagged this as a polish advisory; R12 still lists 'the taste pass' open with no dedicated closure since; smallest fix: a scripted click-through re-shot at current HEAD to settle it."
+  },
+  {
+    "raw_id": "INT-deferred-84-3",
+    "title": "Depth chip rest-state fill weight still unverified against the Claude-reference target from R9",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "composer",
+    "repro": "view the composer's NORMAL/DEEP/ULTRA depth chip at rest -> fill weight may still read 'one notch louder' than intended",
+    "evidence": "styles/tokens.css:87-92",
+    "notes": "No token change or decision found since R9's advisory; taste item, needs the operator's own eye per R12_RUN_REPORT.md:54."
+  },
+  {
+    "raw_id": "INT-deferred-84-4",
+    "title": "Model selector control has no visual caret/chevron affordance signaling it is a dropdown",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "composer",
+    "repro": "look at the composer's model-selector button -> only label text/icon renders, no chevron; a sighted user gets no visual cue it opens a popover (aria-haspopup exists for screen readers only)",
+    "evidence": "src/modules/chat/ModelControl.tsx:156-189",
+    "notes": "Add a small ChevronDown icon (already used elsewhere in the codebase, e.g. ComposerPlusMenu's ChevronLeft) beside the label."
+  },
+  {
+    "raw_id": "INT-deferred-84-5",
+    "title": "Disabling/removing a search-tier plugin leaves its BYOK secret orphaned in the OS keychain",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "marketplace",
+    "repro": "install a search-tier backend with a key (e.g. Exa) -> disable or remove it -> plugin-secret:<id> keychain entry is never deleted, only manual Keychain Access cleanup removes it",
+    "evidence": "src/store/marketplace.ts:175-204",
+    "notes": "disconnectBroker() only handles entry.category === 'broker'; extend disable()/remove() to call keychainDelete for search-tier plugin secrets the same way, mirroring the broker disconnect path."
+  },
+  {
+    "raw_id": "INT-deferred-84-6",
+    "title": "Fresh-install default provider is the keyless Ollama lane, not a funded lane \u2014 live research does not work out of the box",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "onboarding",
+    "repro": "clean install, no workspace blob -> defaultProviderId is 'ollama' -> chat/research defaults to a local model requiring a manually-pulled model, not the funded BYOK lane the operator configured",
+    "evidence": "src/store/llm-providers.ts:134",
+    "notes": "R10 flagged this as a manual-check item and R15's own brief lists a suspected regression to this default as a Stage-2 hypothesis; smallest fix: on first boot, if a funded provider key is present, set defaultProviderId to it instead of the hardcoded 'ollama' literal."
+  },
+  {
+    "raw_id": "INT-deferred-84-7",
+    "title": "The shipped default chat model (DeepSeek V4 Flash via OpenRouter) fails to drive host-action tool calls on ordinary portfolio-write asks",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "chat/host-actions",
+    "repro": "ask the default model to add a portfolio position -> finish_reason=content_filter, zero tool calls; the app now explains this honestly instead of showing an unexplained refusal, but the ask still fails end-to-end",
+    "evidence": "sidecar/services/agent_runtime.py:1488 (humanized content_filter message)",
+    "notes": "R11 disposed this as a model-lane limitation (glm-5.1/kimi-k2.6 on the same OpenRouter key work correctly) and shipped honest error surfacing only; the DEFAULT model itself was never swapped away from the one known to fail this core flow \u2014 smallest fix: change the shipped default to a model proven to drive tool calls (e.g. glm-5.1/kimi-k2.6, already live-verified working on the same key)."
+  },
+  {
+    "raw_id": "INT-deferred-84-8",
+    "title": "dividend_per_share can still under-report a stock's true trailing-12m payout when a special dividend exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "fundamentals/dividends",
+    "repro": "a stock like ABBOTINDIA with a special dividend on top of the final -> Fundamentals.dividend_per_share still carries yfinance's possibly-incomplete scalar; the correct full total is only visible as a separate cross-check fact + conflict flag, not the headline field",
+    "evidence": "sidecar/services/dividend_history.py",
+    "notes": "Consistent with the project's disclose-don't-replace doctrine (D56/D66) \u2014 correctly conservative, but a user who reads only dividend_per_share (e.g. via the screener column or an API consumer that doesn't render conflicts) still sees the incomplete figure; worth a decision on whether the TTM-paid cross-check value should promote to primary display for this field specifically."
+  },
+  {
+    "raw_id": "INT-deferred-84-9",
+    "title": "Growth cross-check validates yfinance against itself, not against an independent data source",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "growth_check",
+    "repro": "any stock's provider-claimed revenue_growth/earnings_growth -> growth_check.py recomputes from the SAME yfinance quarterly income statements the scalar itself derives from, so a systematic yfinance-wide error would pass the check silently",
+    "evidence": "sidecar/services/growth_check.py",
+    "notes": "D66 discloses this as a known limitation ('within-provider check only'); the moat is explicitly data trust, so a second independent source (exchange-filed quarterly results, screener.in-grade aggregator) for the cross-check would close a real gap in the flagship trust feature."
+  }
+]

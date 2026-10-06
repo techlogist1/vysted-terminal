@@ -1,0 +1,320 @@
+{
+ "S1": {
+  "nav": "AI ProvidersResearchRegion & localeKeybindingsAdvanced",
+  "sections": {
+   "settings-providers": "AI ProvidersPaste an API key to enable an AI provider. Keys are stored in your OS keychain — never on disk or sent anywhere but the provider you call.Fallback orderDrag a row (or use its arrows) to reorder. If a provider fails before it answers (a rejected key, no credit, unreachable), the next provider below it that has a key answers instead.AnthropicNo key yetDefaultAdd keyOpenAINo key yetDefaultAdd keyGoogle GeminiNo key yetDefaultAdd keyGroqNo key yetDefaultAdd keyOllama (local)No key required (local)DefaultDeepSeekNo key yetDefaultAdd keyxAINo key yetDefaultAdd keyOpenRouterNo key yetDefaultAdd keyDefaultsThe persona, provider, and model the copilot starts on.Default agentThe persona the chat starts on — applies now and at every launch.Raw chat (no persona)Warren BuffettVysted CopilotRay DalioStanley DruckenmillerBenjamin GrahamSeth KlarmanPeter LynchHoward MarksCharlie MungerAI Portfolio AdvisorAI ResearcherGeorge SorosAI Strategy CriticDefault providerThe provider the copilot uses when an agent has no preference.AnthropicOpenAIGoogle GeminiGroqOllama (local)DeepSeekxAIOpenRouterDefault modelOllama (local) — Live · 3 modelsllama3.1:8bqwen2.5:7bqwen3:8b",
+   "settings-research": "ResearchTwo ways to run research: unlimited private local search with your chat model, or a hosted research model on your own OpenRouter key.Unlimited (Local)Private local search via SearXNG, paired with your active chat model. Unmetered and free — nothing leaves this machine but the pages it fetches.Degraded — engines blockedDegraded — engines blocked (brave: Suspended: too many requests; duckduckgo: CAPTCHA; startpage: Suspended: CAPTCHA). Research is using limited keyless search meanwhile.StopUntil set up, research uses limited keyless search.▸▾Advanced: custom instance URLOptional. Leave blank to use the managed instance above. A custom instance must enable the JSON output format and disable the limiter in its settings.yml.Hosted research modelPurpose-built internet-native research via OpenRouter — research routes here at every depth regardless of chat model. Chat stays on your chat model.Needs your OpenRouter API key — research stays on the local tier until one is added. The key lives in your OS keychain, never on disk.Add OpenRouter keyHardware & local modelsHeavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else stays remote.Apple M1 Pro16 GiB RAM · 10.6 GiB GPU budget · 6P/8 cores · macOS 26.3Installed local models (Ollama)qwen3:8bfits with headroom (8.1 GiB of 10.6 GiB GPU budget) — enable locally.runs locallyqwen2.5:7bfits with headroom (7.4 GiB of 10.6 GiB GPU budget) — enable locally.runs locallyllama3.1:8bfits with headroom (7.8 GiB of 10.6 GiB GPU budget) — enable locally.runs locallyFrontier deep-research models30B-A3B MoE (IQ3_S)can't hold a usable context (max ≈ 0 tokens) — weights alone (12.4 GiB) crowd the 10.6 GiB budget.too large — remote30B-A3B MoE (Q4_K_M)can't hold a usable context (max ≈",
+   "settings-region": "Region & localeNumber formatting, plus which market's symbol resolver, trading calendar, macro/news providers and screener universe the sidecar uses.RegionDefaults to India.United StatesIndiaGlobal",
+   "settings-keybindings": "KeybindingsRemap any shortcut. Press Record, then the new combination. Conflicts are flagged below — of two actions on one combo, only the first binding fires.Command paletteOpen command paletteOpen the fuzzy command palette.Ctrl+KRecordAgent modesAgent modeInteractive agent for this cockpit.Alt+1RecordDelegate modeBudget-capped autonomous run.Alt+2RecordToggle agent panelShow or fully hide the agent column.Ctrl+BRecordProposed changesAccept all proposed changesApply every staged proposed change.Ctrl+↵RecordReject all proposed changesDiscard every staged proposed change.Ctrl+⌫RecordWorkspaceSave workspaceSave the current workspace layout.Ctrl+SRecordLoad workspaceLoad a saved workspace layout.Ctrl+ORecordPanelsOpen settingsOpen the settings panel.Ctrl+,RecordOpen chartOpen or focus the chart panel.Ctrl+1RecordOpen watchlistOpen or focus the watchlist panel.Ctrl+2RecordOpen newsOpen or focus the news panel.Ctrl+3RecordOpen portfolioOpen or focus the portfolio panel.Ctrl+4Record",
+   "settings-integrations": "IntegrationsPlugins that extend the terminal with data, agents and panels.Data providers, agent packs and panels are managed in the Marketplace.Open Marketplace",
+   "settings-layouts": "LayoutsDrag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch.SaveReset to defaultStart withWhat the terminal opens on. A saved layout that no longer exists opens the last session.Last sessionNo saved layouts yet — arrange your panels and save above.Autosave slot: __autosave__ (hidden; restored on launch)",
+   "settings-palette": "Command paletteHow Ctrl+K ranks and scopes its results.Recent commands firstAn empty palette opens on what you used last, and recent rows are tagged.Instrument searchWatchlist only skips the live symbol lookup.All instrumentsWatchlist only",
+   "settings-modules": "ModulesDisabled modules contribute no panels or Ctrl+K commands.",
+   "settings-export": "Export / ImportCarry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine.Export settingsImport settingsThe export bundles your keybinding remaps and preferences (default agent/provider/ model, region, research tier and models, SearXNG URL, module toggles). API keys stay in your OS keychain and are never written to the file.",
+   "settings-about": "AboutVysted v0.9.0 — a source-available, AI-native finance terminal.Plugin architecture · local-first · bring-your-own-keys. Your data, your keys, your machine — extend it like an IDE."
+  },
+  "keyStatus": {
+   "anthropic": "missing",
+   "openai": "missing",
+   "gemini": "missing",
+   "groq": "missing",
+   "ollama": "missing",
+   "deepseek": "missing",
+   "xai": "missing",
+   "openrouter": "missing"
+  },
+  "fetches": [
+   "GET /health -> 200",
+   "GET /llm/providers -> 200",
+   "GET /agents -> 200",
+   "GET /workspace -> 200",
+   "GET /custom-agents -> 200",
+   "GET /system/hardware -> 200",
+   "GET /llm/models?provider=ollama&base_url=http%3A%2F%2F127.0.0.1%3A11434 -> 200",
+   "GET /search/searxng/status -> 200"
+  ],
+  "invokes": [
+   "get_sidecar_port:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true"
+  ]
+ },
+ "S2": {
+  "dialogText": "OpenRouter API keyStored in the OS keychain; never written to disk by Vysted.OpenRouter rejected this key.CancelSaveClose",
+  "keychainAccounts": [],
+  "rowAfter": "OpenRouterNo key yetDefaultAdd key",
+  "requests": [
+   "POST /llm/keys/validate -> 200 {\"provider\":\"openrouter\",\"api_key\":\"<redacted>\",\"model\":null}"
+  ],
+  "keyStatusOpenrouter": "missing",
+  "researchTierB": [
+   "OpenRouter key.",
+   "OpenRouter keyHardware & local modelsHeavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else stays remote."
+  ]
+ },
+ "S3": {
+  "OpenAI": {
+   "dialogText": "OpenAI API keyStored in the OS keychain; never written to disk by Vysted.OpenAI rejected this key.CancelSaveClose",
+   "keychainAccounts": [],
+   "rowAfter": "OpenAINo key yetDefaultAdd key",
+   "requests": [
+    "POST /llm/keys/validate -> 200 {\"provider\":\"openai\",\"api_key\":\"<redacted>\",\"model\":null}"
+   ]
+  },
+  "Anthropic": {
+   "dialogText": "Anthropic API keyStored in the OS keychain; never written to disk by Vysted.Anthropic rejected this key.CancelSaveClose",
+   "keychainAccounts": [],
+   "rowAfter": "AnthropicNo key yetDefaultAdd keyOpenAINo key yetDefaultAdd keyGoogle GeminiNo key yetDefaultAdd keyGroqNo key yetDefaultAdd keyOllama (local)No key required (local)DefaultDeepSeekNo key yetDefaultAdd",
+   "requests": [
+    "POST /llm/keys/validate -> 200 {\"provider\":\"anthropic\",\"api_key\":\"<redacted>\",\"model\":null}"
+   ]
+  },
+  "Groq": {
+   "dialogText": "Groq API keyStored in the OS keychain; never written to disk by Vysted.Groq rejected this key.CancelSaveClose",
+   "keychainAccounts": [],
+   "rowAfter": "GroqNo key yetDefaultAdd key",
+   "requests": [
+    "POST /llm/keys/validate -> 200 {\"provider\":\"groq\",\"api_key\":\"<redacted>\",\"model\":null}"
+   ]
+  }
+ },
+ "S4": {
+  "empty-object": {
+   "sectionText": "Export / ImportCarry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine.Export settingsImport settingsThe export bundles your keybinding remaps and preferences (default agent/provider/ model, region, research tier and models, SearXNG URL, module toggles). API keys stay in your OS keychain and are never written to the file.Could not read that file — expected a Vysted export.",
+   "before": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   },
+   "after": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   }
+  },
+  "other-app-json": {
+   "sectionText": "Export / ImportCarry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine.Export settingsImport settingsThe export bundles your keybinding remaps and preferences (default agent/provider/ model, region, research tier and models, SearXNG URL, module toggles). API keys stay in your OS keychain and are never written to the file.Could not read that file — expected a Vysted export.",
+   "before": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   },
+   "after": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   }
+  },
+  "settings-fontSize-only": {
+   "sectionText": "Export / ImportCarry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine.Export settingsImport settingsThe export bundles your keybinding remaps and preferences (default agent/provider/ model, region, research tier and models, SearXNG URL, module toggles). API keys stay in your OS keychain and are never written to the file.Imported settings. Secrets re-enter via the keychain.",
+   "before": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   },
+   "after": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   }
+  },
+  "numbers-as-bindings": {
+   "sectionText": "Export / ImportCarry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine.Export settingsImport settingsThe export bundles your keybinding remaps and preferences (default agent/provider/ model, region, research tier and models, SearXNG URL, module toggles). API keys stay in your OS keychain and are never written to the file.Imported settings. Secrets re-enter via the keychain.",
+   "before": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   },
+   "after": {
+    "overrides": {
+     "agent.toggle": "mod+j"
+    },
+    "region": "IN"
+   }
+  },
+  "not-json": {
+   "sectionText": "Export / ImportCarry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine.Export settingsImport settingsThe export bundles your keybinding remaps and preferences (default agent/provider/ model, region, research tier and models, SearXNG URL, module toggles). API keys stay in your OS keychain and are never written to the file.Could not read that file — expected a Vysted export.",
+   "before": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   },
+   "after": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   }
+  },
+  "valid-roundtrip": {
+   "sectionText": "Export / ImportCarry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine.Export settingsImport settingsThe export bundles your keybinding remaps and preferences (default agent/provider/ model, region, research tier and models, SearXNG URL, module toggles). API keys stay in your OS keychain and are never written to the file.Imported settings. Secrets re-enter via the keychain.",
+   "before": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   },
+   "after": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   }
+  }
+ },
+ "S5": {
+  "exportBundle": {
+   "version": 2,
+   "keybindingOverrides": {
+    "agent.toggle": "mod+shift+y"
+   },
+   "settings": {
+    "defaultAgentId": "copilot",
+    "region": "IN",
+    "deepResearchBackend": "native",
+    "chartDefaults": {
+     "symbol": "^NSEI",
+     "timeframe": "1d",
+     "indicators": []
+    },
+    "providerOrder": [
+     "anthropic",
+     "openai",
+     "gemini",
+     "groq",
+     "ollama",
+     "deepseek",
+     "xai",
+     "openrouter"
+    ],
+    "startLayout": null,
+    "paletteShowRecents": true,
+    "paletteSymbolScope": "all"
+   },
+   "searchSettings": {
+    "researchTier": "tier_b",
+    "searxngUrl": "http://localhost:8080",
+    "researchModels": {
+     "normal": "perplexity/sonar",
+     "deep": "openai/o4-mini-deep-research",
+     "ultra": "perplexity/sonar-deep-research"
+    }
+   },
+   "defaultProviderId": "openai",
+   "defaultModel": "gpt-4.1-mini",
+   "enabledModules": {}
+  },
+  "topKeys": [
+   "version",
+   "keybindingOverrides",
+   "settings",
+   "searchSettings",
+   "defaultProviderId",
+   "defaultModel",
+   "enabledModules"
+  ]
+ },
+ "S6": {
+  "R15 Final Harness (len 17)": {
+   "maxLengthAttr": "200",
+   "titleAttr": "Up to 200 bytes when saved — shorter for non-Latin scripts.",
+   "layoutsText": "LayoutsDrag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch.SaveReset to defaultThe panel layout is not ready yet.Start withWhat the terminal opens on. A saved layout that no longer exists opens the last session.Last sessionNo saved layouts yet — arrange your panels and save above.Autosave slot: __autosave__ (hidden; restored on launch)",
+   "requests": []
+  },
+  "मेरा लेआउट (len 10)": {
+   "maxLengthAttr": "200",
+   "titleAttr": "Up to 200 bytes when saved — shorter for non-Latin scripts.",
+   "layoutsText": "LayoutsDrag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch.SaveReset to defaultThe panel layout is not ready yet.Start withWhat the terminal opens on. A saved layout that no longer exists opens the last session.Last sessionNo saved layouts yet — arrange your panels and save above.Autosave slot: __autosave__ (hidden; restored on launch)",
+   "requests": []
+  },
+  "मममममममममममममममममममम (len 200)": {
+   "maxLengthAttr": "200",
+   "titleAttr": "Up to 200 bytes when saved — shorter for non-Latin scripts.",
+   "layoutsText": "LayoutsDrag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch.SaveReset to defaultThe panel layout is not ready yet.Start withWhat the terminal opens on. A saved layout that no longer exists opens the last session.Last sessionNo saved layouts yet — arrange your panels and save above.Autosave slot: __autosave__ (hidden; restored on launch)",
+   "requests": []
+  },
+  "LLLLLLLLLLLLLLLLLLLL (len 230)": {
+   "maxLengthAttr": "200",
+   "titleAttr": "Up to 200 bytes when saved — shorter for non-Latin scripts.",
+   "layoutsText": "LayoutsDrag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch.SaveReset to defaultThe panel layout is not ready yet.Start withWhat the terminal opens on. A saved layout that no longer exists opens the last session.Last sessionNo saved layouts yet — arrange your panels and save above.Autosave slot: __autosave__ (hidden; restored on launch)",
+   "requests": []
+  }
+ },
+ "S7": {
+  "openPanelCalls": [],
+  "registeredModuleIds": []
+ },
+ "S8": {
+  "moduleRows": [],
+  "enabledMapAfterNotesOff": {},
+  "notesCmdsBefore": [],
+  "notesCmdsAfter": [],
+  "region": {
+   "before": {
+    "value": "IN",
+    "store": "IN",
+    "rowText": "Region & localeNumber formatting, plus which market's symbol resolver, trading calendar, macro/news providers and screener universe the sidecar uses.RegionDefaults to India.United StatesIndiaGlobal"
+   },
+   "afterStore": "US",
+   "rowAfter": "Region & localeNumber formatting, plus which market's symbol resolver, trading calendar, macro/news providers and screener universe the sidecar uses.RegionDefaults to India.United StatesIndiaGlobal"
+  }
+ },
+ "S9": {
+  "platform": "",
+  "out": {
+   "meta+k": {
+    "stored": "meta+k",
+    "conflicts": [],
+    "paletteMatches": false,
+    "agentMatches": true,
+    "banner": ""
+   },
+   "ctrl+k": {
+    "stored": "ctrl+k",
+    "conflicts": [
+     {
+      "keys": "mod+k",
+      "actionIds": [
+       "palette.open",
+       "agent.toggle"
+      ]
+     }
+    ],
+    "paletteMatches": true,
+    "agentMatches": true,
+    "banner": "Conflicting bindings detectedCtrl+K is bound to Open command palette and Toggle agent panel."
+   },
+   "mod+k": {
+    "stored": "mod+k",
+    "conflicts": [
+     {
+      "keys": "mod+k",
+      "actionIds": [
+       "palette.open",
+       "agent.toggle"
+      ]
+     }
+    ],
+    "paletteMatches": true,
+    "agentMatches": true,
+    "banner": "Conflicting bindings detectedCtrl+K is bound to Open command palette and Toggle agent panel."
+   }
+  }
+ }
+}

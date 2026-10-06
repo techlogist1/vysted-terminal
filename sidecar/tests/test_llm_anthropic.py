@@ -4,14 +4,18 @@ The SDK is mocked end-to-end — no live API calls. The mock simulates the
 ``messages.stream`` async-context-manager iterator shape with realistic
 event types (``content_block_delta``/``text_delta``, ``thinking_delta``,
 ``content_block_start``/``tool_use``) so the adapter's event translation
-is genuinely exercised.
+is genuinely exercised. Tool-use tests replay real SSE bytes through the real
+SDK parser (httpx mock transport), because a hand-built event can carry a
+shape the API never sends.
 """
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import anthropic
+import httpx
 import pytest
 
 from models.llm import LLMMessage
@@ -137,7 +141,7 @@ async def test_stream_chat_emits_text_deltas(monkeypatch: pytest.MonkeyPatch) ->
             LLMMessage(role="system", content="be brief"),
             LLMMessage(role="user", content="hi"),
         ],
-        model="claude-opus-4-7",
+        model="claude-opus-4-8",
         api_key="sk-test",
     ):
         out.append(event)
@@ -151,44 +155,144 @@ async def test_stream_chat_emits_text_deltas(monkeypatch: pytest.MonkeyPatch) ->
     # The system message must be lifted into the top-level system slot.
     assert fake.messages is not None
     assert fake.messages.last_kwargs is not None
-    assert fake.messages.last_kwargs["system"] == "be brief"
+    assert fake.messages.last_kwargs["system"] == [
+        {"type": "text", "text": "be brief", "cache_control": {"type": "ephemeral"}}
+    ]
     assert fake.messages.last_kwargs["messages"] == [{"role": "user", "content": "hi"}]
 
 
-@pytest.mark.asyncio
-async def test_stream_chat_emits_thinking_and_tool_use(monkeypatch: pytest.MonkeyPatch) -> None:
-    events = [
-        _Event(
-            "content_block_delta",
-            delta=_Delta(type="thinking_delta", thinking="Let me consider..."),
+def _sse(*frames: dict[str, Any]) -> bytes:
+    """Encode Messages-API frames as the SSE bytes the API sends."""
+    return "".join(
+        "event: " + frame["type"] + "\ndata: " + json.dumps(frame) + "\n\n" for frame in frames
+    ).encode()
+
+
+_MESSAGE_START = {
+    "type": "message_start",
+    "message": {
+        "id": "msg_01",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-opus-4-8",
+        "content": [],
+        "stop_reason": None,
+        "stop_sequence": None,
+        "usage": {"input_tokens": 42, "output_tokens": 1},
+    },
+}
+
+_MESSAGE_END = [
+    {
+        "type": "message_delta",
+        "delta": {"stop_reason": "tool_use", "stop_sequence": None},
+        "usage": {"output_tokens": 30},
+    },
+    {"type": "message_stop"},
+]
+
+
+def _tool_block(index: int, tool_id: str, name: str, fragments: list[str]) -> list[dict[str, Any]]:
+    """A streamed tool_use block: the start frame carries ``input: {}``."""
+    return [
+        {
+            "type": "content_block_start",
+            "index": index,
+            "content_block": {"type": "tool_use", "id": tool_id, "name": name, "input": {}},
+        },
+        *(
+            {
+                "type": "content_block_delta",
+                "index": index,
+                "delta": {"type": "input_json_delta", "partial_json": fragment},
+            }
+            for fragment in fragments
         ),
-        _Event(
-            "content_block_start",
-            content_block=_Delta(
-                type="tool_use",
-                id="tool-1",
-                name="get_quote",
-                input={"symbol": "AAPL"},
-            ),
-        ),
-        _Event(
-            "content_block_delta",
-            delta=_Delta(type="text_delta", text="ok"),
-        ),
+        {"type": "content_block_stop", "index": index},
     ]
-    _patch_client(monkeypatch, stream=_FakeStream(events, _FakeFinalMessage()))
+
+
+async def _stream_real_sdk(monkeypatch: pytest.MonkeyPatch, body: bytes) -> list[Any]:
+    """Run the adapter over ``body`` through the real SDK stream parser."""
+    real_client = anthropic.AsyncAnthropic
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/v1/messages"
+        return httpx.Response(200, headers={"content-type": "text/event-stream"}, content=body)
+
+    monkeypatch.setattr(
+        anthropic,
+        "AsyncAnthropic",
+        lambda **kw: real_client(
+            **kw, http_client=httpx.AsyncClient(transport=httpx.MockTransport(_handler))
+        ),
+    )
     provider = AnthropicProvider()
-    out: list[Any] = []
-    async for event in provider.stream_chat(
-        messages=[LLMMessage(role="user", content="quote AAPL")],
-        model="claude-opus-4-7",
-        api_key="sk-test",
-    ):
-        out.append(event)
-    kinds = [e.kind for e in out]
-    assert kinds == ["thinking", "tool_use", "delta", "done"]
+    return [
+        event
+        async for event in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="quote RELIANCE")],
+            model="claude-opus-4-8",
+            api_key="sk-test",
+        )
+    ]
+
+
+@pytest.mark.asyncio
+async def test_stream_chat_tool_use_carries_streamed_input(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # R15-AGENT-004: the API starts a tool_use block with ``input: {}`` and
+    # streams the arguments as input_json_delta fragments; the event must
+    # carry the accumulated arguments. (This replaced a hand-built fixture
+    # whose start block was pre-filled, a shape the API never sends.)
+    body = _sse(
+        _MESSAGE_START,
+        {
+            "type": "content_block_start",
+            "index": 0,
+            "content_block": {"type": "thinking", "thinking": "", "signature": ""},
+        },
+        {
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {"type": "thinking_delta", "thinking": "Let me consider..."},
+        },
+        {"type": "content_block_stop", "index": 0},
+        *_tool_block(1, "toolu_01", "get_quote", ['{"symbol": "RELI', 'ANCE.NS"}']),
+        *_MESSAGE_END,
+    )
+    out = await _stream_real_sdk(monkeypatch, body)
+    assert [e.kind for e in out] == ["thinking", "tool_use", "done"]
+    assert out[1].tool_call_id == "toolu_01"
     assert out[1].name == "get_quote"
-    assert out[1].input == {"symbol": "AAPL"}
+    assert out[1].input == {"symbol": "RELIANCE.NS"}
+    assert out[2].finish_reason == "tool_use"
+
+
+@pytest.mark.asyncio
+async def test_stream_chat_two_tool_blocks_arrive_complete_in_order(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    body = _sse(
+        _MESSAGE_START,
+        {"type": "content_block_start", "index": 0, "content_block": {"type": "text", "text": ""}},
+        {
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {"type": "text_delta", "text": "Checking both."},
+        },
+        {"type": "content_block_stop", "index": 0},
+        *_tool_block(1, "toolu_a", "price_data", ['{"symbol": "TCS.NS", ', '"period": "1y"}']),
+        *_tool_block(2, "toolu_b", "news", ['{"sym', 'bol": "INFY.NS", "limit"', ": 5}"]),
+        *_MESSAGE_END,
+    )
+    out = await _stream_real_sdk(monkeypatch, body)
+    assert [e.kind for e in out] == ["delta", "tool_use", "tool_use", "done"]
+    assert [(e.tool_call_id, e.name, e.input) for e in out[1:3]] == [
+        ("toolu_a", "price_data", {"symbol": "TCS.NS", "period": "1y"}),
+        ("toolu_b", "news", {"symbol": "INFY.NS", "limit": 5}),
+    ]
 
 
 @pytest.mark.asyncio
@@ -207,11 +311,17 @@ async def test_stream_chat_handles_anthropic_error(monkeypatch: pytest.MonkeyPat
     out: list[Any] = []
     async for event in provider.stream_chat(
         messages=[LLMMessage(role="user", content="hi")],
-        model="claude-opus-4-7",
+        model="claude-opus-4-8",
         api_key="sk-test",
     ):
         out.append(event)
     assert any(e.kind == "error" for e in out)
+    err = next(e for e in out if e.kind == "error")
+    # E9: the adapter routed through humanize — raw text behind detail,
+    # a stable machine code, and a plain message (not the raw blob).
+    assert err.detail is not None
+    assert err.code is not None
+    assert err.message
 
 
 # ---------------------------------------------------------------------------
@@ -241,3 +351,139 @@ async def test_validate_key_false_on_auth_error(monkeypatch: pytest.MonkeyPatch)
     _patch_client(monkeypatch, models=_FakeModels(raise_error=err))
     provider = AnthropicProvider()
     assert await provider.validate_key("sk-bad") is False
+
+
+@pytest.mark.parametrize(
+    ("model", "ceiling"),
+    [("claude-opus-4-8", 128_000), ("claude-haiku-4-5-20251001", 64_000)],
+)
+@pytest.mark.asyncio
+async def test_stream_chat_defaults_max_tokens_to_the_model_ceiling(
+    monkeypatch: pytest.MonkeyPatch, model: str, ceiling: int
+) -> None:
+    """R15-RESEARCH-014: a fixed 4,096 cut long answers and syntheses mid-sentence;
+    with no caller max_tokens the call asks for the model's own output ceiling."""
+    fake = _patch_client(monkeypatch, stream=_FakeStream([], _FakeFinalMessage()))
+    async for _ in AnthropicProvider().stream_chat(
+        messages=[LLMMessage(role="user", content="hi")], model=model, api_key="sk-test"
+    ):
+        pass
+    assert fake.messages is not None and fake.messages.last_kwargs is not None
+    assert fake.messages.last_kwargs["max_tokens"] == ceiling
+
+
+async def _captured_request(
+    monkeypatch: pytest.MonkeyPatch, messages: list[LLMMessage]
+) -> dict[str, Any]:
+    fake = _patch_client(monkeypatch, stream=_FakeStream([], _FakeFinalMessage()))
+    async for _ in AnthropicProvider().stream_chat(
+        messages=messages, model="claude-sonnet-4-6", api_key="sk-test", tool_ids=["price_data"]
+    ):
+        pass
+    assert fake.messages is not None and fake.messages.last_kwargs is not None
+    return fake.messages.last_kwargs
+
+
+def _tool_round(call_id: str) -> list[LLMMessage]:
+    return [
+        LLMMessage(
+            role="assistant",
+            content="",
+            metadata={"tool_calls": [{"id": call_id, "name": "price_data", "input": {}}]},
+        ),
+        LLMMessage(role="tool", content=f"result {call_id}", tool_call_id=call_id),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_request_carries_the_cache_breakpoints(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-050: the stable persona block and the last tool result of the
+    round are cache breakpoints; the per-turn preamble and older results are not."""
+    request = await _captured_request(
+        monkeypatch,
+        [
+            LLMMessage(role="system", content="persona"),
+            LLMMessage(role="system", content="Current date: 2026-09-24"),
+            LLMMessage(role="system", content=""),
+            LLMMessage(role="user", content="price AAPL then MSFT"),
+            *_tool_round("c1"),
+            *_tool_round("c2"),
+        ],
+    )
+
+    system = request["system"]
+    assert [b["text"] for b in system] == ["persona", "Current date: 2026-09-24"]
+    assert system[0]["cache_control"] == {"type": "ephemeral"}
+    assert "cache_control" not in system[1]
+    marked = [
+        block["tool_use_id"]
+        for message in request["messages"]
+        if isinstance(message["content"], list)
+        for block in message["content"]
+        if "cache_control" in block
+    ]
+    assert marked == ["c2"]
+
+
+@pytest.mark.asyncio
+async def test_parallel_tool_results_ride_one_user_message(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-007 (the Gemini split-response class): a two-call turn is
+    answered by ONE user message holding both tool_result blocks, the last one
+    the round's cache breakpoint; a later round keeps its own message."""
+    two_calls = LLMMessage(
+        role="assistant",
+        content="",
+        metadata={
+            "tool_calls": [
+                {"id": "c1", "name": "price_data", "input": {"symbol": "TCS.NS"}},
+                {"id": "c2", "name": "price_data", "input": {"symbol": "INFY.NS"}},
+            ]
+        },
+    )
+    request = await _captured_request(
+        monkeypatch,
+        [
+            LLMMessage(role="user", content="compare TCS and INFY, then AAPL"),
+            two_calls,
+            LLMMessage(role="tool", content="tcs", tool_call_id="c1"),
+            LLMMessage(role="tool", content="infy", tool_call_id="c2"),
+            *_tool_round("c3"),
+        ],
+    )
+
+    messages = request["messages"]
+    assert [m["role"] for m in messages] == ["user", "assistant", "user", "assistant", "user"]
+    first, later = messages[2]["content"], messages[4]["content"]
+    assert [b["tool_use_id"] for b in first] == ["c1", "c2"]
+    assert [b["tool_use_id"] for b in later] == ["c3"]
+    assert [b.get("cache_control") for b in [*first, *later]] == [
+        None,
+        None,
+        {"type": "ephemeral"},
+    ]
+
+
+@pytest.mark.asyncio
+async def test_cached_system_block_is_stable_across_turns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Two turns with different terminal preambles send a byte-identical block 0."""
+    from models.agent import AgentContextSnapshot
+    from services import agent_runtime
+
+    agent_runtime.reload()
+    spec = agent_runtime.get_agent("buffett")
+    assert spec is not None
+    systems = []
+    for symbol in ("AAPL", "RELIANCE.NS"):
+        snapshot = AgentContextSnapshot(
+            focused_source="chart-1", by_source={"chart-1": {"symbol": symbol}}
+        )
+        messages = agent_runtime._compose_messages(spec, "is it cheap?", snapshot)
+        systems.append((await _captured_request(monkeypatch, messages))["system"])
+
+    assert json.dumps(systems[0][0]) == json.dumps(systems[1][0])
+    assert systems[0][0]["cache_control"] == {"type": "ephemeral"}
+    assert systems[0] != systems[1]  # the preamble changed, uncached after block 0

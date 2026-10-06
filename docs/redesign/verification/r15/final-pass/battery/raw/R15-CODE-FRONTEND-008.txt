@@ -1,0 +1,12 @@
+# R15-CODE-FRONTEND-008 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:53:38+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd $B/fe; export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$PATH; ./node_modules/.bin/vitest run --config vitest.config.ts 2>&1 | grep -E "PROBE|Test Files|Tests |FAIL|Error" | head -20; grep -n "changes apply instantly" "$C/src/modules/chat/ComposerPlusMenu.tsx"
+--- output ---
+PROBE AUTO_APPLIED_KINDS ["panel","chart","watchlist"]
+PROBE AUTO statuses [{"name":"portfolio_add_position","kind":"data-write","status":"pending","outcome":"staged"},{"name":"portfolio_update_position","kind":"data-write","status":"pending","outcome":"staged"},{"name":"portfolio_delete_position","kind":"data-write","status":"pending","outcome":"staged"},{"name":"write_note","kind":"data-write","status":"pending","outcome":"staged"},{"name":"save_layout","kind":"data-write","status":"pending","outcome":"staged"},{"name":"save_screen","kind":"data-write","status":"pending","outcome":"staged"},{"name":"set_region","kind":"settings","status":"pending","outcome":"staged"},{"name":"set_chart_symbol","kind":"chart","status":"accepted","outcome":"applied"},{"name":"add_to_watchlist","kind":"watchlist","status":"accepted","outcome":"applied"},{"name":"open_panel","kind":"panel","status":"accepted","outcome":"applied"}]
+PROBE INFY note after AUTO: {"INFY":"two-page note"}
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+37:  const text = `${wordList(instant)} changes apply instantly; ${wordList(staged)} changes wait for review`;
+
+EXIT=0 (1.4s)

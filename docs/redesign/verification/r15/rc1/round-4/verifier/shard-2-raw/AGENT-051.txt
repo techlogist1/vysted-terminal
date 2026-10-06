@@ -1,0 +1,24 @@
+sha: 68d5573aff9a579af084dcbb124843f2aecff6e8
+$ PYTHONPATH=. ./.venv/bin/python3 scratchpad/vs2/a051.py
+from services.agent_runtime import _render_terminal_preamble
+cases = {
+ "3 charts, THIRD focused": {"focusedPanel": "chart-3", "focusedSymbol": "INFY.NS", "charts": [
+   {"panelId": "chart", "symbol": "SPY", "timeframe": "1d", "indicators": ["rsi"]},
+   {"panelId": "chart-2", "symbol": "TCS.NS", "timeframe": "1h", "indicators": []},
+   {"panelId": "chart-3", "symbol": "INFY.NS", "timeframe": "1wk", "indicators": ["macd"]}]},
+ "2 charts, equity-overview focused": {"focusedPanel": "equity-overview", "focusedSymbol": "RELIANCE.NS", "charts": [
+   {"panelId": "chart", "symbol": "SPY", "timeframe": "1d", "indicators": []},
+   {"panelId": "chart-2", "symbol": "TCS.NS", "timeframe": "1h", "indicators": []}]},
+}
+for k, ts in cases.items():
+    print("==", k); print(_render_terminal_preamble(ts))
+--- output
+== 3 charts, THIRD focused
+## What the user is looking at
+Focused chart: INFY.NS (1wk, macd).
+When the user says "this" or "it", they mean INFY.NS unless they name another symbol. Never invent figures — call a tool to fetch them.
+== 2 charts, equity-overview focused
+## What the user is looking at
+Chart: SPY (1d, no indicators).
+Focused panel: equity-overview.
+When the user says "this" or "it", they mean RELIANCE.NS unless they name another symbol. Never invent figures — call a tool to fetch them.

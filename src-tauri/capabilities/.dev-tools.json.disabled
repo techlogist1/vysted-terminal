@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "dev-tools",
+  "description": "Dev-only tauri-plugin-mcp automation capability. build.rs copies this template into capabilities/dev-tools.json ONLY under the `dev-tools` Cargo feature; it is never present in release builds.",
+  "windows": ["main"],
+  "permissions": ["mcp:default"]
+}

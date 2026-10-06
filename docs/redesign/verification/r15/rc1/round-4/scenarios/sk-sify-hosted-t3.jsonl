@@ -1,0 +1,6 @@
+{"kind": "tool_use", "tool_call_id": "call_9961b09c4a174944b58681a07d189cb0", "name": "resolve_symbol", "input": {"query": "SIFY"}}
+{"kind": "tool_result", "tool_call_id": "call_9961b09c4a174944b58681a07d189cb0", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_fcd8376898504f6da41891c429f4f441", "name": "sec_filings_list", "input": {"symbol": "SIFY"}}
+{"kind": "tool_result", "tool_call_id": "call_fcd8376898504f6da41891c429f4f441", "name": "sec_filings_list", "ok": true, "error": null}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources."}
+{"kind": "done", "usage": {"input_tokens": 11072, "output_tokens": 23, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.017205}

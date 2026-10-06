@@ -1,0 +1,16 @@
+# R15-UI-018 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:39+0530
+
+$ git merge-base --is-ancestor f407107 HEAD && echo 'closure f407107 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure f407107 NOT an ancestor'
+[exit 0] [0.02s]
+closure f407107 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-UI-018\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.29s]
+src/components/ConfirmButton.test.tsx:6:// The shared two-step inline confirm (R15-UI-018): first click arms, second
+src/components/ConfirmButton.tsx:11: * A destructive action's confirmation, inline (R15-UI-018): first click arms
+src/modules/screener/ScreenerPanel.test.tsx:410:    // Delete it — R15-UI-018: a single click only arms the confirm, it must
+src/modules/marketplace/MarketplacePanel.test.tsx:52:describe("MarketplacePanel — Remove is confirm-guarded (R15-UI-018)", () => {
+src/modules/portfolio/PortfolioPanel.test.tsx:438:    // Two-step confirm (R15-UI-018): same button, second click acts — each
+src/modules/portfolio/PortfolioPanel.test.tsx:479:    // Two-step confirm (R15-UI-018): a single click only arms it.
+

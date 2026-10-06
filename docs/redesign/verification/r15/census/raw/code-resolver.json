@@ -1,0 +1,113 @@
+[
+  {
+    "raw_id": "COD-resolver-1",
+    "title": "Rename lane joins on the ticker string: a BSE-only company is answered as an unrelated NSE company at confidence 1.0",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "resolver",
+    "repro": "sidecar/.venv/bin/python, shipped masters: inject one rename row for a BSE-only ticker via the existing test seam -- nse_symbol_change.set_active_map_for_tests({'NSDL': SymbolChange('NSDL','GUJENERGY',date(2026,7,1),'GUJARAT ENERGY LIMITED')}) -- then symbol_resolver.resolve('NSDL','IN') returns symbol=GUJENERGY, name='GUJARAT ENERGY LIMITED', exchange=NSE, yahoo_symbol=GUJENERGY.NS, score=1.0, rename.note='NSDL was renamed to GUJENERGY on NSE (effective 2026-07-01)'. NSDL (National Securities Depository Ltd) is one of 2,481 BSE-only tickers that NSE's symbolchange.csv does not govern.",
+    "evidence": "sidecar/services/symbol_resolver.py:797, sidecar/services/symbol_resolver.py:806, sidecar/services/symbol_resolver.py:793, sidecar/services/symbol_resolver.py:869, sidecar/services/symbol_resolver.py:673",
+    "notes": "Information hiding / consistency: the SAME ticker-string collision hazard is spelled out in capitals at symbol_resolver.py:869-879 and structurally guarded for the R13 enrichment join, while _rename_instrument 80 lines earlier performs the identical join with only a region!=IN gate -- and then OVERWRITES exchange to NSE and yahoo_symbol to .NS. The docstring at :793 even reasons about the collision for US tickers and stops one exchange short. Consequence: wrong money-relevant identity shown as true, carrying provenance text that reads as evidence; downstream quote/history routing follows the fabricated .NS symbol. The live instance is unverified (NSE's ~1,050-row retired list was not fetched -- no network per the run's hard rules); the structural defect is proven. Smallest fix: one line in _rename_instrument -- 'if inst.symbol not in _nse_master(): return inst'. A dual-listed retired symbol IS in the NSE master, so the R12/D67 BSE-row collapse is preserved. Severity note: the structural defect is proven by execution; whether a collision exists in TODAY's live symbolchange.csv is unverified (no network fetch per the run's hard rules).",
+    "notes_confidence": "structural defect proven by execution; live collision unverified"
+  },
+  {
+    "raw_id": "COD-resolver-2",
+    "title": "Two agent tools run the 300-900 ms (worst case 30 s) resolver on the event loop while both routers asyncio.to_thread it",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "resolver",
+    "repro": "Any agent 'research <name>' call: agent_tools/__init__.py:67 awaits the handler on the loop; agent_tools/resolve_symbol.py:70 calls the synchronous symbol_resolver.resolve directly. Measured masters-only cost (sidecar/.venv/bin/python, _live_lookup stubbed): 'infosys' 313 ms, 'tata steel' 653 ms, 'reliance q4 results' 783 ms, 'hdfc bank limited results' 897 ms. A master miss falls through to yf.Search (yfinance 1.3.0 defaults timeout=30, raise_errors=True; no explicit timeout passed), so the loop can stall 30 s.",
+    "evidence": "sidecar/services/agent_tools/resolve_symbol.py:70, sidecar/services/agent_tools/fundamentals.py:119, sidecar/services/agent_tools/__init__.py:67, sidecar/routers/resolve.py:93, sidecar/routers/fundamentals.py:73, sidecar/routers/resolve.py:70, sidecar/services/symbol_resolver.py:1001",
+    "notes": "Pull complexity downward / consistency: the sibling routers offload and DOCUMENT why ('must not block the event loop', routers/resolve.py:70-72), and symbol_resolver.py:658-660 cites the router's to_thread call as load-bearing for the signature -- so the author knew. The hottest resolver path in the product is the one that opted out. Consequence: every agent name-resolve stalls the whole sidecar (SSE streams, /health, the detached run manager) for ~0.6 s, or 30 s on a hung upstream. Smallest fix: 'await asyncio.to_thread(symbol_resolver.resolve, query, region)' in both tools, plus an explicit timeout= on yf.Search."
+  },
+  {
+    "raw_id": "COD-resolver-3",
+    "title": "/resolve/autocomplete bypasses the rename + enrichment stages: the mention picker offers retired symbols and always-null identity fields",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "resolver",
+    "repro": "With the R12 finding's own rename row loaded (GUJGASLTD -> GUJENERGY effective 2026-07-01): symbol_resolver.autocomplete('GUJGAS','IN') returns GUJGASLTD / 'Gujarat Gas Limited' / GUJGASLTD.NS, while symbol_resolver.resolve('GUJGASLTD','IN') returns GUJENERGY / GUJENERGY.NS with rename provenance. The picker calls GET /resolve/autocomplete on every keystroke, so the user is handed the retired ticker and the chart loads a dead symbol.",
+    "evidence": "sidecar/services/symbol_resolver.py:919, sidecar/services/symbol_resolver.py:673, sidecar/routers/resolve.py:141, sidecar/routers/resolve.py:145, sidecar/routers/resolve.py:40",
+    "notes": "Consistency: resolve() = _enrich_resolution(_annotate_renamed_symbols(_resolve_masters(...))) but autocomplete() runs neither post-stage, and the router then projects autocomplete rows through the SAME _instrument_payload, which promises isin/bse_code/industry/former_name -- always null on this route. The entire point of the R12 lane is 'never answer a stale symbol'; the highest-traffic surface opts out. Smallest fix: map the returned list through the existing per-instrument _rename_instrument + _enrich_instrument in autocomplete (both already written), or drop the four identity keys from the autocomplete payload so the wire stops promising them."
+  },
+  {
+    "raw_id": "COD-resolver-4",
+    "title": "resolve() re-scans 17,913 master names with SequenceMatcher on every call and has no result memo, while the live rung has an elaborate LRU",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "resolver",
+    "repro": "sidecar/.venv/bin/python with _live_lookup stubbed to []: repeated symbol_resolver.resolve('infosys','IN') costs 313 ms EVERY call (masters are lru_cached, results are not). 'hdfc bank limited results' 897 ms; exact ticker 'TATASTEEL' 0.1 ms; autocomplete (same masters, no SequenceMatcher) 3 ms.",
+    "evidence": "sidecar/services/symbol_resolver.py:747, sidecar/services/symbol_resolver.py:750, sidecar/services/symbol_resolver.py:754, sidecar/services/symbol_resolver.py:592, sidecar/services/symbol_resolver.py:117, sidecar/services/symbol_resolver.py:1033",
+    "notes": "Performance as design: ~20 lines of LRU + cooldown budget machinery protect the NETWORK rung, and zero lines protect the 300-900 ms CPU rung that runs on every query. An agent iterating disambiguation candidates re-pays the full scan per attempt. Smallest fix: @lru_cache(maxsize=2048) on _resolve_masters(query, region) -- pure over immutable masters, with rename + enrichment staying outside it -- plus a cache_clear() in reset_caches_for_tests."
+  },
+  {
+    "raw_id": "COD-resolver-5",
+    "title": "band defaults to BAND_FUZZY in the three instrument builders, so autocomplete ships exact-ticker rows as score=1.0 / band=0",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "resolver",
+    "repro": "rows = symbol_resolver.autocomplete('TATASTEEL','IN'); rows[0] is (symbol=TATASTEEL, score=1.0, band=0). resolution_policy.decide(Resolution(query='TATASTEEL', best=rows[0], candidates=rows)).outcome == 'disambiguate' -- the policy refuses to bind a perfect ticker match because the band field lies.",
+    "evidence": "sidecar/services/symbol_resolver.py:468, sidecar/services/symbol_resolver.py:483, sidecar/services/symbol_resolver.py:497, sidecar/services/symbol_resolver.py:952, sidecar/services/symbol_resolver.py:961, sidecar/services/symbol_resolver.py:965, sidecar/services/resolution_policy.py:124",
+    "notes": "Obviousness: the band field exists to make 'how did this match' structural rather than advisory, and the default makes the WRONG value the easy one. Today only autocomplete takes the default and nothing feeds its rows to decide(), so this is a loaded gun rather than a live wound -- an Instrument's band is only meaningful if it came from resolve(), and nothing in the type says so. Smallest fix: delete the '= BAND_FUZZY' defaults at :468/:483/:497 and make autocomplete state the band it means."
+  },
+  {
+    "raw_id": "COD-resolver-6",
+    "title": "The Instrument-to-wire projection is hand-maintained in two places and has already drifted",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "resolver",
+    "repro": "Compare routers/resolve.py _instrument_payload with agent_tools/resolve_symbol.py _instrument_dict: same 10 identity keys, but confidence is round(score,4) in one and round(score,3) in the other, and the 'rename' provenance block exists only in the router version -- so the agent (the consumer the R12 lane was built for) never receives the rename note, only former_name. No test binds the pair.",
+    "evidence": "sidecar/routers/resolve.py:27, sidecar/routers/resolve.py:36, sidecar/routers/resolve.py:46, sidecar/services/agent_tools/resolve_symbol.py:25, sidecar/services/agent_tools/resolve_symbol.py:33",
+    "notes": "Information leakage: the Instrument wire shape is knowledge held in two files. Adding a field to Instrument requires remembering both, and the drift already present proves the mechanism failed once. Smallest fix: one instrument_payload() in the resolver package imported by both call sites (the agent tool can drop the keys it does not want by name, not by re-implementation)."
+  },
+  {
+    "raw_id": "COD-resolver-7",
+    "title": "_load_master catches only FileNotFoundError/ModuleNotFoundError, so a garbled master 500s every resolve despite a docstring promising a degrade",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "resolver",
+    "repro": "A truncated or corrupt bundled JSON (a partial PyInstaller _MEI extraction is the realistic path) makes json.load raise json.JSONDecodeError, which is not in the except tuple. Because the loaders are @lru_cache'd, the exception is never cached -- it re-raises on EVERY call -- and routers/resolve.py has no try/except, so GET /resolve returns a 500 (surfacing in the webview as a CORS error, per the repo's own CORS-masks-500 gotcha) instead of an honest no-match.",
+    "evidence": "sidecar/services/symbol_resolver.py:373, sidecar/services/symbol_resolver.py:374, sidecar/services/symbol_resolver.py:313, sidecar/services/symbol_resolver.py:266, sidecar/routers/resolve.py:93",
+    "notes": "Define errors out of existence: _india_sector_map's docstring states 'a missing/garbled map degrades to {} so resolution never depends on the sector data' -- the MISSING half is true, the GARBLED half is not. The invariant is held by a comment where a two-word edit to the except tuple would hold it structurally. Smallest fix: add json.JSONDecodeError (or ValueError, OSError) to the except at :374."
+  },
+  {
+    "raw_id": "COD-resolver-8",
+    "title": "Three contradictory definitions of instrument identity; the ISIN that would settle it is carried and never read",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "resolver",
+    "repro": "design",
+    "evidence": "sidecar/services/resolution_policy.py:92, sidecar/services/resolution_policy.py:33, sidecar/services/symbol_resolver.py:869, sidecar/services/symbol_resolver.py:236, sidecar/services/symbol_resolver.py:840",
+    "notes": "Information hiding: _residual_tie skips any candidate whose bare ticker equals best's as 'the same instrument' (documented at resolution_policy.py:33-35), while symbol_resolver.py:869-879 states the exact opposite for the enrichment join, naming NSE TCI vs US TCI as distinct companies sharing a ticker string; _annotate_renamed_symbols dedups on (symbol, exchange); and isin -- the real global identity key, present on every Indian instrument since R13 -- is read by no identity decision at all. Today the cross-region residual-tie rule masks the consequence, so this is latent rather than live; it goes live the moment that rule is relaxed or a third exchange lands. Smallest fix: one same_instrument(a,b) predicate (ISIN when both carry one, else (symbol, exchange)) called by the rename gate, _residual_tie and the dedup -- which also requires swapping the order at symbol_resolver.py:673 so enrichment runs before the rename lane."
+  },
+  {
+    "raw_id": "COD-resolver-9",
+    "title": "enrich_nse_sectors.py still writes the orphaned 'industry' key and a partial record shape that the shipped-map test forbids",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "resolver",
+    "repro": "Run the documented refresh -- python -m services.resolver_masters.enrich_nse_sectors -- and it writes rec['industry'] (line 70) and appends new records as {'symbol', 'sector', 'industry', 'sector_source'} only. tests/test_india_sector_map.py:62 asserts \"'industry' not in rec\" and :75 asserts set(rec) == the 7-key canonical shape, so the refresh reds CI; and every consumer reads industry_raw (symbol_resolver.py:893), so the enrichment data is unread even before the test fires.",
+    "evidence": "sidecar/services/resolver_masters/enrich_nse_sectors.py:70, sidecar/services/resolver_masters/enrich_nse_sectors.py:64, sidecar/services/symbol_resolver.py:893, sidecar/services/resolver_masters/regenerate_india_sectors.py:429, sidecar/tests/test_india_sector_map.py:56, sidecar/tests/test_india_sector_map.py:68",
+    "notes": "Modifying existing code: the R11/D59 hygiene pass cleaned the ARTIFACT and pinned it with a test, but never fixed the PRODUCER that dirtied it -- the test's own docstring (tests/test_india_sector_map.py:11-13) describes the exact defect this script still emits. Duplicated truth about the record schema across three files (the regenerate script, the enrich script, the reader) with the test guarding only the output. Smallest fix: in enrich_nse_sectors.py write industry_raw instead of industry, and build appended records with the full 7-key canonical shape (isin/scrip_code/shares_outstanding explicitly None)."
+  },
+  {
+    "raw_id": "COD-resolver-10",
+    "title": "The live-lookup LRU has no TTL, so a successful empty result is cached for the sidecar's lifetime",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "resolver",
+    "repro": "First resolve of an unknown name falls to _live_lookup, which caches the result -- INCLUDING a successful empty search -- under (query, region) with no expiry (only a 128-entry LRU bound). A symbol listed after that first miss stays unresolvable for that query string until the desktop app restarts.",
+    "evidence": "sidecar/services/symbol_resolver.py:124, sidecar/services/symbol_resolver.py:990, sidecar/services/symbol_resolver.py:1033, sidecar/services/symbol_resolver.py:982",
+    "notes": "Design for the future: the docstring states caching the empty result is deliberate (avoid re-hitting the network) and the 60 s failure cooldown is the right shape -- but a NEGATIVE result is the one kind that goes stale, and the terminal is a long-lived desktop process, not a request-scoped server. Memory is bounded; freshness is not. Smallest fix: store (timestamp, rows) and treat an entry older than a few minutes as a miss -- or cache only non-empty results, letting the existing cooldown absorb the repeat-miss traffic."
+  },
+  {
+    "raw_id": "COD-resolver-11",
+    "title": "Two dead second-decision surfaces kept alive by tests: Resolution.needs_disambiguation and the DISAMBIGUATION_THRESHOLD re-export",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "resolver",
+    "repro": "design",
+    "evidence": "sidecar/services/symbol_resolver.py:250, sidecar/services/symbol_resolver.py:258, sidecar/services/symbol_resolver.py:86, sidecar/services/symbol_resolver.py:1042, sidecar/tests/test_symbol_resolver.py:96, sidecar/tests/test_resolver_rename.py:93",
+    "notes": "Consistency / obviousness: needs_disambiguation re-runs the entire decide() (including _residual_tie) on every property access and has ZERO production callers -- only tests read it, and the routers build a same-named wire key from decide() directly. DISAMBIGUATION_THRESHOLD is re-exported into __all__ with no consumer anywhere in the tree, re-advertising the very 'second threshold' resolution_policy exists to abolish (its own grep test at tests/test_resolution_policy.py:135 forbids assigning that name a literal). Both are API surface maintained for tests, so a reader must check whether they are authoritative. Smallest fix: delete both and update the four test call sites to resolution_policy.decide(...).outcome."
+  }
+]

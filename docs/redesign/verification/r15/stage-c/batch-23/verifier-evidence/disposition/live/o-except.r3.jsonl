@@ -1,0 +1,122 @@
+{"kind": "delta", "text": "Since"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " only"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " access"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "price"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": "`"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " focus"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "What"}
+{"kind": "delta", "text": " would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "?"}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "(P"}
+{"kind": "delta", "text": "lease"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " relying"}
+{"kind": "delta", "text": " solely"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "price"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": "`"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " result"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " other"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " context"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " please"}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": ".)\n\n"}
+{"kind": "delta", "text": "Also"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " since"}
+{"kind": "delta", "text": " my"}
+{"kind": "delta", "text": " training"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " stale"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " might"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " most"}
+{"kind": "delta", "text": " up"}
+{"kind": "delta", "text": "-to"}
+{"kind": "delta", "text": "-date"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " case"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " do"}
+{"kind": "delta", "text": " my"}
+{"kind": "delta", "text": " best"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " live"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " using"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "price"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": "`"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2731, "output_tokens": 120, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

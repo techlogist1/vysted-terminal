@@ -1,0 +1,8 @@
+WARNING:services.nse_symbol_change:nse_symbol_change: request failed (ConnectTimeout: boom)
+WARNING:services.nse_symbol_change:nse_symbol_change: no file and no recent cache — rename lane is a no-op
+WARNING:services.nse_symbol_change:nse_symbol_change: request failed (ConnectTimeout: boom)
+WARNING:services.nse_symbol_change:nse_symbol_change: no file and no recent cache — rename lane is a no-op
+WARNING:services.nse_symbol_change:nse_symbol_change: request failed (ConnectTimeout: boom)
+WARNING:services.nse_symbol_change:nse_symbol_change: no file and no recent cache — rename lane is a no-op
+WARNING:services.nse_symbol_change:nse_symbol_change: every refresh attempt failed; retrying tomorrow (IST)
+attempts= 3 lane_available= False _refreshed_on= None _gave_up_on= 2026-09-27

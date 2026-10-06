@@ -1,0 +1,465 @@
+{
+ "shard": "collision-1",
+ "labels": [
+  {
+   "id": "collision-1",
+   "answer": "yes",
+   "confidence": 0.65,
+   "note": "measurement subject is KSE (BSE 519421)"
+  },
+  {
+   "id": "collision-2",
+   "answer": "no",
+   "confidence": 0.97
+  },
+  {
+   "id": "collision-3",
+   "answer": "yes",
+   "confidence": 0.5,
+   "note": "symbol only cited in error-classification example"
+  },
+  {
+   "id": "collision-4",
+   "answer": "yes",
+   "confidence": 0.5,
+   "note": "regex named for KSE-100 collision; code-level passage"
+  },
+  {
+   "id": "collision-5",
+   "answer": "no",
+   "confidence": 0.8
+  },
+  {
+   "id": "collision-6",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "BAJFINANCE only as regex test case"
+  },
+  {
+   "id": "collision-7",
+   "answer": "yes",
+   "confidence": 0.75
+  },
+  {
+   "id": "collision-8",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "KSE-100 index, not KSE Ltd"
+  },
+  {
+   "id": "collision-9",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Karachi Stock Exchange"
+  },
+  {
+   "id": "collision-10",
+   "answer": "no",
+   "confidence": 0.98,
+   "note": "Pakistan KSE-100"
+  },
+  {
+   "id": "collision-11",
+   "answer": "no",
+   "confidence": 0.96,
+   "note": "KSE 100 index"
+  },
+  {
+   "id": "collision-12",
+   "answer": "yes",
+   "confidence": 0.96
+  },
+  {
+   "id": "collision-13",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "collision-14",
+   "answer": "yes",
+   "confidence": 0.85,
+   "note": "BSE filing, verified symbol KSE"
+  },
+  {
+   "id": "collision-15",
+   "answer": "yes",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-16",
+   "answer": "yes",
+   "confidence": 0.85,
+   "note": "former name of KSE Ltd"
+  },
+  {
+   "id": "collision-17",
+   "answer": "yes",
+   "confidence": 0.75,
+   "note": "PAT suggests Indian ITC; no explicit context"
+  },
+  {
+   "id": "collision-18",
+   "answer": "yes",
+   "confidence": 0.8,
+   "note": "FMCG context"
+  },
+  {
+   "id": "collision-19",
+   "answer": "yes",
+   "confidence": 0.9,
+   "note": "NSE quote"
+  },
+  {
+   "id": "collision-20",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "ITC Holdings, US utility"
+  },
+  {
+   "id": "collision-21",
+   "answer": "yes",
+   "confidence": 0.97
+  },
+  {
+   "id": "collision-22",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "disambiguation rule covering both ITCs"
+  },
+  {
+   "id": "collision-23",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "collision-24",
+   "answer": "no",
+   "confidence": 0.7,
+   "note": "Delta not named; DAL here is Dynamic Archistructures"
+  },
+  {
+   "id": "collision-25",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "collision-26",
+   "answer": "no",
+   "confidence": 0.65,
+   "note": "one of nine listed collision examples"
+  },
+  {
+   "id": "collision-27",
+   "answer": "no",
+   "confidence": 0.65,
+   "note": "one of nine listed collision examples"
+  },
+  {
+   "id": "collision-28",
+   "answer": "no",
+   "confidence": 0.65,
+   "note": "one of nine listed collision examples"
+  },
+  {
+   "id": "collision-29",
+   "answer": "no",
+   "confidence": 0.65,
+   "note": "one of nine listed collision examples"
+  },
+  {
+   "id": "collision-30",
+   "answer": "no",
+   "confidence": 0.65,
+   "note": "one of nine listed collision examples"
+  },
+  {
+   "id": "collision-31",
+   "answer": "no",
+   "confidence": 0.65,
+   "note": "one of nine listed collision examples"
+  },
+  {
+   "id": "collision-32",
+   "answer": "no",
+   "confidence": 0.65,
+   "note": "one of nine listed collision examples"
+  },
+  {
+   "id": "collision-33",
+   "answer": "yes",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-34",
+   "answer": "no",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-35",
+   "answer": "no",
+   "confidence": 0.55,
+   "note": "about binding bug; Amal Ltd is wrongly served entity"
+  },
+  {
+   "id": "collision-36",
+   "answer": "no",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-37",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "Amalgamated's brief polluted by Amal Ltd data"
+  },
+  {
+   "id": "collision-38",
+   "answer": "no",
+   "confidence": 0.6,
+   "note": "Amal Ltd is the colliding source"
+  },
+  {
+   "id": "collision-39",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "served data is Amal Ltd's own filings"
+  },
+  {
+   "id": "collision-40",
+   "answer": "no",
+   "confidence": 0.6,
+   "note": "only the NASDAQ slot refers to it"
+  },
+  {
+   "id": "collision-41",
+   "answer": "yes",
+   "confidence": 0.65,
+   "note": "resolved best match; its shareholding is contaminated"
+  },
+  {
+   "id": "collision-42",
+   "answer": "no",
+   "confidence": 0.55,
+   "note": "colliding BSE candidate sharing ISIN"
+  },
+  {
+   "id": "collision-43",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "NSDL ticker subject of injected fake rename"
+  },
+  {
+   "id": "collision-44",
+   "answer": "no",
+   "confidence": 0.65,
+   "note": "test-injected rename target, unrelated"
+  },
+  {
+   "id": "collision-45",
+   "answer": "no",
+   "confidence": 0.65,
+   "note": "wrong rename target listed as example"
+  },
+  {
+   "id": "collision-46",
+   "answer": "no",
+   "confidence": 0.65,
+   "note": "wrong rename target listed as example"
+  },
+  {
+   "id": "collision-47",
+   "answer": "no",
+   "confidence": 0.65,
+   "note": "wrong rename target listed as example"
+  },
+  {
+   "id": "collision-48",
+   "answer": "no",
+   "confidence": 0.7,
+   "note": "query string in resolver latency measurement"
+  },
+  {
+   "id": "collision-49",
+   "answer": "no",
+   "confidence": 0.7,
+   "note": "query string in resolver latency measurement"
+  },
+  {
+   "id": "collision-50",
+   "answer": "no",
+   "confidence": 0.7,
+   "note": "query string in resolver latency measurement"
+  },
+  {
+   "id": "collision-51",
+   "answer": "no",
+   "confidence": 0.7,
+   "note": "query string in resolver latency measurement"
+  },
+  {
+   "id": "collision-52",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "JNPR as Indian listing; company name not stated"
+  },
+  {
+   "id": "collision-53",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "one of several affected listings"
+  },
+  {
+   "id": "collision-54",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-55",
+   "answer": "yes",
+   "confidence": 0.5,
+   "note": "AMAL NSE listing one of several affected"
+  },
+  {
+   "id": "collision-56",
+   "answer": "yes",
+   "confidence": 0.8,
+   "note": "Zomato renamed to Eternal"
+  },
+  {
+   "id": "collision-57",
+   "answer": "no",
+   "confidence": 0.9,
+   "note": "wrong disambiguation candidate"
+  },
+  {
+   "id": "collision-58",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "SEQUENT->VIYASH rename example"
+  },
+  {
+   "id": "collision-59",
+   "answer": "yes",
+   "confidence": 0.5,
+   "note": "one of four example listings"
+  },
+  {
+   "id": "collision-60",
+   "answer": "yes",
+   "confidence": 0.5,
+   "note": "one of four example listings"
+  },
+  {
+   "id": "collision-61",
+   "answer": "yes",
+   "confidence": 0.5,
+   "note": "one of four example listings"
+  },
+  {
+   "id": "collision-62",
+   "answer": "yes",
+   "confidence": 0.5,
+   "note": "one of four example listings"
+  },
+  {
+   "id": "collision-63",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-64",
+   "answer": "yes",
+   "confidence": 0.75,
+   "note": "ELCIDIN; full name not stated"
+  },
+  {
+   "id": "collision-65",
+   "answer": "yes",
+   "confidence": 0.75
+  },
+  {
+   "id": "collision-66",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "collision-67",
+   "answer": "yes",
+   "confidence": 0.65,
+   "note": "rights-entitlement line central to passage"
+  },
+  {
+   "id": "collision-68",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "collision-69",
+   "answer": "no",
+   "confidence": 0.9,
+   "note": "wrong candidate"
+  },
+  {
+   "id": "collision-70",
+   "answer": "yes",
+   "confidence": 0.65,
+   "note": "BeOne name not in passage; ONC formerly BeiGene"
+  },
+  {
+   "id": "collision-71",
+   "answer": "yes",
+   "confidence": 0.75,
+   "note": "former name of ONC"
+  },
+  {
+   "id": "collision-72",
+   "answer": "yes",
+   "confidence": 0.65,
+   "note": "former private-limited name"
+  },
+  {
+   "id": "collision-73",
+   "answer": "no",
+   "confidence": 0.55,
+   "note": "scrip-code example only; entity not named"
+  },
+  {
+   "id": "collision-74",
+   "answer": "no",
+   "confidence": 0.6,
+   "note": "scrip-code example only; entity not named"
+  },
+  {
+   "id": "collision-75",
+   "answer": "yes",
+   "confidence": 0.6
+  },
+  {
+   "id": "collision-76",
+   "answer": "no",
+   "confidence": 0.9,
+   "note": "wrong US disambiguation candidate"
+  },
+  {
+   "id": "collision-77",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "GUJENERGY as renamed GUJGASLTD"
+  },
+  {
+   "id": "collision-78",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-79",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "rename target of GUJGASLTD"
+  },
+  {
+   "id": "collision-80",
+   "answer": "yes",
+   "confidence": 0.65
+  }
+ ]
+}

@@ -1,0 +1,177 @@
+{"_meta": {"t0": 1790128201.162966, "status": 200, "request": {"prompt": "research KPIT Technologies", "context_snapshot": {"focused_source": "chart-1", "by_source": {"__terminal__": {"focusedPanel": "chart-1", "capturedAt": 0, "charts": [{"panelId": "chart-1", "symbol": "COCHINSHIP", "timeframe": "1d", "indicators": ["SMA20"]}], "focusedChart": {"panelId": "chart-1", "symbol": "COCHINSHIP", "timeframe": "1d", "indicators": ["SMA20"]}, "watchlist": {"symbols": ["KPITTECH", "BDL", "CAMS"], "selected": "KPITTECH"}, "portfolio": {"positionCount": 1, "totalValue": null, "activePortfolioName": "Main", "holdings": [{"id": "h1", "symbol": "BDL", "quantity": 10, "costBasis": 1450, "assetClass": "equity", "marketValue": null, "pnl": null}]}, "openPanels": ["chart", "watchlist", "brief"], "brief": {"phase": "empty"}, "viewport": {"width": 1920, "height": 1080}}}, "captured_at": 1790128201162}, "provider": "ollama", "model": "llama3.1:8b", "mode": "agent", "autonomy": "auto", "options": {"history": "<0 turns>", "deepResearchBackend": "auto", "research_depth": "normal"}}}}
+{"kind": "tool_use", "tool_call_id": "", "name": "research", "input": {"query": "KPIT Technologies", "depth": "quick"}, "_t": 66.53}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "engine", "detail": "research:begin 9a44ce1ba1824fea81f6cab41f81706b depth=normal query=KPIT Technologies", "latency_ms": null, "status": "ok", "index": 1, "_t": 66.93}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolving \"KPIT Technologies\"", "latency_ms": null, "status": "ok", "index": 2, "_t": 66.93}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 KPITTECH", "latency_ms": 353, "status": "ok", "index": 3, "_t": 66.93}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulling market data for KPITTECH", "latency_ms": null, "status": "ok", "index": 4, "_t": 66.93}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulled 4/4 data sources", "latency_ms": 19235, "status": "ok", "index": 5, "_t": 86.15}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "searching the web for KPIT Technologies Limited", "latency_ms": null, "status": "ok", "index": 6, "_t": 86.15}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "6 web source(s)", "latency_ms": 9011, "status": "ok", "index": 7, "_t": 95.18}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 8, "_t": 95.18}
+{"kind": "tool_use", "tool_call_id": "__autobrief", "name": "publish_brief", "input": {"query": "KPIT Technologies", "symbol": "KPITTECH", "mode": "fast", "depth": "quick", "execution": {"run_id": "9a44ce1ba1824fea81f6cab41f81706b", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1790128267.701602, "finished_at": 1790128296.3174899, "degraded_reason": null}, "markdown": "", "sources": [{"url": "https://www.perplexity.ai/finance/KPITTECH.NS", "title": "KPIT Technologies Limited Price: Quote, Forecast, Charts ...", "excerpt": "", "domain": "web"}, {"url": "https://groww.in/stocks/kpit-engineering-ltd", "title": "KPIT Technologies Share Price, Stock Price, LIVE NSE/BSE - Groww", "excerpt": "", "domain": "web"}, {"url": "https://www.nseindia.com/get-quotes/equity?symbol=KPITTECH", "title": "KPIT Technologies Limited Share Price Today, Stock Price, Live NSE News, Quotes, Tips \u2013 NSE India", "excerpt": "", "domain": "web"}, {"url": "https://trendlyne.com/latest-news/141324/KPITTECH/kpit-technologies-ltd/", "title": "KPIT Technologies News, Corporate filings and Earnings/Conference Calls", "excerpt": "", "domain": "web"}, {"url": "https://finance.yahoo.com/quote/KPITTECH.NS/", "title": "KPIT Technologies Limited (KPITTECH.NS) Stock Price, News, Quote & History - Yahoo Finance", "excerpt": "", "domain": "web"}, {"url": "https://simplywall.st/stocks/in/software/nse-kpittech/kpit-technologies-shares/future", "title": "KPIT Technologies (NSEI:KPITTECH) Stock Forecast & Analyst Predictions - Simply Wall St", "excerpt": "", "domain": "web"}], "structured": {"price": {"ok": true, "provider": "nse_direct", "data": {"symbol": "KPITTECH", "price": 529.05, "change": -7.75, "change_percent": -1.4437406855439645, "volume": 1583599.0, "currency": "INR", "market_state": "CLOSED", "timestamp": "2026-09-22T00:00:00Z", "provider": "nse_direct", "freshness": null}}, "fundamentals": {"ok": true, "provider": "yfinance", "data": {"symbol": "KPITTECH.NS", "name": "KPIT Technologies Limited", "sector": "Technology", "industry": "Software - Application", "currency": "INR", "market_cap": 144021815296.0, "pe_ratio": 24.88476, "forward_pe": 16.716389, "peg_ratio": null, "price_to_book": 4.0673623, "price_to_sales": 2.185074, "ev_to_ebitda": 10.309, "book_value": 130.072, "dividend_yield": 0.013999999999999999, "dividend_per_share": 7.5, "eps": 21.26, "beta": -0.007, "fifty_two_week_high": 1284.9, "fifty_two_week_low": 524.0, "fifty_two_week_change": -0.57665837, "roe": null, "roa": null, "gross_margin": 0.36762002, "operating_margin": 0.122530006, "profit_margin": 0.08839, "debt_to_equity": 0.23623999999999998, "current_ratio": null, "quick_ratio": null, "revenue_ttm": 65911640064.0, "net_income_ttm": 5826180096.0, "free_cash_flow": null, "shares_outstanding": 272227219.0, "revenue_growth": 0.089, "earnings_growth": -0.318, "growth_basis": "mrq_yoy", "held_percent_insiders": 0.45283002, "held_percent_institutions": 0.30717, "dividend_per_share_ttm": 7.5, "revenue_growth_computed": 0.08853421681469702, "earnings_growth_computed": -0.31833227651120716, "growth_computed_quarters": {"mrq": "2026-06-30", "prior": "2025-06-30"}, "field_meta": {"name": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "sector": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "industry": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "currency": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "market_cap": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "pe_ratio": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "forward_pe": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "peg_ratio": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": "provider did not publish this field", "label": null}, "price_to_book": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "price_to_sales": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "ev_to_ebitda": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "book_value": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "dividend_yield": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "dividend_per_share": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "eps": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "beta": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "fifty_two_week_high": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "fifty_two_week_low": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "fifty_two_week_change": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "roe": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": "provider did not publish this field", "label": null}, "roa": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": "provider did not publish this field", "label": null}, "gross_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "operating_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "profit_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "debt_to_equity": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "current_ratio": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": "provider did not publish this field", "label": null}, "quick_ratio": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": "provider did not publish this field", "label": null}, "revenue_ttm": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "net_income_ttm": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "free_cash_flow": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": "provider did not publish this field", "label": null}, "shares_outstanding": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "revenue_growth": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "earnings_growth": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "held_percent_insiders": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "held_percent_institutions": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": null, "label": null}, "identity_note": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T01:51:10.762461+00:00", "reason": "provider did not publish this field", "label": null}, "dividend_per_share_ttm": {"status": "ok", "provider": "yfinance"}}, "provider": "yfinance", "identity_note": null, "ownership_exchange": {"promoter_percent": 38.6, "institutions_percent": 36.83, "public_percent": 60.78, "as_of_quarter": "2026-06-30", "source": "NSE"}, "range_52w_exchange": {"high": 1284.9, "low": 524.0, "coverage_days": 365, "bars": 248, "source": "nse_direct"}, "market_cap_witness": {"shares_outstanding": 274143808.0, "source": "BSE ListOfScripData (bundled India master) (as of 2026-06-11)", "scrip_code": "542651", "as_of": "2026-06-11"}}}, "derived": {"ok": true, "provider": "derived", "data": {"drawdown_from_high": {"value": 0.5882558954004203, "label": "Below 52-week high", "basis": "vs 52w high", "formula": "(52w high - price) / 52w high", "unit": "percent"}, "fifty_two_week_change": {"value": -0.57665837, "label": "52-week price change (Yahoo)", "basis": "trailing 52 weeks", "unit": "percent"}, "dividend_yield": {"value": 0.014176353841791892, "label": "Dividend yield", "basis": "fraction of price", "formula": "dividend per share / price", "unit": "percent"}, "dividend_per_share": {"value": 7.5, "label": "Dividend per share", "basis": "per share, INR", "unit": "currency"}, "revenue_growth": {"value": 0.089, "label": "Revenue growth", "basis": "quarterly YoY (MRQ)", "unit": "percent"}, "earnings_growth": {"value": -0.318, "label": "Earnings growth", "basis": "quarterly YoY (MRQ)", "unit": "percent"}, "promoter_percent_exchange": {"value": 0.386, "label": "Promoter group (exchange filing)", "basis": "NSE shareholding filing, 2026-06-30", "unit": "percent"}, "institutions_percent_exchange": {"value": 0.3683, "label": "Institutional holding (exchange filing)", "basis": "NSE shareholding filing, 2026-06-30", "unit": "percent"}, "conflicts": [{"field": "held_percent_insiders", "kind": "ownership_conflict", "conflict_kind": "data_conflict", "sources": [{"provider": "yfinance (heldPercentInsiders)", "value": 45.283, "basis": "insiders (provider roster; mixed as-of)"}, {"provider": "NSE shareholding filing", "value": 38.6, "basis": "promoter group as of 2026-06-30"}], "note": "The provider's heldPercentInsiders (45.28%) counts INSIDERS \u2014 a superset that mixes promoter-group holders with other insider rows and can carry stale, individually-dated as-of dates \u2014 while the NSE shareholding filing reports the strict PROMOTER GROUP at 38.60% as of 2026-06-30. Insiders and promoter-group are different by definition; both figures are shown, neither replaced."}]}}, "news": {"ok": true, "provider": "rss", "data": [], "note": "No on-entity news found for KPITTECH \u2014 128 item(s) returned by the news feed were off-entity/off-topic and dropped."}, "filings": {"ok": true, "provider": "nse+bse", "data": {"symbol": "KPITTECH", "exchange": null, "sources": ["NSE", "BSE"], "errors": {}, "count": 20, "announcements": [{"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Outcome", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_22092026200646_KPIT_JPM_Conference_outcome_signed.pdf", "ts": "2026-09-22T20:07:29+05:30"}, {"symbol": "KPITTECH", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/decd8e6e-ca3d-443c-a8bd-4daf4cccd429.pdf", "ts": "2026-09-22T20:04:41.720000+05:30"}, {"symbol": "KPITTECH", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/76bc1fff-bac2-4d01-a11e-cf56d2172c51.pdf", "ts": "2026-09-21T21:58:05.523000+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Outcome", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_21092026214925_KPIT_Anand_Rathi_outcome_signed.pdf", "ts": "2026-09-21T21:51:30+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Schedule of meet", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_11092026162026_KPIT_Investor_Conference_Anand_Rathi_and_JP_Morgan_2026_signed.pdf", "ts": "2026-09-11T16:21:40+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Schedule of Investors/Analyst Conference to be held on Monday, September 21, 2026.", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_11092026161950_KPIT_Investor_Conference_Anand_Rathi_and_JP_Morgan_2026_signed.pdf", "ts": "2026-09-11T16:21:40+05:30"}, {"symbol": "KPITTECH", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/3e5ba36d-4a99-49f0-8142-4e93063049a8.pdf", "ts": "2026-09-11T16:14:57.893000+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "Please find attached Scrutinizers report and voting results of 9th Annual General Meeting held on August 31, 2026.", "category": "Shareholders meeting", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_01092026114850_Voting_Results_Covering_signed.pdf", "ts": "2026-09-01T11:49:49+05:30"}, {"symbol": "KPITTECH", "exchange": "BSE", "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report", "category": "AGM/EGM", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/ce866502-c691-41b8-b9d9-67cb4be9b40e.pdf", "ts": "2026-09-01T11:42:13.723000+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange regarding Proceedings of the 9th Annual General Meeting held on August 31, 2026", "category": "Shareholders meeting", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_31082026152943_CovLet9AGMproceedings_signed.pdf", "ts": "2026-08-31T15:30:46+05:30"}, {"symbol": "KPITTECH", "exchange": "BSE", "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM", "category": "AGM/EGM", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/1ffda5d4-7158-40b9-a091-7fcb0a1e9cac.pdf", "ts": "2026-08-31T15:24:41.930000+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "Disclosure under Regulation 30 of SEBI LODR - adjudication order from the Office of the Collector of Stamps", "category": "Action(s) taken or orders passed", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_27082026163341_KPIT_SE_intimation_Notice_26_August_2026_signed.pdf", "ts": "2026-08-27T16:34:10+05:30"}, {"symbol": "KPITTECH", "exchange": "BSE", "headline": "Disclosure Under Regulation 30 Of SEBI LODR", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/40539b9f-c555-49ee-b8e9-b2c74b027ea2.pdf", "ts": "2026-08-27T16:28:24.597000+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Reconstitution of Nomination and Remuneration (HR) Committee of the Board.", "category": "General Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/MeghanaPhadnis_26082026134637_Reconstitution_of_NRC_SE_Outcome_signed.pdf", "ts": "2026-08-26T13:47:03+05:30"}, {"symbol": "KPITTECH", "exchange": "BSE", "headline": "Reconstitution Of Nomination And Remuneration (HR) Committee Of The Board.", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/76a98823-5762-4e47-80d0-dddedd649406.pdf", "ts": "2026-08-26T13:42:49.023000+05:30"}, {"symbol": "KPITTECH", "exchange": "BSE", "headline": "Response To Stakeholders Empowerment Services (SES) Voting Recommendations", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/add3b01b-df9f-412b-b2d0-77fd826ed1b6.pdf", "ts": "2026-08-25T16:04:21.153000+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited 9th Annual General Meeting to be held on August 31, 2026 - Response to Stakeholders Empowerment Services (SES) Voting Recommendations", "category": "General Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_25082026160235_KPIT_SES_clarification_Signed.pdf", "ts": "2026-08-25T16:02:46+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited 9th AGM to be held on August 31, 2026 - Response to Institutional Investor Advisory Services India (IiAS) Voting Recommendation", "category": "General Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_21082026174836_KPIT_iias_clarification_Final.pdf", "ts": "2026-08-21T17:48:57+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Outcome of Investor Conference held on Thursday, August 13, 2026.", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_13082026184555_KPIT_Equirus_Confluence_outcome_signed.pdf", "ts": "2026-08-13T18:48:24+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Outcome of Investor Conference held on Wednesday, August 12, 2026.", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_12082026184357_KPIT_Emkay_Confluence_outcome_signed.pdf", "ts": "2026-08-12T18:45:19+05:30"}]}}}, "cost": null, "web_available": true, "note": null, "web_reason": null, "backend": "keyless-fallback"}, "_t": 95.18}
+{"_ack_sent": {"toolCallId": "__autobrief", "status": "applied", "detail": {"action": "publish_brief", "symbol": "KPITTECH"}}, "_ack_http": 200, "_t": 95.2}
+{"kind": "delta", "text": "Built", "_t": 266.4}
+{"kind": "delta", "text": " you", "_t": 266.47}
+{"kind": "delta", "text": " a", "_t": 266.55}
+{"kind": "delta", "text": " brief", "_t": 266.62}
+{"kind": "delta", "text": " on", "_t": 266.7}
+{"kind": "delta", "text": " KP", "_t": 266.77}
+{"kind": "delta", "text": "IT", "_t": 266.85}
+{"kind": "delta", "text": " Technologies", "_t": 266.92}
+{"kind": "delta", "text": " \u2014", "_t": 267.0}
+{"kind": "delta", "text": " it", "_t": 267.27}
+{"kind": "delta", "text": "'s", "_t": 267.27}
+{"kind": "delta", "text": " at", "_t": 267.27}
+{"kind": "delta", "text": " the", "_t": 267.49}
+{"kind": "delta", "text": " top", "_t": 267.5}
+{"kind": "delta", "text": " of", "_t": 267.5}
+{"kind": "delta", "text": " the", "_t": 267.53}
+{"kind": "delta", "text": " cockpit", "_t": 267.6}
+{"kind": "delta", "text": ";", "_t": 267.68}
+{"kind": "delta", "text": " click", "_t": 267.75}
+{"kind": "delta", "text": " any", "_t": 267.83}
+{"kind": "delta", "text": " ticker", "_t": 267.91}
+{"kind": "delta", "text": " to", "_t": 267.98}
+{"kind": "delta", "text": " dig", "_t": 268.06}
+{"kind": "delta", "text": " in", "_t": 268.13}
+{"kind": "delta", "text": ".\n\n", "_t": 268.21}
+{"kind": "delta", "text": "*", "_t": 268.29}
+{"kind": "delta", "text": " Current", "_t": 268.36}
+{"kind": "delta", "text": " Price", "_t": 268.44}
+{"kind": "delta", "text": ":", "_t": 268.51}
+{"kind": "delta", "text": " \u20b9", "_t": 268.59}
+{"kind": "delta", "text": "529", "_t": 268.67}
+{"kind": "delta", "text": ".", "_t": 268.74}
+{"kind": "delta", "text": "05", "_t": 268.82}
+{"kind": "delta", "text": "\n", "_t": 268.9}
+{"kind": "delta", "text": "*", "_t": 268.97}
+{"kind": "delta", "text": " Market", "_t": 269.05}
+{"kind": "delta", "text": " Cap", "_t": 269.12}
+{"kind": "delta", "text": ":", "_t": 269.2}
+{"kind": "delta", "text": " \u20b9", "_t": 269.27}
+{"kind": "delta", "text": "1", "_t": 269.35}
+{"kind": "delta", "text": ".", "_t": 269.43}
+{"kind": "delta", "text": "44", "_t": 269.5}
+{"kind": "delta", "text": " lakh", "_t": 269.58}
+{"kind": "delta", "text": " cro", "_t": 269.84}
+{"kind": "delta", "text": "res", "_t": 269.84}
+{"kind": "delta", "text": "\n", "_t": 269.84}
+{"kind": "delta", "text": "*", "_t": 269.88}
+{"kind": "delta", "text": " P", "_t": 270.14}
+{"kind": "delta", "text": "/E", "_t": 270.14}
+{"kind": "delta", "text": " Ratio", "_t": 270.14}
+{"kind": "delta", "text": ":", "_t": 270.18}
+{"kind": "delta", "text": " ", "_t": 270.26}
+{"kind": "delta", "text": "24", "_t": 270.34}
+{"kind": "delta", "text": ".", "_t": 270.41}
+{"kind": "delta", "text": "88", "_t": 270.49}
+{"kind": "delta", "text": "\n", "_t": 270.56}
+{"kind": "delta", "text": "*", "_t": 270.64}
+{"kind": "delta", "text": " Div", "_t": 270.71}
+{"kind": "delta", "text": "idend", "_t": 270.79}
+{"kind": "delta", "text": " Yield", "_t": 270.87}
+{"kind": "delta", "text": ":", "_t": 270.94}
+{"kind": "delta", "text": " ", "_t": 271.02}
+{"kind": "delta", "text": "0", "_t": 271.09}
+{"kind": "delta", "text": ".", "_t": 271.17}
+{"kind": "delta", "text": "014", "_t": 271.24}
+{"kind": "delta", "text": "2", "_t": 271.32}
+{"kind": "delta", "text": "%\n", "_t": 271.4}
+{"kind": "delta", "text": "*", "_t": 271.47}
+{"kind": "delta", "text": " Revenue", "_t": 271.55}
+{"kind": "delta", "text": " Growth", "_t": 271.63}
+{"kind": "delta", "text": " (", "_t": 271.7}
+{"kind": "delta", "text": "TT", "_t": 271.78}
+{"kind": "delta", "text": "M", "_t": 271.86}
+{"kind": "delta", "text": "):", "_t": 271.93}
+{"kind": "delta", "text": " ", "_t": 272.01}
+{"kind": "delta", "text": "8", "_t": 272.09}
+{"kind": "delta", "text": ".", "_t": 272.16}
+{"kind": "delta", "text": "9", "_t": 272.24}
+{"kind": "delta", "text": "%\n", "_t": 272.31}
+{"kind": "delta", "text": "*", "_t": 272.39}
+{"kind": "delta", "text": " E", "_t": 272.47}
+{"kind": "delta", "text": "arnings", "_t": 272.54}
+{"kind": "delta", "text": " Growth", "_t": 272.8}
+{"kind": "delta", "text": " (", "_t": 272.8}
+{"kind": "delta", "text": "TT", "_t": 272.8}
+{"kind": "delta", "text": "M", "_t": 273.02}
+{"kind": "delta", "text": "):", "_t": 273.02}
+{"kind": "delta", "text": " -", "_t": 273.02}
+{"kind": "delta", "text": "31", "_t": 273.07}
+{"kind": "delta", "text": ".", "_t": 273.15}
+{"kind": "delta", "text": "8", "_t": 273.23}
+{"kind": "delta", "text": "%\n\n", "_t": 273.3}
+{"kind": "delta", "text": "Note", "_t": 273.38}
+{"kind": "delta", "text": ":", "_t": 273.45}
+{"kind": "delta", "text": " The", "_t": 273.53}
+{"kind": "delta", "text": " above", "_t": 273.61}
+{"kind": "delta", "text": " figures", "_t": 273.68}
+{"kind": "delta", "text": " are", "_t": 273.76}
+{"kind": "delta", "text": " based", "_t": 273.85}
+{"kind": "delta", "text": " on", "_t": 273.93}
+{"kind": "delta", "text": " the", "_t": 274.0}
+{"kind": "delta", "text": " latest", "_t": 274.08}
+{"kind": "delta", "text": " available", "_t": 274.16}
+{"kind": "delta", "text": " data", "_t": 274.24}
+{"kind": "delta", "text": " and", "_t": 274.31}
+{"kind": "delta", "text": " may", "_t": 274.38}
+{"kind": "delta", "text": " not", "_t": 274.46}
+{"kind": "delta", "text": " reflect", "_t": 274.54}
+{"kind": "delta", "text": " the", "_t": 274.61}
+{"kind": "delta", "text": " current", "_t": 274.69}
+{"kind": "delta", "text": " market", "_t": 274.77}
+{"kind": "delta", "text": " situation", "_t": 274.84}
+{"kind": "delta", "text": ".\n\n", "_t": 274.92}
+{"kind": "delta", "text": "You", "_t": 274.99}
+{"kind": "delta", "text": " can", "_t": 275.07}
+{"kind": "delta", "text": " also", "_t": 275.15}
+{"kind": "delta", "text": " view", "_t": 275.22}
+{"kind": "delta", "text": " the", "_t": 275.3}
+{"kind": "delta", "text": " news", "_t": 275.37}
+{"kind": "delta", "text": " and", "_t": 275.45}
+{"kind": "delta", "text": " filings", "_t": 275.52}
+{"kind": "delta", "text": " related", "_t": 275.6}
+{"kind": "delta", "text": " to", "_t": 275.68}
+{"kind": "delta", "text": " KP", "_t": 275.75}
+{"kind": "delta", "text": "IT", "_t": 275.83}
+{"kind": "delta", "text": " Technologies", "_t": 275.91}
+{"kind": "delta", "text": " by", "_t": 275.98}
+{"kind": "delta", "text": " clicking", "_t": 276.06}
+{"kind": "delta", "text": " on", "_t": 276.14}
+{"kind": "delta", "text": " the", "_t": 276.21}
+{"kind": "delta", "text": " \"", "_t": 276.29}
+{"kind": "delta", "text": "News", "_t": 276.36}
+{"kind": "delta", "text": "\"", "_t": 276.44}
+{"kind": "delta", "text": " and", "_t": 276.52}
+{"kind": "delta", "text": " \"", "_t": 276.59}
+{"kind": "delta", "text": "Fil", "_t": 276.67}
+{"kind": "delta", "text": "ings", "_t": 276.74}
+{"kind": "delta", "text": "\"", "_t": 276.82}
+{"kind": "delta", "text": " tabs", "_t": 276.9}
+{"kind": "delta", "text": " in", "_t": 276.97}
+{"kind": "delta", "text": " the", "_t": 277.05}
+{"kind": "delta", "text": " brief", "_t": 277.13}
+{"kind": "delta", "text": ".\n\n", "_t": 277.2}
+{"kind": "delta", "text": "Additionally", "_t": 277.28}
+{"kind": "delta", "text": ",", "_t": 277.35}
+{"kind": "delta", "text": " you", "_t": 277.43}
+{"kind": "delta", "text": " can", "_t": 277.51}
+{"kind": "delta", "text": " click", "_t": 277.58}
+{"kind": "delta", "text": " on", "_t": 277.66}
+{"kind": "delta", "text": " any", "_t": 277.74}
+{"kind": "delta", "text": " ticker", "_t": 277.81}
+{"kind": "delta", "text": " symbol", "_t": 277.89}
+{"kind": "delta", "text": " in", "_t": 277.96}
+{"kind": "delta", "text": " the", "_t": 278.04}
+{"kind": "delta", "text": " brief", "_t": 278.11}
+{"kind": "delta", "text": " to", "_t": 278.19}
+{"kind": "delta", "text": " view", "_t": 278.27}
+{"kind": "delta", "text": " its", "_t": 278.34}
+{"kind": "delta", "text": " detailed", "_t": 278.42}
+{"kind": "delta", "text": " chart", "_t": 278.5}
+{"kind": "delta", "text": " and", "_t": 278.57}
+{"kind": "delta", "text": " analysis", "_t": 278.65}
+{"kind": "delta", "text": ".", "_t": 278.72}
+{"kind": "done", "usage": {"input_tokens": 10044, "output_tokens": 164, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop", "_t": 278.82}
+{"_summary": {"status": "ok", "secs": 283.8, "kinds": {"tool_use": 2, "research_step": 8, "delta": 163, "done": 1}, "usage": {"input_tokens": 10044, "output_tokens": 164, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}}}

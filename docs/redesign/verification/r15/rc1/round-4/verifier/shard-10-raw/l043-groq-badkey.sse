@@ -1,0 +1,4 @@
+data: {"kind": "error", "message": "The Groq API key was rejected \u2014 check it in Settings.", "action": "Re-enter the API key in Settings.", "detail": "Error code: 401 - {'error': {'message': 'Invalid API Key', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}", "code": "auth"}
+
+data: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+

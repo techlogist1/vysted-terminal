@@ -1,0 +1,310 @@
+"""Corporate-disclosure Pydantic models (R7 Component 3).
+
+Typed shapes for the India corporate-disclosure feeds served by
+:mod:`services.corporate_disclosures` and ``routers/disclosures.py``:
+
+* :class:`Announcement` — one exchange announcement (NSE corporate-announcements
+  feed / BSE ``AnnSubCategoryGetData`` feed), merged + deduped by the service.
+* :class:`ResultsEvent` — one results-calendar / board-meeting event (the NSE
+  ``event-calendar`` feed).
+* :class:`ExchangeDeal` — one bulk deal, block deal or SAST disclosure.
+* :class:`CorporateAction` — one dividend / bonus / split / rights / buyback
+  (NSE + BSE corporate-action feeds, merged).
+* :class:`MajorShareholder` — one 20-F major holder of a US-listed ADR.
+* :class:`ShareholdingPattern` — one quarterly shareholding-pattern row. The
+  NSE shareholding MASTER carries the promoter(+group), public, and
+  employee-trust percentages; the FII/DII split lives only in the linked XBRL
+  filing, so ``fii_percent``/``dii_percent`` are honest ``None`` unless a
+  source actually supplies them — never fabricated (``xbrl_url`` points at the
+  filing that carries the full split).
+
+Mirrored by hand in ``types/data.ts`` — keep in sync (see CLAUDE.md Gotchas).
+"""
+
+from __future__ import annotations
+
+import datetime as _dt
+from datetime import date, datetime
+from typing import Literal
+
+from pydantic import BaseModel, PrivateAttr
+
+#: Whether a disclosure feed covers the instrument (C3, D-B7-3): ``covered``;
+#: ``venue_not_covered`` (an Indian listing on a venue with no such feed);
+#: ``not_applicable`` (not an NSE/BSE instrument). Out-of-coverage is answered
+#: with an empty list and a ``note``, never raised as an upstream failure.
+Coverage = Literal["covered", "venue_not_covered", "not_applicable"]
+
+
+class Announcement(BaseModel):
+    """One corporate announcement from an Indian exchange feed."""
+
+    symbol: str
+    #: The exchange that disseminated this item: ``"NSE"`` or ``"BSE"``.
+    exchange: str
+    headline: str
+    #: Exchange category label (e.g. "Updates", "Company Update"); None when absent.
+    category: str | None = None
+    #: Direct URL of the filed attachment (usually a PDF); None when none filed.
+    attachment_url: str | None = None
+    #: Dissemination timestamp (IST-aware); None when the feed row had no
+    #: parseable timestamp (kept rather than dropped — the text still informs).
+    ts: datetime | None = None
+    #: The disclosure body text the cross-exchange dedup compares (BSE
+    #: ``HEADLINE``; NSE's ``attchmntText`` is already the headline) — the BSE
+    #: display headline is a short subject that never matches NSE's. Not served.
+    _body: str | None = PrivateAttr(default=None)
+    #: The exchange category mapped to one canonical kind (NSE ``desc``, BSE
+    #: ``SUBCATNAME``/``CATEGORYNAME``), which the cross-feed pairing compares
+    #: when the two texts share too few words. Not served.
+    _kind: str | None = PrivateAttr(default=None)
+
+
+class AnnouncementWindow(BaseModel):
+    """The date range one exchange lane's items in a response are complete for."""
+
+    #: The oldest IST day covered; ``None`` when nothing older was cut (the
+    #: lane's full history).
+    window_start: date | None = None
+    #: The newest IST day covered (the day of the fetch).
+    window_end: date
+
+
+class AnnouncementsResponse(BaseModel):
+    """``GET /disclosures/announcements`` — the merged, deduped feed."""
+
+    symbol: str
+    #: The single-exchange filter applied, or None for the merged NSE+BSE feed.
+    exchange: str | None = None
+    count: int
+    announcements: list[Announcement] = []
+    #: Exchanges that actually served this response (e.g. ["NSE","BSE"]).
+    sources: list[str] = []
+    #: Exchanges that were attempted but failed, with the honest reason — a
+    #: partial merge is served rather than failing the whole feed.
+    errors: dict[str, str] = {}
+    #: Per serving exchange, the date range its items are complete for (the BSE
+    #: feed is requested over a bounded window; an older filing outside it is
+    #: not "absent").
+    windows: dict[str, AnnouncementWindow] = {}
+    coverage: Coverage = "covered"
+    #: Why nothing is served when ``coverage`` is not ``covered`` — or, on a
+    #: covered feed, why the other exchange's same-ticker feed (another company)
+    #: was withheld (R15-LEAD-059).
+    note: str | None = None
+
+
+class ResultsEvent(BaseModel):
+    """One results-calendar / board-meeting event (NSE event-calendar feed,
+    BSE board-meeting feed)."""
+
+    symbol: str
+    company: str | None = None
+    #: Event purpose, e.g. "Financial Results", "Dividend", "Demerger".
+    purpose: str
+    #: The board-meeting description text accompanying the event.
+    description: str | None = None
+    #: Meeting/event date; None when the feed row carried no parseable date.
+    #: (Annotated via the module alias — the field NAME shadows ``date`` when
+    #: Pydantic evaluates this class's deferred annotations.)
+    date: _dt.date | None = None
+    #: The feed that carried it: ``"NSE"``, ``"BSE"``, or ``"NSE+BSE"`` when a
+    #: dual listing's two feeds carry one meeting (collapsed on date + purpose).
+    exchange: str | None = None
+
+
+class ResultsCalendarResponse(BaseModel):
+    """``GET /disclosures/results`` — results/board-meeting events, newest first."""
+
+    symbol: str
+    count: int
+    events: list[ResultsEvent] = []
+    #: Exchanges that served this response.
+    sources: list[str] = []
+    #: Exchanges attempted but failed, with the reason (partial merge served).
+    errors: dict[str, str] = {}
+    coverage: Coverage = "covered"
+    note: str | None = None
+
+
+class ShareholdingPattern(BaseModel):
+    """One quarterly shareholding-pattern row for a listed company.
+
+    Percentages are 0-100 (as the exchanges publish them). ``fii_percent`` /
+    ``dii_percent`` are ``None`` when the source feed does not carry the split
+    (the NSE master does not — the linked XBRL filing does); they are never
+    fabricated.
+    """
+
+    symbol: str
+    #: The quarter-end date this pattern reports (e.g. 2026-03-31). BSE dates a
+    #: listing-time (IPO) pattern to the day (2026-06-04).
+    quarter_end: date
+    #: What ``quarter_end`` is when it is NOT the filed period — the filing date
+    #: of a pattern whose exchange period label could not be parsed (kept, not
+    #: dropped). ``None`` when ``quarter_end`` is the filed period.
+    quarter_basis: str | None = None
+    #: Promoter + promoter-group holding, percent of equity.
+    promoter_percent: float | None = None
+    fii_percent: float | None = None
+    dii_percent: float | None = None
+    #: Total institutional holding (FII + DII), percent of equity. The NSE
+    #: quarterly master does not carry it (the split lives in the XBRL), so it
+    #: is ``None`` on that lane; the BSE lane parses it from the SEBI XBRL and
+    #: populates it (with ``fii``/``dii`` when the foreign/domestic split is
+    #: present). Never fabricated.
+    institutions_percent: float | None = None
+    #: The PUBLIC bucket, percent of equity. IMPORTANT: on BOTH the NSE quarterly
+    #: master and the BSE SEBI "Public" category this INCLUDES institutions
+    #: (FII/DII) — a name with a large FII position (SIL: FII 38.86%) reports a
+    #: public % that dwarfs its true non-institutional float. ``public_basis``
+    #: labels this; ``public_non_institutional_percent`` carries the split-out
+    #: non-institutional slice when the SEBI XBRL supplies it.
+    public_percent: float | None = None
+    #: What ``public_percent`` counts — ``"incl. institutions"`` for the exchange
+    #: "Public" category (the only basis either lane reports). Labeled so a
+    #: consumer never reads the public bucket as the non-institutional float.
+    public_basis: str | None = None
+    #: The NON-INSTITUTIONAL public float (SEBI ``NonInstitutionsMember``), percent
+    #: of equity — the "true public" the FII/DII split carves out of
+    #: ``public_percent``. Populated only from the BSE SEBI XBRL (native or merged
+    #: onto a dual-listed NSE pattern); ``None`` when unavailable. Never fabricated.
+    public_non_institutional_percent: float | None = None
+    employee_trusts_percent: float | None = None
+    #: Date the pattern was filed with the exchange.
+    submission_date: date | None = None
+    #: The XBRL filing URL carrying the full category-level split (FII/DII detail).
+    xbrl_url: str | None = None
+    #: The exchange lane that served this pattern — ``"NSE"`` (quarterly master)
+    #: or ``"BSE"`` (SEBI XBRL). Lets a consumer state the provenance and the
+    #: as-of quarter of an exchange figure verbatim.
+    source: str | None = None
+    #: The lane that supplied the FII/DII/institutions split when it was MERGED
+    #: from a DIFFERENT lane than ``source`` — set to ``"BSE"`` on an NSE-master
+    #: pattern enriched with the BSE SEBI-XBRL split for a dual-listed name;
+    #: ``None`` when the split (if any) is native to ``source``.
+    split_source: str | None = None
+    #: The quarter-end the merged split was sourced from. Equals ``quarter_end``
+    #: on an exact-quarter merge; differs when the nearest available BSE quarter
+    #: supplied the split (an honest as-of, never silently aligned). ``None`` when
+    #: no split was merged.
+    split_as_of: date | None = None
+    #: How the FII/DII legs were obtained: ``"filed"`` (both read from the
+    #: filing), ``"derived"`` (a leg the filing omits, computed as the filed
+    #: institutions total minus the other leg, or 0 from a 0 total). ``None``
+    #: when no leg is known.
+    split_basis: Literal["filed", "derived"] | None = None
+    #: Promoter + promoter-group shares pledged or otherwise encumbered, as a
+    #: percent of the promoter holding (SEBI SHP Table II, from the XBRL; merged
+    #: onto a dual-listed NSE pattern with the split). ``0.0`` when the filing
+    #: declares no pledge/encumbrance; ``None`` when it declares nothing.
+    promoter_pledged_percent: float | None = None
+    #: ``"filed"`` when the filing states the pledge (including an explicit 0);
+    #: ``None`` when the filing carries no declaration. Never inferred.
+    promoter_pledge_basis: Literal["filed"] | None = None
+
+
+class MajorShareholder(BaseModel):
+    """One 5%-or-more holder from a foreign issuer's 20-F (Item 7.A)."""
+
+    holder: str
+    #: Percent of the class (0-100) in the newest column the filing reports;
+    #: ``None`` when that column shows a dash.
+    percent: float | None = None
+    #: The date the filing states the holdings as of.
+    as_of: date | None = None
+
+
+class ShareholdingResponse(BaseModel):
+    """``GET /disclosures/shareholding`` — quarterly patterns, newest first.
+
+    A US-listed ADR has no Indian shareholding pattern; its major holders come
+    from its latest 20-F as a separate, disclosed lane (``provider`` =
+    ``"sec-20f"``, ``major_shareholders``), never merged into ``patterns``."""
+
+    symbol: str
+    count: int
+    patterns: list[ShareholdingPattern] = []
+    coverage: Coverage = "covered"
+    note: str | None = None
+    #: ``"sec-20f"`` when ``major_shareholders`` is served; ``None`` otherwise.
+    provider: str | None = None
+    major_shareholders: list[MajorShareholder] = []
+    #: The filing the major holders were read from.
+    source_url: str | None = None
+
+
+class CorporateAction(BaseModel):
+    """One corporate action of an Indian listing (R15-DATA-025): a dividend,
+    bonus, split, rights issue or buyback, with its record/ex/payment dates.
+
+    ``purpose`` is the exchange's verbatim line; ``ratio`` ("7:24") and
+    ``amount_per_share`` are parsed from it (a dividend's amount from BSE's
+    ``Details`` when NSE does not carry the action) and ``None`` when absent.
+    ``exchange`` is ``"NSE"``, ``"BSE"`` or ``"NSE+BSE"`` when both feeds carry
+    one action (collapsed on its kind and ex-date).
+    """
+
+    symbol: str
+    kind: Literal["dividend", "bonus", "split", "rights", "buyback", "other"]
+    purpose: str
+    ratio: str | None = None
+    amount_per_share: float | None = None
+    ex_date: date | None = None
+    record_date: date | None = None
+    payment_date: date | None = None
+    exchange: str
+
+
+class CorporateActionsResponse(BaseModel):
+    """``GET /disclosures/corporate-actions`` — NSE+BSE actions, newest first."""
+
+    symbol: str
+    count: int
+    actions: list[CorporateAction] = []
+    #: Exchanges that served this response.
+    sources: list[str] = []
+    #: Exchanges attempted but failed, with the reason (partial merge served).
+    errors: dict[str, str] = {}
+    coverage: Coverage = "covered"
+    note: str | None = None
+
+
+class ExchangeDeal(BaseModel):
+    """One bulk deal, block deal or SAST (SEBI Reg 29) disclosure of an Indian
+    listing (R15-DATA-024). Fields a feed does not carry stay ``None``: bulk and
+    block deals carry no holding after; a SAST disclosure carries no price."""
+
+    symbol: str
+    kind: Literal["bulk", "block", "sast"]
+    #: Deal date (bulk/block) or the acquisition/sale date (SAST).
+    date: _dt.date | None = None
+    #: The client (bulk/block) or the acquirer/seller (SAST), verbatim.
+    party: str | None = None
+    side: Literal["buy", "sell"] | None = None
+    quantity: float | None = None
+    #: Weighted average trade price (bulk/block).
+    price: float | None = None
+    #: ``quantity`` x ``price`` (bulk/block).
+    value: float | None = None
+    #: The party's holding after the transaction, percent of shares (SAST).
+    percent_after: float | None = None
+    exchange: str
+    #: The filed disclosure (SAST attachment).
+    source_url: str | None = None
+
+
+class ExchangeDealsResponse(BaseModel):
+    """``GET /disclosures/deals`` — bulk/block deals and SAST, newest first."""
+
+    symbol: str
+    #: The kind filter applied, or ``None`` for every kind.
+    kind: str | None = None
+    count: int
+    deals: list[ExchangeDeal] = []
+    #: The lanes that served ("NSE bulk", "NSE sast", "BSE block", ...).
+    sources: list[str] = []
+    #: Lanes attempted but failed, with the reason (partial result served).
+    errors: dict[str, str] = {}
+    coverage: Coverage = "covered"
+    note: str | None = None

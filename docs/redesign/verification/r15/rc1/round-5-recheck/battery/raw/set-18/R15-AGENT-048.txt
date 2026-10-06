@@ -1,0 +1,49 @@
+CMD: source read of services/llm/openai.py _resolve_tool_events/_repair_tool_args (R15-AGENT-048-tagged fix site)
+#: Tool-arg repairs per provider round, and the wall-clock cap on each one
+#: (R15-AGENT-048): five bad calls used to cost five serial, untimed completions
+#: whose usage was never counted. Calls past the cap get the error turn at once.
+_MAX_REPAIRS_PER_ROUND = 2
+_REPAIR_TIMEOUT_S = 30.0
+#: JSON-Schema keywords: a repair reply keyed by these (and not by the tool's own
+    async def _repair_tool_args(
+        self,
+        *,
+        tool_name: str,
+        raw_args: str,
+        error: str,
+        schema: dict[str, Any] | None,
+        model: str,
+        api_key: str | None,
+        repairs: list[LLMUsage | None],
+    ) -> dict[str, Any] | None:
+        """Run ONE repair round; return valid args dict or ``None`` on failure.
+
+        Reuses :func:`services.llm.oneshot.complete` (rides the per-request BYOK
+        creds) to ask the SAME model to re-emit ONLY a valid JSON arguments
+        object for ``tool_name`` given the schema + the validation error + its
+        own raw args. The reply is parsed, schema-re-validated, and returned —
+        ``None`` if it still cannot be parsed or still fails validation (the
+        caller then surfaces an error turn). No network on the test path: the
+        ``oneshot`` call is mocked. Past the round's repair cap it returns
+        ``None`` without a call; each call is timed and its usage appended to
+        ``repairs`` so it reaches the round's ``done``.
+        """
+        if not schema or len(repairs) >= _MAX_REPAIRS_PER_ROUND:
+            return None
+        from services.llm import oneshot
+
+        prompt = (
+            "A previous tool call to the function "
+            f"`{tool_name}` had invalid arguments.\n\n"
+            f"JSON Schema for the arguments:\n{json.dumps(schema)}\n\n"
+            f"The arguments you sent:\n{raw_args}\n\n"
+            f"The validation error:\n{error}\n\n"
+            "Reply with ONLY a single valid JSON object for the arguments — no "
+            "prose, no code fence, no explanation. It must satisfy the schema."
+        )
+        try:
+            reply, repair_usage = await oneshot.complete_with_usage(
+                self._provider_id,
+                model,
+                api_key,
+                [{"role": "user", "content": prompt}],

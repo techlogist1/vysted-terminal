@@ -1,0 +1,12 @@
+=== sp500 ===
+503 ['id', 'label', 'symbols', 'asset_class']
+=== nifty50 ===
+50 ['id', 'label', 'symbols', 'asset_class']
+=== crypto-top50 ===
+50 ['id', 'label', 'symbols', 'asset_class']
+=== nse-all ===
+3506 ['id', 'label', 'symbols', 'asset_class']
+=== bse-all ===
+5042 ['id', 'label', 'symbols', 'asset_class']
+=== india-all ===
+5891 ['id', 'label', 'symbols', 'asset_class']

@@ -1,0 +1,30 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar; sed -n 150,175p services/research/range_check.py; grep -c 'windowed_ts' services/research/range_check.py
+        return None
+    stamped = [(ts, bar) for bar in bars if (ts := _bar_timestamp(bar)) is not None]
+    if not stamped:
+        return None
+    latest = max(ts for ts, _ in stamped)
+    window_start = latest - timedelta(days=_WINDOW_DAYS)
+    windowed = [(ts, bar) for ts, bar in stamped if ts >= window_start]
+    if not windowed:
+        return None
+    coverage_days = (latest - min(ts for ts, _ in windowed)).days
+    if coverage_days < _COVERAGE_MIN_DAYS or len(windowed) < _COVERAGE_MIN_BARS:
+        return None
+    highs = [float(bar.high) for _, bar in windowed if bar.high is not None]
+    lows = [float(bar.low) for _, bar in windowed if bar.low is not None]
+    if not highs or not lows:
+        return None
+    return Range52w(
+        high=max(highs),
+        low=min(lows),
+        coverage_days=coverage_days,
+        bars=len(windowed),
+        source=source,
+    )
+
+
+def _fetch_history(symbol: str) -> Any:
+0
+EXIT=1

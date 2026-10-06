@@ -1,0 +1,8 @@
+=== kill_switch.rs existence ===
+=== broker_base.py existence ===
+=== D81 commit log ===
+d8e6d813 docs(r15): batch-12 launched (wf_7e4c4a3f-085)
+ed1ed202 fix(rc1): add D81 removal banner to PHASE_10_HANDOFF and mark it historical (rc1-gate8:1)
+a48fb964 docs(r15): batch-2 adjudication (14 removed with D81), plan and fresh-verifier verdicts
+a122dbf6 feat(d81): remove trading from the product (Stage C batch 1)
+252a7e51 docs(d81): correct SAFETY_ARCHITECTURE §3-5 and drop leftover trading mentions

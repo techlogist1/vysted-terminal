@@ -1,0 +1,21 @@
+# batch-7/W1-india-exchange-data
+
+Own sidecar: candidate `4c6dfe8c` (RC1 gate round 2), `127.0.0.1:52345`, data dir
+`rc1-data-rc1-battery-5` (fresh copy of the keyless ISO seed for this round — the round-1
+data dir found on disk under this name was discarded since it belonged to the superseded
+candidate `4097dac4`). All 7 entries are live HTTP/in-process re-runs against the running
+candidate sidecar (never vitest/pytest suites), reusing each entry's own register repro.
+
+| id | repro run | observed | verdict |
+|---|---|---|---|
+| R15-DATA-070 | In-process: three `NewsItem`s (dated-old, undated, dated-new) run through the real `fetch_news` sort tail (`dated.sort(...) + [undated]`); also called `_parse_struct_time(None)` / `_parse_iso(None)` / `_parse_iso("not-a-date")` directly. | Order is dated-new, dated-old, undated-last with `published_at=None`; the parsers return `None`, never `_utcnow()`, for a missing/malformed date. | holds |
+| R15-DATA-072 | In-process: `provider_health.reset_for_tests()`, 3x `record_rate_limited(YAHOO)` to open the breaker, then a real (live, unmocked) `yfinance_provider.get_history("MSFT","1h",range_="5d")` call. | Breaker opens after 3 throttles (`is_open`→True); the live history call returns 35 bars and `is_open`→False immediately after — a successful `get_history` now closes the breaker (was never observed at base). | holds |
+| R15-DATA-074 | Live `GET /disclosures/announcements?symbol=RELIANCE&exchange=NSE&limit=5` twice in a row against the candidate sidecar. | Call 1: 3.69s (real NSE fetch), 4 announcements. Call 2: 0.011s, byte-identical body — served from `data_cache`. Source: `disclosure_tools.py:73` (agent-tool path) and `routers/disclosures.py` both now call the single `corporate_disclosures.get_announcements_cached`, which wraps `data_cache` (was: the agent-tool path called the uncached `get_announcements` straight through `to_thread`). | holds |
+| R15-DATA-076 | Live `GET /fundamentals/DAL`. | `revenue_growth: 0.452`, provider `bse`, label "standalone, period to 2026-06-30 vs the same period to 2025-06-30" — matches the certified figure exactly (Yahoo's disagreeing figure is flagged "not served" via `field_meta`). | holds |
+| R15-DATA-078 | `grep -rni "alpha_vantage\|alphavantage"` over `sidecar/` (source + requirements.txt); read `docs/BLUEPRINT.md:266`. | 0 hits in source (no dependency, provider or route). BLUEPRINT.md now reads "yfinance fallback (no API key needed for basic use; R15-DATA-078 — alpha_vantage was [never built])" — the false promise is corrected, citing this entry. | holds |
+| R15-DATA-080 | `grep` `sidecar/services/agent_tools/catalog.py` for segment/operational capabilities; `grep -rn "segment_revenue\|operational_metrics\|revenue_by_segment"` over `sidecar/`. | No segment/operational-metric capability exists (0 hits) — unchanged since batch-11's `not_a_defect`/roadmap disposition (register status confirms `not_a_defect`). No fix was claimed or expected. | holds |
+| R15-DATA-082 | In-process, through the real pipeline (`provider_registry.get_quote`, not the inner helper alone): stubbed `ccxt_provider.get_ticker` to return (a) no `last`/`close` fields, (b) `last:0, close:0`; also live `GET /quotes?symbols=BTC/USDT,ETH/USDT&asset_class=crypto`. | (a) raises `ProviderError` "carries no last or close price" inside `_ticker_to_quote`, no 0.0 quote leaks out. (b) `_ticker_to_quote` itself still returns `price=0.0` for the double-zero case (the `is None` check doesn't catch a falsy-but-not-None 0), but the outer `provider_registry.get_quote` validates every result through `correctness_gate.validate_quote` (crypto only skips the staleness leg, not the price gate) which raises `CorrectnessError: non-positive price 0.0` — defense-in-depth catches it at the registry boundary. Live BTC/USDT and ETH/USDT quotes serve real non-zero prices, `freshness: live`. First probe run against the inner helper alone falsely suggested a regression; re-run through the actual registered repro path (`provider_registry.get_quote`) confirms it holds. | holds |
+
+Raw output: `raw/set-25/DATA-070.txt`, `DATA-072.txt`, `DATA-074.txt`, `DATA-076.txt`,
+`DATA-078.txt`, `DATA-080.txt`, `DATA-082-probe.txt` (isolated-helper false-alarm, kept for the
+record), `DATA-082-probe2.txt` (the actual registered repro path), `DATA-082-live.txt`.

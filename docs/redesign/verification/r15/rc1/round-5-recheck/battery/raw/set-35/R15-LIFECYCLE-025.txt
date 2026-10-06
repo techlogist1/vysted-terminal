@@ -1,0 +1,33 @@
+NOTE: an earlier probe against port 52347 hit a stale orphaned earlier-round
+process (PID 47234, cwd rc1-round-5-cand/sidecar, started 14:48, PPID 1) that
+had squatted this shard's assigned port before this role's own sidecar boot.
+Verified via lsof+ps, killed it, rebooted this shard's own sidecar (sleep pid
+69255) on the correct recheck candidate + data dir, confirmed /health ok. All
+commands below ran against the confirmed-correct sidecar.
+
+COMMAND (1, direct sqlite insert simulating a pre-rename (v0.8.0-tag) row --
+today's API validator (CustomAgentCreate) rejects the unknown tool id 'macro'
+at creation time, matching the register's own repro which creates the row via
+the tag's agents_store.create_agent, bypassing today's schema):
+  sqlite3 custom_agents.db "INSERT INTO custom_agents (id,...,tools_json,...)
+  VALUES ('custom:macro-hawk', 'Macro Hawk', ..., '[\"price_data\",\"macro\",\"news\"]',
+  'ollama', 'llama3.1:8b', ...)" -> exit 0
+
+COMMAND (2): curl -sS -m 10 http://127.0.0.1:52347/custom-agents/custom:macro-hawk
+--- output ---
+{"id":"custom:macro-hawk","name":"Macro Hawk","philosophy":"Watches macro","system_prompt":"Always check the macro series first.","tools":["price_data","macro","news"],"default_provider":"ollama","default_model":"llama3.1:8b","icon":null,"created_at":1790517540,"updated_at":1790517540}
+
+COMMAND (3, in-process against the candidate's own venv+source):
+  cd sidecar && ./.venv/bin/python3 -c "
+    from services.agent_tools import schemas
+    tools = schemas.openai_tools(['price_data','macro','news'])
+    print([t['function']['name'] for t in tools])"
+--- output ---
+['price_data', 'macro_series', 'news']
+
+COMMAND (4): curl -sS -m 10 -X PUT http://127.0.0.1:52347/custom-agents/custom:macro-hawk -H 'Content-Type: application/json' -d '{"name":"Macro Hawk","philosophy":"Watches macro","system_prompt":"Always check the macro series first.","tools":["price_data","macro","news"],"default_provider":"ollama","default_model":"llama3.1:8b"}'
+--- output ---
+{"id":"custom:macro-hawk","name":"Macro Hawk","philosophy":"Watches macro","system_prompt":"Always check the macro series first.","tools":["price_data","macro_series","news"],"default_provider":"ollama","default_model":"llama3.1:8b","icon":null,"created_at":1790517540,"updated_at":1790517636}
+
+EXIT: 0
+VERDICT: holds -- GET returns the legacy row's tools_json unchanged ("macro" preserved on disk); schemas.openai_tools resolves the legacy id "macro" -> "macro_series" (an alias, not a silent drop); PUT with the same tools now returns 200 (not the register's original pre-fix 422), persisting the resolved id ["price_data","macro_series","news"] -- matches batch-9/VERDICTS.md's own certification evidence exactly ("PUT returned 200, with macro resolved to macro_series").

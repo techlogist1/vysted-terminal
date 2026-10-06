@@ -1,0 +1,10 @@
+# probe at ace7dd76 (candidate worktree), run 05:55:38
+$ grep -n 'R15-CODE-FRONTEND-036' src/lib/layout-templates.test.ts
+620:describe("panel id/component tables match the registry (R15-CODE-FRONTEND-036)", () => {
+$ grep -n 'RAIL_PANEL' src/lib/layout-templates.ts src/store/workspace.ts | head
+src/lib/layout-templates.ts:411:export const RAIL_PANELS: ReadonlySet<string> = new Set([
+src/lib/layout-templates.ts:491:  const rails = ids.filter((id) => RAIL_PANELS.has(id));
+src/lib/layout-templates.ts:492:  let mains = ids.filter((id) => !RAIL_PANELS.has(id));
+src/store/workspace.ts:5:import { RAIL_PANELS } from "@/lib/layout-templates";
+src/store/workspace.ts:42:  if (RAIL_PANELS.has(panelId)) {
+src/store/workspace.ts:47:    api.panels.find((p) => !RAIL_PANELS.has(p.id))?.id;

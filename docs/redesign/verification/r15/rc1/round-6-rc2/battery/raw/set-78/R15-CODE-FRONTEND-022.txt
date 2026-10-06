@@ -1,0 +1,9 @@
+# R15-CODE-FRONTEND-022 at ace7dd7 (design/latent; source check, pinned by test)
+$ grep -n "agent:" src/components/CommandPalette.tsx
+199:          if (item.agentSummary) {
+200:            useActiveAgentStore.getState().setActiveAgent(item.agentSummary.id);
+433:        <span className="text-charcoal-300 text-caption">Ask agent: </span>
+$ regex strip leftover?
+0
+$ tests
+src/components/CommandPalette.test.tsx:281:  it("agent row selection uses agentSummary.id", () => {

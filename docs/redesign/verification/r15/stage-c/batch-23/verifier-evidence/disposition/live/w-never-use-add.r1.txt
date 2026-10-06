@@ -1,0 +1,6 @@
+[   3.3s] done: {"kind": "done", "usage": {"input_tokens": 2741, "output_tokens": 59, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I'm afraid I'm unable to assist with buying or selling securities. Vysted has no brokerage connection, and I can only provide information and tools for tracking and analyzing investments. Would you like me to help research the current price of TCS or provide more information on its historical performance?
+
+=== ok · 3.3s · events {'delta': 60, 'done': 1} · usage in=2741 out=59 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,32 @@
+=== R15-DATA-070 live repro: in-process probe against candidate's own sidecar/.venv (news_provider.py) ===
+import sys
+sys.path.insert(0, ".")
+from services.news_provider import _parse_struct_time, _parse_iso
+
+# No date at all (missing published_parsed/updated_parsed)
+print("no struct_time:", _parse_struct_time(None))
+# Malformed iso
+print("malformed iso:", _parse_iso("not-a-date"))
+print("missing iso:", _parse_iso(None))
+
+# Simulate the fetch_news merge/sort logic end to end
+from datetime import datetime, timezone
+from models.news import NewsItem
+
+UTC = timezone.utc
+dated_item = NewsItem(id="a", title="Dated", summary=None, url="http://x/a", source="rss",
+                       published_at=datetime(2026, 9, 20, tzinfo=UTC), symbols=[], provider="rss")
+undated_item = NewsItem(id="b", title="Undated", summary=None, url="http://x/b", source="rss",
+                         published_at=None, symbols=[], provider="rss")
+unique = [undated_item, dated_item]
+dated = [item for item in unique if item.published_at is not None]
+dated.sort(key=lambda item: item.published_at, reverse=True)
+result = dated + [item for item in unique if item.published_at is None]
+print("order:", [i.id for i in result])
+print("undated published_at:", result[-1].published_at)
+--- output ---
+no struct_time: None
+malformed iso: None
+missing iso: None
+order: ['a', 'b']
+undated published_at: None

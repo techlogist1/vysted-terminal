@@ -1,0 +1,6 @@
+POST(SSE) /backtest/run
+status=200
+{"strategyId": "trend_following", "params": {}, "symbols": ["SPY"], "startDate": "2025-12-31", "endDate": "2024-01-01", "initialCapital": 100000, "walkForwardSlices": 1}
+---
+data: {"kind":"run-error","runId":"_engine_error","message":"failed to load historical data for ['SPY'] — all providers returned no data for 2025-12-31..2024-01-01; check symbol validity and date range."}
+

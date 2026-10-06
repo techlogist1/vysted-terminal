@@ -1,0 +1,88 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_7ded0d3a76574555b396b6255b28f8fe", "name": "get_portfolio", "input": {}}
+{"kind": "tool_result", "tool_call_id": "call_7ded0d3a76574555b396b6255b28f8fe", "name": "get_portfolio", "ok": true, "error": null}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": " holdings"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " quantity"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": " basis"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "200"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "  "}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "market"}
+{"kind": "delta", "text": " value"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "266"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "52"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " profit"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " loss"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "P"}
+{"kind": "delta", "text": "/L"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "106"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "52"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " MS"}
+{"kind": "delta", "text": "FT"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " quantity"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": " basis"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "400"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "  "}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "market"}
+{"kind": "delta", "text": " value"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "155"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "59"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/L"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "352"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "59"}
+{"kind": "done", "usage": {"input_tokens": 1978, "output_tokens": 81, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

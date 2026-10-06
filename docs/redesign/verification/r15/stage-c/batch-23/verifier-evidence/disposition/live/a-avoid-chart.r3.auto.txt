@@ -1,0 +1,11 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  36.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_317ca35c757a4c699f80491b1e19d4bb", "name": "set_chart_symbol", "input": {"symbol": "INFY.NS"}}
+[  36.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_317ca35c757a4c699f80491b1e19d4bb", "name": "set_chart_symbol", "ok": true, "error": null}
+[  42.8s] done: {"kind": "done", "usage": {"input_tokens": 2875, "output_tokens": 26, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I've switched your chart to INFY.NS. To confirm, please check the panel state using `get_terminal_state`.
+
+=== ok · 42.8s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 26, 'done': 1} · usage in=2875 out=26 · est $0.00000 · llama3.1:8b

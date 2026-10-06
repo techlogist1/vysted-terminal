@@ -1,0 +1,50 @@
+{
+ "tag": "merge-S2B",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_merge.md in full — including the 23 Sep register-bundler note appended under REFUTE-RAW (the verdict vocabulary actually on disk, and the surf-portfolio-notes/surf-settings-plugins no-refute gap) — before touching anything. Your bundle file and output file are given per-item below; if the output file already exists, verify it and finish it, never restart.",
+ "stages": [
+  {
+   "label": "merge",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Cluster {{id}}: bundle {{bundle_file}} → write {{out_file}}. Follow PROMPT_merge.md's MERGE section exactly (dedupe across raw sources, severity-rank, every entry with a repro, evidence, an owning subsystem, the raw ids it came from, and the operator's four named areas tagged: ui-panels, agent-chat, research-search, data-smallcaps); every raw id in the bundle must land in an entry or in a one-line rejection; return the RESULT object with count = entries written."
+  }
+ ],
+ "items": [
+  {
+   "id": "cross-platform",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/cross-platform.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/cross-platform.json",
+   "count": 12
+  },
+  {
+   "id": "data",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/data.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/data.json",
+   "count": 238
+  },
+  {
+   "id": "docs",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/docs.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/docs.json",
+   "count": 16
+  },
+  {
+   "id": "lifecycle",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/lifecycle.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/lifecycle.json",
+   "count": 43
+  },
+  {
+   "id": "release",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/release.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/release.json",
+   "count": 18
+  },
+  {
+   "id": "research",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/research.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/research.json",
+   "count": 42
+  }
+ ]
+}

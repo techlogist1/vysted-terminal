@@ -1,0 +1,87 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_d5550678874e4361820e347c1fda7a99", "name": "price_data", "input": {"symbol": "SMR.NS", "timeframe": "1d", "asset_class": "equity", "range": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_d5550678874e4361820e347c1fda7a99", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " quote"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " SM"}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "94"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " closed"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " September"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " could"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " determined"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " result"}
+{"kind": "delta", "text": " does"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " contain"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "tool_use", "tool_call_id": "call_019890aff37b43cfb313e80100c92839", "name": "fundamentals", "input": {"symbol": "SMR.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_019890aff37b43cfb313e80100c92839", "name": "fundamentals", "ok": false, "error": "provider error: yfinance has no instrument data for 'SMR.NS'"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " does"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " include"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " SM"}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " quote"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " SM"}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "94"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 7073, "output_tokens": 32, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

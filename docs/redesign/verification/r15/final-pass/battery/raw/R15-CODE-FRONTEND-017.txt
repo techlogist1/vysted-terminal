@@ -1,0 +1,12 @@
+# R15-CODE-FRONTEND-017 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:24+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -rn 'R15-CODE-FRONTEND-017' src --include=*.test.ts | head -6
+--- output ---
+src/store/earnings.test.ts:149:  it("drops a 7-day window that lands after the 30-day one (R15-CODE-FRONTEND-017)", async () => {
+src/store/sec.test.ts:101:  it("a slower response for the previous symbol never overwrites the newer one (R15-CODE-FRONTEND-017)", async () => {
+src/store/sec.test.ts:148:    // R15-CODE-FRONTEND-017: `loadFilingDetail` no longer writes
+src/store/sec.test.ts:168:  // R15-CODE-FRONTEND-017 / R15-UI-015 (triage-c rc1-vshard-3:4): loadFilings
+src/store/sec.test.ts:248:  it("I1: a late rejection for a previous issuer does not paint its error over the current one (R15-CODE-FRONTEND-017)", async () => {
+
+EXIT=0 (0.0s)

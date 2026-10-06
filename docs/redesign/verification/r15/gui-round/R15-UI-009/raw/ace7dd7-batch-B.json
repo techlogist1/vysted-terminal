@@ -1,0 +1,54 @@
+[
+ {
+  "cmd": "click",
+  "x": 1009,
+  "y": 659
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "click",
+  "x": 1009,
+  "y": 579
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-009/ace7dd7-08-screener-criteria-trimmed.png"
+ },
+ {
+  "cmd": "click",
+  "x": 966,
+  "y": 235
+ },
+ {
+  "cmd": "wait",
+  "seconds": 45
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-009/ace7dd7-09-screener-run.png"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 30
+ },
+ {
+  "cmd": "click",
+  "x": 1251,
+  "y": 104
+ },
+ {
+  "cmd": "wait",
+  "seconds": 3
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-009/ace7dd7-10-screener-results-banner-dismissed.png"
+ }
+]

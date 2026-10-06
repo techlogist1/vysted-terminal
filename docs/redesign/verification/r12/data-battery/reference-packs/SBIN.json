@@ -1,0 +1,167 @@
+{
+  "company": {
+    "legal_name": "State Bank of India",
+    "note_on_legal_form": "SBI is a statutory corporation constituted under the State Bank of India Act, 1955 (majority Government of India owned) — it has no 'Ltd'/'Limited' suffix, unlike a Companies Act entity.",
+    "isin": "INE062A01020",
+    "exchange_listings": {
+      "nse_symbol": "SBIN",
+      "bse_code": "500112",
+      "listed_on": ["NSE", "BSE"],
+      "face_value_inr": 1.0,
+      "note": "Face value ₹1 per share since the 10:1 stock split effective 20-Nov-2014 (split from ₹10 face value)."
+    }
+  },
+  "as_of": {
+    "task_date": "2026-07-09/10",
+    "last_trading_day_covered": "2026-07-09",
+    "note": "2026-07-10 intraday/closing data was not yet available from any source queried at research time; all price-based figures below are the 09-Jul-2026 close unless stated otherwise."
+  },
+  "price_and_market_cap": {
+    "close_price_inr": {
+      "nse": 1022.10,
+      "bse": 1021.65,
+      "screener_display": 1022,
+      "as_of": "2026-07-09",
+      "sources": [
+        "screener.in (https://www.screener.in/company/SBIN/)",
+        "aggregated NSE/BSE quote via web search snapshot of dhan.co, kotakneo.com, businesstoday.in (https://dhan.co/stocks/state-bank-of-india-ltd-share-price/)"
+      ],
+      "cross_check": "Two independent source lines (screener.in and NSE/BSE-sourced aggregators) agree to within ~0.5, consistent with normal NSE/BSE last-traded-price spread. No material disagreement."
+    },
+    "previous_close_inr": 1016.90,
+    "day_range_inr": {"low": 1019.30, "high": 1031.70},
+    "market_cap_inr_cr": {
+      "screener_in": 942396,
+      "aggregator_dhan_co": 938661.50,
+      "as_of": "2026-07-09",
+      "disagreement_note": "screener.in reports ₹9,42,396 Cr vs ₹9,38,661.50 Cr from a Dhan-sourced aggregator snapshot for the same date — a ~0.4% gap. Likely explained by different intraday timestamps and/or slightly different outstanding-share-count snapshots (SBI raised fresh equity capital during FY26 per its board's ₹25,000 Cr QIP authorization, which can cause share-count lag between data vendors). Not resolved to a single number — both reported as-is."
+    }
+  },
+  "valuation_and_earnings": {
+    "pe_ttm": {
+      "standalone": 11.8,
+      "consolidated": 11.3,
+      "computed_from_ttm_eps_standalone": 11.70,
+      "source": "screener.in standalone page (default /company/SBIN/) and consolidated page (/company/SBIN/consolidated/)",
+      "note": "Bank quarterly results in India are reported standalone by regulatory requirement; consolidated (with SBI Life, SBI Cards, SBI MF etc.) is only reported half-yearly/annually — hence standalone is the more frequently updated, MRQ-consistent basis."
+    },
+    "eps_ttm_inr": {
+      "standalone_computed": 87.41,
+      "standalone_computed_basis": "Sum of last 4 standalone quarterly EPS per screener.in: Jun-2025 21.47 + Sep-2025 21.84 + Dec-2025 22.78 + Mar-2026 21.32 = 87.41",
+      "consolidated_fy26_full_year": 90.24,
+      "source": "screener.in"
+    },
+    "book_value_inr": {
+      "standalone": 590,
+      "consolidated": 646,
+      "source": "screener.in",
+      "note": "Standalone vs consolidated book value differ because consolidated includes subsidiaries (SBI Life, SBI Cards, SBI Mutual Fund, SBI General Insurance, etc.)."
+    },
+    "roe_latest_fy": {
+      "screener_standalone_page": "16.2% (labelled 'ROE')",
+      "screener_consolidated_page": "15.4% (labelled 'ROE - Last Year'; 10-yr average 11%)",
+      "company_reported_fy26": "18.57% (per SBI FY26 results commentary / press coverage of Q4FY26 results, alongside ROA 1.12%)",
+      "disagreement_note": "Three different ROE figures found across sources for what should be the same latest-FY period (16.2% standalone screener, 15.4% consolidated screener, 18.57% per company press release / financial media coverage of the FY26 results call). Not reconciled — likely differing denominators (average vs period-end net worth, or annualized-quarterly vs full-year net profit basis). Reported as-is with source attribution rather than picking one."
+    },
+    "promoter_holding_pct": {
+      "value": 55.52,
+      "as_of": "Mar-2026 shareholding pattern",
+      "holder": "President of India / Government of India",
+      "source": "screener.in shareholding pattern section"
+    }
+  },
+  "week52": {
+    "high_inr": 1234.70,
+    "high_screener_rounded": 1235,
+    "low_inr": 786.55,
+    "low_screener_rounded": 787,
+    "dates_of_high_low": "Not disclosed by any source consulted (only the price levels were shown, not the specific trading dates on which they occurred).",
+    "drawdown_from_52w_high_pct": -17.22,
+    "drawdown_calc": "(1022.10 - 1234.70) / 1234.70 = -0.1722 = -17.22%, using NSE close 09-Jul-2026 vs NSE 52w high",
+    "price_change_52w_pct": 30.29,
+    "price_change_52w_source": "dhan.co aggregator snapshot, as of 09-Jul-2026 ('increased by 30.29% over the last year')",
+    "sources": ["screener.in", "dhan.co (https://dhan.co/stocks/state-bank-of-india-ltd-share-price/)"]
+  },
+  "dividends": {
+    "trailing_12_months_paid": [
+      {
+        "amount_per_share_inr": 17.35,
+        "type": "Final dividend, FY2025-26",
+        "declared": "~08-May-2026 (with Q4FY26 results)",
+        "record_date": "2026-05-16",
+        "ex_date": "2026-05-15",
+        "payment_date": "2026-06-04",
+        "status": "Paid",
+        "source": "screener.in / financial media (tipranks.com, investywise.com Q4FY26 coverage)"
+      }
+    ],
+    "excluded_as_outside_ttm_window": [
+      {
+        "amount_per_share_inr": 15.90,
+        "type": "Final dividend, FY2024-25",
+        "ex_date": "2025-05-16",
+        "payment_date": "2025-05-30",
+        "reason_excluded": "Paid ~14 months before the as-of date (09-Jul-2026), i.e. outside the trailing-12-month window (Jul-2025 to Jul-2026)."
+      }
+    ],
+    "declared_but_unpaid_as_of_date": "None found. SBI pays dividends annually (single payout in May/June following the March year-end); the FY2025-26 final dividend has already been paid (04-Jun-2026), and no FY2026-27 interim/declaration exists yet since Q1FY27 results are not due until ~Aug-2026.",
+    "cadence_note": "Multiple sources confirm SBI is an annual (not quarterly/interim) dividend payer historically.",
+    "face_value_inr": 1.0,
+    "dividend_yield_pct": {
+      "value": 1.70,
+      "source": "screener.in",
+      "cross_check": "Recomputed as 17.35 / 1022.10 = 1.698% ≈ 1.70% — matches screener's reported figure exactly."
+    }
+  },
+  "quarterly_results_standalone": {
+    "basis": "Standalone (screener.in 'Sales' = total revenue/income line; consistent series used for MRQ growth calcs)",
+    "latest_quarter": {
+      "label": "Q4 FY26 (Mar-2026)",
+      "revenue_inr_cr": 123098,
+      "net_profit_inr_cr": 19684,
+      "eps_inr": 21.32,
+      "reported_date": "2026-05-08",
+      "source": "screener.in; corroborated by groww.in, business-standard.com, univest.in, SBI's own Q4FY26 press release PDF (sbi.bank.in)"
+    },
+    "same_quarter_prior_year": {
+      "label": "Q4 FY25 (Mar-2025)",
+      "revenue_inr_cr": 119509,
+      "net_profit_inr_cr": 18643,
+      "eps_inr": 20.89,
+      "reported_date": "2025-05-03",
+      "source": "screener.in; corroborated by businesstoday.in, zeebiz.com Q4FY25 coverage"
+    },
+    "revenue_growth_yoy_mrq_pct": 3.00,
+    "revenue_growth_calc": "(123098 - 119509) / 119509 = 3.00%",
+    "earnings_growth_yoy_mrq_pct": 5.58,
+    "earnings_growth_calc": "(19684 - 18643) / 18643 = 5.58% — matches media-reported 'net profit rises 5.6% YoY' for Q4FY26 exactly.",
+    "full_year_fy26_vs_fy25_cross_check": {
+      "fy26_standalone_net_profit_inr_cr": 80032,
+      "fy26_calc_from_quarters": "19160 (Jun25) + 20160 (Sep25) + 21028 (Dec25) + 19684 (Mar26) = 80032 — matches media-reported FY26 net profit exactly.",
+      "fy25_standalone_net_profit_inr_cr": 70901,
+      "fy25_calc_from_quarters": "17035 (Jun24) + 18331 (Sep24) + 16891 (Dec24) + 18643 (Mar25) = 70900 (~70901 reported, rounding)",
+      "fy_growth_pct": 12.88,
+      "note": "This full-year cross-check (independently recomputing FY26/FY25 totals from the quarterly series and matching media-reported annual figures almost to the crore) gives high confidence in the standalone quarterly series used above."
+    }
+  },
+  "notes": [
+    "Consolidated Q4FY26 figures (screener.in /consolidated/ page) showed revenue ₹1,31,080 Cr and net profit ₹20,508 Cr with a YoY profit decline of -71% vs a mislabeled 'Mar 2024' comparator of ₹69,543 Cr — this consolidated comparator almost certainly reflects a one-off gain in the Mar-2025 consolidated quarter (e.g., stake-sale/treasury gain at a subsidiary) rather than a genuine like-for-like decline, and the date label returned by the fetch tool was unreliable. The STANDALONE quarterly series (used throughout this pack for MRQ growth figures) is internally consistent and cross-validates exactly against independently reported FY26/FY25 annual totals and against multiple financial media outlets, so it was preferred as the higher-confidence basis. The consolidated series is reported above only for book value, P/E, and EPS (FY) where explicitly labelled 'consolidated'.",
+    "Primary source used: screener.in (both standalone default page and /consolidated/ page). NSE (nseindia.com) and BSE were targeted directly but NSE's site is not reliably fetchable by automated tools in this session; price/mcap were instead cross-checked via a web-search snapshot aggregating dhan.co, kotakneo.com, businesstoday.in and others, which independently corroborate screener.in's price to within ~0.5 and market cap to within ~0.4%.",
+    "moneycontrol.com could not be fetched in this research session (tool returned 'unable to fetch from www.moneycontrol.com'); moneycontrol was NOT used as a source for any figure in this pack despite being requested as a candidate source.",
+    "All figures should be treated as approximate for anything timestamped 2026-07-09; no confirmed 2026-07-10 closing data was available from any source at research time."
+  ],
+  "sources_consulted": [
+    "https://www.screener.in/company/SBIN/",
+    "https://www.screener.in/company/SBIN/consolidated/",
+    "https://dhan.co/stocks/state-bank-of-india-ltd-share-price/",
+    "https://www.nseindia.com/get-quotes/equity?symbol=SBIN",
+    "https://www.investonline.in/markets/stocks/INE062A01020/500112/SBIN/EQ/state-bank-of-india",
+    "https://groww.in/blog/sbi-q4-fy26-results",
+    "https://www.business-standard.com/companies/quarterly-results/sbi-q4fy26-result-net-profit-rises-5-6-to-19-684-crore-misses-estimates-126050800698_1.html",
+    "https://sbi.bank.in/documents/17836/53469043/SBI+Press+Release+Q4FY26.pdf",
+    "https://www.businesstoday.in/latest/corporate/story/sbi-q4-results-lender-reports-10-percent-drop-in-standalone-net-profit-at-rs1864259-crore-474610-2025-05-03",
+    "https://www.zeebiz.com/companies/news-sbi-q4-fy25-results-profit-pat-nii-interest-income-npa-asset-quality-other-details-dividend-payout-sbin-share-price-news-359001",
+    "https://upstox.com/news/market-news/earnings/state-bank-of-india-sbi-q4-earnings-net-profit-rises-5-6-to-19-684-crore-nii-advanced-4-to-44-380-crore/article-193383/",
+    "https://www.tipranks.com/news/company-announcements/state-bank-of-india-sets-record-date-and-payout-schedule-for-fy-2025-26-dividend"
+  ]
+}

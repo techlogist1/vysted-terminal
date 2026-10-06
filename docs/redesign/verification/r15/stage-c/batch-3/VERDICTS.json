@@ -1,0 +1,56 @@
+{
+  "certified": [
+    "R15-AGENT-001",
+    "R15-AGENT-002",
+    "R15-AGENT-003",
+    "R15-AGENT-019",
+    "R15-AGENT-021",
+    "R15-AGENT-022",
+    "R15-AGENT-024",
+    "R15-AGENT-054",
+    "R15-AGENT-047",
+    "R15-AGENT-080",
+    "R15-CODE-FRONTEND-008",
+    "R15-CODE-FRONTEND-003",
+    "R15-CODE-FRONTEND-014",
+    "R15-UI-001",
+    "R15-UI-002",
+    "R15-AGENT-014",
+    "R15-AGENT-004",
+    "R15-AGENT-005",
+    "R15-AGENT-018",
+    "R15-UI-008",
+    "R15-CODE-AGENT-003",
+    "R15-AGENT-027",
+    "R15-RESEARCH-009",
+    "R15-AGENT-012",
+    "R15-RESEARCH-006",
+    "R15-RESEARCH-007",
+    "R15-RESEARCH-008",
+    "R15-DATA-045",
+    "R15-LIFECYCLE-006",
+    "R15-RESEARCH-010",
+    "R15-DATA-005",
+    "R15-LEAD-002",
+    "R15-RESEARCH-011",
+    "R15-RESEARCH-013",
+    "R15-DATA-019",
+    "R15-DATA-021",
+    "R15-DATA-022",
+    "R15-AGENT-010"
+  ],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-DATA-020",
+      "reason": "The fixture repro is fixed: the two repo RELIANCE fixtures now share the key ('RELIANCE','911b3457c59ed144','2026-06-09'). The live feed still lists many filings twice. Probed on the running code on 2026-09-23 with 40 rows per lane: RELIANCE collapsed 23 of 40 BSE rows, TCS 12, HDFCBANK 6 and INFY 1. For INFY, BSE's HEADLINE body is boilerplate ('Enclosed', 'Transcript enclosed'), so no NSE text matches. Near-identical bodies also miss because the key is an exact 120-character prefix hash: RELIANCE 'Company executives participated' against 'the Company executives participated', and \"shareholder''s approval\" against 'shareholders approval'. Live /disclosures/announcements?symbol=RELIANCE&limit=40 lists the 2026-09-09 credit-rating filing twice (NSE 20:35, BSE 20:37), and TCS lists the 09-05 HyperVault press release and the 09-17 newspaper publication twice. The user-visible claim still holds on a fresh name: a dual-listed feed lists most of its filings twice."
+    },
+    {
+      "id": "R15-RESEARCH-005",
+      "reason": "The writers did not mark this fixed. CHANGELOG batch 3 calls it partial and open, because the execution record's degraded_reason is not yet copied by agent_tools/research.py. Live on llama3.1:8b ('Do a deep research brief on CG Power…', DEEP), synthesis finished in 27.8 s under the new 150 s local cap. The brief showed no thin-coverage copy, market cap as '₹141,004 cr', and degraded_reason null. The timeout path did not fire, so the degraded_reason half was not exercised. It stays open as the writers declared."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-3-int@1b5a5e5e4175eba14db2c5861b1c29332ff13793"
+}

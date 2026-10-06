@@ -1,0 +1,197 @@
+{
+ "S1": {
+  "nav": "AI ProvidersResearchRegion & localeKeybindingsAdvanced",
+  "providers": "AI ProvidersPaste an API key to enable an AI provider. Keys are stored in your OS keychain — never on disk or sent anywhere but the provider you call.AnthropicNo key yetDefaultAdd keyOpenAINo key yetDefaultAdd keyGoogle GeminiNo key yetDefaultAdd keyGroqNo key yetDefaultAdd keyOllama (local)No key required (local)DefaultDeepSeekNo key yetDefaultAdd keyxAINo key yetDefaultAdd keyOpenRouterNo key yetDefaultAdd keyDefaultsThe persona, provider, and model the copilot starts on.Default agentThe persona the chat starts on — applies now and at every launch.Raw chat (no persona)Warren BuffettVysted CopilotRay DalioStanley DruckenmillerBenjamin GrahamSeth KlarmanPeter LynchHoward MarksCharlie MungerAI Portfolio AdvisorAI ResearcherGeorge SorosAI Strategy CriticDefault providerThe provider the copilot uses when an agent has no preference.AnthropicOpenAIGoogle GeminiGroqOllama (local)DeepSeekxAIOpenRouterDefault modelOllama (local) — Live · 3 modelsllama3.1:8bqwen2.5:7bqwen3:8b",
+  "research": "ResearchTwo ways to run research: unlimited private local search with your chat model, or a hosted research model on your own OpenRouter key.Unlimited (Local)Private local search via SearXNG, paired with your active chat model. Unmetered and free — nothing leaves this machine but the pages it fetches.ReadyRunning at http://127.0.0.1:8888 — research searches route through it automatically.Stop▸▾Advanced: custom instance URLOptional. Leave blank to use the managed instance above. A custom instance must enable the JSON output format and disable the limiter in its settings.yml.Hosted research modelPurpose-built internet-native research via OpenRouter — research routes here at every depth regardless of chat model. Chat stays on your chat model.Needs your OpenRouter API key — research stays on the local tier until one is added. The key lives in your OS keychain, never on disk.Add OpenRouter keyHardware & local modelsHeavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else stays remote.Apple M1 Pro16 GiB RAM · 10.6 GiB GPU budget · 6P/8 cores · macOS 26.3Installed local models (Ollama)qwen3:8bfits with headroom (8.1 GiB of 10.6 GiB GPU budget) — enable locally.runs locallyqwen2.5:7bfits with headroom (7.4 GiB of 10.6 GiB GPU budget) — enable locally.runs locallyllama3.1:8bfits with headroom (7.8 GiB of 10.6 GiB GPU budget) — enable locally.runs locallyFrontier deep-research models30B-A3B MoE (IQ3_S)can't hold a usable context (max ≈ 0 tokens) — weights alone (12.4 GiB) crowd the 10.6 GiB budget.too large — remote30B-A3B MoE",
+  "region": "Region & localeLocale used for number formatting — a foundation for region-first data + feeds in a later release.RegionDefaults to United States.United StatesIndiaGlobal",
+  "keybindings": "KeybindingsRemap any shortcut. Press Record, then the new combination. Conflicts are flagged below — two actions on one combo both fire.Command paletteOpen command paletteOpen the fuzzy command palette.Ctrl+KRecordAgent modesAgent modeInteractive agent for this cockpit.Alt+1RecordDelegate modeBudget-capped autonomous run.Alt+2RecordToggle agent panelShow or fully hide the agent column.Ctrl+BRecordProposed changesAccept all proposed changesApply every staged proposed change.Ctrl+↵RecordReject all proposed changesDiscard every staged proposed change.Ctrl+⌫RecordWorkspaceSave workspaceSave the current workspace layout.Ctrl+SRecordLoad workspaceLoad a saved workspace layout.Ctrl+ORecordPanelsOpe",
+  "integrations": "IntegrationsConnect a broker for read-only positions, holdings & P&L the copilot can analyse over your real account.Broker connections are managed in the Marketplace.Open Marketplace",
+  "layouts": "LayoutsDrag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch.SaveReset to defaultR15 SwingLoadAutosave slot: __autosave__ (hidden; restored on launch)",
+  "modules": "ModulesDisabled modules contribute no panels or ⌘K commands.",
+  "exportImport": "Export / ImportCarry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine.Export settingsImport settingsThe export bundles your keybinding remaps and preferences (default agent, region, research engine). API keys and broker credentials stay in your OS keychain and are never written to the file.",
+  "about": "AboutVysted v0.8.0 — a source-available, AI-native finance terminal.Plugin architecture · local-first · bring-your-own-keys. Your data, your keys, your machine — extend it like an IDE.",
+  "keyStatus": {
+   "anthropic": "missing",
+   "openai": "missing",
+   "gemini": "missing",
+   "groq": "missing",
+   "ollama": "missing",
+   "deepseek": "missing",
+   "xai": "missing",
+   "openrouter": "missing"
+  },
+  "fetches": [
+   "GET /health -> 200",
+   "GET /llm/providers -> 200",
+   "GET /custom-agents -> 200",
+   "GET /agents -> 200",
+   "GET /workspace -> 200",
+   "GET /llm/models?provider=ollama&base_url=http%3A%2F%2F127.0.0.1%3A11434 -> 200",
+   "GET /system/hardware -> 200",
+   "GET /search/searxng/status -> 200"
+  ],
+  "invokes": [
+   "get_sidecar_port:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true",
+   "keychain_get:true"
+  ]
+ },
+ "S2": {
+  "dialogTextAfterSave": "",
+  "keychainAccountsWritten": [
+   "llm-provider:openrouter"
+  ],
+  "keyStatusOpenrouter": "configured",
+  "providersRowAfter": "OpenRouterKey configuredDefaultUpdate key",
+  "researchTierBText": [
+   "OpenRouter key.",
+   "OpenRouter key configured — research bills to it."
+  ],
+  "requests": [
+   "POST /llm/keys/validate -> 200 {\"provider\":\"openrouter\",\"api_key\":\"<redacted>\"}"
+  ]
+ },
+ "S3": {
+  "OpenAI": {
+   "dialogText": "OpenAI API keyStored in the OS keychain; never written to disk by Vysted.transport error: Connection error.CancelSaveClose"
+  },
+  "Anthropic": {
+   "dialogText": "Anthropic API keyStored in the OS keychain; never written to disk by Vysted.unauthorized or no key suppliedCancelSaveClose"
+  }
+ },
+ "S4": {
+  "empty-object": {
+   "statusLine": "Imported settings. Secrets re-enter via the keychain.",
+   "before": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   },
+   "after": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   }
+  },
+  "other-app-json": {
+   "statusLine": "Imported settings. Secrets re-enter via the keychain.",
+   "before": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   },
+   "after": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   }
+  },
+  "numbers-as-bindings": {
+   "statusLine": "Imported settings. Secrets re-enter via the keychain.",
+   "before": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   },
+   "after": {
+    "overrides": {
+     "agent.toggle": "mod+j"
+    },
+    "region": "IN"
+   }
+  },
+  "not-json": {
+   "statusLine": "Could not read that file — expected a Vysted export.",
+   "before": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   },
+   "after": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   }
+  },
+  "valid-roundtrip": {
+   "statusLine": "Imported settings. Secrets re-enter via the keychain.",
+   "before": {
+    "overrides": {
+     "agent.toggle": "mod+shift+y"
+    },
+    "region": "IN"
+   },
+   "after": {
+    "overrides": {},
+    "region": "IN"
+   }
+  }
+ },
+ "S5": {
+  "exportBundle": {
+   "version": 1,
+   "keybindingOverrides": {},
+   "settings": {
+    "defaultAgentId": "copilot",
+    "region": "IN",
+    "deepResearchBackend": "native"
+   }
+  },
+  "notExported_visibleInPanel": {
+   "researchTier": "tier_b",
+   "researchModels": {
+    "normal": "perplexity/sonar",
+    "deep": "openai/o4-mini-deep-research",
+    "ultra": "perplexity/sonar-deep-research"
+   },
+   "searxngUrl": "http://localhost:8080",
+   "defaultProviderId": "openai"
+  },
+  "exportKeys": [
+   "defaultAgentId",
+   "region",
+   "deepResearchBackend"
+  ]
+ },
+ "S6": {
+  "R15 Harness": {
+   "layoutsText": "LayoutsDrag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch.SaveReset to defaultThe panel layout is not ready yet.R15 SwingLoadAutosave slot: __autosave__ (hidden; restored on launch)",
+   "activeName": "default",
+   "requests": []
+  },
+  "__hidden": {
+   "layoutsText": "LayoutsDrag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch.SaveReset to defaultThe panel layout is not ready yet.R15 SwingLoadAutosave slot: __autosave__ (hidden; restored on launch)",
+   "activeName": "default",
+   "requests": []
+  },
+  "मेरा लेआउट": {
+   "layoutsText": "LayoutsDrag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch.SaveReset to defaultThe panel layout is not ready yet.R15 SwingLoadAutosave slot: __autosave__ (hidden; restored on launch)",
+   "activeName": "default",
+   "requests": []
+  },
+  "LLLLLLLLLLLLLLLLLLLLLLLL": {
+   "layoutsText": "LayoutsDrag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch.SaveReset to defaultThe panel layout is not ready yet.R15 SwingLoadAutosave slot: __autosave__ (hidden; restored on launch)",
+   "activeName": "default",
+   "requests": []
+  }
+ },
+ "S7": {
+  "openPanelCalls": [],
+  "dockviewApi": "null (no dockview in jsdom)"
+ }
+}

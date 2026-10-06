@@ -1,0 +1,3 @@
+cmd: grep -n extraFiles scripts/smoke-test-sidecars.mjs; grep -rn SIDECAR_SPECS scripts/*.mjs
+output: no literal extraFiles hand-copy string remains in smoke-test-sidecars.mjs; sidecar-freshness-gate.test.mjs (present) pins assertAllFresh over the shared SIDECAR_SPECS table as the single source, matching batch-11 cert.
+verdict: holds

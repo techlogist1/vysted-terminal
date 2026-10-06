@@ -1,0 +1,19 @@
+{
+ "401": {
+  "kind": "error",
+  "message": "The OpenAI API key was rejected \u2014 check it in Settings.",
+  "action": "Re-enter the API key in Settings.",
+  "detail": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-DELIB***************-R11. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}",
+  "code": "auth"
+ },
+ "402": {
+  "kind": "error",
+  "message": "Your DeepSeek balance is empty \u2014 top up or switch provider in Settings.",
+  "action": "Top up at platform.deepseek.com or pick a different provider in Settings.",
+  "detail": "Error code: 402 - {'error': {'message': 'Insufficient Balance', 'type': 'unknown_error', 'param': None, 'code': 'invalid_request_error'}}",
+  "code": "provider_402"
+ },
+ "malformed": {
+  "unexpected": "200"
+ }
+}

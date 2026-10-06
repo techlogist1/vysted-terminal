@@ -1,0 +1,17 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_f8b0643025da4a90b3cbfe58ef5906df", "name": "fundamentals", "input": {"symbol": "TCS.NS"}}
+[  43.4s] tool_result: {"kind": "tool_result", "tool_call_id": "call_f8b0643025da4a90b3cbfe58ef5906df", "name": "fundamentals", "ok": true, "error": null}
+[  53.4s] heartbeat: {"kind": "heartbeat"}
+[  63.4s] heartbeat: {"kind": "heartbeat"}
+[  69.3s] done: {"kind": "done", "usage": {"input_tokens": 5906, "output_tokens": 71, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+TCS.NS has a market cap of ₹753,286 cr. To convert this to lakh crore rupees, we divide by 100:
+
+₹753,286 cr ÷ 100 = ₹7,532.86 lakh cr
+
+Rounded to one decimal place, the market cap is ₹7,532.9 lakh cr.
+
+=== ok · 69.4s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 69, 'done': 1} · usage in=5906 out=71 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,18 @@
+#!/bin/sh
+echo "HEAD=633f844071d972b337f4c3526d86555c80df0568 sidecar :52313 booted 17:31:07 VYSTED_REGION=IN clean data dir"
+for u in sp500 nifty50; do
+  echo "== $(date +%T) POST /screener/run universe=$u"
+  s=$(python3 -c 'import time;print(time.time())')
+  curl -s -m 170 -X POST http://127.0.0.1:52313/screener/run -H 'content-type: application/json' -d "{\"universe\":\"$u\",\"criteria\":[]}" > /tmp/l020-$u.json
+  e=$(python3 -c 'import time;print(time.time())')
+  python3 - "$u" "$s" "$e" <<'PY'
+import json,sys
+u,s,e=sys.argv[1],float(sys.argv[2]),float(sys.argv[3])
+try: d=json.load(open(f'/tmp/l020-{u}.json'))
+except Exception as x: print('parse error',x, open(f'/tmp/l020-{u}.json').read()[:300]); sys.exit()
+cov=d.get('coverage'); print('wall_s=%.1f'%(e-s),'duration_ms=',d.get('duration_ms'),'coverage=',json.dumps(cov)[:600])
+print('rows=',len(d.get('rows',[])),'skipped_reasons=',json.dumps(d.get('skipped_reasons') or (cov or {}).get('skipped_reasons'))[:300])
+PY
+  echo "-- health $(date +%T)"; curl -s -m 10 http://127.0.0.1:52313/system/provider-health | python3 -c "import json,sys; d=json.load(sys.stdin); print(json.dumps(d.get('yahoo', d)))"
+done
+echo DONE

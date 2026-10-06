@@ -1,0 +1,24 @@
+# R15-LIFECYCLE-005 probe (final-battery-1, candidate d38b5d1a) at 2026-10-03T17:35:50+0530 — a second OWN sidecar on :52867 booted with VYSTED_OPENBB_MCP_PORT=52868 (a closed local port; nothing listens there), pids in scratchpad b1/l005.pids.json
+$ lsof -nP -iTCP:52868 -sTCP:LISTEN | wc -l
+       0
+[exit 0]
+$ curl -s -m 30 -w '
+[http %{http_code}]' http://127.0.0.1:52867/openbb-mcp/status
+{"available":false,"provider":"openbb-mcp","endpoint":"http://127.0.0.1:52868/mcp","lastToolCallOk":false,"lastError":"ProviderError: MCP server 'openbb-mcp' failed to open: ConnectError('All connection attempts failed')"}
+[http 200][exit 0]
+$ curl -s -m 90 -w '
+[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN' http://127.0.0.1:52867/fundamentals/MAZDOCK | python3 -c "import sys;t=sys.stdin.read();i=t.rfind('
+[http');import json;d=json.loads(t[:i]);print({k:d.get(k) for k in ('symbol','provider','currency','market_cap','pe_ratio')});print(t[i:])"
+{'symbol': 'MAZDOCK.NS', 'provider': 'yfinance', 'currency': 'INR', 'market_cap': 832576290816.0, 'pe_ratio': 31.056274}
+
+[http 200 16.763763s]
+[exit 0]
+$ curl -s -m 90 -w '
+[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN' http://127.0.0.1:52867/fundamentals/KPITTECH | tail -c 300
+2026-10-03T12:06:07.334615+00:00","reason":"provider did not publish this field","label":null,"basis_note":null},"dividend_per_share_ttm":{"status":"ok","provider":"yfinance","as_of":null,"reason":null,"label":null,"basis_note":null}},"provider":"yfinance","identity_note":null}
+[http 200 15.481338s][exit 0]
+$ curl -s -m 30 http://127.0.0.1:52867/health | python3 -c "import sys,json;d=json.load(sys.stdin);print({k:v for k,v in d.items() if 'mcp' in k.lower() or k in ('status',)}); print([ (k,v) for k,v in (d.get('services') or {}).items()][:6])"
+{'status': 'ok'}
+[]
+[exit 0]
+$ kill 14665 (own sleep pid) -> sidecar :52867 stopped

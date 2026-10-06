@@ -1,0 +1,15 @@
+# R15-LEAD-007 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:06+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+from google.genai import types
+from services.agent_tools.schemas import gemini_tools
+from services import agent_runtime as ar
+ids=list(ar.get_agent('copilot').tools)
+t=gemini_tools(ids)
+c=types.GenerateContentConfig(tools=[{'function_declarations':t}] if t and 'name' in t[0] else t)
+print('GenerateContentConfig constructed with', len(ids), 'tool ids; first entry keys', list(t[0].keys())[:4])
+PY
+--- output ---
+GenerateContentConfig constructed with 55 tool ids; first entry keys ['function_declarations']
+
+EXIT=0 (2.1s)

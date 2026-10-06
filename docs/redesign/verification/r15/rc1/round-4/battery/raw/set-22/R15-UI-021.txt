@@ -1,0 +1,124 @@
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand
+
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > loads SPY at the 1d timeframe by default 35ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > an untouched fresh panel seeds the suggested indicator set for its (asset class, timeframe) (R15-UI-091) 14ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > re-seeds the suggested set on a timeframe change while untouched, but stops once the user edits 139ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > a saved chart default (already touched) never fetches the suggested set 7ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > a fresh panel (no persisted view) opens on the settings chart default (R15-UI-048) 7ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > a persisted per-panel view still wins over the settings default (R15-UI-020) 6ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > "Make default" persists the current symbol/timeframe/indicators to settings 11ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > does not request indicators until one is selected 6ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > a host command's picked region rides the chart's history and indicator calls (R15-DATA-002) 70ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > fetches an indicator server-side when toggled on in the popover 62ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > re-requests history and indicators when the timeframe changes 65ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > loads a new symbol when the symbol form is submitted 19ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > charts a crypto pair under the crypto asset class (R15-DATA-081) 19ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > surfaces a SidecarError from the history call 15ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > surfaces a SidecarError from the indicator call on the chip row 65ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > a failed /indicators after a symbol change leaves no overlay of the old symbol (R15-UI-023) 122ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > does not draw indicators before their own symbol's candles land (R15-UI-023) 101ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > clears all selected indicators from the chip row's Clear all control 52ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > renders no always-on indicator wall — the catalog only exists inside the popover 45ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > lists the entire 50-indicator catalog, grouped and spelled out, in the popover 236ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > filters the indicator popover by search query 27ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > renders active indicators as removable chips and prunes the fetch on remove 86ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > dismisses a popover on Escape without disturbing the armed drawing tool 37ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > dismisses a popover on outside click 18ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > proves functionality parity: every old toolbar control has a new home 298ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > attaches a Volume Profile primitive when the indicator is toggled on 104ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > draws Parabolic SAR as series markers with trend-aware placement 105ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > detaches Parabolic SAR markers when the indicator chip is removed 114ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > detaches the Volume Profile primitive when the indicator chip is removed 114ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > attaches the Ichimoku cloud primitive when the indicator is toggled on 102ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > lists the ten drawing tools with full names and points-required meta 36ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > arms a drawing tool from the popover and shows the active-tool chip 26ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > drawing input (R15-UI-022) > anchors at the clicked price, not the bar's close 20ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > drawing input (R15-UI-022) > keeps a click past the last bar placeable by its logical index 21ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > drawing input (R15-UI-022) > takes the Text label from the inline prompt 33ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > drawing input (R15-UI-022) > disables a locked drawing's delete control 37ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > disarms the active tool from the chip's [x] 28ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > renders existing drawings from the store on mount and exposes a delete control 15ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > opens on its persisted view and shows only that chart's drawings (R15-UI-020) 27ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > Backspace typed into a field outside the chart keeps the selected drawing (R15-UI-021) 23ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > a locked drawing survives Delete (R15-UI-021) 15ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > Delete with nothing focused still deletes (WebKit leaves a clicked chip unfocused; R15-UI-021) 17ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > clears every drawing through the inspector's Clear drawings control 14ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > toggles sync subscriptions through the Sync popover 18ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > submits a comparison-overlay symbol from the popover and toggles its normalization chip 36ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > uses a stable per-instance panelId from dockview's panel api when present 7ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > publishes a chart snapshot to the panel-context bus on mount 5ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > re-publishes when the timeframe changes 12ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > unregisters its panel-context source on unmount 5ms
+stderr | src/modules/chart/ChartPanel.test.tsx > ChartPanel > publish does not trigger an infinite re-render loop
+An update to ChartPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/modules/chart/ChartPanel.test.tsx > ChartPanel > publish does not trigger an infinite re-render loop
+An update to ChartPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ChartPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ChartPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ChartPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ChartPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > with two charts, the focused second chart is the snapshot's focus (R15-AGENT-052) 138ms
+ ✓ src/modules/chart/ChartPanel.test.tsx > ChartPanel > publish does not trigger an infinite re-render loop 7ms
+
+ Test Files  1 passed (1)
+      Tests  51 passed (51)
+   Start at  02:44:01
+   Duration  3.48s (transform 263ms, setup 47ms, import 364ms, tests 2.64s, environment 343ms)
+

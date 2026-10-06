@@ -22,7 +22,12 @@ Design choices
   differently without separate cache buckets.
 - **``asyncio.Lock`` per process** rather than SQLite's WAL: keeps the
   contention model simple. The sidecar is a single Python process per
-  app instance; concurrent ``set`` calls serialise behind the lock.
+  app instance; concurrent ``set`` calls serialise behind the lock. The
+  SQLite work itself runs on a worker thread (``asyncio.to_thread``) so a
+  slow disk never blocks the event loop (R15-DATA-096).
+- **A row ceiling** (:data:`MAX_ROWS`): a ``set`` that takes the table past
+  it evicts the least recently written rows, so per-symbol keys cannot grow
+  the file without bound (R15-DATA-096).
 - **No in-memory hot tier**. SQLite reads from this single-process
   cache are microseconds; an extra LRU layer adds complexity without
   measurable benefit at v0.6.0's expected miss rate.
@@ -32,11 +37,17 @@ Public surface
 
   - :func:`get(key, ttl_seconds)` — returns the cached JSON value if the
     row's ``updated_at`` is within ``ttl_seconds`` of now, else ``None``.
-  - :func:`set(key, value)` — upsert. Updates ``updated_at`` to now.
+  - :func:`get_with_meta(key, ttl_seconds)` — like :func:`get`, but also
+    returns the row's fetch time so a caller can stamp an ``as_of``.
+  - :func:`set(key, value)` — upsert. Updates ``updated_at`` to now and
+    returns it.
   - :func:`invalidate(key_prefix)` — delete every row whose key starts
     with the prefix. Useful for "drop the whole macro / FRED bucket"
     on user demand.
   - :func:`clear()` — delete every row.
+  - :func:`ensure_build(version)` — when the sidecar version changes, copy
+    the data dir once to ``backups/<old-build>/`` and clear every row (called
+    from the app lifespan, before any store opens its database).
   - :func:`size()` — current row count. Test helper.
   - :func:`reset_for_tests(path=None)` — close the live connection and
     re-point at an optional alternate db file.
@@ -45,14 +56,18 @@ Public surface
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
+import shutil
 import sqlite3
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from config import get_data_dir
+from config import get_cache_dir, get_data_dir
+from services import schema_version
 
 DB_FILENAME = "data_cache.db"
 
@@ -63,6 +78,30 @@ CREATE TABLE IF NOT EXISTS cache (
     updated_at REAL NOT NULL
 )
 """
+_INDEX_DDL = "CREATE INDEX IF NOT EXISTS cache_updated_at ON cache(updated_at)"
+
+#: The most rows kept; a ``set`` past it evicts the least recently written.
+MAX_ROWS = 20_000
+
+#: One row per setting; ``build`` holds the sidecar version that wrote the cache.
+_META_DDL = "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
+
+#: Forward-only migrations, one per ``user_version`` (R15-LIFECYCLE-024).
+_STEPS = (schema_version.statements(";".join((_DDL, _INDEX_DDL, _META_DDL))),)
+
+#: The data-dir children a pre-upgrade backup never copies.
+_BACKUP_EXCLUDES = frozenset({"backups", "logs"})
+
+#: The data-dir children holding user data: the user stores and the saved dirs.
+_USER_DATA = (
+    "portfolio.db",
+    "custom_agents.db",
+    "delegate_runs.db",
+    "plugins.db",
+    "workflows.db",
+    "workspaces",
+    "backtests",
+)
 
 logger = logging.getLogger(__name__)
 
@@ -73,17 +112,155 @@ _db_path: Path | None = None
 
 def _connect(path: Path) -> sqlite3.Connection:
     """Open a SQLite connection with WAL + schema bootstrap."""
-    conn = sqlite3.connect(str(path), isolation_level=None, check_same_thread=False)
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute(_DDL)
+    conn, _ = schema_version.open_migrated(
+        path,
+        _STEPS,
+        prepare=lambda conn: conn.execute("PRAGMA journal_mode=WAL"),
+        quiet=True,
+        isolation_level=None,
+        check_same_thread=False,
+    )
     return conn
+
+
+async def _run[T](work: Callable[[sqlite3.Connection], T]) -> T:
+    """Run ``work`` on the cache connection, off the event loop, one at a time."""
+    async with _lock:
+        return await asyncio.to_thread(lambda: work(_get_conn()))
+
+
+async def ensure_build(version: str) -> bool:
+    """Clear the cache when it was written by a different sidecar build.
+
+    Rows persist across restarts for up to their TTL, so without this a row
+    computed by a build with a since-fixed provider bug keeps being served
+    after the upgrade. The lifespan calls this once at boot with the app
+    version, before any other store opens its database, so when a previous
+    build is recorded the data dir is first copied as that build left it
+    (R15-LIFECYCLE-024). With no build recorded, a data dir already holding
+    user data (a build from before the meta row) is copied as
+    ``unversioned-<date>``. Returns ``True`` when the cache was cleared.
+    """
+
+    def switch(conn: sqlite3.Connection) -> tuple[bool, Any]:
+        row = conn.execute("SELECT value FROM meta WHERE key = 'build'").fetchone()
+        if row is not None and row[0] == version:
+            return False, row
+        if row is not None:
+            conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            _backup_data_dir(row[0])
+        elif (legacy := _legacy_build()) is not None:
+            if legacy != version:
+                _backup_data_dir(legacy)
+        elif _holds_user_data():
+            # A build from before the meta row recorded nothing to name the backup by.
+            _backup_data_dir(f"unversioned-{time.strftime('%Y-%m-%d')}")
+        conn.execute("DELETE FROM cache")
+        conn.execute(
+            "INSERT INTO meta(key, value) VALUES('build', ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            (version,),
+        )
+        return True, row
+
+    cleared, row = await _run(switch)
+    if not cleared:
+        return False
+    logger.info(
+        "data_cache: build %s (cache written by %s) - cleared",
+        version,
+        row[0] if row else "an unversioned build",
+    )
+    return True
+
+
+def _backup_data_dir(old_build: str) -> None:
+    """Copy the data dir to ``backups/<old_build>/`` unless that backup exists.
+
+    The data dir is :func:`config.get_data_dir` (portfolio, workspaces, runs, the
+    audit DB), not this cache's own dir: on Windows :func:`config.get_cache_dir`
+    is LocalAppData and holds only regenerable caches (R15-CROSS-PLATFORM-012).
+    The copy lands under a temporary name and is renamed when complete, so a
+    failed copy never passes for a backup. A failure is logged, not raised: the
+    upgrade proceeds without it rather than failing the boot.
+    """
+    data_dir = get_data_dir()
+    target = data_dir / "backups" / old_build
+    if target.exists():
+        return
+    partial = target.with_name(f"{old_build}.partial")
+    try:
+        shutil.rmtree(partial, ignore_errors=True)
+        shutil.copytree(
+            data_dir,
+            partial,
+            ignore=lambda where, names: _BACKUP_EXCLUDES if Path(where) == data_dir else (),
+        )
+        partial.rename(target)
+    except OSError:
+        logger.exception("data_cache: could not back up %s before the upgrade", data_dir)
+        shutil.rmtree(partial, ignore_errors=True)
+        return
+    logger.info("data_cache: data dir backed up to %s before the upgrade", target)
+    _prune_old_backups(target.parent)
+
+
+def _holds_user_data() -> bool:
+    """Whether the data dir holds a user store or a non-empty saved dir."""
+    data_dir = get_data_dir()
+    for name in _USER_DATA:
+        path = data_dir / name
+        if path.is_file() or (path.is_dir() and any(path.iterdir())):
+            return True
+    return False
+
+
+def _legacy_build() -> str | None:
+    """The build recorded by a ``data_cache.db`` still in the data dir.
+
+    Before R15-CROSS-PLATFORM-012 the cache lived in the data dir; when it now
+    lives elsewhere, the first boot of this build opens a fresh cache with no
+    build row, so the build that left the data dir is read from the old file
+    to still take the pre-upgrade backup. ``None`` when there is no such file.
+    """
+    legacy = get_data_dir() / DB_FILENAME
+    if _db_path is None or not legacy.exists() or legacy.resolve() == _db_path.resolve():
+        return None
+    try:
+        uri = f"{legacy.resolve().as_uri()}?mode=ro"
+        with contextlib.closing(sqlite3.connect(uri, uri=True)) as conn:
+            found = conn.execute("SELECT value FROM meta WHERE key = 'build'").fetchone()
+    except sqlite3.Error:
+        return None
+    return found[0] if found else None
+
+
+#: The most upgrade backups kept under backups/<old-build>/ (R15-CODE-PLATFORM-077):
+#: the pre-upgrade copy is a short-lived undo window, not permanent history, and an
+#: unpruned one grows disk usage by one full data-dir copy per upgrade a user runs.
+MAX_BACKUPS = 5
+
+
+def _prune_old_backups(backups_dir: Path) -> None:
+    """Delete the oldest backup dirs under ``backups_dir`` past :data:`MAX_BACKUPS`,
+    newest-mtime-first. Called only once a new backup has completed successfully."""
+    if not backups_dir.exists():
+        return
+    entries = sorted(
+        (p for p in backups_dir.iterdir() if p.is_dir() and not p.name.endswith(".partial")),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    for stale in entries[MAX_BACKUPS:]:
+        shutil.rmtree(stale, ignore_errors=True)
+        logger.info("data_cache: pruned old upgrade backup %s", stale)
 
 
 def _get_conn() -> sqlite3.Connection:
     """Return the live cache connection, creating it on first use."""
     global _conn, _db_path
     if _conn is None:
-        _db_path = get_data_dir() / DB_FILENAME
+        _db_path = get_cache_dir() / DB_FILENAME
         _conn = _connect(_db_path)
     return _conn
 
@@ -102,35 +279,53 @@ async def get(key: str, ttl_seconds: float) -> Any | None:
         key: opaque string key; callers are responsible for namespacing.
         ttl_seconds: maximum allowed staleness in seconds. The row's
             ``updated_at`` must satisfy ``now - updated_at <= ttl_seconds``
-            for a hit; otherwise the row is treated as stale and ``None``
-            is returned (the row is NOT auto-evicted — a subsequent
-            :func:`set` overwrites it).
+            for a hit; otherwise the row is treated as stale, DELETED
+            (R15-CODE-DATA-010: a stale row is never left to sit past its
+            TTL), and ``None`` is returned.
 
     Returns the decoded JSON value (any shape ``json.loads`` returns) on
     hit, or ``None`` on miss / stale.
     """
+    hit = await get_with_meta(key, ttl_seconds)
+    return None if hit is None else hit[0]
+
+
+async def get_with_meta(key: str, ttl_seconds: float) -> tuple[Any, float] | None:
+    """Like :func:`get`, but also returns the row's fetch time (R15-DATA-068).
+
+    Args:
+        key: opaque string key.
+        ttl_seconds: same freshness window as :func:`get`.
+
+    Returns ``None`` on miss / stale, or ``(value, updated_at)`` on a fresh
+    hit — ``updated_at`` is the epoch seconds of the original :func:`set`
+    call, letting a caller stamp an ``as_of`` that reflects when the data
+    was actually fetched rather than when the cache happened to be read.
+    """
     if ttl_seconds <= 0:
         return None
-    async with _lock:
-        cur = _get_conn().execute(
-            "SELECT value, updated_at FROM cache WHERE key = ?",
-            (key,),
-        )
-        row = cur.fetchone()
+    row = await _run(
+        lambda conn: conn.execute(
+            "SELECT value, updated_at FROM cache WHERE key = ?", (key,)
+        ).fetchone()
+    )
     if row is None:
         return None
     value_text, updated_at = row
-    if time.time() - float(updated_at) > ttl_seconds:
+    updated_at = float(updated_at)
+    if time.time() - updated_at > ttl_seconds:
+        await _run(lambda conn: conn.execute("DELETE FROM cache WHERE key = ?", (key,)))
         return None
     try:
-        return json.loads(value_text)
+        return json.loads(value_text), updated_at
     except (TypeError, ValueError):
         logger.warning("data_cache: stored value for %r is not valid JSON; treating as miss", key)
         return None
 
 
-async def set(key: str, value: Any) -> None:  # noqa: A001 — set matches the cache idiom
-    """Upsert a key/value, bumping ``updated_at`` to now.
+async def set(key: str, value: Any) -> float:  # noqa: A001 — set matches the cache idiom
+    """Upsert a key/value, bumping ``updated_at`` to now; returns that time (the
+    ``fetched_at`` a later :func:`get_with_meta` hit reports).
 
     Args:
         key: opaque string key.
@@ -140,13 +335,22 @@ async def set(key: str, value: Any) -> None:  # noqa: A001 — set matches the c
     """
     payload = json.dumps(value, default=str)
     now = time.time()
-    async with _lock:
-        _get_conn().execute(
+
+    def upsert(conn: sqlite3.Connection) -> None:
+        conn.execute(
             "INSERT INTO cache(key, value, updated_at) VALUES(?, ?, ?) "
             "ON CONFLICT(key) DO UPDATE SET value = excluded.value, "
             "updated_at = excluded.updated_at",
             (key, payload, now),
         )
+        conn.execute(
+            "DELETE FROM cache WHERE key IN "
+            "(SELECT key FROM cache ORDER BY updated_at DESC LIMIT -1 OFFSET ?)",
+            (MAX_ROWS,),
+        )
+
+    await _run(upsert)
+    return now
 
 
 async def invalidate(key_prefix: str) -> int:
@@ -157,26 +361,22 @@ async def invalidate(key_prefix: str) -> int:
     """
     if not key_prefix:
         raise ValueError("invalidate() requires a non-empty key_prefix; use clear() instead")
-    async with _lock:
-        cur = _get_conn().execute(
-            "DELETE FROM cache WHERE key LIKE ?",
-            (f"{key_prefix}%",),
+    return await _run(
+        lambda conn: (
+            conn.execute("DELETE FROM cache WHERE key LIKE ?", (f"{key_prefix}%",)).rowcount or 0
         )
-        return cur.rowcount or 0
+    )
 
 
 async def clear() -> None:
     """Delete every row in the cache."""
-    async with _lock:
-        _get_conn().execute("DELETE FROM cache")
+    await _run(lambda conn: conn.execute("DELETE FROM cache"))
 
 
 async def size() -> int:
     """Return the current row count — test helper."""
-    async with _lock:
-        cur = _get_conn().execute("SELECT COUNT(*) FROM cache")
-        row = cur.fetchone()
-        return int(row[0]) if row else 0
+    row = await _run(lambda conn: conn.execute("SELECT COUNT(*) FROM cache").fetchone())
+    return int(row[0]) if row else 0
 
 
 def reset_for_tests(path: Path | None = None) -> None:
@@ -184,7 +384,7 @@ def reset_for_tests(path: Path | None = None) -> None:
 
     The pytest fixtures use this to point each test at a temp file via
     ``tmp_path``. Calling with ``path=None`` reverts to the production
-    location returned by :func:`config.get_data_dir`.
+    location returned by :func:`config.get_cache_dir`.
     """
     global _conn, _db_path
     if _conn is not None:

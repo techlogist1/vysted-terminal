@@ -1,0 +1,54 @@
+{"kind": "tool_use", "tool_call_id": "call_6935a1bfc1eb4c3d8895291095d3d1d6", "name": "resolve_symbol", "input": {"query": "SIFY", "region": "GLOBAL"}}
+{"kind": "tool_result", "tool_call_id": "call_6935a1bfc1eb4c3d8895291095d3d1d6", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_65dbbcb53fb34211b8af25384df1f6e3", "name": "sec_filings_list", "input": {"symbol": "SIFY", "form_type": "10-K", "limit": 20}}
+{"kind": "tool_result", "tool_call_id": "call_65dbbcb53fb34211b8af25384df1f6e3", "name": "sec_filings_list", "ok": true, "error": null}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources. "}
+{"kind": "delta", "text": "Typically"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " disclosed"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": "\u2019s"}
+{"kind": "delta", "text": " annual"}
+{"kind": "delta", "text": " reports"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " filings"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " but"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " couldn't"}
+{"kind": "delta", "text": " access"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " recent"}
+{"kind": "delta", "text": " filings"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "ify"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": " Ltd"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " might"}
+{"kind": "delta", "text": " want"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " their"}
+{"kind": "delta", "text": " official"}
+{"kind": "delta", "text": " investor"}
+{"kind": "delta", "text": " relations"}
+{"kind": "delta", "text": " page"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " recent"}
+{"kind": "delta", "text": " reports"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " most"}
+{"kind": "delta", "text": " accurate"}
+{"kind": "delta", "text": " figure"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 9042, "output_tokens": 67, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.016239}

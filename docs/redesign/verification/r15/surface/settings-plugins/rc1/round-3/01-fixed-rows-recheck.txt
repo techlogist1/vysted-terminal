@@ -1,0 +1,8 @@
+=== R15-RESEARCH-010 fake OpenRouter key validate ===
+{"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}
+=== R15-UI-057 trailing space key (openai) ===
+{"ok":false,"reason":"invalid","detail":"OpenAI rejected this key."}
+=== R15-DATA-094 news sources status, fake key ===
+{"newsapi":"unauthorized"}
+=== R15-DATA-094 news sources status, no key ===
+{"newsapi":"absent"}

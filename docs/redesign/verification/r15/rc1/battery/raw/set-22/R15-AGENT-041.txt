@@ -1,0 +1,7 @@
+Source check: host-actions.ts:890 `preImage?: PreImage` on ApplyResult; line 893
+`const done = (label, preImage) => preImage ? {label, preImage} : {label}`; line 1887 a delete
+captures "the lot as it stands now (not as staged), so Undo restores exactly it"; line 1923
+`export function undoPreImage(preImage)` restores from the pre-image, refusing honestly
+("... is no longer in the portfolio") if the target moved again before Undo was clicked.
+Verdict: holds (source-confirmed; no live browser this shard for the ProposedChangesReview Undo-button
+round-trip).

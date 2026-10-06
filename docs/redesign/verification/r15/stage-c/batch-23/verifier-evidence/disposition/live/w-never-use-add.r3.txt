@@ -1,0 +1,8 @@
+[   5.2s] done: {"kind": "done", "usage": {"input_tokens": 2741, "output_tokens": 96, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I'm a copilot in the Vysted terminal, and I must inform you that we don't have brokerage connectivity. We can track your manual holdings locally, but we cannot facilitate buying or selling directly.
+
+If you'd like to add 5 TCS at ₹3,000 to your portfolio, I can help you update the holdings manually. However, please note that this will not involve any actual transactions. Would you like me to assist with updating your local portfolio?
+
+=== ok · 5.2s · events {'delta': 98, 'done': 1} · usage in=2741 out=96 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,85 @@
+{"kind": "delta", "text": "Hello"}
+{"kind": "delta", "text": "!"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'m"}
+{"kind": "delta", "text": " here"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " analysis"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Let"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " start"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " checking"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "First"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " resolve"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": ":\n"}
+{"kind": "tool_use", "tool_call_id": "", "name": "resolve_symbol", "input": {"query": "Zomato"}}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " find"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " our"}
+{"kind": "delta", "text": " database"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " It"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " possible"}
+{"kind": "delta", "text": " they"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " listed"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " exchange"}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " don"}
+{"kind": "delta", "text": "\u2019t"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " coverage"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " yet"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Could"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " specify"}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " exchange"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " listed"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " correct"}
+{"kind": "delta", "text": " ticker"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 8480, "output_tokens": 48, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop"}

@@ -1,0 +1,11 @@
+candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98 in-process repro via sidecar/.venv/bin/python3, services.errors.humanize() with synthetic exceptions matching the register/certification repro shapes (a live ConnectError to a closed port for the ollama case; other cases are typed exceptions with status_code, no live network needed)
+
+openai 429 no-credit | provider=openai -> code='insufficient_credit' message='Your OpenAI account is out of credit or quota.'
+openai 429 plain rate limit | provider=openai -> code='rate_limit' message='OpenAI is rate-limiting your account — try again in a minute.'
+openai 400 context overflow | provider=openai -> code='context_overflow' message='The conversation is too long for this OpenAI model.'
+groq 413 context overflow | provider=groq -> code='context_overflow' message='The conversation is too long for this Groq model.'
+ollama ConnectError (closed port) | provider=ollama -> code='ollama_not_running' message='Ollama is not running.'
+gemini bad key 400 | provider=gemini -> code='auth' message='The Google Gemini API key was rejected — check it in Settings.'
+xai bad key 400 | provider=xai -> code='auth' message='The xAI API key was rejected — check it in Settings.'
+together decommissioned model 404 | provider=together -> code='model_not_found' message='The requested model is not available on together — pick another model.'
+openrouter no-credit 402-shaped body via 403 | provider=openrouter -> code='provider_402' message='Your OpenRouter account has no credit.'

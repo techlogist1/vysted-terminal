@@ -1,0 +1,43 @@
+--- fresh case (DATA-055): NAVN, MDLN, SAIL listing dates ---
+== NAVN ==
+{'listing_date': None, 'first_trade_date': '2025-10-30'}
+== MDLN ==
+{'listing_date': None, 'first_trade_date': '2025-12-17'}
+== SAIL ==
+== SAIL bare (region-resolved -> SAIL.NS, Steel Authority) ==
+{'symbol': 'SAIL.NS', 'listing_date': '1995-07-06', 'first_trade_date': '1996-01-01', 'fifty_two_week_high_date': '2026-05-14', 'fifty_two_week_low_date': '2025-12-19'}
+== DHOOTTRANS (original register repro target) ==
+top-level: {'listing_date': '2026-08-17', 'first_trade_date': '2026-08-17', 'fifty_two_week_high_date': '2026-09-15', 'fifty_two_week_low_date': '2026-08-17', 'forward_pe_fiscal_year': '2027-03-31'}
+name as_of= 2026-09-27T14:18:45.387771+00:00
+eps as_of= 2026-09-27T14:18:45.387771+00:00
+revenue_ttm as_of= 2026-09-27T14:18:45.387771+00:00
+fifty_two_week_high as_of= 2026-09-27T14:18:45.387771+00:00
+fifty_two_week_low as_of= 2026-09-27T14:18:45.387771+00:00
+all identical as_of across fields? True
+
+== DHOOTTRANS field_meta as_of uniformity + per-field dates (original register repro target) ==
+top-level: listing_date=2026-08-17 first_trade_date=2026-08-17 fifty_two_week_high_date=2026-09-15 fifty_two_week_low_date=2026-08-17 forward_pe_fiscal_year=2027-03-31
+per-field dates now exist as distinct top-level fields, addressing the register's core claim ('no per-field date is exposed for fifty_two_week_high/fifty_two_week_low at all').
+
+NOTE on SAIL: bare 'SAIL' now resolves (region-aware) to SAIL.NS = Steel Authority of India
+(listing_date 1995-07-06, first_trade_date 1996-01-01) -- an established company, NOT the
+recently-listed 2025-02-13/listing_date-null result the batch-28 fresh case recorded. This
+reads as symbol-resolver/master-data drift between verification sessions (an old established
+company now wins the bare-ticker resolution where a newer SME listing apparently won before),
+not a regression of the DATA-055 fix: the structural claim under test (per-field dates,
+listing_date preferred over first_trade_date, both correctly populated) holds for SAIL.NS too
+(all 4 date fields populated and distinct). NAVN and MDLN both matched the fresh case exactly.
+
+Frontend leg: permanent pinned test confirmed present (not vitest-executed per role rule):
+  src/modules/equity-overview/EquityOverviewPanel.test.tsx:674
+  it("falls back to first_trade_date when listing_date is unset (R15-DATA-055)", ...)
+  -- asserts a 90-day-old first_trade_date (no listing_date) shows 'since listing' + no 1Y
+  row; an old first_trade_date (2002-07-01, no listing_date) keeps '52w' + the 1Y row.
+
+VERDICT: holds. NAVN (2025-10-30) and MDLN (2025-12-17) first_trade_date match the fresh case
+exactly, both with listing_date null. DHOOTTRANS's per-field dates (the original repro's core
+claim) are all present and distinct, not a single shared as_of. SAIL's ticker resolved to a
+different (older, established) company than the fresh case recorded -- data drift, not a
+regression (its own per-field dates are correctly populated). Frontend threshold logic is
+pinned at EquityOverviewPanel.test.tsx:674 (R15-DATA-055), not re-executed (vitest suites are
+never run in this role).

@@ -1,0 +1,139 @@
+{
+ "shard": "research-2",
+ "labels": [
+  {
+   "id": "research-81",
+   "answer": "no",
+   "confidence": 0.7,
+   "note": "Indian market news under NVIDIA header; NVIDIA only framing"
+  },
+  {
+   "id": "research-82",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-83",
+   "answer": "no",
+   "confidence": 0.6,
+   "note": "substance is Sansera/Solar ratings, spuriously linked to NVIDIA"
+  },
+  {
+   "id": "research-84",
+   "answer": "yes",
+   "confidence": 0.9
+  },
+  {
+   "id": "research-85",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-86",
+   "answer": "no",
+   "confidence": 0.6,
+   "note": "failure message; no Dixon content"
+  },
+  {
+   "id": "research-87",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "generic 200-DMA item, BDL not named"
+  },
+  {
+   "id": "research-88",
+   "answer": "no",
+   "confidence": 0.93
+  },
+  {
+   "id": "research-89",
+   "answer": "no",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-90",
+   "answer": "no",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-91",
+   "answer": "no",
+   "confidence": 0.97
+  },
+  {
+   "id": "research-92",
+   "answer": "no",
+   "confidence": 0.98
+  },
+  {
+   "id": "research-93",
+   "answer": "no",
+   "confidence": 0.97
+  },
+  {
+   "id": "research-94",
+   "answer": "no",
+   "confidence": 0.97
+  },
+  {
+   "id": "research-95",
+   "answer": "no",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-96",
+   "answer": "no",
+   "confidence": 0.97
+  },
+  {
+   "id": "research-97",
+   "answer": "no",
+   "confidence": 0.98
+  },
+  {
+   "id": "research-98",
+   "answer": "no",
+   "confidence": 0.97
+  },
+  {
+   "id": "research-99",
+   "answer": "no",
+   "confidence": 0.97
+  },
+  {
+   "id": "research-100",
+   "answer": "no",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-101",
+   "answer": "no",
+   "confidence": 0.97
+  },
+  {
+   "id": "research-102",
+   "answer": "no",
+   "confidence": 0.97
+  },
+  {
+   "id": "research-103",
+   "answer": "no",
+   "confidence": 0.97
+  },
+  {
+   "id": "research-104",
+   "answer": "no",
+   "confidence": 0.97
+  },
+  {
+   "id": "research-105",
+   "answer": "no",
+   "confidence": 0.97
+  },
+  {
+   "id": "research-106",
+   "answer": "no",
+   "confidence": 0.97
+  }
+ ]
+}

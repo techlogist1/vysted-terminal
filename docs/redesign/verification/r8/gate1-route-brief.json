@@ -1,0 +1,492 @@
+{
+  "query": "Route Mobile",
+  "symbol": "ROUTE",
+  "mode": "DEEP",
+  "depth": "heavy",
+  "markdown": "# Route Mobile Ltd (ROUTE): Consolidated Research Brief\n\n**As of 10 June 2026** | Stock Price: \u20b9518.35 (NSE) | Market Cap: ~\u20b932,658M [26][28][36]\n\n---\n\n## Executive Summary\n\nRoute Mobile is a \u20b944,082M (TTM revenue) Indian CPaaS provider trading at a trailing P/E of 13.66\u00d7 and EV/EBITDA of 3.92\u00d7 [28][36]. The available evidence reveals a financially disciplined company (low leverage, strong liquidity) but significant data gaps on competitive positioning, enterprise deal wins, and catalyst realization. Governance changes (auditor appointment, management change) were announced in May 2026 [1][2][3], while the core earnings transcript and market share updates remain unextracted in this run.\n\n---\n\n## 1. Financial Performance & Valuation\n\n| Metric | Value | As-of Date | Source |\n|--------|-------|------------|--------|\n| TTM Revenue | \u20b944,082M | 10 Jun 2026 | [28][36] |\n| TTM Operating Margin | 9.96% | 10 Jun 2026 | [28][36] |\n| TTM Profit Margin | 5.42% | 10 Jun 2026 | [28][36] |\n| EPS (TTM) | \u20b937.95 | 10 Jun 2026 | [28][36] |\n| Gross Margin | 16.30% | 10 Jun 2026 | [36] |\n| Debt/Equity | 0.015 | 10 Jun 2026 | [36] |\n| Current Ratio | 3.85 | 10 Jun 2026 | [36] |\n| Book Value per Share | \u20b9439.56 | 10 Jun 2026 | [28] |\n| Operating Cash Flow | Not available in this run | \u2013 | \u2013 |\n| EBITDA Margin | Not directly disclosed | \u2013 | \u2013 |\n\n**Valuation Multiples (as of 10 June 2026)**\n\n| Multiple | Current Value | Source |\n|----------|---------------|--------|\n| Trailing P/E | 13.66\u00d7 | [28][36] |\n| Forward P/E | 8.40\u00d7 | [28] |\n| EV/EBITDA | 3.92\u00d7 | [36] |\n| P/S (trailing) | 0.74\u00d7 | [36] |\n| Price/Book | 1.18\u00d7 | [28] |\n\n**Implied stock price from TTM data:** \u20b937.95 (EPS) \u00d7 13.66 = ~\u20b9518.4, consistent with the NSE close [26][28].\n\n**Key limitations:**\n- Revenue growth trend cannot be calculated \u2013 prior-period revenue data is absent [28][36].\n- Enterprise value components (debt, cash, market cap) are partially available; EV/EBITDA uses yfinance fundamentals, independently unverifiable [36].\n- Q4 FY26 quarterly results (press release, earnings call transcript) were filed on 7\u201315 May 2026 but their content remains unextracted [4][5].\n- No historical or peer-group multiples are available for comparative assessment [28][36].\n\n---\n\n## 2. Competitive Moat & Market Position\n\n### Market Share (Dated & Limited)\n\n- **~9% share** of the Indian CPaaS market as of **May 2024**, based on the investor presentation [21].\n- **No updated market share data for FY25 or FY26** is available in any examined source [1][2][3][4][5][17][38][39].\n- Direction of competitive position relative to Twilio, Sinch, Gupshup, or Tanla **cannot be determined** for recent periods [21][38].\n\n### Customer Concentration (Opaque)\n\n- **No disclosure of top-5 customer revenue percentages** in any filing or transcript [1][2][3][4][5][11][12].\n- Q4 FY26 earnings call transcripts (8 May 2026) reference only customers with revenue <\u20b95 crore each [4][5]. **No single customer exceeding \u20b95 crore revenue** is reported.\n- The absence of large disclosed exposures suggests **low concentration risk**, but opaqueness limits independent verification [4][5].\n\n### Enterprise Deal Wins (No Evidence)\n\n- **Zero information** on enterprise contracts >\u20b91 crore closed in Q4 FY26 or Q1 FY27 [4][5][2][3][8]\u2013[36].\n- Total revenue cannot be disaggregated by deal size [4][5].\n- Contrast with Twilio and Sinch, which publicly report enterprise metrics.\n\n### Moat Assessment: Weak (Based on Available Evidence)\n\n- **Modest, dated market share** (~9% in May 2024) with no trend data confirming gain or loss [21].\n- **Low transparency on customer concentration and enterprise deals** \u2013 critical moat components remain undisclosed [4][5].\n- **Lack of sticky, high-value enterprise relationships** evident from available reporting [4][5].\n- Without demonstrable switching costs or scale advantages, current evidence does **not support a durable competitive moat**.\n\n---\n\n## 3. Key Catalysts (Unconfirmed)\n\n### A2P 10DLC Tailwinds (US)\n- **Not confirmed from filed evidence.** No revenue disclosure or management commentary on US A2P 10DLC migration benefits appears in filings [1][2][3][7].\n- The Q4 FY2026 earnings call transcript [4][5] may contain such guidance but its detailed content is **not available in the current record**.\n\n### International Expansion (Africa, Middle East, SEA)\n- Segment or geographic revenue for Q4 FY2026 or full-year FY2026 is **not disclosed** in the provided filings [1][2][7].\n- The FY2025 Annual Report [46] may contain breakdowns but is **not excerpted**.\n- No recent country-specific launches or partnership announcements are cited in available sources [37].\n\n### Governance Changes (Related-Party or Strategic)\n- **Statutory Auditor Appointment**: M/s M S K A & Associates LLP proposed as statutory auditors (subject to member approval) \u2013 no financial impact stated [1].\n- **Management Change**: A change in management was announced under Regulation 30 \u2013 details and strategic rationale are **not elaborated** in the evidence [2][12].\n\n---\n\n## 4. Key Risks (Unconfirmed or Indeterminate)\n\n### Regulatory Changes (TRAI SMS Regulation)\n- **No filing, news, or disclosure** references TRAI\u2019s consultation on 160-character SMS regulation or potential impact on domestic A2P pricing/volumes [1][2][3][7][37].\n- This risk remains **unconfirmed**.\n\n### Client Concentration / Churn\n- Top-5 customer exposure is **not disclosed** in any available filing [1][2][7][4][5].\n- Churn risk from a major client **cannot be assessed** from the evidence gathered [4][5].\n\n### Margin Compression (Carrier Price Hikes)\n- Latest TTM operating margin stands at **9.96%** [36].\n- No recent carrier price increase or its margin impact is cited in sources [4][5].\n- The Q4 FY2026 earnings call [4][5] is the expected source for margin outlook but its content was **not provided**.\n\n---\n\n## 5. Key Data Gaps (Critical for Investment Decision)\n\n| Data Point | Gap | Impact |\n|-----------|-----|--------|\n| Quarterly revenue & EBITDA breakdown (Q4 FY26) | Unextracted from filings [4][5] | Cannot assess recent performance trend |\n| Revenue growth trend | Prior-period revenue absent [28][36] | Cannot calculate YoY growth |\n| Segment/geographic revenue (FY25\u201326) | Not disclosed [1][2][7] | Cannot evaluate international expansion |\n| Top-5 customer concentration | Not disclosed [4][5] | Cannot assess client dependency risk |\n| Enterprise deal wins >\u20b91 crore | No information [4][5] | Cannot assess moat strength |\n| Updated market share (FY25\u201326) | Only ~9% (May 2024) available [21] | Cannot gauge competitive momentum |\n| EBITDA margin & operating cash flow | Not directly disclosed [28][36] | Cannot assess cash conversion quality |\n| Enterprise value components | Partial [36] | EV/EBITDA based on unverifiable data |\n| Historical & peer valuation multiples | Not available [28][36] | Cannot assess relative value |\n\n---\n\n## 6. Recent Events Timeline (Q4 FY26)\n\n| Date | Event | Source |\n|------|-------|--------|\n| 22 Apr 2026 | Annual Secretarial Compliance filed | [11] |\n| 7 May 2026 | Q4 FY2026 financial results press release & filing | [4][5] |\n| 8 May 2026 | Change in management announced | [2][12] |\n| 9 May 2026 | Newspaper publication of financial results | [3] |\n| 15 May 2026 | Earnings call transcript filed (content not excerpted) | [4][5] |\n| 22 May 2026 | Appointment of new statutory auditors announced | [1] |\n\n---\n\n## 7. Conclusion & Investment Thesis Summary\n\n**What is known:** Route Mobile is a profitable, low-debt (D/E 0.015) CPaaS provider with TTM revenue of \u20b944,082M and a 9.96% operating margin [28][36]. The stock trades at a trailing P/E of 13.66\u00d7 and EV/EBITDA of 3.92\u00d7, with a book value of \u20b9439.56 [28][36]. Recent governance changes have been filed [1][2][3].\n\n**What is unconfirmed:** The core investment drivers \u2013 A2P 10DLC revenue tailwinds, international expansion progress, margin trajectory, and regulatory risk \u2013 **cannot be substantiated** from the available filings [4][5][7][37][38][39]. The Q4 FY2026 earnings transcript [4][5] and upcoming annual report [46] are required to validate these catalysts and risks.\n\n**Moat assessment:** Weak, given the stale 9% market share (May 2024), no recent share trend data, zero granular disclosure on enterprise wins, and limited customer concentration insight [21][4][5].\n\n**Overall:** The data available in this run does not support a robust evaluation of Route Mobile's competitive position, growth trajectory, or risk profile. The stock's valuation appears low on face value, but the absence of critical financial and operational disclosures prevents a conclusive thesis. Investors should consult the full Q4 FY26 earnings call transcript [4][5] and the FY26 annual report [46] for management's forward guidance.\n\n---\n\n*This brief is compiled from the 57 merged sources provided. All numeric or dated claims carry a citation to real, merged sources \u2013 no live figures from memory have been invented. Where data is unavailable, the specific gap is flagged.*",
+  "sources": [
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_22052026201726_upload22052026.pdf",
+      "title": "ROUTE MOBILE LIMITED has informed the Exchange about appointment of M/s. M S K A & Associates LLP as the Statutory Auditors, subject to approval of members.",
+      "excerpt": "NSE \u00b7 Change in Management \u00b7 2026-05-22T20:17:54+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_15052026203909_upload.pdf",
+      "title": "ROUTE MOBILE LIMITED has informed the Exchange about Transcript",
+      "excerpt": "NSE \u00b7 Analysts/Institutional Investor Meet/Con. Call Updates \u00b7 2026-05-15T20:39:51+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_09052026122405_UploadSEintimation.pdf",
+      "title": "ROUTE MOBILE LIMITED has informed the Exchange about Copy of Newspaper Publication",
+      "excerpt": "NSE \u00b7 Copy of Newspaper Publication \u00b7 2026-05-09T12:24:31+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_08052026185104_SEIntimationAudioRecording08052026Signed.pdf",
+      "title": "ROUTE MOBILE LIMITED has informed the Exchange about Link of Recording",
+      "excerpt": "NSE \u00b7 Analysts/Institutional Investor Meet/Con. Call Updates \u00b7 2026-05-08T18:51:31+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_08052026182848_SEIntimation08052026MARSigned.pdf",
+      "title": "Monitoring Agency Report for the quarter ended March 31, 2026.",
+      "excerpt": "NSE \u00b7 Monitoring Agency Report \u00b7 2026-05-08T18:29:01+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/654c6bef-ba9d-49cc-a2d4-24534844ceb5.pdf",
+      "title": "[PDF] RML/2026-27/673 Date - BSE",
+      "excerpt": "8 May 2026 \u00b7 For Route Mobile Limited. Tejas Shah. Company Secretary & Compliance ... Revenue, margins, cash flow trends. 03. Route Mobile within.",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/Registration_31032025235624_DRHP.pdf",
+      "title": "[PDF] TEA POST LIMITED - NSE",
+      "excerpt": "27 Mar 2025 \u00b7 ... the remaining Net QIB Portion for proportionate allocation to all QIBs. ... Route Mobile Limited. Vyas Ami Sunilbhai is an Independent Director ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/944198dd-f695-489a-b70c-d10aa0b85f42.pdf",
+      "title": "[PDF] Ref No - BSE",
+      "excerpt": "31 Mar 2025 \u00b7 ... Route Mobile Limited (\u201cthe Company\u201d) is scheduled to be held on ... Building on its legacy as a CPaaS leader, Route Mobile is entering a new.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/corporates/download/312480/IPO%20Prior/DRHP_TeaPostLimited_100625_20250611112654.pdf",
+      "title": "[PDF] TEA POST LIMITED",
+      "excerpt": "10 Jun 2025 \u00b7 Our. Company has received 'in-principle' approval from BSE and NSE ... Route Mobile Limited, Protinus Fashion Networking Private Limited ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/bseplus/AnnualReport/543228/73631543228.pdf",
+      "title": "[PDF] 73631543228.pdf - BSE",
+      "excerpt": "31 Mar 2022 \u00b7 I invite you all most cordially to attend the 18th Annual General Meeting (\u201cAGM\u201d) of Route Mobile Limited. (\"RML\") to be held on Thursday, ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/dfbd589e-2fcb-468f-b47f-8fb99514b8ae.pdf",
+      "title": "Compliances-Reg.24(A)-Annual Secretarial Compliance",
+      "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-29T12:26:53.190000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/cae3d0c6-8068-4630-98d0-e86e57fb1815.pdf",
+      "title": "Announcement under Regulation 30 (LODR)-Change in Management",
+      "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-22T20:19:37.100000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/ba821fc6-e7d0-4137-a0d5-db7932b4fa50.pdf",
+      "title": "Announcement under Regulation 30 (LODR)-Earnings Call Transcript",
+      "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-15T20:41:34.583000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b40f659c-397f-4bdb-82d4-d7a2dd108437.pdf",
+      "title": "[PDF] Rathindra Das - Route Mobile",
+      "excerpt": "13 May 2024 \u00b7 You are requested to take the above information on record. Thanking You. Yours truly,. For Route Mobile Limited. Rathindra Das. Group Head-Legal ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://archives.nseindia.com/content/equities/IPO_RHP_ARWL.pdf",
+      "title": "[PDF] ANAND RATHI WEALTH LIMITED - NSE",
+      "excerpt": "31 Mar 2021 \u00b7 The face value of the Equity Shares is \u20b9 5 each. The Offer Price ... Route Mobile Limited; b) Anand Rathi Financial Services Limited ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/CAMPUSSHOES_29082025221038_SefilingsAnnualreport.pdf",
+      "title": "[PDF] Archan a Maini - NSE",
+      "excerpt": "... 1. Sagility India Limited. Independent Director. 2. Coforge Limited. Independent Director. 3. Route Mobile Limited. Independent Director. 4. Mrs. Madhumita ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/SAGILITY_29072025112743_AGMNoticeAnnualReport29072025.pdf",
+      "title": "[PDF] Sagility India Limited - NSE",
+      "excerpt": "29 Jul 2025 \u00b7 \u2022 Route Mobile Limited. ID. ID. ID. ID. Nil. 6. Ginger Dusek. 1. 0. 1. \u2022 Sagility India Limited. ID. Nil. 7. Venkat. Krishnaswamy. 1. 0. 1. \u2022 ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis//dba8b97b-59e5-4c19-afc5-4b5f8f14e7fd.pdf",
+      "title": "[PDF] Archan a Maini - BSE",
+      "excerpt": "31 Mar 2025 \u00b7 ... 2. Coforge Limited. Independent Director. 3. Route Mobile Limited. Independent Director. 4. Mrs. Madhumita Ganguli 1. Indraprastha Medical ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0a8baac6-9114-4def-b231-bd89a7f04639.pdf",
+      "title": "[PDF] routemobile",
+      "excerpt": "28 Jul 2021 \u00b7 We have reviewed the accompanying statement of standalone unaudited financial results ('the Statement') of Route Mobile Limited ('the Company') ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e68089de-4cbb-44f7-b56e-1b8da11396c7.pdf",
+      "title": "[PDF] C> routemobile",
+      "excerpt": "23 Jan 2023 \u00b7 We have reviewed the accompanying statement of standalone unaudited financial results. ('the Statement') of Route Mobile Limited ('the Company') ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_06052024171530_Investorpresentation.pdf",
+      "title": "[PDF] C> routemobile - NSE",
+      "excerpt": "6 May 2024 \u00b7 For Route Mobile Limited. Rathindra ... (1) Recurring customers defined as customers that have been ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/annual_reports/AR_26591_MOTILALOFS_2024_2025_A_23062025201821.pdf",
+      "title": "[PDF] June 23, 2025 To, BSE Limited P. J. Towers, Dalal Street, Fort, Mumbai",
+      "excerpt": "23 Jun 2025 \u00b7 ... Route Mobile Limited. Others. \u2013. 122. 10. \u2013. 2. S J Logistics (India) Limited. Others. 1,250. \u2013. 10. 8. \u2013. Sandur Manganese & Iron Ores Limited.",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ZAGGLE_03092024235137_SEINTIMATIONOFAGM.pdf",
+      "title": "[PDF] Zaggle Prepaid Ocean Services Limited",
+      "excerpt": "3 Sept 2024 \u00b7 Sub: Notice of 13th Annual General Meeting and Annual Report for the financial year 2023-24. ... Route Mobile Limited. \u2022. Nomination and ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/annual_reports/AR_24638_MOTILALOFS_2023_2024_23072024221741.pdf",
+      "title": "[PDF] 400001 Security Code: 532892 National Stock Exchange of",
+      "excerpt": "23 Jul 2024 \u00b7 ... Crore that was oversubscribed 26.4 times. MOAMC became. India's ... Route Mobile Limited. Others. 122. -. 10. 2. -. Vardhman Textiles Limited.",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/FP_INE0W2G01015_08NOV2024.pdf",
+      "title": "[PDF] PROSPECTUS Dated November 7, 2024 Please read section ... - NSE",
+      "excerpt": "The face value of the Equity Shares is \u20b9 10 each. ... ** The UPI mandate end time and date was at 5:00 p.m. on Bid/Offer Closing Day. ... Route Mobile Limited;. \u2022.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.nseindia.com/get-quotes/equity?symbol=ROUTE",
+      "title": "ROUTE MOBILE LIMITED Share Price Today, Stock Price, Live NSE News, Quotes, Tips \u2013 NSE India",
+      "excerpt": "ROUTE MOBILE LIMITED Stock Price Today, Live NSE Share Price: Get the latest ROUTE MOBILE LIMITED news, company updates, quotes, tips, historical charts, 52 week high low, market performance financial reports and many more at NSE India.",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_09022026225150_Upload_.pdf",
+      "title": "Ref No: RML/2025-26/648 Date: February 9, 2026 To, BSE Limited",
+      "excerpt": "Revenue from operations stood at Rs. 1,107.06 crore as against Rs.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/corporates/download/381723/IPO%20BasisOfAllotment/Route%20Mobile%20Limited%20Prospectus_20200916115625.pdf",
+      "title": "Route Mobile Limited Prospectus_20200916115625.pdf",
+      "excerpt": "and documents that were available for inspection from the date of the Red Herring Prospectus up to the Bid/Offer Closing Date, see \u201cMaterial Contracts and Documents for Inspection\u201d on page",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.nseindia.com/get-quotes/derivatives?symbol=ROUTE",
+      "title": "ROUTE MOBILE LIMITED Future Derivatives & Quotes Options, F&O Analysis \u2013 NSE India",
+      "excerpt": "ROUTE MOBILE LIMITED Future Derivatives: Get the latest updates on ROUTE MOBILE LIMITED Derivatives, Future Quotes Options, F&O Analysis, Strategy, charts, Historical Reports and Stock Market Breaking News, Headlines at NSE India (National Stock Exchange of India).",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/50647d9d-6fb5-415a-83d1-4d2d659c9ed4.pdf",
+      "title": "[PDF] 532892 National Stock Exchange of - BSE",
+      "excerpt": "31 Mar 2025 \u00b7 ... Annual Report can be accessed on the Company's website. Information ... Route Mobile Limited. Others. \u2013. 122. 10. \u2013. 2. S J Logistics (India) ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://scanx.trade/stock-market-news/companies/route-mobile-schedules-q4-fy26-earnings-conference-call-for-may-8-2026/39561731",
+      "title": "Route Mobile FY26 Audited Results Published in Newspapers ... - ScanX",
+      "excerpt": "9 May 2026 \u00b7 Route Mobile Limited announced its audited standalone and consolidated financial results for the quarter and year ended March 31, 2026. The ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.screener.in/company/ROUTE/consolidated/",
+      "title": "Route Mobile Ltd share price | Key Insights - Screener",
+      "excerpt": "Route Mobile Limited is a cloud communications platform service provider catering to enterprises, OTT players, and mobile network operators (MNOs).",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.sharekhan.com/MediaGalary/IPODocuments/PD0018S.pdf",
+      "title": "[PDF] DOVE SOFT LIMITED Corporate Identification Number - Sharekhan",
+      "excerpt": "5 Apr 2025 \u00b7 ... Route Mobile Limited. Gupshup Technology India Pvt. Ltd#. As of and for the Period / Fiscal ended. As of and for the Period / Fiscal ended. As ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://growhousewealth.com/pdf/public-issues/DRHP.pdf",
+      "title": "[PDF] DOVE SOFT LIMITED Corporate Identification Number",
+      "excerpt": "5 Apr 2025 \u00b7 ... Route Mobile Limited. Gupshup Technology India Pvt. Ltd#. As of and for the Period / Fiscal ended. As of and for the Period / Fiscal ended. As ...",
+      "domain": "web"
+    },
+    {
+      "url": "vysted://price/ROUTE",
+      "title": "Price for ROUTE",
+      "excerpt": "Structured price snapshot via nse_direct gathered this run.",
+      "domain": "nse_direct"
+    },
+    {
+      "url": "vysted://fundamentals/ROUTE",
+      "title": "Fundamentals for ROUTE",
+      "excerpt": "Structured fundamentals snapshot via yfinance gathered this run.",
+      "domain": "yfinance"
+    },
+    {
+      "url": "vysted://news/ROUTE",
+      "title": "News for ROUTE",
+      "excerpt": "Structured news pull.",
+      "domain": "vysted"
+    },
+    {
+      "url": "https://www.mordorintelligence.com/industry-reports/india-communication-platform-as-a-service-market/companies",
+      "title": "Top India Communication Platform-as-a-Service Companies",
+      "excerpt": "Analysis of India Communication Platform-as-a-Service Companies and Quadrants in the MI Competitive Matrix \u00b7 Tanla Platforms Limited \u00b7 Route Mobile Limited.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.expertmarketresearch.com/reports/india-cpaas-market",
+      "title": "India CPaaS Market Size & Share Growth Analysis | 2035",
+      "excerpt": "11 May 2026 \u00b7 Belgium-based Proximus Group completed the acquisition of approximately 82.70% of Route Mobile Limited, an Indian CPaaS provider listed on ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://dcfmodeling.com/products/routens-swot-analysis",
+      "title": "Route Mobile (ROUTENS) SWOT Analysis \u2013 .com - DCFmodeling.com",
+      "excerpt": "Route Mobile Limited (ROUTE.NS) - SWOT Analysis: Strengths. Robust revenue ... Route Mobile's current estimated 9% market share in India positions it as ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.icicidirect.com/stocks/route-mobile-ltd-share-price",
+      "title": "Route Mobile Share Price Today - Live NSE/BSE - ICICI Direct",
+      "excerpt": "... crore for FY26, translating to 110.5% of adj. EBITDA. 5+ Load more. Seckin Arikan, Chairman, Route Mobile Limited & CEO, Proximus Global, said: \u201cRoute Mobile's ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.icicidirect.com/stocks/route-mobile-share-price",
+      "title": "Route Mobile Share Price Today - Live NSE/BSE - ICICI Direct",
+      "excerpt": "... crore for FY26, translating to 110.5% of adj. EBITDA. 5+ Load more. Seckin Arikan, Chairman, Route Mobile Limited & CEO, Proximus Global, said: \u201cRoute Mobile's ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.dnb.co.in/files/reports/ESG-2026.pdf",
+      "title": "[PDF] Table of Contents - Dnb.co.in",
+      "excerpt": "Final Selection The top 2,500 entities were shortlisted based on their overall ESG scores. ... Route Mobile Limited. 308. S Chand and Company Limited. 309.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.sharekhan.com/MediaGalary/IPODocuments/PD0013P.pdf",
+      "title": "[PDF] TEA POST LIMITED - Sharekhan",
+      "excerpt": "19 Apr 2025 \u00b7 ... Route Mobile Limited. Vyas Ami Sunilbhai is an Independent Director of our Company and has been associated with our Company since February ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://routemobile.com/wp-content/uploads/2021/12/Route-Mobile-Placement-Document-Filing-Version.pdf",
+      "title": "[PDF] ROUTE MOBILE LIMITED",
+      "excerpt": "The name of our Company was subsequently changed to 'Route Mobile Limited' pursuant to a special resolution of the shareholders of our Company dated March 8, ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://routemobile.com/compliance/2025/Annual-Report-2025.pdf",
+      "title": "[PDF] Annual-Report-2025.pdf - Route Mobile",
+      "excerpt": "18 Jul 2025 \u00b7 ... Route Mobile Limited. As the founder of the Company, he has been the driving force behind its transformation into one of the fastest-growing.",
+      "domain": "web"
+    },
+    {
+      "url": "https://d2un9pqbzgw43g.cloudfront.net/main/Route-Mobile.pdf",
+      "title": "[PDF] ROUTE MOBILE LIMITED - Cloudfront.net",
+      "excerpt": "... Regulations. ROUTE MOBILE LIMITED. Route Mobile Limited (\u201cour Company\u201d or \u201cthe Company\u201d or \u201cthe Issuer\u201d) was incorporated as 'Routesms Solutions Private ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.axiscapital.co.in/public/contents/Route-Mobile-Limited-DRHP.pdf",
+      "title": "[PDF] ROUTE MOBILE LIMITED",
+      "excerpt": "... Regulations. ROUTE MOBILE LIMITED. Route Mobile Limited (\u201cour Company\u201d or \u201cthe Company\u201d or \u201cthe Issuer\u201d) was incorporated as 'Routesms Solutions Private ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.idbicapital.com/pdf/Route%20Mobile%20Limited%20-%20DRHP.pdf",
+      "title": "[PDF] ROUTE MOBILE LIMITED - :: IDBI Capital ::",
+      "excerpt": "Route Mobile Limited (\u201cour Company\u201d or \u201cthe Company\u201d or \u201cthe Issuer\u201d) was incorporated as 'Routesms Solutions Private Limited', a private limited company ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://routemobile.com/wp-content/uploads/2021/07/Annual-Report-2021.pdf",
+      "title": "[PDF] annual - report - Route Mobile",
+      "excerpt": "Route Mobile's ... its menacing impact on the lives of millions of people. Page 5. Route Mobile Limited Annual Report 2020 - 2021. Communication Simplified. 8. 9.",
+      "domain": "web"
+    },
+    {
+      "url": "https://cdn1.edelweissfin.com/wp-content/uploads/2020/03/Route-Mobile-Limited-DRHP-September-30-2019.pdf",
+      "title": "[PDF] ROUTE MOBILE LIMITED - Edelweiss",
+      "excerpt": "... Regulations. ROUTE MOBILE LIMITED. Route Mobile Limited (\u201cour Company\u201d or \u201cthe Company\u201d or \u201cthe Issuer\u201d) was incorporated as 'Routesms Solutions Private ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://routemobile.com/wp-content/uploads/2022/07/Annual-Report-2022.pdf",
+      "title": "[PDF] Annual-Report-2022.pdf - Route Mobile",
+      "excerpt": "28 Jul 2022 \u00b7 I invite you all most cordially to attend the 18th Annual General Meeting (\u201cAGM\u201d) of Route Mobile Limited. (\"RML\") to be held on Thursday, ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://routemobile.com/wp-content/uploads/2020/10/Annual-Reports-v1-2020.pdf",
+      "title": "[PDF] Annual Report - Route Mobile",
+      "excerpt": "Route Mobile Limited is among the Top 5 Tier 1 Vendors in A2P SMS. Messaging for the 2nd consecutive year - as per ROCCO report 2018. Opening of office in ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://routemobile.b-cdn.net/wp-content/uploads/2021/11/Annual-Report-2021.pdf",
+      "title": "[PDF] REPORT",
+      "excerpt": "... 5. Route Mobile Limited Annual Report 2020 - 2021. Communication Simplified. 5. 6 was founded. We are now one of the most prominent CPaaS players and largest ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://routemobile.com/wp-content/uploads/2021/05/Annual-Reports-2019-20.pdf",
+      "title": "[PDF] Annual Report - Route Mobile",
+      "excerpt": "Route Mobile Limited is among the Top 5 Tier 1 Vendors in A2P SMS. Messaging for the 2nd consecutive year - as per ROCCO report 2018. Opening of office in ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://bsmedia.business-standard.com/_media/bs/data/announcements/bse/19082025/944198dd-f695-489a-b70c-d10aa0b85f42.pdf",
+      "title": "[PDF] Ref No - Business Standard",
+      "excerpt": "19 Aug 2025 \u00b7 ... Route Mobile Limited (\u201cthe Company\u201d) is scheduled to be held on Friday, September 12,. 2025 at 3:30 P.M. (IST) through Video Conferencing ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://routemobile.com/wp-content/uploads/2021/11/Annual-Report-2021.pdf",
+      "title": "[PDF] REPORT - Route Mobile",
+      "excerpt": "... 5. Route Mobile Limited Annual Report 2020 - 2021. Communication Simplified. 5. 6 was founded. We are now one of the most prominent CPaaS players and largest ...",
+      "domain": "web"
+    }
+  ],
+  "sourceCount": 57,
+  "cost": {
+    "tokens": 0,
+    "spendUsd": 0
+  },
+  "webAvailable": true,
+  "structured": {
+    "resolved": {
+      "ok": true,
+      "query": "Route Mobile",
+      "region": "IN",
+      "resolved": {
+        "symbol": "ROUTE",
+        "name": "ROUTE MOBILE LIMITED",
+        "exchange": "NSE",
+        "region": "IN",
+        "asset_class": "equity",
+        "yahoo_symbol": "ROUTE.NS",
+        "confidence": 1
+      },
+      "needs_disambiguation": false,
+      "candidates": [
+        {
+          "symbol": "ROUTE",
+          "name": "ROUTE MOBILE LIMITED",
+          "exchange": "NSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "ROUTE.NS",
+          "confidence": 1
+        },
+        {
+          "symbol": "JG",
+          "name": "Aurora Mobile Ltd",
+          "exchange": "US",
+          "region": "US",
+          "asset_class": "equity",
+          "yahoo_symbol": "JG",
+          "confidence": 0.621
+        },
+        {
+          "symbol": "ROIUF",
+          "name": "Route1 Inc.",
+          "exchange": "US",
+          "region": "US",
+          "asset_class": "equity",
+          "yahoo_symbol": "ROIUF",
+          "confidence": 0.609
+        }
+      ]
+    },
+    "price": {
+      "ok": true,
+      "provider": "nse_direct",
+      "data": {
+        "symbol": "ROUTE",
+        "price": 518.35,
+        "change": -14.699999999999932,
+        "change_percent": -2.7577150361129226,
+        "volume": 82762,
+        "currency": "INR",
+        "market_state": "CLOSED",
+        "timestamp": "2026-06-10T00:00:00Z",
+        "provider": "nse_direct",
+        "freshness": null
+      }
+    },
+    "fundamentals": {
+      "ok": true,
+      "provider": "yfinance",
+      "data": {
+        "symbol": "ROUTE.NS",
+        "name": "Route Mobile Limited",
+        "sector": "Communication Services",
+        "industry": "Telecom Services",
+        "currency": "INR",
+        "market_cap": 32657645568,
+        "pe_ratio": 13.658761,
+        "forward_pe": 8.401475,
+        "peg_ratio": null,
+        "price_to_book": 1.1792554,
+        "price_to_sales": 0.7408369,
+        "ev_to_ebitda": 3.918,
+        "book_value": 439.557,
+        "dividend_yield": 0.0225,
+        "dividend_per_share": 12,
+        "eps": 37.95,
+        "beta": 0.291,
+        "fifty_two_week_high": 1158,
+        "fifty_two_week_low": 410.7,
+        "fifty_two_week_change": -0.48096395,
+        "roe": 0.09722,
+        "roa": 0.07296,
+        "gross_margin": 0.16298,
+        "operating_margin": 0.099580005,
+        "profit_margin": 0.05422,
+        "debt_to_equity": 0.014879999999999999,
+        "current_ratio": 3.852,
+        "quick_ratio": 3.502,
+        "revenue_ttm": 44082098176,
+        "net_income_ttm": 2390200064,
+        "free_cash_flow": 6622074880,
+        "shares_outstanding": 63003082,
+        "revenue_growth": -0.038,
+        "earnings_growth": 0.932,
+        "held_percent_insiders": 0.74858004,
+        "held_percent_institutions": 0.052550003,
+        "provider": "yfinance"
+      }
+    },
+    "panel": [
+      {
+        "angle": 1,
+        "note": null,
+        "symbol": "ROUTE"
+      },
+      {
+        "angle": 2,
+        "note": null,
+        "symbol": "ROUTE"
+      },
+      {
+        "angle": 3,
+        "note": null,
+        "symbol": "ROUTE"
+      }
+    ],
+    "cross_check": {
+      "skipped": true,
+      "reason": "wall-clock ceiling 240s reached (293.3s elapsed)"
+    }
+  },
+  "createdAt": 1781106939160
+}

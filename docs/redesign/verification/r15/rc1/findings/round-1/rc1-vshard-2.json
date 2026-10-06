@@ -1,0 +1,30 @@
+[
+  {
+    "key": "rc1-vshard-2:1",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-068",
+    "title": "GET /fundamentals/{symbol}/ratings (analyst consensus, 6h data_cache) still carries no as_of; the route discards the fetch time, so the Equity Overview 'Analyst ratings' strip shows cached consensus/targets undated",
+    "repro": "Own sidecar :52602 at 1d6511c8: curl /fundamentals/AAPL/ratings -> keys symbol,consensus,target_mean,target_high,target_low,strong_buy..provider, no as_of; same for TCS (X-Vysted-Region: IN) and MSFT. The three extended analyst routes and all four earnings routes do carry as_of. sidecar/routers/fundamentals.py get_analyst_rating: `rating, _ = await _cached(...)` drops the as_of that _cached returns; models/fundamentals.py AnalystRating and types/data.ts AnalystRating have no as_of field; src/modules/equity-overview/api.ts consumes sidecarApi.analystRating and EquityOverviewPanel renders the ratings strip with no date. This is the exact residual recorded in the entry's own batch-10 note.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+    "suspected_files": [
+      "sidecar/routers/fundamentals.py",
+      "sidecar/models/fundamentals.py",
+      "types/data.ts",
+      "src/modules/equity-overview/EquityOverviewPanel.tsx"
+    ]
+  },
+  {
+    "key": "rc1-vshard-2:2",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "After every research call fails (Tier B 401, error steps on the stream), the copilot still replies 'Built you a brief on Infosys - it's at the top of the cockpit' though no brief was published; nothing in the runtime checks a brief claim against a publish",
+    "repro": "vy.py invoke copilot 'Research Infosys for me: what drove its latest quarterly results? Give me a brief with sources.' --port 52152 --provider ollama --model llama3.1:8b --tier tier_b --header X-Vysted-Openrouter-Key=<fake sk-or-v1 canary>. Stream: research(depth deep) -> error step 'OpenRouter rejected the request', research(depth quick) -> same error step, no publish_brief/brief event, done. Answer text: 'Sorry about this error ... {\"name\": \"research\", ...}Built you a brief on Infosys - it's at the top of the cockpit; click any ticker to dig in.' The sentence is the example line in sidecar/agents/copilot.json systemPrompt ('After researching, reply in ONE or TWO sentences that POINT to the brief - e.g. Built you a brief on NVDA ...'), which the prompt gives with no failure branch. Model-driven (8B), but the false claim reaches the user unchecked.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+    "suspected_files": [
+      "sidecar/agents/copilot.json",
+      "sidecar/services/agent_runtime.py"
+    ]
+  }
+]

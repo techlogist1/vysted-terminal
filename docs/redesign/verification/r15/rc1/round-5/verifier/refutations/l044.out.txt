@@ -1,0 +1,9 @@
+keys ['universe', 'evaluated_count', 'skipped_count', 'skip_details', 'result_count', 'matched_count', 'rows', 'duration_ms', 'partial', 'coverage', 'freshness', 'basis_counts']
+rows 503 coverage screened 503 of 503 — 0 unavailable total None None
+INR rows 0 []
+HAL [('HAL', 'Halliburton Company', 'USD', 32.76)]
+CCL [('CCL', 'Carnival Corporation Ltd.', 'USD', 22.25)]
+IEX [('IEX', 'IDEX Corporation', 'USD', 230.08)]
+ACGL [('ACGL', 'Arch Capital Group Ltd.', 'USD', 94.66)]
+PTC [('PTC', 'PTC Inc.', 'USD', 138.12)]
+818.0687500280328 {'quotes_as_of': 1790510288.69202, 'valuation_as_of': 1790510288.69201, 'deep_as_of': 1790438500.452988} {'live': 503} False 503 0

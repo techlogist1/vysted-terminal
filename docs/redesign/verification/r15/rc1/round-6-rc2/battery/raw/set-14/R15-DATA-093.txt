@@ -1,0 +1,10 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad; python3 - <<'X'
+from scr import *
+d=run({'universe':'custom','custom_symbols':['RELIANCE','TCS','INFY','HDFCBANK','COCHINSHIP'],'criteria':[]})
+print(summ(d)); print([x['symbol'] for x in d['rows']]); print(d['skip_details'])
+X
+{'universe': 'custom', 'evaluated_count': 5, 'skipped_count': 0, 'result_count': 5, 'matched_count': 5, 'duration_ms': 7.459499989636242, 'partial': False, 'coverage': 'screened 5 of 5 — 0 unavailable', 'freshness': {'quotes_as_of': 1790987592.9016168, 'valuation_as_of': 1790987592.901603, 'deep_as_of': 1790978278.5330958}, 'basis_counts': {'live': 5}, 'throttled': True}
+['RELIANCE.NS', 'HDFCBANK.NS', 'TCS.NS', 'INFY.NS', 'COCHINSHIP.NS']
+[]
+EXIT=0

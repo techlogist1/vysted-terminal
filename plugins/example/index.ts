@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 Lokavya Singh
+
 /**
  * Vysted Example Plugin — proves the locked `VystedPlugin` contract end-to-end.
  *

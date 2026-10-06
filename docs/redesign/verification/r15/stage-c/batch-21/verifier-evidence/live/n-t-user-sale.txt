@@ -1,0 +1,6 @@
+[   1.9s] done: {"kind": "done", "usage": {"input_tokens": 2750, "output_tokens": 27, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+You sold 5 TCS shares for ₹3100 each. Your total proceeds from this transaction would be ₹155,000.
+
+=== ok · 1.9s · events {'delta': 27, 'done': 1} · usage in=2750 out=27 · est $0.00000 · llama3.1:8b

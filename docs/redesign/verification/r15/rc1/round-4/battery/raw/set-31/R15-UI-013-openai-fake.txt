@@ -1,0 +1,2 @@
+curl -s --max-time 10 -X POST http://127.0.0.1:52352/llm/keys/validate -H 'Content-Type: application/json' -d '{"provider":"openai","api_key":"sk-fake-not-a-real-key-00000000000000000000"}'
+{"ok":false,"reason":"invalid","detail":"OpenAI rejected this key."}EXIT:0

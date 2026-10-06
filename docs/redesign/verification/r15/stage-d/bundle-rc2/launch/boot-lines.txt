@@ -1,0 +1,84 @@
+[sec-edgar-mcp] not bound on 127.0.0.1:56204 after attempt 1/2 (45s); cold PyInstaller extraction may be slow — retrying.
+[vysted] Python sidecar not up yet on port 56202 after attempt 1/2 (45s); cold PyInstaller extraction may be slow — retrying.
+[openbb-mcp] not bound on 127.0.0.1:56203 after attempt 1/2 (45s); cold PyInstaller extraction may be slow — retrying.
+[openbb-mcp] 
+[openbb-mcp] 
+[openbb-mcp] ╭──────────────────────────────────────────────────────────────────────────────╮
+[openbb-mcp] │                                                                              │
+[openbb-mcp] │                                                                              │
+[openbb-mcp] │                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+[openbb-mcp] │                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+[openbb-mcp] │                                                                              │
+[openbb-mcp] │                                                                              │
+[openbb-mcp] │                                                                              │
+[openbb-mcp] │                                FastMCP 3.3.1                                 │
+[openbb-mcp] │                            https://gofastmcp.com                             │
+[openbb-mcp] │                                                                              │
+[openbb-mcp] │                  🖥  Server:      OpenBB MCP, 3.3.1                           │
+[openbb-mcp] │                  🚀 Deploy free: https://horizon.prefect.io                  │
+[openbb-mcp] │                                                                              │
+[openbb-mcp] ╰──────────────────────────────────────────────────────────────────────────────╯
+[openbb-mcp] ╭──────────────────────────────────────────────────────────────────────────────╮
+[openbb-mcp] │                         🎉 Update available: 4.0.10                          │
+[openbb-mcp] │                      Run: pip install --upgrade fastmcp                      │
+[openbb-mcp] ╰──────────────────────────────────────────────────────────────────────────────╯
+[openbb-mcp] 
+[openbb-mcp] 
+[openbb-mcp] [10/03/26 12:12:00] INFO     Starting MCP server 'OpenBB MCP'   transport.py:301
+[openbb-mcp]                              with transport 'streamable-http'                   
+[openbb-mcp]                              on http://127.0.0.1:56203/mcp                      
+[openbb-mcp] INFO:     Started server process [36596]
+[openbb-mcp] INFO:     Waiting for application startup.
+[openbb-mcp] INFO:     Application startup complete.
+[openbb-mcp] INFO:     Uvicorn running on http://127.0.0.1:56203 (Press CTRL+C to quit)
+[openbb-mcp] subprocess healthy on 127.0.0.1:56203
+[vysted] Python sidecar did not come up on port 56202
+[sec-edgar-mcp] subprocess did not bind to 127.0.0.1:56204 within 45s x 2 attempts; treating as unavailable. /sec routes will 501. Check the bundled binary for a startup deadlock (Phase 8 finding UC1-sec-edgar-mcp-not-listening; Phase 9 residual: col
+[openbb-mcp] INFO:     127.0.0.1:57435 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:57436 - "POST /mcp HTTP/1.1" 202 Accepted
+[openbb-mcp] INFO:     127.0.0.1:57437 - "GET /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:57438 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ABB.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57463 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:57465 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ABB.BO"}}}
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57468 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57471 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57472 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57473 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:57474 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:57475 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:57477 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57478 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57479 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57481 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57482 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57483 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57484 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57485 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57486 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08BPB.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57488 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08BPB.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57489 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:57490 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:57492 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08DPR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57493 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08DPR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:57494 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:57496 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:57497 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:57498 - "POST /mcp HTTP/1.1" 200 OK

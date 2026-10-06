@@ -1,0 +1,32 @@
+[
+  {
+    "raw_id": "INT-pdd-readme-315-1",
+    "title": "Documented panel-companion wiring (panels.ts + PLUGIN_COMPANIONS + BUNDLED_PLUGINS) doesn't exist — the real mechanism is an undocumented inline arg in marketplace.ts",
+    "severity": "medium",
+    "area": "docs",
+    "subsystem": "plugin system / panel contribution",
+    "repro": "Follow docs/PLUGIN_DEVELOPMENT.md §'Companion panels.ts glue' literally to add a panel-contributing plugin: create plugins/<id>/panels.ts exporting Record<string, FunctionComponent>, expect src/lib/plugin-bootstrap.ts to pick it up via a PLUGIN_COMPANIONS map -> neither panels.ts convention nor a PLUGIN_COMPANIONS export exists anywhere in the tree, so there is nothing to wire into.",
+    "evidence": "docs/PLUGIN_DEVELOPMENT.md:339-345 (documents the sibling panels.ts + PLUGIN_COMPANIONS pattern) and CLAUDE.md 'Plugin contract' section (repeats the same claim: 'ship via the src/lib/plugin-bootstrap.ts PLUGIN_COMPANIONS static-import map ... Adding a plugin with panels -> add to both BUNDLED_PLUGINS and PLUGIN_COMPANIONS'); versus `find plugins -iname panels.ts` (zero results), `grep -rn PLUGIN_COMPANIONS --include=*.ts --include=*.tsx .` (only a stray mention in src/store/keybindings.ts:8, no export/constant), `grep -rn BUNDLED_PLUGINS .` (zero hits anywhere); the real mechanism is src/lib/marketplace.ts:53-65 (`row()` helper's 4th `panelComponents` positional arg, populated inline per catalog entry) consumed by src/lib/plugin-bootstrap.ts:127-170 (`moduleForPlugin` reads `row.panelComponents` directly, not a named companion map).",
+    "notes": "Two independent docs (PLUGIN_DEVELOPMENT.md and the project's own CLAUDE.md) describe a file/export shape that was superseded when panel-companion wiring moved into marketplace.ts's CATALOG_ROWS, and neither was updated. Currently harmless because zero bundled plugins set contributesPanels:true, so the mismatch has never been exercised — but it will actively mislead and block the first plugin author (internal or third-party) who tries to ship a panel, since the documented import target doesn't exist. Smallest fix: rewrite §'Companion panels.ts glue' (and the CLAUDE.md 'Plugin contract' paragraph) to describe the actual `CatalogRow.panelComponents` arg in marketplace.ts, or restore the documented panels.ts/PLUGIN_COMPANIONS indirection in code if that separation was intentional."
+  },
+  {
+    "raw_id": "INT-pdd-readme-315-2",
+    "title": "Plugin-contract Roadmap section is stale: two of its five 'future' items already shipped, so it misrepresents what actually remains deferred",
+    "severity": "low",
+    "area": "docs",
+    "subsystem": "plugin system / roadmap",
+    "repro": "Read docs/PLUGIN_DEVELOPMENT.md §Roadmap (framed 'out of scope for v0.3.0') to learn what's still missing from the plugin system at the current v0.8.0 host version -> it lists 'a future Tauri-spawned subprocess pattern to resolve the OpenBB Windows hang' and 'Phase 3 will add agent/node-editor consumers' as still-pending, when both are done for node-editor + the subprocess pattern (only the agent-picker half is actually still missing).",
+    "evidence": "docs/PLUGIN_DEVELOPMENT.md:360-373 (§Roadmap, unchanged since v0.3.0); src/lib/plugin-bootstrap.ts:36 (`HOST_VERSION = \"0.8.0\"` — five phases past what the roadmap describes); src-tauri/src/openbb_mcp.rs:100 and src-tauri/src/sec_edgar_mcp.rs:100 (both already use `app.shell().sidecar(...)`, the exact pattern the roadmap calls 'future'); src/modules/node-editor/node-registry.ts:3-4 ('plugin-contributed node types surfaced through usePluginsStore.nodes' — the node-editor consumer is live); versus `grep -rn \"state.agents\" src/modules/` outside node-editor/plugin-manager (zero hits) — the agent-picker consumer genuinely is still missing, so `usePluginsStore.agents` (populated at src/store/plugins.ts:63,87) is collected but never rendered/selectable anywhere a user could invoke a plugin-contributed agent.",
+    "notes": "A roadmap that claims five items are equally 'future' when two are shipped erodes trust in the doc as a source of truth for what's left before 0.9.0, and specifically hides that the agent-consumer gap (the one item genuinely still open) is real and unaddressed. Smallest fix: split the Roadmap into 'shipped since v0.3.0' (subprocess pattern, node-editor consumer) and 'still open' (agent-picker consumer, filesystem/signed/marketplace plugins), and file the agent-picker gap as its own tracked item."
+  },
+  {
+    "raw_id": "INT-pdd-readme-315-3",
+    "title": "MCP discovery file (mcp-endpoint.json) is never deleted on a failed relaunch, so a stale file from a prior successful boot can point an external MCP client at a dead port",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "MCP integration / sidecar discovery",
+    "repro": "Launch Vysted once, let the sidecar come up healthy on port P (mcp-endpoint.json is written with sidecarPort:P) -> quit -> relaunch on a machine/state where the next sidecar boot fails or times out before binding (e.g. a transient PyInstaller cold-extraction stall past MCP_PORT_WAIT_SECS) -> the write_mcp_endpoint_file call is skipped for this boot, but the file from the PREVIOUS successful boot is never removed, so an external MCP client (Claude Desktop/Code) that reads mcp-endpoint.json still discovers port P and connects to nothing.",
+    "evidence": "src-tauri/src/lib.rs:198-201 (`if port == 0 { ...; return; }` skips the write on no-free-port), :256-267 (`write_mcp_endpoint_file` called only inside the `if bound {...}` success branch of the health-wait thread; the `else` timeout branch only `eprintln!`s), and `grep -n \"remove_file\" src-tauri/src/lib.rs` returns zero hits anywhere in the file — no code path ever deletes or truncates a previously-written mcp-endpoint.json.",
+    "notes": "docs/MCP_INTEGRATION.md promises 'a stale discovery file can never point at a dead port' but that's only true within a single boot attempt, not across restarts — the guarantee has a real hole for the exact failure mode (cold-boot timeout, which R8's own comment at lib.rs:242-246 says is an observed ~60s scenario) the discovery file exists to protect external clients from. Smallest fix: `std::fs::remove_file(&mcp_endpoint_path(&data_dir)).ok()` at the top of `start_main_sidecar` before attempting the new boot, so a failed/slow boot always clears the previous claim rather than leaving it standing."
+  }
+]

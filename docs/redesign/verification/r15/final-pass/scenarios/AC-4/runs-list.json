@@ -1,0 +1,82 @@
+{
+ "runs": [
+  {
+   "id": "437112b026da4ea9b49fef734715fa8e",
+   "agent_id": "copilot",
+   "agent_name": "Vysted Copilot",
+   "mode": "delegate",
+   "status": "cancelled",
+   "cost": {
+    "tokens": 0,
+    "spend_usd": 0.0,
+    "steps": 0
+   },
+   "budget": {
+    "max_tokens": 120000,
+    "max_spend_usd": 1.0,
+    "max_wall_seconds": 600.0,
+    "max_steps": 12
+   },
+   "provider": "ollama",
+   "model": "llama3.1:8b",
+   "plan": null,
+   "activity": [],
+   "detail": "cancelled by user",
+   "question": null,
+   "created_at": 1791020354,
+   "updated_at": 1791020358
+  },
+  {
+   "id": "e526eefc5bcb483aab4e659df6088885",
+   "agent_id": "copilot",
+   "agent_name": "Vysted Copilot",
+   "mode": "delegate",
+   "status": "error",
+   "cost": {
+    "tokens": 6574,
+    "spend_usd": 0.0,
+    "steps": 1
+   },
+   "budget": {
+    "max_tokens": 120000,
+    "max_spend_usd": 1.0,
+    "max_wall_seconds": 600.0,
+    "max_steps": 1
+   },
+   "provider": "ollama",
+   "model": "llama3.1:8b",
+   "plan": null,
+   "activity": [],
+   "detail": "step ceiling 1 reached (1 taken)",
+   "question": null,
+   "created_at": 1791020346,
+   "updated_at": 1791020353
+  },
+  {
+   "id": "2278a5f282e641539ac856487aaba756",
+   "agent_id": "copilot",
+   "agent_name": "Vysted Copilot",
+   "mode": "delegate",
+   "status": "error",
+   "cost": {
+    "tokens": 13080,
+    "spend_usd": 0.0,
+    "steps": 2
+   },
+   "budget": {
+    "max_tokens": 50,
+    "max_spend_usd": 1.0,
+    "max_wall_seconds": 600.0,
+    "max_steps": 12
+   },
+   "provider": "ollama",
+   "model": "llama3.1:8b",
+   "plan": null,
+   "activity": [],
+   "detail": "token ceiling 50 reached (6514 used)",
+   "question": null,
+   "created_at": 1791020292,
+   "updated_at": 1791020399
+  }
+ ]
+}

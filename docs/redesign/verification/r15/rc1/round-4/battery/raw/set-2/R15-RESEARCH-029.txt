@@ -1,0 +1,10 @@
+=== R15-RESEARCH-029: strip_model_bibliography repro (register-shaped markdown) ===
+removed: 3
+--- cleaned ---
+## Findings
+
+Earnings growth: -0.4% 
+--- checks ---
+has [n]: False
+has Merged Sources: False
+has References: False

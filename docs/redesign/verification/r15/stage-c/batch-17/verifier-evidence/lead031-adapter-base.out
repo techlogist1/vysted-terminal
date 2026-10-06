@@ -1,0 +1,5 @@
+FAIL orig2-reshape: deltas=[' Let', ' me', ' try', ' another', ' way', '.\n\n', '{"', 'name', '":', ' "', 'fund', 'amentals'] calls=[('fundamentals', {'symbol': 'SIFY'})] | SHOWN '{"'; SHOWN 'fund'; SHOWN 'name'
+FAIL fresh-nospace-price: deltas=['Checking', '.\n', '{', '"na', 'me":"', 'pri', 'ce_d'] calls=[('price_data', {'symbol': 'SIFY'})] | SHOWN '{'; SHOWN 'pri'; SHOWN 'name'
+FAIL fresh-callsyntax: deltas=['Checking. ', 'price', '_da'] calls=[('price_data', {'symbol': 'SIFY'})] | SHOWN 'price'
+PASS fresh-abandoned-prefix: deltas=['The ', 'price', ' moved; ', '{"', 'note', '": 1}'] calls=[]
+BAD 3

@@ -1,0 +1,72 @@
+[
+  {
+    "raw_id": "DAT-P8-1",
+    "title": "Sector/industry for NAPEROL (BSE 500298) shown as 'Basic Materials/Chemicals', the pre-Sep-2023-demerger classification, not the company's current holding-company business",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P8_NAPEROL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/NAPEROL -> sector: 'Basic Materials', industry: 'Chemicals' (field_meta status 'ok', provider yfinance, as_of 2026-09-19T09:44:05Z). BSE's own live classification for the same scrip is sector 'Financial Services', industry 'Investment Company' (ComHeader API, as_of 2026-09-22), and the company's own investor-relations page confirms the underlying fact: the Sep-2023 Composite Scheme of Arrangement demerged the chemicals-manufacturing business into NPL Chemicals Ltd and left the surviving Naperol Investments Ltd entity ('the Company') running only an investment/leasing business since 1-Apr-2022 (appointed date).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P8_NAPEROL.json (calls.fundamentals.body.sector, .industry, .field_meta.sector, .field_meta.industry) vs docs/redesign/verification/r15/battery/packs/P8_NAPEROL.json (identity.sector.value='Financial Services', identity.industry.value='Investment Company', source https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=500298&seriesid=; identity.former_names note; traps[0])",
+    "notes": "yfinance's classification for this ISIN was never refreshed after the 2023 corporate restructuring, so a sector-based screen, peer comparison, or an agent reasoning about 'what business is this company in' would classify a debt-free investment holding company as a chemicals manufacturer -- exactly the stale-description trap the pack's own trap #1 predicted. Smallest fix shape: for equity.region=IN symbols, prefer/overwrite yfinance sector/industry with the BSE ComHeader classification (already fetched successfully for identity fields on this same symbol), or at minimum flag sector/industry as stale when a resolved instrument has a recorded rename/scheme event."
+  },
+  {
+    "raw_id": "DAT-P8-2",
+    "title": "Results-calendar route hard-502s for NAPEROL (BSE-only, no NSE listing) via an NSE-specific lookup, same failure class as DAT-P4-4",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P8_NAPEROL",
+    "repro": "GET http://127.0.0.1:52152/disclosures/results?symbol=NAPEROL -> HTTP 502, body {\"detail\": \"nse_direct: 'NAPEROL' is not a known NSE instrument\"}. The company genuinely has findable, current results: Q1 FY2027 (quarter ended 2026-06-30), revenue Rs 9.45 crore, net profit Rs 0.18 crore, EPS Rs 0.32, OPM 1.9%, per screener.in. The app's own /disclosures/shareholding and /disclosures/announcements calls for the same symbol succeed via BSE in the same collection pass.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P8_NAPEROL.json (calls.results_calendar: status 502, body.detail) vs docs/redesign/verification/r15/battery/packs/P8_NAPEROL.json (latest_results.quarter, latest_results.reported_numbers, source https://www.screener.in/company/500298/)",
+    "notes": "This is the second occurrence of the exact DAT-P4-4 pattern (also seen on P6/ICON per its DAT-P6-3): the results-calendar path appears to require an NSE instrument mapping and throws instead of falling back to the BSE-only path that shareholding/announcements already use successfully for the same symbol. Given BSE-SME and BSE-only mainboard listings (nse_symbol=null) are a large fraction of the 'obscure stock' coverage this product is benchmarked on, this looks like a systemic gap across the whole BSE-only population, not a one-off. Smallest fix shape: route /disclosures/results through the resolved instrument's exchange (bse_code present, nse_symbol null) and only attempt nse_direct when an NSE symbol is actually resolved."
+  },
+  {
+    "raw_id": "DAT-P8-3",
+    "title": "Headline dividend_per_share (Rs 19.48) does not match the true, most-recently-declared dividend (Rs 16.48, approved 16-Sep-2026 AGM) and looks back-calculated from yield x price",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P8_NAPEROL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/NAPEROL -> dividend_per_share: 19.48, dividend_yield: 0.0301 (field_meta status 'ok', provider yfinance). 0.0301 x price(~645-647) = ~19.4-19.5, i.e. dividend_per_share tracks yield x price almost exactly. The true FY2025-26 final dividend, approved at the 72nd AGM on 2026-09-16 (2 days before this app snapshot), is Rs 16.48/share per two separate BSE filings ('Summary Of Proceedings Of The 72nd AGM' and 'Outcome of AGM').",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P8_NAPEROL.json (calls.fundamentals.body.dividend_per_share, .dividend_yield, .field_meta.dividend_per_share) vs docs/redesign/verification/r15/battery/packs/P8_NAPEROL.json (dividend.last_declared_per_share.value=16.48, source https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=e76bc0bc-c565-4b79-9afb-ee7fce53f741.pdf; dividend.paid_trailing_12m_per_share note explicitly warning against back-calculating from yield x price)",
+    "notes": "The pack's own collection brief flags this exact computation ('yield x price ... Rs ~19.45') as a trap to avoid presenting as a real paid/declared figure -- the app's dividend_per_share appears to do precisely that, landing ~18% above the true declared amount. A demanding user reading the headline dividend figure next to the correct AGM-approval announcement (already surfaced in the app's own announcements feed) would see two disagreeing numbers for the same event. Smallest fix shape: source dividend_per_share from the most recent declared-dividend corporate action (BSE announcements/XBRL) rather than a yfinance-derived trailing rate, or at minimum stop deriving it from yield x price and expose it as a clearly-labelled 'implied' figure if kept."
+  },
+  {
+    "raw_id": "DAT-P8-4",
+    "title": "Promoter and institutional holding self-contradict within the app: fundamentals endpoint (73.04% insiders / 0% institutions, yfinance) vs disclosures/shareholding endpoint (70.76% promoter / 1.77% institutions, BSE XBRL) for the same Jun-2026 quarter",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P8_NAPEROL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/NAPEROL -> held_percent_insiders: 0.7304, held_percent_institutions: 0.0. GET http://127.0.0.1:52152/disclosures/shareholding?symbol=NAPEROL -> patterns[0] (quarter_end 2026-06-30): promoter_percent: 70.76, institutions_percent: 1.77 (fii 1.76 + dii 0.01). Both calls run against the same isolated stack in the same collection pass.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P8_NAPEROL.json (calls.fundamentals.body.held_percent_insiders, .held_percent_institutions vs calls.shareholding.body.patterns[0].promoter_percent, .institutions_percent) vs docs/redesign/verification/r15/battery/packs/P8_NAPEROL.json (shareholding.promoter_pct.value=70.77, shareholding.fii_pct.value=1.76, shareholding.dii_pct.value=0.01, source https://www.screener.in/company/500298/)",
+    "notes": "The BSE-XBRL-sourced 70.76%/1.77% matches screener.in (70.77%/1.77 combined) almost exactly; the yfinance-sourced 73.04%/0% matches neither outside truth nor the app's own BSE-sourced endpoint. This is the same class of defect as DAT-P4-3 (flagged there as 'the single most gameable number in an Indian small-cap'), now confirmed on a second symbol -- suggesting it is not symbol-specific but a systemic yfinance-vs-BSE-XBRL divergence on holding percentages. Smallest fix shape: for equity.region=IN symbols, prefer/overwrite the BSE-XBRL shareholding figures over yfinance's held_percent_insiders/held_percent_institutions, or drop the latter from the IN fundamentals response entirely."
+  },
+  {
+    "raw_id": "DAT-P8-5",
+    "title": "ROE is blank (null) despite a reliably known, singly-sourced world value (1.03%)",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P8_NAPEROL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/NAPEROL -> roe: null, field_meta.roe: {status: 'unavailable', reason: 'provider did not publish this field'}. screener.in's top-ratios ROE = 1.03%, which also matches manifest.json's curated reference_pct exactly.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P8_NAPEROL.json (calls.fundamentals.body.roe, .field_meta.roe) vs docs/redesign/verification/r15/battery/packs/P8_NAPEROL.json (roe.value=1.03, source https://www.screener.in/company/500298/)",
+    "notes": "A demanding owner comparing this holding company against peers on capital efficiency sees a blank instead of the (very low, near-zero) ROE, which is itself a notable signal for a passive-investment holding-company discount play. Smallest fix shape: compute ROE from the balance-sheet fields the app already has (net income / stockholders equity -- both present in calls.income/calls.balance for this symbol) rather than depending solely on an unpublished yfinance field."
+  },
+  {
+    "raw_id": "DAT-P8-6",
+    "title": "debt_to_equity is blank (null) despite being a reliably known, triple-corroborated value (0.0x, debt-free)",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P8_NAPEROL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/NAPEROL -> debt_to_equity: null, field_meta.debt_to_equity: {status: 'unavailable', reason: 'provider did not publish this field'}. The app's own calls.balance for this symbol shows Total Debt=0.0 for FY2023-2025 (2026 not reported, also plausibly 0) against Stockholders Equity Rs 916.9 crore (2026).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P8_NAPEROL.json (calls.fundamentals.body.debt_to_equity, .field_meta.debt_to_equity; calls.balance.body.lines[Total Debt], [Stockholders Equity]) vs docs/redesign/verification/r15/battery/packs/P8_NAPEROL.json (debt_to_equity.value=0.0, as_of 2026-03-31, source https://www.screener.in/company/500298/, note: borrowings Rs 0 Cr for three consecutive FYs, screener's own analysis bullet 'Company is almost debt free')",
+    "notes": "Same defect shape as DAT-P4-6: a debt-free balance sheet the app's own income/balance statement endpoints already evidence is not surfaced as a computed debt_to_equity ratio. Smallest fix shape: compute debt_to_equity from total_debt / stockholders_equity in the app's own balance-sheet data (already fetched successfully for this symbol) rather than depending solely on an unpublished yfinance field."
+  },
+  {
+    "raw_id": "DAT-P8-7",
+    "title": "former_name is blank (null) for a scrip that was renamed via a 2023 demerger scheme -- the app has no record that NAPEROL/500298 used to be National Peroxide Ltd",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P8_NAPEROL",
+    "repro": "GET http://127.0.0.1:52152/resolver/... (resolve_bare_symbol/resolve_company_name/resolve_bse_code, all queried for NAPEROL/500298) -> resolved.former_name: null in every response. The company's own investor-relations page and BSE filings confirm the scrip (500298 / ISIN INE585A01020) is the surviving, renamed National Peroxide Ltd listing: 'Naperol Investments Limited was amalgamated with the Company ... resulting in the formation of distinct and separate entities' (Composite Scheme of Arrangement, effective 2023-09-11, appointed date 2022-04-01).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P8_NAPEROL.json (calls.resolve_bare_symbol.body.resolved.former_name, calls.resolve_company_name.body.resolved.former_name, calls.resolve_bse_code.body.resolved.former_name, all null) vs docs/redesign/verification/r15/battery/packs/P8_NAPEROL.json (identity.former_names.value, source https://www.naperolinvestments.com/CompanyProfile.php)",
+    "notes": "The resolver schema HAS a former_name field (present, just always null here), so this is a populated-but-empty gap, not a missing capability. Combined with DAT-P8-1's stale sector/industry, an agent or user researching this scrip has no signal anywhere in the app that it is the same legal entity as the old chemicals maker, which is exactly the identity-collision risk the pack's headline trap describes. Smallest fix shape: populate former_name from the BSE company-master/rename-history data the resolver's bundled instrument master should already carry for renamed scrips, or backfill it for known 2023+ scheme-of-arrangement renames."
+  }
+]

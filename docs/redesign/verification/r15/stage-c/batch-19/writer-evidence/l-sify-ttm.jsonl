@@ -1,0 +1,56 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_8610055a653d42579294ef17d0db82e6", "name": "financial_statements", "input": {"period": "annual", "statement": "income", "symbol": "SIFY.US"}}
+{"kind": "tool_result", "tool_call_id": "call_8610055a653d42579294ef17d0db82e6", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " find"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " suggest"}
+{"kind": "delta", "text": " using"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " Scre"}
+{"kind": "delta", "text": "ener"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " filter"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " companies"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " high"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " growth"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " do"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2887, "output_tokens": 41, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

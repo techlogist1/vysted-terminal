@@ -1,0 +1,7 @@
+
+=== ASSISTANT TEXT ===
+The latest price of **Reliance Industries Limited (RELIANCE.NS)** is **₹1,226.00**. The Price-to-Earnings (P/E) ratio is **22.22**. 
+
+If you need more details or have other queries, feel free to ask!
+
+=== ok · 9.2s · events {'tool_use': 2, 'tool_result': 2, 'delta': 60, 'done': 1} · usage in=18275 out=60 · est $0.00278 · gpt-4o-mini

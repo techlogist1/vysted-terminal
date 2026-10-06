@@ -10,6 +10,9 @@ Calendar:             ``NullCalendar`` (region-specific calendars deferred to v0
 
 from __future__ import annotations
 
+import functools
+import threading
+from collections.abc import Callable
 from datetime import date
 
 import QuantLib as ql
@@ -19,6 +22,25 @@ DAY_COUNT = ql.Actual365Fixed()
 
 #: Single QuantLib calendar used by every option pricing path.
 CALENDAR = ql.NullCalendar()
+
+# QuantLib's evaluation date is process-global and NPV() is lazy, so a pricing
+# must hold the date from set to result or a concurrent pricing (threadpool
+# route, to_thread tool/node) swaps it underneath. Reentrant: options.price
+# calls its public per-engine functions.
+# ponytail: one process-wide lock serialises every pricing; a per-thread
+# QuantLib session build (QL_ENABLE_SESSIONS) if concurrent throughput matters.
+_QL_LOCK = threading.RLock()
+
+
+def holds_ql_lock[**P, R](fn: Callable[P, R]) -> Callable[P, R]:
+    """Run ``fn`` holding the QuantLib lock (every public pricing entry point)."""
+
+    @functools.wraps(fn)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        with _QL_LOCK:
+            return fn(*args, **kwargs)
+
+    return wrapper
 
 
 def to_ql_date(d: date) -> ql.Date:
@@ -78,6 +100,7 @@ __all__ = [
     "DAY_COUNT",
     "build_bsm_process",
     "from_ql_date",
+    "holds_ql_lock",
     "ql_option_type",
     "set_evaluation_date",
     "to_ql_date",

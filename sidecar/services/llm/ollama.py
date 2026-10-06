@@ -14,21 +14,49 @@ breaking this adapter.
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import AsyncIterator
 from typing import Any
 
 import ollama
+import pydantic
 
 from models.llm import (
     LLMDeltaEvent,
     LLMDoneEvent,
-    LLMErrorEvent,
     LLMMessage,
+    LLMModelOption,
+    LLMResearchStepEvent,
     LLMToolUseEvent,
     LLMUsage,
 )
+from services.errors import humanize
 
-from .base import LLMProvider, LLMStreamEvent
+from .base import (
+    LOCAL_IDLE_TIMEOUT_S,
+    LLMProvider,
+    LLMStreamEvent,
+    client_timeout,
+    invalid_tool_args,
+)
+from .reasoning_split import ReasoningSplitter
+from .tool_call_rescue import LeakHold, rescue_leaked_tool_call
+
+logger = logging.getLogger(__name__)
+
+#: Ollama's per-model default (4096) silently truncates the prompt once the
+#: copilot agent's ~50 tool schemas are serialized into it, before the user's
+#: own message gets a turn — root cause of R15 stage0 local-lane failures
+#: (empty output on qwen2.5:7b, fabrication on llama3.1:8b; see
+#: docs/redesign/verification/r15/stage0/LOCAL_LANE_PROOF.md). 16384 fits a
+#: 7-8B q4 model's KV cache (measured ~0.95 GiB extra resident VRAM going
+#: 4096→16384 via `ollama ps` size_vram delta on a real qwen2.5:7b-q4 load:
+#: 4,806,766,592 → 5,828,081,664 bytes) alongside the rest of the app on a
+#: 16 GB Mac (model weight ~4.5 GiB + ~1 GiB KV cache at this ceiling still
+#: leaves headroom for the OS + Tauri/Next.js UI). Overridable per-call via
+#: an explicit ``options={"num_ctx": ...}`` kwarg; this is only the floor
+#: default.
+DEFAULT_NUM_CTX = 16384
 
 
 def _attr(obj: Any, key: str, default: Any = None) -> Any:
@@ -82,17 +110,22 @@ def _parse_tool_input(arguments: Any) -> dict[str, Any]:
 
     Recent Ollama models return ``arguments`` already parsed as a dict, but
     some emit a JSON string (the OpenAI convention). Tolerate both, and never
-    raise — a malformed payload degrades to ``{}`` so the round still closes.
+    raise. Absent or empty arguments are a no-argument call (``{}``); a
+    malformed or non-object payload is stamped with the invalid-args sentinel
+    so the model is told its arguments were wrong, never run on ``{}``.
     """
     if isinstance(arguments, dict):
         return arguments
-    if isinstance(arguments, str) and arguments:
+    if arguments is None or arguments == "":
+        return {}
+    if isinstance(arguments, str):
         try:
             parsed = json.loads(arguments)
         except (ValueError, TypeError):
-            return {}
-        return parsed if isinstance(parsed, dict) else {}
-    return {}
+            return invalid_tool_args("arguments were not valid JSON", arguments)
+        if isinstance(parsed, dict):
+            return parsed
+    return invalid_tool_args("arguments were not a JSON object", str(arguments))
 
 
 class OllamaProvider(LLMProvider):
@@ -101,11 +134,14 @@ class OllamaProvider(LLMProvider):
     def __init__(self, base_url: str | None = None) -> None:
         self._base_url = base_url
 
+    def context_window(self, model: str) -> int | None:  # noqa: ARG002
+        """Every request runs at ``num_ctx``; past it Ollama drops the prompt's head."""
+        return DEFAULT_NUM_CTX
+
     def _client(self) -> ollama.AsyncClient:
-        # The SDK keyword is ``host``, not ``base_url``.
-        if self._base_url:
-            return ollama.AsyncClient(host=self._base_url)
-        return ollama.AsyncClient()
+        # The SDK keyword is ``host``, not ``base_url``; its default timeout is
+        # none at all, so a wedged local server would hold the chat forever.
+        return ollama.AsyncClient(host=self._base_url, timeout=client_timeout(LOCAL_IDLE_TIMEOUT_S))
 
     async def stream_chat(
         self,
@@ -118,6 +154,14 @@ class OllamaProvider(LLMProvider):
         client = self._client()
         api_messages = _to_api_messages(messages)
 
+        # Always set num_ctx — Ollama's baked-in per-model default (4096 for
+        # every model we've seen) truncates before the prompt is fully read
+        # once tool schemas are attached. Merge rather than overwrite so an
+        # explicit caller-supplied options dict still wins on a conflicting key.
+        request_options = dict(kwargs.pop("options", None) or {})
+        request_options.setdefault("num_ctx", DEFAULT_NUM_CTX)
+        kwargs["options"] = request_options
+
         tools: list[dict[str, Any]] | None = None
         if tool_ids:
             from services.agent_tools.schemas import openai_tools
@@ -129,46 +173,70 @@ class OllamaProvider(LLMProvider):
                 # so we can retry without it if the tools path fails.
                 tools = built
 
-        # Open the stream. Tool support is best-effort: many local models reject
-        # or ignore a ``tools=`` kwarg, so if opening the tools stream raises we
-        # transparently retry without tools rather than surfacing an error —
-        # text must always stream.
+        # Open the stream. ``client.chat(stream=True)`` sends nothing when
+        # awaited: a daemon/HTTP error (500, model without tool support) surfaces
+        # while iterating and is humanized below. The only failure here is the
+        # SDK rejecting a tool schema client-side (``Tool.model_validate``); the
+        # round then answers without tools and says so (R15-AGENT-076).
         stream = None
-        if tools is not None:
-            try:
+        # Tool names actually sent this round: the only names a leaked
+        # text-JSON call may be rescued for.
+        offered: set[str] = set()
+        try:
+            if tools is not None:
+                try:
+                    stream = await client.chat(
+                        model=model,
+                        messages=api_messages,
+                        stream=True,
+                        tools=tools,
+                        **kwargs,
+                    )
+                    offered = {tool["function"]["name"] for tool in tools}
+                except pydantic.ValidationError as exc:
+                    logger.warning(
+                        "ollama rejected the tool schemas for %s; this round runs without "
+                        "tools: %s",
+                        model,
+                        exc,
+                    )
+                    yield LLMResearchStepEvent(
+                        tool_call_id="",
+                        tool="ollama_tools",
+                        step_kind="notice",
+                        detail=f"Tools could not be sent to {model}; it answered without them.",
+                        status="error",
+                    )
+            if stream is None:
                 stream = await client.chat(
                     model=model,
                     messages=api_messages,
                     stream=True,
-                    tools=tools,
                     **kwargs,
                 )
-            except Exception:  # noqa: BLE001 — degrade gracefully, retry below.
-                stream = None
-        if stream is None:
-            try:
-                stream = await client.chat(
-                    model=model,
-                    messages=api_messages,
-                    stream=True,
-                    **kwargs,
-                )
-            except ollama.ResponseError as exc:  # pragma: no cover — network path
-                yield LLMErrorEvent(message=f"ollama stream failed: {exc}")
-                return
-            except Exception as exc:  # pragma: no cover — defensive
-                yield LLMErrorEvent(message=f"ollama stream failed: {exc}")
-                return
+        except Exception as exc:  # noqa: BLE001 — every failure ends as a humanized error
+            yield humanize("ollama", exc).to_event()
+            return
 
         try:
             usage: LLMUsage | None = None
             finish_reason: str | None = None
+            # Text from a leaked call's marker on is held until the rescue
+            # decides whether it was a call (rc1-drive-onboarding-stranger:1).
+            hold = LeakHold(offered)
+            emitted_tool_call = False
+            # <think> spans in content come out as thinking (R15-LEAD-018).
+            splitter = ReasoningSplitter()
             async for chunk in stream:
                 message = _attr(chunk, "message")
                 if message is not None:
                     content = _attr(message, "content", "") or ""
-                    if content:
-                        yield LLMDeltaEvent(text=content)
+                    for event in splitter.content(content) if content else []:
+                        if isinstance(event, LLMDeltaEvent):
+                            for shown in hold.feed(event.text):
+                                yield LLMDeltaEvent(text=shown)
+                            continue
+                        yield event
                     # Ollama returns tool calls on the (non-streamed) assistant
                     # message rather than as token deltas: emit one tool_use
                     # event per call so the runtime can resolve them before the
@@ -178,6 +246,7 @@ class OllamaProvider(LLMProvider):
                         function = _attr(tool_call, "function")
                         if function is None:
                             continue
+                        emitted_tool_call = True
                         yield LLMToolUseEvent(
                             tool_call_id=_attr(tool_call, "id", "") or "",
                             name=_attr(function, "name", "") or "",
@@ -194,19 +263,50 @@ class OllamaProvider(LLMProvider):
                         input_tokens=int(prompt_eval),
                         output_tokens=int(eval_count),
                     )
+            for event in splitter.flush():
+                if isinstance(event, LLMDeltaEvent):
+                    for shown in hold.feed(event.text):
+                        yield LLMDeltaEvent(text=shown)
+                    continue
+                yield event
+            # Local models often write the call as JSON text instead of using
+            # tool_calls (llama3.1:8b: ``{"name": "write_note", "parameters":
+            # {...}}``). Rescue it so the call runs instead of rendering as
+            # prose; the held call text and its made-up result are dropped.
+            rescued = None if emitted_tool_call else rescue_leaked_tool_call(hold.text, offered)
+            if rescued is not None:
+                yield rescued
+            elif hold.held():
+                yield LLMDeltaEvent(text=hold.held())
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
-        except ollama.ResponseError as exc:  # pragma: no cover — network path
-            yield LLMErrorEvent(message=f"ollama stream failed: {exc}")
-        except Exception as exc:  # pragma: no cover — defensive
-            yield LLMErrorEvent(message=f"ollama stream failed: {exc}")
+        except Exception as exc:  # pragma: no cover — any failure ends as a humanized error
+            yield humanize("ollama", exc).to_event()
 
     async def validate_key(self, api_key: str | None = None) -> bool:  # noqa: ARG002
-        """Ollama needs no key — a successful ``list`` proves the daemon is reachable."""
+        """Ollama needs no key — a successful ``list`` proves the daemon is reachable.
+
+        A stopped daemon (connection refused) or one answering with an error
+        raises, so the router reports ``unreachable`` rather than a bad key;
+        there is no key to reject, so this never returns ``False``.
+        """
+        await self._client().list()
+        return True
+
+    async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:  # noqa: ARG002
+        """Live catalog = whatever the user has actually pulled locally.
+
+        The static two-name fallback is useless for Ollama — the real list is
+        the local daemon's installed models, which ``client.list()`` returns.
+        """
         try:
             client = self._client()
-            await client.list()
-            return True
-        except ollama.ResponseError:
-            return False
-        except Exception:  # pragma: no cover — connection refused, etc.
-            return False
+            resp = await client.list()
+        except Exception:  # pragma: no cover — daemon not running / unreachable
+            return []
+        options: list[LLMModelOption] = []
+        for model in _attr(resp, "models", None) or []:
+            name = _attr(model, "model", None) or _attr(model, "name", None)
+            if name:
+                options.append(LLMModelOption(id=str(name), label=str(name)))
+        options.sort(key=lambda opt: opt.id.lower())
+        return options

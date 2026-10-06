@@ -1,0 +1,29 @@
+[
+  {
+    "raw_id": "INT-spec-45-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The stack drift is real: package.json ships Vite (dev/build scripts, vite ^8.0.16, @vitejs/plugin-react, no next dependency) while constitution.md:122 and CLAUDE.md:5,28,38 still say Next.js 16 static export / App Router, and components.json declares rsc:true. Two corrections. First, src/app/page.tsx and src/app/globals.css are not leftover Next-era files: they are the live Vite app shell, imported by src/main.tsx:13,15 (index.html:11 loads /src/main.tsx). Deleting them would break the app, and components.json's css path is correct; only rsc:true is wrong. Second, severity drops high->medium because no product flow breaks: this is stale documentation that misleads the next maintainer or agent, which COMMON.md places at medium.",
+    "evidence": "package.json:8-9,68,82; .specify/memory/constitution.md:122; CLAUDE.md:5,28,38; components.json:4,8; src/main.tsx:13,15; index.html:11; docs/redesign/DECISIONS.md:28 (D6)",
+    "evidence_checked": "Opened package.json, constitution.md Additional Constraints, CLAUDE.md, components.json, index.html, src/main.tsx, src/app/page.tsx, and DECISIONS.md D6 at HEAD 38919fd. This is a docs finding, so there was no runtime repro.",
+    "repro_check": "grep -n 'next\\|vite' package.json -> only vite/vitest entries; grep 'app/' src/main.tsx -> imports ./app/globals.css and ./app/page (live entry); grep Next.js CLAUDE.md -> lines 5,28,38 still claim Next.js."
+  },
+  {
+    "raw_id": "INT-spec-45-2",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "This holds. catalog.py:1461-1472 sets mcp=True only for kind=='read_handler' (except backtest_summary), so every host_action (portfolio_add_position/update/delete, write_note, add/remove_from_watchlist, save_layout, save_screen, etc.) is never projected to the external MCP surface. That contradicts US5 acceptance 3 ('no capability reachable to one consumer but not the other'), the constitution rule that a capability must not exist for only one consumer, and the spec edge case at spec.md:789-790 ('External MCP client requests a mutating tool -> same gate ... same confirmation path'). One nuance: the omission is a deliberate rule written down in a catalog.py comment ('host actions are inherently local ... never projected'), not a silent accident, but the spec was never amended to match. propose_order is in the listed set but closes with the trading removal; the portfolio, notes and watchlist host actions stay in scope.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:93,118,1461-1472,1496-1503; sidecar/services/mcp_server.py:106-124,132-160; sidecar/services/agent_tools/__init__.py:61-66; specs/001-agent-native-redesign/spec.md:331-358,789-790,858-866; .specify/memory/constitution.md:33-35",
+    "evidence_checked": "Opened the catalog projection rule and mcp_capabilities(), mcp_server tool registration and _make_catalog_tool, agent_tools.invoke_tool, and the spec US5, FR-020..022 and edge-case text at HEAD. Listing MCP tools would need a streamable-HTTP POST to :52152, so I did not drive it; the code settles the claim.",
+    "repro_check": "sed -n 1461,1472p catalog.py -> mcp=(cap.kind == 'read_handler' and cid not in _MCP_INTERNAL_ONLY), so no host_action ever reaches mcp_capabilities() and mcp_server only add_tool()s that list."
+  },
+  {
+    "raw_id": "INT-spec-45-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "This is the same defect as INT-spec-90-1 and gets the same correction; dedupe onto one register entry. The raw leak is real: app.py:312-315 returns str(exc) as a 502, /quotes/ZZZQNOPE reproduces the raw yfinance '_dividends' text live, and no failure message says what would unlock the data. But the claim that three panels print that string does not hold for normal use. /fundamentals humanizes not_found (live 404 'No instrument matches ... check the symbol.'). Batch /quotes drops the failed symbol (live 200 with AAPL only). Equity Overview's all-failed branch shows 'No data available for X' (EquityOverviewPanel.tsx:754-756) before its catch at :763. The remaining leak covers only unclassified errors on single-symbol routes and the chart catch, so severity drops medium->low.",
+    "evidence": "sidecar/app.py:312-315; src/modules/equity-overview/EquityOverviewPanel.tsx:752-763; src/modules/watchlist/WatchlistPanel.tsx:200-207; src/modules/chart/ChartPanel.tsx:403-411; docs/redesign/verification/r15/census/refute/intent-spec-90.json (INT-spec-90-1 verdict)",
+    "evidence_checked": "Opened the cited handler and three panel catch sites at HEAD, read the sibling INT-spec-90-1 verdict, and re-ran three GET repros against :52152.",
+    "repro_check": "curl :52152/quotes/ZZZQNOPE -> 502 raw yfinance '_dividends' detail (confirmed); curl :52152/fundamentals/ZZZQNOPE -> 404 humanized; curl ':52152/quotes?symbols=ZZZQNOPE,AAPL' -> 200 with AAPL only."
+  }
+]

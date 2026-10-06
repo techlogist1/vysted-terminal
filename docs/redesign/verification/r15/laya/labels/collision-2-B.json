@@ -1,0 +1,225 @@
+{
+ "shard": "collision-2",
+ "labels": [
+  {
+   "id": "collision-81",
+   "answer": "no",
+   "confidence": 0.75,
+   "note": "Resolver latency benchmark; Infosys only a query string"
+  },
+  {
+   "id": "collision-82",
+   "answer": "no",
+   "confidence": 0.75,
+   "note": "Resolver latency benchmark; HDFC only a query string"
+  },
+  {
+   "id": "collision-83",
+   "answer": "no",
+   "confidence": 0.8,
+   "note": "Resolver latency benchmark; TATASTEEL only a query string"
+  },
+  {
+   "id": "collision-84",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "Subject row appears to be Juniper Green; others named as collisions"
+  },
+  {
+   "id": "collision-85",
+   "answer": "no",
+   "confidence": 0.75,
+   "note": "Juniper Networks named as colliding ticker holder"
+  },
+  {
+   "id": "collision-86",
+   "answer": "no",
+   "confidence": 0.8,
+   "note": "Explicitly called a different listed company"
+  },
+  {
+   "id": "collision-87",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "collision-88",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "Delta is the collision partner"
+  },
+  {
+   "id": "collision-89",
+   "answer": "yes",
+   "confidence": 0.8,
+   "note": "Chtrbox brand, SME board subject"
+  },
+  {
+   "id": "collision-90",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "US mega-cap collision partner"
+  },
+  {
+   "id": "collision-91",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "Name absent; INR SME subject fits, SAFE collision implied"
+  },
+  {
+   "id": "collision-92",
+   "answer": "no",
+   "confidence": 0.8,
+   "note": "US collision partner, not subject"
+  },
+  {
+   "id": "collision-93",
+   "answer": "yes",
+   "confidence": 0.65,
+   "note": "Name absent; micro-cap NBFC subject fits"
+  },
+  {
+   "id": "collision-94",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "Carlisle named as collision"
+  },
+  {
+   "id": "collision-95",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "CSL Limited named as collision"
+  },
+  {
+   "id": "collision-96",
+   "answer": "yes",
+   "confidence": 0.85,
+   "note": "Facility-management micro-cap subject"
+  },
+  {
+   "id": "collision-97",
+   "answer": "no",
+   "confidence": 0.8,
+   "note": "Unnamed US collision at most"
+  },
+  {
+   "id": "collision-98",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "ICON plc named as shadow collision"
+  },
+  {
+   "id": "collision-99",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "collision-100",
+   "answer": "yes",
+   "confidence": 0.85,
+   "note": "Indian sulphuric-acid maker, Atul subsidiary"
+  },
+  {
+   "id": "collision-101",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "US bank holding company is the partner"
+  },
+  {
+   "id": "collision-102",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "collision-103",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "Former name of same entity"
+  },
+  {
+   "id": "collision-104",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "Name absent; NBFC real-estate holding co fits"
+  },
+  {
+   "id": "collision-105",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "collision-106",
+   "answer": "yes",
+   "confidence": 0.75,
+   "note": "Same security, pre-rename name"
+  },
+  {
+   "id": "collision-107",
+   "answer": "yes",
+   "confidence": 0.8,
+   "note": "US bank holding co subject"
+  },
+  {
+   "id": "collision-108",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "Indian bulk-chemicals partner"
+  },
+  {
+   "id": "collision-109",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "collision-110",
+   "answer": "no",
+   "confidence": 0.8,
+   "note": "Indian collision partner"
+  },
+  {
+   "id": "collision-111",
+   "answer": "yes",
+   "confidence": 0.75,
+   "note": "Recent listing subject; Dhoot Industrial is near-miss"
+  },
+  {
+   "id": "collision-112",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "Near-miss collision partner"
+  },
+  {
+   "id": "collision-113",
+   "answer": "yes",
+   "confidence": 0.85,
+   "note": "Indian jewellery half of collision"
+  },
+  {
+   "id": "collision-114",
+   "answer": "no",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-115",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "collision-116",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "Vertex Pharmaceuticals is the collision"
+  },
+  {
+   "id": "collision-117",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "collision-118",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "Toro is the US collision"
+  }
+ ]
+}

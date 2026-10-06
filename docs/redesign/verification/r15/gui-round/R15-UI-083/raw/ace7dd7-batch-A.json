@@ -1,0 +1,87 @@
+[
+ {
+  "cmd": "click",
+  "x": 768,
+  "y": 598
+ },
+ {
+  "cmd": "wait",
+  "seconds": 4
+ },
+ {
+  "cmd": "click",
+  "x": 502,
+  "y": 728
+ },
+ {
+  "cmd": "wait",
+  "seconds": 5
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-083/ace7dd7-02-cockpit-brief-settled.png"
+ },
+ {
+  "cmd": "click",
+  "x": 1024,
+  "y": 184
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-083/ace7dd7-03-save-md-status.png"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 4
+ },
+ {
+  "cmd": "click",
+  "x": 1123,
+  "y": 184
+ },
+ {
+  "cmd": "wait",
+  "seconds": 2.5
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-083/ace7dd7-04-save-pdf-status.png"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 2
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-083/ace7dd7-04b-save-pdf-status-late.png"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 5
+ },
+ {
+  "cmd": "click",
+  "x": 1221,
+  "y": 184
+ },
+ {
+  "cmd": "wait",
+  "seconds": 2.5
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-083/ace7dd7-05-save-png-status.png"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 2
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-083/ace7dd7-05b-save-png-status-late.png"
+ }
+]

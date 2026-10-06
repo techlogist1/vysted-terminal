@@ -1,0 +1,11 @@
+{
+ "symbol": "RAJPUTANA",
+ "count": 0,
+ "events": [],
+ "sources": [
+  "NSE"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": "BSE RAJPUTANA is a different company; only the NSE feed is served"
+}

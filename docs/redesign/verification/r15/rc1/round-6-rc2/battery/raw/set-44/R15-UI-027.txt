@@ -1,0 +1,7 @@
+# rc1-battery-22 raw R15-UI-027 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ grep -rn "mod+p and meta+p conflict on macOS\|shift+mod+p beside mod+p does NOT conflict" src --include=*.test.ts* | cut -c1-220; grep -n 'resolveChord' src/store/keybindings.ts | head -4
+src/store/keybindings.test.ts:124:  it("mod+p and meta+p conflict on macOS (same resolved chord)", () => {
+src/store/keybindings.test.ts:133:  it("shift+mod+p beside mod+p does NOT conflict (distinct resolved chords)", () => {
+245:      const chord = resolveChord(keys);
+376:function resolveChord(keys: string): string {
+EXIT=0

@@ -1,0 +1,13 @@
+76:from concurrent.futures import ThreadPoolExecutor
+152:_LIVE_SEARCH_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="yf-search")
+155:# the shared default to_thread executor (min(32, cpu+4) workers), so N
+156:# concurrent resolves filled every worker and queued out unrelated to_thread
+160:_RESOLVE_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="resolver")
+1038:    shared default to_thread executor. Looks ``resolve`` up as a module global
+1688:    the shared default to_thread executor. See :func:`resolve_async`."""
+160:_RESOLVE_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="resolver")
+1016:    ``loop.run_in_executor(_RESOLVE_POOL, resolve, query, region)``
+1037:    """``resolve`` off the dedicated ``_RESOLVE_POOL`` (R15-LEAD-040), not the
+1042:    return await loop.run_in_executor(_RESOLVE_POOL, resolve, query, region)
+1687:    """``autocomplete`` off the dedicated ``_RESOLVE_POOL`` (R15-LEAD-040), not
+1690:    return await loop.run_in_executor(_RESOLVE_POOL, autocomplete, query, region, limit)

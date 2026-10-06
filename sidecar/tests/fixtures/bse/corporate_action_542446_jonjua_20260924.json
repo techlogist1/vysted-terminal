@@ -1,0 +1,98 @@
+{
+ "Table": [
+  {
+   "purpose_name": "Final Dividend",
+   "BCRD_from": "19 Sep 2025",
+   "Amount": 0.1
+  }
+ ],
+ "Table1": [
+  {
+   "XTYPE": "Bonus",
+   "BCRD_FROM": "04 Sep 2026",
+   "VALUE": "issue 7:24"
+  },
+  {
+   "XTYPE": "Bonus",
+   "BCRD_FROM": "10 Oct 2023",
+   "VALUE": "issue 9:50"
+  },
+  {
+   "XTYPE": "Bonus",
+   "BCRD_FROM": "03 Oct 2022",
+   "VALUE": "issue 4:23"
+  },
+  {
+   "XTYPE": "Bonus",
+   "BCRD_FROM": "08 Jul 2021",
+   "VALUE": "issue 5:37"
+  },
+  {
+   "XTYPE": "Bonus",
+   "BCRD_FROM": "10 Oct 2019",
+   "VALUE": "issue 1:25"
+  }
+ ],
+ "Table2": [
+  {
+   "DR": 1,
+   "scrip_code": 542446,
+   "sLongName": "Jonjua Overseas Ltd",
+   "BCRD": "RD 04/09/2026",
+   "purpose_code": "BN ",
+   "short_name": "JONJUA",
+   "Ex_date": "04 Sep 2026",
+   "purpose": "Bonus issue 7:24",
+   "Details": null,
+   "PAYMENT_DATE": null
+  },
+  {
+   "DR": 2,
+   "scrip_code": 542446,
+   "sLongName": "Jonjua Overseas Ltd",
+   "BCRD": "RD 23/01/2026",
+   "purpose_code": "BN ",
+   "short_name": "JONJUA",
+   "Ex_date": "23 Jan 2026",
+   "purpose": "Bonus issue 5:40",
+   "Details": null,
+   "PAYMENT_DATE": null
+  },
+  {
+   "DR": 3,
+   "scrip_code": 542446,
+   "sLongName": "Jonjua Overseas Ltd",
+   "BCRD": "RD 20/09/2025",
+   "purpose_code": "DP ",
+   "short_name": "JONJUA",
+   "Ex_date": "19 Sep 2025",
+   "purpose": "Final Dividend",
+   "Details": "0.10",
+   "PAYMENT_DATE": "2025-10-27T00:00:00"
+  },
+  {
+   "DR": 4,
+   "scrip_code": 542446,
+   "sLongName": "Jonjua Overseas Ltd",
+   "BCRD": "RD 28/07/2025",
+   "purpose_code": "BN ",
+   "short_name": "JONJUA",
+   "Ex_date": "28 Jul 2025",
+   "purpose": "Bonus issue 1:20",
+   "Details": null,
+   "PAYMENT_DATE": null
+  },
+  {
+   "DR": 5,
+   "scrip_code": 542446,
+   "sLongName": "Jonjua Overseas Ltd",
+   "BCRD": "RD 29/11/2024",
+   "purpose_code": "ET ",
+   "short_name": "JONJUA",
+   "Ex_date": "29 Nov 2024",
+   "purpose": "Right Issue of Equity Shares ",
+   "Details": null,
+   "PAYMENT_DATE": null
+  }
+ ]
+}

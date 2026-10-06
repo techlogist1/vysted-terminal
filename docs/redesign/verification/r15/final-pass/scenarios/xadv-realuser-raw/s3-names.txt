@@ -1,0 +1,62 @@
+=== Indian Bank
+RESOLVED: ('INDIANB', 'Indian Bank', 'NSE', 1.0) | disamb False
+  cand INDIANB | Indian Bank NSE 1.0
+  cand SOUTHBANK | The South Indian Bank Limited NSE 0.8
+  cand IOB | Indian Overseas Bank NSE 0.7097
+  cand CANBK | Canara Bank NSE 0.6364
+=== indian overseas bank
+RESOLVED: ('IOB', 'Indian Overseas Bank', 'NSE', 1.0) | disamb False
+  cand IOB | Indian Overseas Bank NSE 1.0
+  cand INDIANB | Indian Bank NSE 0.7097
+  cand VINNY | Vinny Overseas Limited NSE 0.619
+  cand HARIKANTA | Harikanta Overseas Ltd BSE 0.619
+=== Indian Overseas
+RESOLVED: ('IOB', 'Indian Overseas Bank', 'NSE', 0.92) | disamb False
+  cand IOB | Indian Overseas Bank NSE 0.92
+  cand VINNY | Vinny Overseas Limited NSE 0.6486
+  cand HARIKANTA | Harikanta Overseas Ltd BSE 0.6486
+  cand JONJUA | Jonjua Overseas Ltd BSE 0.6471
+=== ITC
+RESOLVED: ('ITC', 'ITC Limited', 'NSE', 1.0) | disamb False
+  cand ITC | ITC Limited NSE 1.0
+  cand ITC | ITC Ltd BSE 1.0
+=== ITC Hotel
+RESOLVED: ('ITCHOTELS', 'ITC Hotels Limited', 'NSE', 0.92) | disamb False
+  cand ITCHOTELS | ITC Hotels Limited NSE 0.92
+  cand SUNDROP | Sundrop Brands Limited NSE 0.6092
+  cand MACH | Mac Hotels Ltd BSE 0.6087
+  cand ITC | ITC Limited NSE 0.6
+=== Siemens
+RESOLVED: ('SIEMENS', 'Siemens Limited', 'NSE', 1.0) | disamb False
+  cand SIEMENS | Siemens Limited NSE 1.0
+  cand SIEMENS | Siemens Ltd BSE 1.0
+=== Siemens Energy
+RESOLVED: ('ENRIN', 'Siemens Energy India Limited', 'NSE', 0.92) | disamb False
+  cand ENRIN | Siemens Energy India Limited NSE 0.92
+  cand SMERY | Siemens Energy AG/ADR US 0.92
+  cand SMEGF | Siemens Energy AG/ADR US 0.92
+  cand ENERGY | MIRAEAMC - ENERGY NSE 0.6452
+=== Raymond
+RESOLVED: ('RAYMOND', 'Raymond Limited', 'NSE', 1.0) | disamb False
+  cand RAYMOND | Raymond Limited NSE 1.0
+  cand RAYMOND | Raymond Ltd BSE 1.0
+=== Raymond Lifestyle
+RESOLVED: ('RAYMONDLSL', 'Raymond Lifestyle Limited', 'NSE', 1.0) | disamb False
+  cand RAYMONDLSL | Raymond Lifestyle Limited NSE 1.0
+  cand RAYMOND | Raymond Limited NSE 0.6875
+  cand HASJUICE | Has Lifestyle Ltd BSE 0.6471
+  cand RIYAASAT | Riyaasat Lifestyle Ltd BSE 0.6154
+=== halliburton
+RESOLVED: ('HAL', 'HALLIBURTON CO', 'US', 0.97) | disamb False
+  cand HAL | HALLIBURTON CO US 0.97
+=== Hindustan Aeronautics
+RESOLVED: ('HAL', 'Hindustan Aeronautics Limited', 'NSE', 1.0) | disamb False
+  cand HAL | Hindustan Aeronautics Limited NSE 1.0
+  cand HINDUST | Hindustan Agrigenetics Ltd BSE 0.7234
+  cand HINDHARD | Hindustan Hardy Ltd BSE 0.65
+  cand HINDUNILVR | Hindustan Unilever Limited NSE 0.6278
+=== HAL
+RESOLVED: ('HAL', 'Hindustan Aeronautics Limited', 'NSE', 1.0) | disamb False
+  cand HAL | Hindustan Aeronautics Limited NSE 1.0
+  cand HAL | Hindustan Aeronautics Ltd BSE 1.0
+  cand HAL | HALLIBURTON CO US 1.0

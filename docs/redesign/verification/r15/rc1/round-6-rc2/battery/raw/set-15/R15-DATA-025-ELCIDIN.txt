@@ -1,0 +1,9 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52340
+$ curl -s -m 90 '127.0.0.1:52340/disclosures/corporate-actions?symbol=ELCIDIN' | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('count'));[print(a) for a in d.get('actions',d.get('items',[]))[:6]]"
+exit=0
+5
+{'symbol': 'ELCIDIN', 'kind': 'dividend', 'purpose': 'Dividend - Rs 25 Per Share', 'ratio': None, 'amount_per_share': 25.0, 'ex_date': '2026-07-24', 'record_date': '2026-07-24', 'payment_date': '2026-08-30', 'exchange': 'NSE+BSE'}
+{'symbol': 'ELCIDIN', 'kind': 'dividend', 'purpose': 'Final Dividend', 'ratio': None, 'amount_per_share': 25.0, 'ex_date': '2025-07-23', 'record_date': '2025-07-23', 'payment_date': None, 'exchange': 'BSE'}
+{'symbol': 'ELCIDIN', 'kind': 'dividend', 'purpose': 'Final Dividend', 'ratio': None, 'amount_per_share': 25.0, 'ex_date': '2024-08-16', 'record_date': '2024-08-16', 'payment_date': '2024-09-27', 'exchange': 'BSE'}
+{'symbol': 'ELCIDIN', 'kind': 'dividend', 'purpose': 'Final Dividend', 'ratio': None, 'amount_per_share': 25.0, 'ex_date': '2023-09-15', 'record_date': '2023-09-15', 'payment_date': '2023-10-22', 'exchange': 'BSE'}
+{'symbol': 'ELCIDIN', 'kind': 'dividend', 'purpose': 'Final Dividend', 'ratio': None, 'amount_per_share': 15.0, 'ex_date': '2022-09-22', 'record_date': None, 'payment_date': '2022-10-29', 'exchange': 'BSE'}

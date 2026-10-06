@@ -1,0 +1,19 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_66da536d4d704ea395ff4c49c5d95fd3", "name": "fundamentals", "input": {"symbol": "AAPL"}}
+{"kind": "tool_result", "tool_call_id": "call_66da536d4d704ea395ff4c49c5d95fd3", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " cap"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "90"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5894, "output_tokens": 13, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,69 @@
+{
+  "focused_source": null,
+  "by_source": {
+    "__terminal__": {
+      "focusedPanel": null,
+      "focusedSymbol": "SPY",
+      "charts": [],
+      "watchlist": {
+        "symbols": [
+          "SPY",
+          "BTC/USDT",
+          "ETH/USDT",
+          "NVDA",
+          "AAPL",
+          "QQQ"
+        ],
+        "selected": null
+      },
+      "portfolio": {
+        "positionCount": 2,
+        "totalValue": null,
+        "totalValueNote": "holdings span multiple currencies (INR, USD) — no cross-currency total; read per-holding values",
+        "activePortfolioId": "default",
+        "activePortfolioName": "Portfolio",
+        "holdings": [
+          {
+            "id": "h-5185cd88-40db-48f7-a776-1b34ee6567f5",
+            "symbol": "RELIANCE.NS",
+            "quantity": 10,
+            "costBasis": 1200,
+            "assetClass": "equity",
+            "marketValue": 12260,
+            "pnl": 260
+          },
+          {
+            "id": "h-e5b19dee-03a8-4caa-9519-cc1e91d5722c",
+            "symbol": "AAPL",
+            "quantity": 8,
+            "costBasis": 310,
+            "assetClass": "equity",
+            "marketValue": 2728.56005859375,
+            "pnl": 248.56005859375
+          }
+        ]
+      },
+      "brief": {
+        "phase": "archived",
+        "runId": "0029f0f597fe4d1fb211f799ff017e36",
+        "symbol": "SETFNIF50",
+        "createdAt": 1789310708439,
+        "sourceCount": 3,
+        "depth": "quick"
+      },
+      "otherPanels": [],
+      "openPanels": [],
+      "viewport": {
+        "width": 1440,
+        "height": 0
+      },
+      "region": "IN",
+      "capturedAt": 1790437853105
+    },
+    "__notes__": {
+      "general": "",
+      "bySymbol": {}
+    }
+  },
+  "captured_at": 1790437853105
+}

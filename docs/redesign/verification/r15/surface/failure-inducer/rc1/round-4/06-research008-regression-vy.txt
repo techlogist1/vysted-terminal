@@ -1,0 +1,27 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  48.9s] tool_use: {"kind": "tool_use", "tool_call_id": "call_8902c3d535254dc2bc72bac0ce2a4c2c", "name": "web_search", "input": {"num_results": 5, "category": "news", "query": "Dixon Technologies"}}
+[  56.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_8902c3d535254dc2bc72bac0ce2a4c2c", "name": "web_search", "ok": true, "error": null}
+[  66.2s] heartbeat: {"kind": "heartbeat"}
+[  76.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_36bcb4a4e29e4bf98a08bf937e00cbfc", "name": "market_overview", "input": {"symbol": "DIXON"}}
+[  77.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_36bcb4a4e29e4bf98a08bf937e00cbfc", "name": "market_overview", "ok": true, "error": null}
+[  87.1s] heartbeat: {"kind": "heartbeat"}
+[  97.1s] heartbeat: {"kind": "heartbeat"}
+[ 107.1s] heartbeat: {"kind": "heartbeat"}
+[ 117.1s] heartbeat: {"kind": "heartbeat"}
+[ 127.1s] heartbeat: {"kind": "heartbeat"}
+[ 135.1s] done: {"kind": "done", "usage": {"input_tokens": 5509, "output_tokens": 41, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+It appears that there is no recent news available about Dixon Technologies. The web_search tool returned a result indicating that the searxng backend is degraded, which means it cannot retrieve any information about the company.
+
+However, I can try to use another tool to fetch the latest news about Dixon Technologies. Let me call the market_overview tool to see if there are any relevant articles or updates available.
+
+No recent news available for Dixon Technologies. 
+
+However, I can suggest researching the company's fundamentals and financials to get a better understanding of its current status. Would you like me to do that?
+
+=== ok · 135.1s · events {'heartbeat': 10, 'tool_use': 2, 'tool_result': 2, 'delta': 123, 'done': 1} · usage in=5509 out=41 · est $0.00000 · llama3.1:8b
+rmdir: /tmp/vysted-r15-ollama.lock: No such file or directory

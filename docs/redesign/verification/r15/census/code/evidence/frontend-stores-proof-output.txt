@@ -1,0 +1,12 @@
+stdout | ../../../../../private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/fs/stores.proof.test.ts > R15 frontend-stores proofs > P1 SEC: a slower stale response flips activeIdentifier back
+P1 activeIdentifier after stale AAPL lands: AAPL
+stdout | ../../../../../private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/fs/stores.proof.test.ts > R15 frontend-stores proofs > P2 agent-space switch mid-stream: reply dropped, archived copy stuck pending, streaming flag cleared
+P2 streamingMessageId after switch: null
+P2 restored message: {"content":"Partial ","pending":true}
+stdout | ../../../../../private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/fs/stores.proof.test.ts > R15 frontend-stores proofs > P3 drainNotifications drops an intent captured while the bridge awaited
+P3 sent: [ 'a' ] left pending: 0
+ ✓ ../../../../../private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/fs/stores.proof.test.ts > R15 frontend-stores proofs > P1 SEC: a slower stale response flips activeIdentifier back 2ms
+ ✓ ../../../../../private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/fs/stores.proof.test.ts > R15 frontend-stores proofs > P2 agent-space switch mid-stream: reply dropped, archived copy stuck pending, streaming flag cleared 1ms
+ ✓ ../../../../../private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/fs/stores.proof.test.ts > R15 frontend-stores proofs > P3 drainNotifications drops an intent captured while the bridge awaited 1ms
+ Test Files  1 passed (1)
+      Tests  3 passed (3)

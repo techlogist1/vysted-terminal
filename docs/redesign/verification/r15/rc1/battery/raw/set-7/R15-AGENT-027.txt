@@ -1,0 +1,12 @@
+$ python3 -c errors.humanize(...) over the original captured bodies + fresh cases
+openai 429 -> insufficient_credit
+openai 400 -> context_overflow
+groq 413 -> context_overflow
+gemini 400 -> auth
+xai 400 -> auth
+anthropic 400 -> context_overflow
+openrouter 429 -> rate_limit
+together 404 -> model_not_found
+$ python3 -c errors.humanize openrouter :free 429 (corrected marker)
+openrouter :free 429 -> free_pool_busy
+ollama ConnectionRefusedError -> ollama_not_running

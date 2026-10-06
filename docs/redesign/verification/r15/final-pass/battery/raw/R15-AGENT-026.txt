@@ -1,0 +1,25 @@
+# R15-AGENT-026 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:10+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+rm -f $B/out/R15-AGENT-0{25,26,33,40}.txt; "$IP" $B/sc/p17.py >/dev/null 2>&1; echo "script exit $?"; cat $B/out/R15-AGENT-026.txt
+--- output ---
+script exit 0
+COMMAND: in-process agent_runtime.invoke_agent with fake provider, 4 truncation shapes
+EXIT: 0
+OUTPUT:
+## length finish after text
+  LLMDeltaEvent {"kind": "delta", "text": "RELIANCE closed at Rs 1,41"}
+  LLMResearchStepEvent {"kind": "research_step", "tool": "runtime", "step_kind": "notice", "detail": "The answer hit the model's output limit and was cut off. Ask me to continue for the rest.", "status": "error", "index": "0"}
+  LLMDoneEvent {"kind": "done", "finish_reason": "length"}
+## anthropic max_tokens finish
+  LLMDeltaEvent {"kind": "delta", "text": "cut mid sen"}
+  LLMResearchStepEvent {"kind": "research_step", "tool": "runtime", "step_kind": "notice", "detail": "The answer hit the model's output limit and was cut off. Ask me to continue for the rest.", "status": "error", "index": "0"}
+  LLMDoneEvent {"kind": "done", "finish_reason": "max_tokens"}
+## stream ends no finish_reason with text
+  LLMDeltaEvent {"kind": "delta", "text": "partial"}
+  LLMErrorEvent {"kind": "error", "message": "The provider closed the stream before the answer finished.", "action": "Retry, or switch the composer to a different model.", "detail": "no finish reason from gpt-4.1-mini", "code": "truncated"}
+  LLMDoneEvent {"kind": "done"}
+## round zero text zero tools
+  LLMErrorEvent {"kind": "error", "message": "The model returned an empty answer.", "action": "Retry, or switch the composer to a different model.", "detail": "no text and no tool call from gpt-4.1-mini", "code": "empty_response"}
+  LLMDoneEvent {"kind": "done", "finish_reason": "stop"}
+
+EXIT=0 (1.3s)

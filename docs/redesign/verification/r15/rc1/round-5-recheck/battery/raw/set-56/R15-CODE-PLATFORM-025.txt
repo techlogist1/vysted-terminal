@@ -1,0 +1,20 @@
+=== R15-CODE-PLATFORM-025 (config + doc + grep, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd) ===
+CMD: python3 -c "import json; print(json.load(open('src-tauri/tauri.conf.json'))['app']['windows'])"
+[{'title': 'Vysted Terminal', 'width': 1280, 'height': 832, 'minWidth': 960, 'minHeight': 600,
+'resizable': True, 'fullscreen': False, 'theme': 'Dark', 'dragDropEnabled': False}]
+-- exactly one window entry, unchanged (Tauri config is Tier-1 locked; no pop-out window
+was silently added).
+
+CMD: grep -rln "popout\|pop-out\|newWindow\|WebviewWindow\|secondary window" src/ src-tauri/src/*.rs
+(0 hits -- no WebviewWindowBuilder/pop-out spawn code exists anywhere, as expected --
+the fix here is a doc correction, not a feature build.)
+
+CMD: grep -n "Multi-window\|R15-CODE-PLATFORM-025\|pop-out" docs/BLUEPRINT.md
+249:5. Multi-tab layout (dockview, shipped); multi-window (v1.0 roadmap, deferred -- R15-CODE-PLATFORM-025)
+322:- Drag-drop panel layout (resize, hide; pop-out to a second window is v1.0 roadmap -- R15-CODE-PLATFORM-025)
+
+BLUEPRINT.md now correctly scopes multi-window/pop-out as v1.0-roadmap/deferred and cites
+the entry directly at both mentions -- the doc no longer promises a feature that isn't
+built.
+
+VERDICT: holds

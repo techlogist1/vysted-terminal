@@ -1,0 +1,22 @@
+## S4-2 privacy copy
+src/components/SettingsPanel.tsx:122:                Local-first &amp; bring-your-own-keys. Nothing leaves this machine except calls you
+src/components/SettingsPanel.tsx:1324:        description="Private local search via SearXNG, paired with your active chat model. Unmetered and free — nothing leaves this machine but the pages it fetches."
+## S3-1 live keyless macro search
+{"detail":"FRED needs a free API key for macro data. Get one at fred.stlouisfed.org (API Keys), add it to Vysted as your FRED key, and reload — or switch the series provider to ECB, IMF, or World Bank, which need no key.","code":"provider_error","action":"Retry, or try again later."} HTTP=502
+## S4-1 ratings swallow
+12:189-        except Exception:  # noqa: BLE001
+16:193-        except Exception:  # noqa: BLE001
+20:197-        except Exception:  # noqa: BLE001
+24:201-        except Exception:  # noqa: BLE001
+26:203-    except Exception as exc:  # noqa: BLE001
+## S2-1 earnings history
+sidecar/services/earnings_quality.py:222:        if name == "YFRateLimitError" or "ratelimit" in name.lower():
+sidecar/services/earnings_quality.py:247:    except Exception as exc:  # noqa: BLE001 — a cross-check must never break research
+sidecar/services/earnings_provider.py:225:        except Exception:  # noqa: BLE001 — optional accessor
+sidecar/services/earnings_provider.py:229:        except Exception:  # noqa: BLE001
+sidecar/services/earnings_provider.py:233:        except Exception:  # noqa: BLE001
+sidecar/services/earnings_provider.py:237:        except Exception:  # noqa: BLE001
+sidecar/services/earnings_provider.py:239:    except Exception as exc:  # noqa: BLE001
+sidecar/services/earnings_provider.py:267:        except Exception:  # noqa: BLE001
+sidecar/services/earnings_provider.py:271:        except Exception:  # noqa: BLE001
+sidecar/services/earnings_provider.py:275:        except Exception:  # noqa: BLE001

@@ -1,0 +1,13 @@
+# R15-CODE-RESEARCH-010 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:09:47+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+rm -f $B/out/R15-CODE-RESEARCH-010.txt; "$IP" $B/sc/b16_r.py >/dev/null 2>&1; echo "script exit $?"; cat $B/out/R15-CODE-RESEARCH-010.txt
+--- output ---
+script exit 0
+# candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611, in-process python (cand sidecar/.venv), scratch b16_r.py
+Brave MRO=['BraveSearchBackend', '_HtmlSerpBackend', 'SearchBackend']; Mojeek MRO=['MojeekSearchBackend', '_HtmlSerpBackend', 'SearchBackend']
+Brave.search is Mojeek.search: True (both inherited from _HtmlSerpBackend: True)
+BraveSearchBackend HTTP 429 via shared base -> reason='rate_limited'
+MojeekSearchBackend HTTP 429 via shared base -> reason='rate_limited'
+line counts: brave.py=96 mojeek.py=91; shared base html_serp.py=141
+
+EXIT=0 (12.1s)

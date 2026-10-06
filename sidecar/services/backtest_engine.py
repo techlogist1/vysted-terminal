@@ -7,8 +7,8 @@ computes the aggregated :class:`BacktestResult` — total return, Sharpe,
 Sortino, Calmar, max drawdown, win rate, trade log, equity curve.
 
 The engine is intentionally strategy-agnostic; concrete strategies are
-Teammate K's deliverable, registered via :func:`register_strategy` into
-the module-level registry.
+registered via :func:`register_strategy` into the module-level registry
+(see ``backtest_strategies.py``).
 
 Walk-forward: the engine slices the requested date range into N equal
 sections, runs the strategy independently on each, and aggregates the
@@ -166,25 +166,15 @@ def reset_registry_for_tests() -> None:
 BarLoader = Callable[[list[str], str, str], Awaitable[list[Bar]]]
 
 
-async def _default_bar_loader(symbols: list[str], start: str, end: str) -> list[Bar]:
-    """Default bar loader — pulls from yfinance via the provider registry.
-
-    Teammate K may swap this for a more powerful loader (per-symbol
-    different sources, intraday bars, etc.); the engine accepts any
-    callable matching :data:`BarLoader`.
-    """
-    # Foundation kept minimal — Teammate K wires the real OHLCV plumbing
-    # into the strategy backtests. For unit-test parity an in-memory
-    # fixture loader is injected via run_backtest's `bar_loader` kwarg.
-    raise NotImplementedError(
-        "Foundation backtest_engine does not bundle a default bar loader; "
-        "pass bar_loader= to run_backtest(). Teammate K wires production."
-    )
-
-
 # ---------------------------------------------------------------------------
 # Engine
 # ---------------------------------------------------------------------------
+
+# How often the full (unsliced) run emits a "progress" SSE frame, in bars
+# processed. Walk-forward per-slice sub-runs never emit progress — only the
+# headline full run does, so the SSE stream carries one unambiguous progress
+# series instead of overlapping per-slice counts.
+PROGRESS_EVERY_BARS = 5
 
 
 async def _emit(callback: EventCallback | None, event: BacktestRunEvent) -> None:
@@ -256,15 +246,19 @@ def _compute_metrics(
 
     mean_return = statistics.fmean(returns) if returns else 0.0
     stdev = statistics.pstdev(returns) if len(returns) > 1 else 0.0
-    downside = [r for r in returns if r < 0]
-    downside_stdev = statistics.pstdev(downside) if len(downside) > 1 else 0.0
+    # Downside deviation (not the stdev of the loss subset): the RMS of
+    # each period's shortfall below zero, over ALL periods — a period with
+    # a positive return contributes 0, not nothing.
+    downside_dev = (
+        math.sqrt(sum(min(r, 0.0) ** 2 for r in returns) / len(returns)) if returns else 0.0
+    )
 
     # Annualised — 252 trading days. Sharpe and Sortino without a
     # risk-free rate (v0.5.0 simplification documented in
     # types/backtest.ts).
     annualised_return = (1 + mean_return) ** 252 - 1 if mean_return else 0.0
     sharpe = (mean_return / stdev) * math.sqrt(252) if stdev > 0 else 0.0
-    sortino = (mean_return / downside_stdev) * math.sqrt(252) if downside_stdev > 0 else 0.0
+    sortino = (mean_return / downside_dev) * math.sqrt(252) if downside_dev > 0 else 0.0
 
     max_drawdown_pct = min((p.drawdown_pct for p in equity_curve), default=0.0)
     calmar = (annualised_return / abs(max_drawdown_pct)) if max_drawdown_pct < 0 else 0.0
@@ -293,19 +287,64 @@ async def _run_single_slice(
     bars: list[Bar],
     initial_capital: float,
     fees: BacktestFeeModel,
-) -> tuple[list[BacktestTrade], list[EquityCurvePoint]]:
-    """Run one (non-walk-forward) backtest slice; return trades + curve."""
+    *,
+    on_event: EventCallback | None = None,
+    run_id: str | None = None,
+) -> tuple[list[BacktestTrade], list[EquityCurvePoint], int, float]:
+    """Run one (non-walk-forward) backtest slice.
+
+    Returns ``(trades, equity_curve, skipped_buys, worst_shortfall)`` — the
+    last two feed the result's ``warnings`` so an unaffordable position size
+    reads as "N signals skipped", never as a silent 0-trade run.
+    """
     portfolio = SimPortfolio(cash=initial_capital)
     trades: list[BacktestTrade] = []
-    closed_lookup: dict[str, BacktestTrade] = {}
+    # Open position trade id -> its row in ``trades``.
+    trade_index: dict[str, int] = {}
     equity_curve: list[EquityCurvePoint] = []
+    skipped_buys = 0
+    worst_shortfall = 0.0
 
     last_close_per_symbol: dict[str, float] = {}
     peak_equity = initial_capital
+    pending_timestamp: str | None = None
+    bars_processed = 0
+
+    def _mark_to_market(timestamp: str) -> None:
+        nonlocal peak_equity
+        equity_now = portfolio.equity(last_close_per_symbol)
+        peak_equity = max(peak_equity, equity_now)
+        drawdown_pct = (equity_now - peak_equity) / peak_equity if peak_equity > 0 else 0.0
+        equity_curve.append(
+            EquityCurvePoint(
+                timestamp=timestamp,
+                equity=equity_now,
+                drawdownPct=drawdown_pct,
+            )
+        )
 
     for bar in bars:
+        # Multiple symbols share a timestamp (bars_sorted is (timestamp,
+        # symbol) order): mark to market once per timestamp, after the last
+        # bar of that timestamp, not once per bar — otherwise N symbols
+        # produce N equity-curve points per date and the annualisation
+        # (sqrt(252), **252) treats them as N separate trading days.
+        if pending_timestamp is not None and bar.timestamp != pending_timestamp:
+            _mark_to_market(pending_timestamp)
+        pending_timestamp = bar.timestamp
+
         last_close_per_symbol[bar.symbol] = bar.close
         intents = await strategy.on_bar(bar, portfolio)
+        bars_processed += 1
+        if (
+            on_event is not None
+            and run_id is not None
+            and bars_processed % PROGRESS_EVERY_BARS == 0
+        ):
+            await _emit(
+                on_event,
+                BacktestRunEvent(kind="progress", runId=run_id, barsProcessed=bars_processed),
+            )
 
         for intent in intents:
             if intent.quantity == 0:
@@ -315,10 +354,11 @@ async def _run_single_slice(
             cost = abs(intent.quantity) * fill_price
 
             if side == "buy":
-                # New long position OR add to existing.
                 if portfolio.cash < cost:
                     # Skip the order, but log it — a silent skip looked like a
                     # filled order in the curve with no trace of why (Phase 9.5).
+                    skipped_buys += 1
+                    worst_shortfall = max(worst_shortfall, cost - portfolio.cash)
                     logger.warning(
                         "backtest: insufficient cash for %s %s @ %.2f "
                         "(have %.2f, need %.2f) — order skipped",
@@ -330,6 +370,20 @@ async def _run_single_slice(
                     )
                     continue
                 portfolio.cash -= cost
+                position = portfolio.positions.get(intent.symbol)
+                if position is not None:
+                    # Add to the open long: one position at the weighted-average
+                    # entry (fees ride the fill price, so they sum with it).
+                    held = position.quantity + intent.quantity
+                    position.entry_price = (
+                        position.entry_price * position.quantity + fill_price * intent.quantity
+                    ) / held
+                    position.quantity = held
+                    at = trade_index[position.trade_id]
+                    trades[at] = trades[at].model_copy(
+                        update={"entry_price": position.entry_price, "quantity": held}
+                    )
+                    continue
                 trade_id = str(uuid.uuid4())
                 portfolio.positions[intent.symbol] = _OpenPosition(
                     trade_id=trade_id,
@@ -338,6 +392,7 @@ async def _run_single_slice(
                     entry_price=fill_price,
                     entered_at=bar.timestamp,
                 )
+                trade_index[trade_id] = len(trades)
                 trades.append(
                     BacktestTrade(
                         id=trade_id,
@@ -349,69 +404,60 @@ async def _run_single_slice(
                     )
                 )
             else:
-                # Sell — close an existing long, if any.
+                # Sell — close (part of) an existing long, never more than held.
                 position = portfolio.positions.get(intent.symbol)
                 if position is None:
                     continue
-                portfolio.cash += abs(intent.quantity) * fill_price
-                # P&L on the quantity actually sold (matches the cash credit
-                # above), not the original entry quantity — Phase 9.5. (Full
-                # close is the engine's assumed case where these are equal; the
-                # position is popped below, so partial-close size reduction
-                # remains a separate, documented limitation.)
-                pnl = (fill_price - position.entry_price) * abs(intent.quantity)
-                # Update the entering trade record with exit details.
-                for t in trades:
-                    if t.id == position.trade_id:
-                        closed = t.model_copy(
-                            update={
-                                "exited_at": bar.timestamp,
-                                "exit_price": fill_price,
-                                "pnl": pnl,
-                                "close_reason": intent.reason or "strategy",
-                            }
+                sold = min(abs(intent.quantity), position.quantity)
+                portfolio.cash += sold * fill_price
+                exit_fields = {
+                    "exited_at": bar.timestamp,
+                    "exit_price": fill_price,
+                    "pnl": (fill_price - position.entry_price) * sold,
+                    "close_reason": intent.reason or "strategy",
+                }
+                at = trade_index[position.trade_id]
+                if sold < position.quantity:
+                    # A partial close is its own closed trade; the rest stays
+                    # open at the same average entry.
+                    position.quantity -= sold
+                    trades[at] = trades[at].model_copy(update={"quantity": position.quantity})
+                    trades.append(
+                        trades[at].model_copy(
+                            update={"id": str(uuid.uuid4()), "quantity": sold, **exit_fields}
                         )
-                        closed_lookup[t.id] = closed
-                        break
-                portfolio.positions.pop(intent.symbol, None)
+                    )
+                else:
+                    trades[at] = trades[at].model_copy(update=exit_fields)
+                    portfolio.positions.pop(intent.symbol)
 
-        # Mark-to-market equity at this bar's close.
-        equity_now = portfolio.equity(last_close_per_symbol)
-        peak_equity = max(peak_equity, equity_now)
-        drawdown_pct = (equity_now - peak_equity) / peak_equity if peak_equity > 0 else 0.0
-        equity_curve.append(
-            EquityCurvePoint(
-                timestamp=bar.timestamp,
-                equity=equity_now,
-                drawdownPct=drawdown_pct,
-            )
-        )
+    # Mark to market the final timestamp's bars (the loop above only marks
+    # on a timestamp *boundary*, so the last timestamp needs its own point).
+    if pending_timestamp is not None:
+        _mark_to_market(pending_timestamp)
 
-    # Replace closed-trade records with their updated versions.
-    trades = [closed_lookup.get(t.id, t) for t in trades]
-    return trades, equity_curve
+    return trades, equity_curve, skipped_buys, worst_shortfall
 
 
 async def run_backtest(
     request: BacktestRequest,
     *,
-    bar_loader: BarLoader | None = None,
+    bar_loader: BarLoader,
     on_event: EventCallback | None = None,
 ) -> BacktestResult:
-    """Run a backtest end-to-end."""
+    """Run a backtest end-to-end. ``bar_loader`` supplies the historical bars."""
     strategy_cls = _STRATEGIES.get(request.strategy_id)
     if strategy_cls is None:
         raise BacktestEngineError(
             f"unknown strategy {request.strategy_id!r}; registered: {registered_strategies()}"
         )
 
-    loader = bar_loader or _default_bar_loader
     fees = request.fee_model or BacktestFeeModel()
     run_id = str(uuid.uuid4())
     started_at = int(time.time() * 1000)
     started_ns = time.perf_counter_ns()
 
-    bars = await loader(request.symbols, request.start_date, request.end_date)
+    bars = await bar_loader(request.symbols, request.start_date, request.end_date)
     if request.symbols and not bars:
         # Every requested symbol returned zero bars — the bar loader swallows
         # per-symbol ProviderErrors into empty lists, so without this gate the
@@ -435,23 +481,55 @@ async def run_backtest(
 
     # Full unsliced run for the headline metrics + equity curve + trade log.
     strategy = strategy_cls(request.params)
-    trades, equity_curve = await _run_single_slice(
-        strategy, bars_sorted, request.initial_capital, fees
+    trades, equity_curve, skipped_buys, worst_shortfall = await _run_single_slice(
+        strategy,
+        bars_sorted,
+        request.initial_capital,
+        fees,
+        on_event=on_event,
+        run_id=run_id,
     )
     metrics = _compute_metrics(equity_curve, trades, request.initial_capital)
+    warnings: list[str] = []
+    # The loader turns a per-symbol provider failure (or an empty history)
+    # into no bars, so a partly failed universe would otherwise read as clean.
+    loaded = {b.symbol for b in bars}
+    missing = [s for s in dict.fromkeys(request.symbols) if s not in loaded]
+    if missing:
+        requested = len(dict.fromkeys(request.symbols))
+        warnings.append(
+            f"No price history loaded for {', '.join(missing)} in "
+            f"{request.start_date}..{request.end_date} (provider error or empty "
+            f"series); metrics cover {requested - len(missing)} of {requested} symbols."
+        )
+    if skipped_buys:
+        warnings.append(
+            f"{skipped_buys} buy signal(s) skipped — the position size cost more "
+            f"than available cash (largest shortfall {worst_shortfall:,.0f}). "
+            "Reduce position_size or raise initial_capital."
+        )
 
     # Walk-forward slices, if requested.
     walk_forward_slices: list[WalkForwardSlice] | None = None
     if request.walk_forward_slices > 1:
         walk_forward_slices = []
-        for idx, (slice_start, slice_end) in enumerate(
-            _slice_dates(request.start_date, request.end_date, request.walk_forward_slices)
-        ):
-            slice_bars = [b for b in bars_sorted if slice_start <= b.timestamp <= slice_end]
+        slice_ranges = _slice_dates(
+            request.start_date, request.end_date, request.walk_forward_slices
+        )
+        for idx, (slice_start, slice_end) in enumerate(slice_ranges):
+            # Half-open on every slice but the last, so a boundary bar is
+            # traded in exactly one slice instead of both neighbours.
+            is_last = idx == len(slice_ranges) - 1
+            slice_bars = [
+                b
+                for b in bars_sorted
+                if slice_start <= b.timestamp
+                and (b.timestamp <= slice_end if is_last else b.timestamp < slice_end)
+            ]
             if not slice_bars:
                 continue
             slice_strategy = strategy_cls(request.params)
-            slice_trades, slice_curve = await _run_single_slice(
+            slice_trades, slice_curve, _, _ = await _run_single_slice(
                 slice_strategy, slice_bars, request.initial_capital, fees
             )
             slice_metrics = _compute_metrics(slice_curve, slice_trades, request.initial_capital)
@@ -477,6 +555,7 @@ async def run_backtest(
         walkForwardSlices=walk_forward_slices,
         startedAt=started_at,
         durationMs=duration_ms,
+        warnings=warnings or None,
     )
 
     await _emit(on_event, BacktestRunEvent(kind="run-complete", runId=run_id, result=result))

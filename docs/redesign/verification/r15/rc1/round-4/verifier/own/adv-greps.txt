@@ -1,0 +1,23 @@
+HEAD 68d5573aff9a579af084dcbb124843f2aecff6e8
+## CODE-DATA-005 repro: grep def is_applicable / _is_blocked / is_india_target / _row_value
+sidecar/services/witness.py:19:def is_india_listing(listing: object) -> bool:
+sidecar/services/witness.py:24:def is_block_error(exc: BaseException) -> bool:
+sidecar/services/growth_check.py:94:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+sidecar/services/dividend_actions.py:60:def is_applicable(symbol: str) -> bool:
+sidecar/services/earnings_quality.py:123:def is_applicable(symbol: str) -> bool:
+sidecar/services/earnings_quality.py:134:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+sidecar/services/research/relevance.py:374:def is_india_target(target: ResearchTarget | None) -> bool:
+
+## DOCS-016 repro: CURRENT_STATE lines
+448:remains — the proposed-changes trust gate over the 19 surviving host actions
+754:   surviving host actions stages through the same diff/accept flow the
+## CODE-PLATFORM-021: POST /portfolio in src + docstrings
+"""Portfolio Pydantic models.
+
+``Position`` is the stored record (manual entry — the user's tracked
+portfolio). The portfolio service (Teammate B, Phase 1.B) computes P&L by joining
+positions against live quotes. Mirrored by hand in ``types/data.ts`` — keep in
+sync (see CLAUDE.md Gotchas).
+"""
+
+644:/** A single held position, persisted in the local SQLite database. */

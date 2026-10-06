@@ -1,0 +1,10 @@
+PASS fab-according-to-errored: "The fundamentals tool returned no data for this in this turn.\nDone."
+PASS fab-camelcase: "The price_data tool returned no data for this in this turn.\nDone."
+PASS fab-news-uncalled-humanised-sameline-figure: "The news tool returned no data for this in this turn.\nDone."
+PASS true-fundamentals-same-turn-dump: "The tool that provided the market cap figure was `fundamentals`, which returned:\n\n{\n \"market_cap\": 3440000000000\n}"
+PASS 031/orig2-json-fundamentals: shown=['Sure. '] held='{"name": "fundamentals", "arguments": {"symbol": "SIFY"}}'
+PASS 031/nospace-json-charwise: shown=['O', 'k', ' '] held='{"name":"financial_statements","arguments":{}}'
+PASS 031/call-syntax-news: shown=['See '] held='news(symbol="SIFY")'
+PASS 031/benign-prefix-replay: shown=['The ', 'pri', 'ce', ' is up.'] held=''
+PASS 031/unoffered-json-replay: shown=['x; {"', 'name', '": "', 'scre', 'ener_run"} y'] held=''
+BAD 0

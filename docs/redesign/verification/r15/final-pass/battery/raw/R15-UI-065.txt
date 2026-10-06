@@ -1,0 +1,16 @@
+# R15-UI-065 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:42+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- 'every openPanel' src/lib/open-panel-literals.test.ts | head -3; test -f src/lib/open-panel-literals.test.ts || echo 'MISSING src/lib/open-panel-literals.test.ts'
+[exit 0] [0.00s]
+27:  it("every openPanel('literal') / opensPanel literal under src/ resolves to a registered panel", () => {
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-UI-065\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.29s]
+src/lib/open-panel-literals.test.ts:26:describe("panel-id literals (R15-UI-065)", () => {
+

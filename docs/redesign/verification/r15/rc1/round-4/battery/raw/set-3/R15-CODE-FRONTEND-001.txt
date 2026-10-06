@@ -1,0 +1,7 @@
+NOT RUN LIVE: frontend-only logic (deserializeWorkspace / applyLayoutSlice vs applyGlobalSlice), requires TS/jsdom execution; the candidate worktree is read-only (no test file may be written into it) and no writable frontend checkout with node_modules was set up for this shard within the stall budget.
+SOURCE CHECK (grep, candidate HEAD 1006c6da):
+  src/lib/workspace.ts: PERSISTED_SLICES const at line 300; applyLayoutSlice() at line 672 (used by loadWorkspace, line 662 in restoreLastSessionOrDefault's default path) restores ONLY the dockview layout slice on a named-workspace load, never portfolios/notes globally -- matches the fix_shape ("a named-workspace load applies the layout slice only").
+PINNED TEST (not executed this shard; ci_pinned):
+  src/lib/workspace.test.ts:603 it("loading a named workspace never rolls back portfolios or notes (R15-CODE-FRONTEND-001)")
+  Asserts: save "Swing" (week1) -> mutate portfolios (add TCS holding) + notes (week2) -> loadWorkspace("Swing") -> portfolios still [TCS], notes still "week 2" (i.e. the load did NOT roll back the global state).
+VERDICT BASIS: source matches fix_shape; pinned test named above encodes the exact original repro.

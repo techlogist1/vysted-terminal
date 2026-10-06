@@ -1,0 +1,23 @@
+COMMAND (in-process, candidate sidecar venv, sha 1006c6da): monkeypatched
+services.llm.oneshot.get_provider to a stub adapter that streams one delta then
+LLMDoneEvent(finish_reason="length") (the exact shape any adapter's max_tokens/length finish
+takes), wired it through a real oneshot.complete_with_usage call inside an llm_call closure, and
+called services.research.deep._synthesis_llm(llm_call, messages) -- the actual function batch-5
+fixed for R15-RESEARCH-014.
+
+  cd <cand>/sidecar && ./.venv/bin/python3 test_research014.py
+
+OUTPUT:
+body= 'Truncated synthesis body cut mid-sent'
+truncated= True
+
+VERDICT: holds.
+_synthesis_llm wraps the call in oneshot.finish_reasons() and returns
+any(is_length_finish(r) for r in reasons) as the truncated flag (services/research/deep.py:196-201);
+oneshot.finish_reasons()/complete_with_usage populate the ContextVar-backed sink on every
+completion in the block (services/llm/oneshot.py:33-73). Live-exercised: a length finish is
+correctly flagged truncated=True, matching batch-5's certification ("a real OpenRouter length
+finish through deep._synthesis_llm is now flagged truncated; the same call without the cap is not
+flagged"). Anthropic's specific 4096-token default ceiling table could not be re-probed live (no
+Anthropic key in this isolated profile, consistent with batch-5's own note), but the flagging
+mechanism it feeds is confirmed working end to end against the candidate's actual code.

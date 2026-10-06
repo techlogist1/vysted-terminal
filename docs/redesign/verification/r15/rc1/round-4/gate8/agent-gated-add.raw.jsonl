@@ -1,0 +1,40 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_3f56312d10bb49e189445fddb386500d", "name": "portfolio_add_position", "input": {"symbol": "INFY.NS", "quantity": 5, "cost_basis": 1500}}
+{"kind": "tool_result", "tool_call_id": "call_3f56312d10bb49e189445fddb386500d", "name": "portfolio_add_position", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " added"}
+{"kind": "delta", "text": " INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": " basis"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "150"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "This"}
+{"kind": "delta", "text": " change"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " awaiting"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " acceptance"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " proposal"}
+{"kind": "delta", "text": " bar"}
+{"kind": "delta", "text": "."}
+{"kind": "research_step", "tool_call_id": "call_3f56312d10bb49e189445fddb386500d", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position INFY.NS. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+{"kind": "done", "usage": {"input_tokens": 3033, "output_tokens": 33, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

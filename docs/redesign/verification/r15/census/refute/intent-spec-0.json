@@ -1,0 +1,20 @@
+[
+  {
+    "raw_id": "INT-spec-0-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Core claim holds: the foreground onDone handler hard-codes spendUsd: 0 (ChatSidebar.tsx:919-922) while the sidecar already has estimate_spend_usd (budget_guard.py:60-84), so Constitution VI's 'cost in use is always legible' is unmet for foreground runs. Mechanism corrected: nothing actually renders '$0.00' - AgentsRail hides the $ segment when spendUsd is 0 (AgentsRail.tsx:103-106) and only lists running/paused runs (AgentsRail.tsx:30), while the foreground cost is written only at onDone immediately before endRun (ChatSidebar.tsx:919-923), so a foreground run's tokens AND spend are never shown anywhere; per-message usage is stored (chat-history.ts:213-216) but not rendered. The fix is therefore both computing spend and giving foreground cost a visible surface, not just replacing the literal 0.",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:914-923, src/modules/chat/AgentsRail.tsx:30, src/modules/chat/AgentsRail.tsx:103-106, src/store/agent-runs.ts:88-99, src/store/chat-history.ts:46-47,213-216, sidecar/services/budget_guard.py:60-84, .specify/memory/constitution.md:78-83",
+    "evidence_checked": "code-only: opened the onDone handler, the agent-runs store (endRun/activeRuns), AgentsRail RunRow cost rendering, chat-history usage storage, grepped src for every spendUsd/usage/tokens display; stack :52152 healthy but a paid-provider foreground run was not driven (costs money; the code path is unambiguous)",
+    "repro_check": "grep -rn spendUsd src -> only ChatSidebar.tsx:921 writes it for foreground runs (literal 0); AgentsRail filters r.status running|paused, and endRun follows updateRun synchronously, so a finished foreground run's cost row never renders - would confirm headlessly by sending one chat on a paid provider and observing no token/$ readout after completion"
+  },
+  {
+    "raw_id": "INT-spec-0-2",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds as stated: citation machinery ([n] markers + BriefSource) lives on the brief contract (types/brief.ts:1-10,229-245,308-312) and the [unverified] token/unverified_claims check is Equity-Overview-narrative-specific (EquityOverviewPanel.tsx:345-356,438-445); the general chat path has no citation object or unverified-claim pass (ChatSidebar.tsx has no citation handling beyond the /sources command opening the BriefPanel at :662-665), only a prompt-level 'ground every factual claim in a tool' instruction (sidecar/agents/copilot.json:5). Low is right: the money-relevant surfaces (briefs, fundamentals narrative) are covered and the gap is plain chat answers.",
+    "evidence": "types/brief.ts:1-10, types/brief.ts:229-245, types/brief.ts:308-312, src/modules/equity-overview/EquityOverviewPanel.tsx:345-356, src/modules/equity-overview/EquityOverviewPanel.tsx:438-445, src/modules/chat/ChatSidebar.tsx:662-665, sidecar/agents/copilot.json:5, .specify/memory/constitution.md:78-83",
+    "evidence_checked": "code-only: opened the cited brief contract and EquityOverviewPanel lines, grepped src/modules/chat and sidecar agent_runtime for citation/unverified handling (only brief-path web citations at agent_runtime.py:858-866), read the copilot system prompt; no LLM drive (the absence of a chat-side citation renderer is visible in code)",
+    "repro_check": "grep -rn 'unverified\\|citation' src/modules/chat -> only a comment at ChatSidebar.tsx:664; a plain chat factual answer renders as markdown text with no citation object or unverified labelling"
+  }
+]

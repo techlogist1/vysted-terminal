@@ -1,0 +1,7 @@
+
+HTTP 200 time_total=8.958681s
+health_time=0.001364s
+  PID  PPID ELAPSED COMMAND
+ 9239  7609   00:20 /opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python -c from multiprocessing.resource_tracker import main;main(60)
+ 9240  7609   00:20 /opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=61, pipe_handle=69) --multiprocessing-fork
+killed 7609, waiting for workers to notice parent death via ppid-watchdog thread

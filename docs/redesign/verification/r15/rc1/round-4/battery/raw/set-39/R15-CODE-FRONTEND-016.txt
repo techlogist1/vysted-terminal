@@ -1,0 +1,5 @@
+NOT RUN LIVE: same frontend-only constraint as UI-016 (shared dispatcher).
+PINNED TEST (ci_pinned):
+  src/store/keybindings.test.ts:284 it("resolves EVERY DEFAULT_KEYBINDINGS id on its own default chord (class pin: no dead defaults)")
+  -- this is the exact assertion the register's fix_shape asks for ("Pin with a test that every DEFAULT_KEYBINDINGS id has a registered action").
+VERDICT BASIS: pinned test above; also see UI-016.txt for the shared dispatcher source location.

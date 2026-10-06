@@ -1,0 +1,5 @@
+=== test_research_model_lane.py ===
+290:def test_rejected_key_401_is_also_an_error_step(stub_openrouter) -> None:
+=== test_llm_openai.py ===
+293:async def test_openrouter_validate_key_false_when_key_endpoint_401(
+311:async def test_openrouter_validate_key_true_when_key_endpoint_200(

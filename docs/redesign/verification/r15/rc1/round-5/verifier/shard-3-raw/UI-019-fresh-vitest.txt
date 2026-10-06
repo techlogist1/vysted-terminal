@@ -1,0 +1,60 @@
+# UI-019 fresh-case scratch vitest; src copied from worktree HEAD 633f844071d972b337f4c3526d86555c80df0568; cmd: vitest run --reporter=verbose src/components/vs3-ui019.test.tsx
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs3-vitest
+ ✓ src/components/vs3-ui019.test.tsx > vs3 fresh UI-019 > dismiss -> relaunch (fresh store, real refreshBanner reads the keychain) -> still hidden 144ms
+ ✓ src/components/vs3-ui019.test.tsx > vs3 fresh UI-019 > never dismissed -> relaunch shows it (control) 7ms
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  17:01:46
+   Duration  1.19s (transform 122ms, setup 66ms, import 367ms, tests 153ms, environment 505ms)
+
+## test source (appended part)
+// vs3 fresh: UI-019 — dismissal persisted through the REAL keychain-backed refreshBanner across a store reset (app relaunch); keyed key present + ollama down -> no banner
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+const vault = vi.hoisted(() => new Map<string, string>());
+vi.mock("@/lib/keychain", async (orig) => ({
+  ...(await orig<typeof import("@/lib/keychain")>()),
+  getSecret: vi.fn(async (k: string) => vault.get(k) ?? null),
+  setSecret: vi.fn(async (k: string, v: string) => { vault.set(k, v); }),
+}));
+vi.mock("@/lib/sidecar-client", async (o) => ({
+  ...(await o<typeof import("@/lib/sidecar-client")>()),
+  getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
+}));
+import { OnboardingBanner } from "@/components/OnboardingBanner";
+import { __resetProviderProbeCacheForTests } from "@/lib/provider-validation";
+import { DEFAULT_PROVIDERS, useLLMProvidersStore } from "@/store/llm-providers";
+import { resetModelSelectionStoreForTests } from "@/store/model-selection";
+import { useOnboardingStore } from "@/store/onboarding";
+import { useProviderKeysStore } from "@/store/provider-keys";
+
+const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ok: false, reason: "unreachable", detail: "Could not reach Ollama." }), { status: 200 }));
+describe("vs3 fresh UI-019", () => {
+  beforeEach(() => {
+    vault.clear();
+    vi.stubGlobal("fetch", fetchMock);
+    __resetProviderProbeCacheForTests();
+    resetModelSelectionStoreForTests();
+    useLLMProvidersStore.setState({ providers: DEFAULT_PROVIDERS, defaultProviderId: "ollama" });
+    useProviderKeysStore.setState({ status: {}, probed: true, refresh: async () => {} });
+    useOnboardingStore.setState(useOnboardingStore.getInitialState(), true);
+  });
+  afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+
+  it("dismiss -> relaunch (fresh store, real refreshBanner reads the keychain) -> still hidden", async () => {
+    const first = render(<OnboardingBanner />);
+    fireEvent.click(await screen.findByRole("button", { name: "Dismiss" }));
+    await waitFor(() => expect(vault.size).toBe(1));
+    first.unmount();
+    useOnboardingStore.setState(useOnboardingStore.getInitialState(), true); // relaunch
+    expect(useOnboardingStore.getState().bannerDismissed).toBeNull();
+    render(<OnboardingBanner />);
+    await waitFor(() => expect(useOnboardingStore.getState().bannerDismissed).toBe(true));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+  it("never dismissed -> relaunch shows it (control)", async () => {
+    render(<OnboardingBanner />);
+    expect(await screen.findByRole("status")).toHaveTextContent(/Add a cloud provider key/);
+  });
+});

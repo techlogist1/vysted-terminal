@@ -1,0 +1,30 @@
+## /bin/ls .github/workflows
+build.yml
+lint.yml
+test.yml
+## grep -rin cla .github/workflows
+rc=1
+## grep -n -i cla CONTRIBUTING.md
+3:**Contributions are closed for now.** We are not accepting pull requests at this time. Issues and
+6:workflow, the Contributor License Agreement, and a note on the plugin contract.
+92:core's license. Contributions are currently closed, so the Contributor License Agreement process
+95:**The formal CLA process is still being finalized** and will be in place before contributions
+96:reopen. When they do, contributors will confirm CLA agreement by including a statement in their PR
+97:description agreeing to license their contribution under the project CLA, permitting Vysted
+# Contributing to Vysted Terminal
+
+**Contributions are closed for now.** We are not accepting pull requests at this time. Issues and
+bug reports are still welcome — please open one if you hit a problem. This document is kept as
+reference for when contributions reopen: environment setup, coding standards, the commit and PR
+workflow, the Contributor License Agreement, and a note on the plugin contract.
+[`COMMERCIAL_LICENSE.md`](./COMMERCIAL_LICENSE.md)); the plugin contract and the example plugin
+carry a separate **Apache-2.0** carve-out so third-party plugin authors are never blocked by the
+core's license. Contributions are currently closed, so the Contributor License Agreement process
+described below does not apply until they reopen.
+
+**The formal CLA process is still being finalized** and will be in place before contributions
+reopen. When they do, contributors will confirm CLA agreement by including a statement in their PR
+description agreeing to license their contribution under the project CLA, permitting Vysted
+Terminal to include it under both PolyForm Strict 1.0.0 and the commercial license.
+
+---

@@ -1,0 +1,112 @@
+[
+  {
+    "raw_id": "COD-frontend-stores-1",
+    "title": "Three stores own 'which transcript is live' and none knows a stream is in flight: switching a chat tab mid-stream drops the reply, archives a forever-pending partial and unlocks a concurrent send; entering a research space discards the active tab's transcript",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "frontend-stores",
+    "repro": "(a) Chat tab 1: send a prompt, and while the answer streams click '+' or another tab in the space strip (ChatSidebar.tsx:1146 / 1167, not disabled while streaming) -> chat-history.loadMessages/clear sets streamingMessageId=null, the run keeps calling appendAssistantDelta(id) on an id no longer in `messages` (silently a no-op), finalize is a no-op too; switching back restores the archived snapshot {content:'Partial ', pending:true} forever. `streaming` flips false, so the composer and the queue drain (ChatSidebar.tsx:1105-1111) start a SECOND stream while run 1 is still live. Proven: code/evidence/frontend-stores-proof.test.ts.txt P2. (b) Chat tab 2 has a conversation; create or load a research space from a plain workspace -> research-spaces.switchSpace(null, next) -> restoreSpace -> chat.loadMessages/clear (research-spaces.ts:178-186) without saving the live transcript anywhere; agent-spaces still thinks tab 2 is live, so tab 2's conversation is gone and the next tab switch archives the RESEARCH transcript under tab 2's id.",
+    "evidence": "src/store/agent-spaces.ts:43-64, src/store/research-spaces.ts:178-198, src/store/chat-history.ts:236-237, src/modules/chat/ChatSidebar.tsx:382, src/modules/chat/ChatSidebar.tsx:886-935, src/modules/chat/ChatSidebar.tsx:1105-1111, src/modules/chat/ChatSidebar.tsx:1146, src/lib/workspace.ts:363-369, src/lib/workspace.ts:627, docs/redesign/verification/r15/census/code/evidence/frontend-stores-proof-output.txt",
+    "notes": "Information hiding / better-together violated: the live transcript is a shared mutable buffer that two independent 'space' stores overwrite through chat-history's public loadMessages/clear, and loadMessages unconditionally nulls streamingMessageId. Consequences: a (possibly paid Tier-B / deep) research answer is silently lost, the thread shows a stuck pending bubble, two agent runs can race (and a late brief publish from run 1 then passes brief.ts:198-205 because the stale_run guard only applies in the in_flight phase), and a chat tab's conversation is destroyed on entering a research space. Smallest fix: make chat-history the single thread owner (threads: Record<threadId, ChatMessage[]>, activeThreadId), address every streaming write by (threadId, messageId) so a background thread keeps receiving deltas, and make agent tabs and research spaces two naming/persistence policies over it. Interim guard: disable the space strip (and block research-space switches) while streamingMessageId !== null, or abortRef.current?.abort() before the switch."
+  },
+  {
+    "raw_id": "COD-frontend-stores-2",
+    "title": "The workflow store is a complete but dead SSE consumer; the node editor streams runs privately, so the 'Show a native desktop notification' node never notifies while reporting notified:true",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "frontend-stores",
+    "repro": "Node editor: build data.fetch_quote -> action.notify_desktop, click Run -> NodeEditorPanel.tsx:386 POSTs /workflow/run and parses the SSE into LOCAL state (setRunState, :399-431); nothing calls useWorkflowStore.appendEvent (grep: zero production callers of appendEvent/runWorkflow/selectRunLog/selectActiveRunLog outside the store), so pendingNotifications (only filled by appendEvent, workflow.ts:203-220) stays empty and useDesktopNotificationBridge (desktop-notification.ts:92-110, mounted page.tsx:43) never fires. The node's output row shows notified:true (sidecar builtin.py:337-344).",
+    "evidence": "src/store/workflow.ts:17-23, src/store/workflow.ts:203-220, src/store/workflow.ts:240-310, src/modules/node-editor/NodeEditorPanel.tsx:386, src/lib/desktop-notification.ts:92-110, src/app/page.tsx:43, sidecar/services/workflow_nodes/builtin.py:325-344",
+    "notes": "Strategic-over-tactical / duplicated truth: two SSE parsers for one wire (workflow.ts:114-167 + :317-337 vs the node editor's own), and the feature that depends on the store (desktop notifications) is fed by the parser nobody runs. The header comment and the sidecar docstring describe a dispatcher pipeline that does not exist, and the node reports success. The dead runWorkflow also has latent defects if it is revived as-is: a mid-stream failure after run-start is swallowed (workflow.ts:299-302) with no synthetic run-error, so activeRun never clears; there is no AbortController/cancel, and `runs` is unbounded. Smallest fix: in NodeEditorPanel's event loop call useWorkflowStore.getState().appendEvent(event) (one line), or better, drive the panel from runWorkflow + selectRunLog and delete the private parser; add a terminal run-error on stream failure and an abort signal."
+  },
+  {
+    "raw_id": "COD-frontend-stores-3",
+    "title": "drainNotifications() clears ALL pending intents, including ones captured while the bridge was awaiting the send, so a second notification that arrives mid-flush is silently dropped",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "frontend-stores",
+    "repro": "Bridge flush: snapshot=[A]; await _sendOne(A); meanwhile appendEvent adds B; bridge calls drainNotifications() which empties [A,B]; the rerun loop finds nothing -> B is never shown. Proven: code/evidence/frontend-stores-proof.test.ts.txt P3 (sent ['a'], 0 left pending).",
+    "evidence": "src/store/workflow.ts:234-238, src/lib/desktop-notification.ts:88-101",
+    "notes": "Interface shape makes correct use impossible: 'drain everything' cannot be combined with an async send of a snapshot. Latent today (finding COD-frontend-stores-2 means nothing feeds the queue) but it bites the moment that is fixed, and a workflow firing several alerts in quick succession is the normal case. Smallest fix: replace drainNotifications with takeNotifications() that atomically returns and clears the current queue BEFORE sending, or drain(ids) that removes only the sent intents."
+  },
+  {
+    "raw_id": "COD-frontend-stores-4",
+    "title": "The keybindings store persists and advertises 11 remappable shortcuts but owns no dispatch: only agent.toggle honours a remap, six defaults (mod+s, mod+o, mod+, and mod+1..4) have no handler at all, and four are hard-coded elsewhere",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "frontend-stores",
+    "repro": "Settings -> Keybindings ('Remap any shortcut', SettingsPanel.tsx:1413) lists DEFAULT_KEYBINDINGS; remap 'Accept all proposed changes' to mod+shift+a -> ⌘↵ still accepts (hard-coded ChatSidebar.tsx:554-561) and ⌘⇧A does nothing. Press ⌘S / ⌘O / ⌘, / ⌘1 (the shown defaults) -> nothing happens: grep finds no keydown handler for them. Only AgentDock.tsx:70 reads bindingFor(). Mode ⌥1/⌥2 is matched on event.code in ChatSidebar.tsx:541-547; the palette's ⌘K is hard-coded in CommandPalette.tsx:77.",
+    "evidence": "src/store/keybindings.ts:58-157, src/store/keybindings.ts:100-107, src/store/keybindings.ts:389-395, src/components/AgentDock.tsx:70-71, src/components/CommandPalette.tsx:72-80, src/modules/chat/ChatSidebar.tsx:538-565, src/components/SettingsPanel.tsx:1365-1415",
+    "notes": "Shallow module: the store is a lookup table, and the comment at keybindings.ts:100-107 says 'the actual dispatch ... live[s] in their owning components', so every consumer re-decides whether to honour remaps (one does). This violates the project's own R9 settings-truth rule (a preference nothing reads is theater, settings.ts:10-15). It overlaps COD-frontend-panels-agent-shell-8, which covers only palette.open; this finding is the store-level root plus the six defaults with no dispatcher. Also, matchesEvent ignores an unrequested Shift (keybindings.ts:389-395), so mod+b fires on ⌘⇧B and conflicts() cannot flag such overlaps. Smallest fix: give the store registerAction(id, handler) and ONE global keydown listener (bindingFor + matchesEvent), migrate the four hard-coded handlers to it, and delete defaults with no registered action (or register the platform commands' existing handlers via modules.commandHandler)."
+  },
+  {
+    "raw_id": "COD-frontend-stores-5",
+    "title": "No fetch slice carries a request generation: a slower stale response overwrites the newer one; SEC loadFilings even rewrites activeIdentifier back to the stale symbol, and earnings shows one window while the picker says another",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "frontend-stores",
+    "repro": "SEC panel: the default AAPL load is in flight (cold sidecar / slow EDGAR); the user submits MSFT -> MSFT resolves, then AAPL resolves -> set({activeIdentifier: 'AAPL', filingsStatus: 'ready'}) and the panel reverts to AAPL while the input shows MSFT (proven: code/evidence/frontend-stores-proof.test.ts.txt P1). An AAPL error arriving late likewise overwrites MSFT's ready status with an error banner, because filingsStatus/filingsError are single scalars for all keys. Earnings: the default 7-day load is in flight; the user applies 30 days (EarningsCalendarPanel.tsx:152) -> lastDays=30 immediately, the 30-day payload lands, then the 7-day payload lands and replaces `upcoming` -> the table shows a 7-day window under a 30-day picker.",
+    "evidence": "src/store/sec.ts:147-175, src/store/sec.ts:78-79, src/modules/sec/SecFilingsPanel.tsx:55-72, src/modules/sec/SecFilingsPanel.tsx:80-93, src/store/earnings.ts:81-98, src/modules/earnings/EarningsCalendarPanel.tsx:109-118, src/modules/earnings/EarningsCalendarPanel.tsx:152, docs/redesign/verification/r15/census/code/evidence/frontend-stores-proof-output.txt",
+    "notes": "Pull-complexity-down violated: the panels add userInteractedRef to stop RE-FIRES, but the in-flight request is not cancelled and the store commits any late response. Root: every async slice (sec, earnings, analyst-ratings, quant, macro) hand-rolls status/error/cache with no shared primitive, so staleness is decided nowhere. The panel's own header then labels the stale data correctly, so this is a medium 'wrong thing shown for the request' rather than mislabeled money data. Smallest fix: a per-slice generation counter (const gen = ++get().filingsGen; ... if (gen !== get().filingsGen) return;) or an AbortController per slice; stop loadFilings from writing activeIdentifier (the panel already sets it at submit); key status/error by cache key."
+  },
+  {
+    "raw_id": "COD-frontend-stores-6",
+    "title": "agents.refreshCustom turns an HTTP failure into a successful empty list, so a sidecar error reads as 'you have no custom agents' and the builder's error+Retry branch is unreachable",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "frontend-stores",
+    "repro": "Make GET /custom-agents return 500 (e.g. corrupt store) -> agents.ts:223-227 sets {customAgents: [], customSummaries: [], customStatus: 'ready', customError: null} -> AgentBuilderPanel renders the empty state (:457) instead of the error branch (:443-455), and the chat picker drops every custom persona. After a successful save the panel awaits refreshCustom() (AgentBuilderPanel.tsx:206); a failing list call then makes the user's agents appear deleted.",
+    "evidence": "src/store/agents.ts:218-240, src/store/agents.ts:201-216, src/modules/agent-builder/AgentBuilderPanel.tsx:206, src/modules/agent-builder/AgentBuilderPanel.tsx:436-457",
+    "notes": "Define-errors-out-of-existence misapplied: it converts a failure into a false fact. The sibling slice (refreshFirstParty, same file) uses sidecarGet and surfaces the error; this one hand-rolls fetch and soft-fails, and only a thrown network error reaches the error state. An active custom persona whose summary vanished also degrades the chat header silently. Smallest fix: use sidecarGet<CustomAgentWire[]>('/custom-agents') and let the catch set customStatus:'error' with the SidecarError detail (a 3-line change, the same shape as refreshFirstParty)."
+  },
+  {
+    "raw_id": "COD-frontend-stores-7",
+    "title": "Chart command channel is a global latest-value singleton consumed by a non-singleton panel: every chart retargets, every newly mounted chart replays the last command, and the diff gate's 'before' is whichever chart reported last",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "frontend-stores",
+    "repro": "Open two charts (SPY, QQQ). Agent proposes set_chart_symbol AAPL -> host-actions.ts:584 renders before = chart-command.activeSymbol, which is the LAST chart to run its report effect (ChartPanel.tsx:797-799), not the focused one. Accepting retargets BOTH charts (ChartPanel.tsx:779-793 applies any command, with no panel scope). Later, open a third chart (or restore a workspace mid-session) -> its mount effect sees the non-null `command` and loads AAPL again, overriding the panel's own default. The indicator command (ChartPanel.tsx:805-820) is symbol-scoped, but the symbol and comparison commands are not.",
+    "evidence": "src/store/chart-command.ts:18-50, src/store/chart-command.ts:59-61, src/modules/chart/ChartPanel.tsx:779-799, src/modules/chart/ChartPanel.tsx:805-820, src/lib/host-actions.ts:584, src/lib/host-actions.ts:595, src/lib/workspace.ts:630-632",
+    "notes": "General-purpose shape chosen wrong: an event channel (seq-bumped command) and state (last value, replayed on mount) are conflated, and the reported state is one global slot for N producers. createResearchSpace (workspace.ts:630-632) depends on the replay-on-mount behaviour, so the conflation is load-bearing and undocumented at the consumer. equity-command.ts and agent-command.ts copy the pattern (a single consumer each, so benign there). Consequence: in multi-chart cockpits (chart is non-singleton, chart-sync.ts:1-18) agent chart actions clobber unrelated charts and the proposed-change diff can show the wrong 'before'. Smallest fix: an optional target panelId on the command (default = focused chart via panel-context focusedSource), per-panel reported state (activeByPanel[panelId]), and consumers that record the seq seen at mount and apply only newer commands, with an explicit 'initial symbol' param for createResearchSpace."
+  },
+  {
+    "raw_id": "COD-frontend-stores-8",
+    "title": "Stores reach the sidecar through six hand-rolled fetch paths with four error policies, bypassing sidecarGet's region/search headers and server-detail extraction; broker connect/mode errors surface as 'connect failed (400)'",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "frontend-stores",
+    "repro": "BrokerConnectPanel -> connect with a bad credential -> sidecar 400 with a detail message -> brokers.ts:88-90 throws `connect failed (400)` (detail discarded) -> BrokerConnectPanel.tsx:383 shows it verbatim. The same drop happens in safety.ts:219-221/239-241/326-328 and brokers.ts:100-133; quant.ts:65-75 and orders.ts:178-189 parse `detail`; agents.ts:223 soft-fails; none of these requests carry X-Vysted-Region or the search/research headers that sidecarGet attaches on every GET (sidecar-client.ts:167-189).",
+    "evidence": "src/store/brokers.ts:78-136, src/store/safety.ts:212-243, src/store/safety.ts:316-332, src/store/quant.ts:53-78, src/store/agents.ts:220-222, src/store/workflow.ts:241-252, src/lib/sidecar-client.ts:154-215, src/modules/broker-connect/BrokerConnectPanel.tsx:383",
+    "notes": "Consistency / information leakage: transport concerns (base URL, headers, error normalisation, and a timeout, which is absent everywhere) are re-decided per store. The concrete harm today is small (the quant and safety endpoints ignore region; broker read-only connect loses its reason), hence low; the cost is that each new store picks a policy at random. Kill-switch fire/reset (safety.ts:212-243) gates agent/control-plane halts beyond orders and should surface the server's reason too. Smallest fix (cheap): add sidecarPost<T>(path, body, headers?) to sidecar-client.ts reusing sidecarGet's header merge + extractSidecarDetail, and switch the six sites to it."
+  },
+  {
+    "raw_id": "COD-frontend-stores-9",
+    "title": "Durable research-space turns drop message status: a failed, stopped or still-streaming partial answer is archived and later restored as a clean, finished assistant reply; agent-space tabs are not persisted at all",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "frontend-stores",
+    "repro": "In a research space, let a research stream fail mid-answer (the message has error set and partial content) -> leave and re-enter the space (or relaunch) -> captureLiveTranscript (research-spaces.ts:48-57) kept it (the only filter is non-empty content) and turnsToMessages (:60-67) rebuilds it with no error/stopped/pending flag -> the truncated text renders as a normal answer and rides into the next request's `history` (ChatSidebar.tsx:749-753). Separately, agent-spaces.ts:5-11 'persisting spaces into the workspace blob is a follow-up (task #11)': chat tabs vanish on relaunch while research spaces survive.",
+    "evidence": "src/store/research-spaces.ts:48-67, types/research-space.ts:19-26, src/store/agent-spaces.ts:5-11, src/modules/chat/ChatSidebar.tsx:749-753",
+    "notes": "Information loss at a boundary: ResearchSpaceTurn has only {role, content, createdAt}, so the archive cannot tell a failed half-answer from a complete one, which hurts a product whose moat is research trust. The 'follow-up' tab persistence contradicts the no-half-shipped rule. Smallest fix: exclude pending messages from capture, add an optional status: 'error'|'stopped' to ResearchSpaceTurn and restore it onto ChatMessage (error/stopped), and persist agent spaces through the same blob field once finding COD-frontend-stores-1 unifies thread ownership."
+  },
+  {
+    "raw_id": "COD-frontend-stores-10",
+    "title": "Dead and compatibility interface surface: the command-palette store's commands/setCommands (a no-op) is still wired from four page.tsx call sites, its query/setQuery are unused, pushRecent duplicates recordSelection, and the agents store keeps loading/error/refreshAll aliases whose `error` covers only one slice",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "frontend-stores",
+    "repro": "page.tsx:51,91,94-103 compute enabledCommands() on every module change to call setCommands, which does nothing (command-palette.ts:178-180). CommandPalette.tsx:115 keeps its own useState query, so the store's query is never read. buildPaletteCorpus's doc says it is rebuilt 'on each render' (command-palette.ts:201-208) but CommandPalette.tsx:122 memoises it with [], so agents or plugins that load while the palette is open never appear until it reopens. agents.ts:154-157 `error` mirrors firstPartyError only, so a custom-agents failure is invisible to its readers (SettingsPanel.tsx:552 reads `loading`).",
+    "evidence": "src/store/command-palette.ts:151-195, src/store/command-palette.ts:201-208, src/app/page.tsx:51, src/app/page.tsx:91-103, src/components/CommandPalette.tsx:115-122, src/store/agents.ts:154-171, src/store/agents.ts:242-251",
+    "notes": "Pass-through variables and misleading names: readers must trace four call sites and two subscriptions to learn they do nothing, and the comments assert behaviour (live corpus) that the code does not have. Smallest fix (cheap): delete commands/setCommands/query/setQuery/pushRecent and the page.tsx wiring; make the palette corpus a selector over the live stores (or drop the [] memo); drop agents.loading/error/refreshAll in favour of the per-slice statuses."
+  },
+  {
+    "raw_id": "COD-frontend-stores-11",
+    "title": "settings.setAll applies the default persona on the 'first setAll ever' via a module-level latch, so on a fresh install (no autosave to restore) a mid-session settings import yanks the chat lens, the exact case its own comment forbids",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "frontend-stores",
+    "repro": "Fresh install -> no autosave blob -> deserializeWorkspace is never called, so defaultAgentApplied stays false. The user imports a settings bundle from another machine (the FR-037 carry-between-machines flow) -> setAll -> !defaultAgentApplied -> setActiveAgent(imported default) switches the current chat persona mid-conversation; settings.ts:131-137 says an import 'must NOT yank the user's current lens'.",
+    "evidence": "src/store/settings.ts:131-138, src/store/settings.ts:162-183, src/store/settings.ts:201-205",
+    "notes": "Temporal coupling hidden in module state: the store infers 'this is the boot restore' from call order instead of being told. The module-level `let` also lives outside the store, so only the test helper resets it. Smallest fix (cheap): make the boot path explicit, with setAll(bundle, { applyDefaultAgent: true }) passed only from the launch restore (restoreLastSessionOrDefault), and delete the latch."
+  }
+]

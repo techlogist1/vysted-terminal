@@ -39,13 +39,14 @@ from typing import Any
 from models.macro_extended import (
     MacroCatalog,
     MacroCatalogEntry,
+    MacroProvider,
     MacroSearchResult,
     MacroSeriesExtended,
 )
 from models.market import MacroObservation
 from services.errors import ProviderError
 
-PROVIDER = "fred"
+PROVIDER: MacroProvider = "fred"
 
 _log = logging.getLogger(__name__)
 
@@ -159,21 +160,29 @@ _FEATURED: list[MacroCatalogEntry] = [
 _FREQ_MAP: dict[str, str] = {
     "d": "daily",
     "w": "weekly",
-    "bw": "weekly",
+    "bw": "other",  # biweekly — the contract has no dedicated value
     "m": "monthly",
     "q": "quarterly",
-    "sa": "quarterly",
+    "sa": "other",  # semiannual — distinct from quarterly, not just a coarser "q"
     "a": "annual",
 }
 
 
 def _api_key() -> str:
-    """Return the configured FRED API key, or raise :class:`ProviderError`."""
+    """Return the configured FRED API key, or raise :class:`ProviderError`.
+
+    The error detail is USER-FACING copy (the macro panel surfaces it
+    verbatim), so it speaks product language — no raw env-var name (R9 V8).
+    The mechanism stays the ``FRED_API_KEY`` environment variable (module
+    docstring); ECB / IMF / World Bank need no key.
+    """
     key = os.environ.get(_API_KEY_ENV)
     if not key:
-        raise ProviderError(
-            f"FRED provider requires the {_API_KEY_ENV} environment variable. "
-            "Sign up for a free key at https://fred.stlouisfed.org/docs/api/api_key.html."
+        raise ProviderError.authored(
+            "FRED needs a free API key for macro data. Get one at "
+            "fred.stlouisfed.org (API Keys), add it to Vysted as your FRED key, "
+            "and reload — or switch the series provider to ECB, IMF, or World "
+            "Bank, which need no key."
         )
     return key
 

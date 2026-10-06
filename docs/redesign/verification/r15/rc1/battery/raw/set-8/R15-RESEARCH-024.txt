@@ -1,0 +1,8 @@
+$ python3 -c searxng._map_results with a synthetic publishedDate row
+Traceback (most recent call last):
+  File "<string>", line 8, in <module>
+    print('domain:', r.domain, 'published_at:', r.published_at)
+                     ^^^^^^^^
+AttributeError: 'SearchResult' object has no attribute 'domain'
+$ python3 -c searxng._map_results with a synthetic publishedDate row (fields dump)
+{'url': 'https://www.reuters.com/markets/x', 'title': 't', 'snippet': 'c', 'published_at': '2026-07-17T10:05:00', 'source': 'searxng'}

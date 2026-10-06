@@ -1,0 +1,126 @@
+[
+ {
+  "id": "panel-portfolio",
+  "area": "portfolio",
+  "surface": "Portfolio (paper) panel",
+  "entry": "src/modules/portfolio/index.ts:15; src/modules/portfolio/PortfolioPanel.tsx:88",
+  "states": [
+   "empty(no positions)",
+   "error(form validation, dismissible :701-708)",
+   "populated",
+   "tenth-item"
+  ],
+  "drive": "browser",
+  "notes": "Driven through the REAL PortfolioPanel in jsdom (harness/portfolio.s2c.test.tsx) against a live sidecar (:52221), real sidecar-client via ?sidecar-port. Corroborated live: COD-portfolio-2/3/4/5/8, COD-host-actions-proposed-changes-9. NEEDS-GUI: drop-ladder column shedding at real widths (ResizeObserver stubbed in jsdom).",
+  "driven": "broken",
+  "evidence": "surface/portfolio-notes/10-portfolio-panel-replay.json P1-P9; surface/portfolio-notes/11-portfolio-routes-http.jsonl; surface/portfolio-notes/http-log.jsonl (twin Q, L01-L18); A1/A2 agent drives",
+  "states_driven": {
+   "empty(no positions)": "ok (P1: EmptyState copy + CTA, Export disabled, 0 network calls)",
+   "error(form validation, dismissible :701-708)": "partial (P2: empty/qty0/neg-cost/abc/neg-qty rejected with copy; blank cost -> saved as 0, 1e20 accepted, '1,000' gets 'required' copy -> SURF-PORTFOLIO-NOTES-6)",
+   "populated": "partial (P3 INR: ₹22,929 MV / -₹1,571 (-6.41%) / 54.1% concentration match independent /quotes math exactly; P6 mixed INR+USD renders per-currency subtotals and drops Wt; unresolved-only renders a fabricated ₹0 total -> SURF-PORTFOLIO-NOTES-1; BTC/USDT never prices -> -2; Delete dead after a portfolio switch -> -3)",
+   "tenth-item": "ok (P8: 100 holdings, all 101 rows rendered, 10th HINDUNILVR.NS present, select label 'Big · 100'; 100 parallel per-symbol quote requests, all 200, last one landed after 124 s)",
+   "quote-transport-failure": "broken (P7: no 'Couldn't refresh live quotes' banner, ₹0 summary; COD-portfolio-4 live)",
+   "agent get_portfolio / host actions": "broken (P9: open-panel snapshot carries no ids -> wrong-lot update, SURF-PORTFOLIO-NOTES-4; intent gate strips delete/update phrasings, -5; add works A2)",
+   "sidecar /portfolio/positions CRUD": "partial (11-*.jsonl + twin L01-L18: validation ok for qty/cost/date; empty/whitespace symbol and asset_class 'options' accepted; host-action PUT/DELETE hit the collection path -> 405, COD-portfolio-2/3 live; nothing reads the ledger)"
+  }
+ },
+ {
+  "id": "csv-export",
+  "area": "toasts-and-frames",
+  "surface": "CSV export utility (audit log, portfolio, etc.)",
+  "entry": "src/lib/csv.ts (csv.test.ts)",
+  "states": [
+   "populated-rows",
+   "empty-rows(header-only)"
+  ],
+  "drive": "browser",
+  "notes": "Portfolio export only; the watchlist shares src/lib/csv.ts.",
+  "driven": "partial",
+  "evidence": "surface/portfolio-notes/10-portfolio-panel-replay.json P6-mixed-csv",
+  "states_driven": {
+   "content": "partial (RFC-4180 quoting ok for commas/quotes; unresolved row blank not 0 (honest); Weight % computed across INR+USD (92.41/7.59) = COD-portfolio-5 live; no currency column; formula cells written verbatim -> SURF-PORTFOLIO-NOTES-7)",
+   "download": "NEEDS-GUI (Blob anchor click captured in jsdom; whether the Tauri WKWebView saves it is GUI-only, known intent-blueprint-0 / world-table-stakes)"
+  }
+ },
+ {
+  "id": "panel-notes",
+  "area": "notes",
+  "surface": "Notes panel (per-stock + general)",
+  "entry": "src/modules/notes/index.ts:11-27; src/modules/notes/NotesPanel.tsx:86",
+  "states": [
+   "empty(new note)",
+   "editing(:426)",
+   "export-status(:214)",
+   "populated"
+  ],
+  "drive": "browser",
+  "notes": "Real NotesPanel + Tiptap v3.25 in jsdom (harness/notes.s2c.test.tsx), editor reached via .ProseMirror.editor.",
+  "driven": "broken",
+  "evidence": "surface/portfolio-notes/20-notes-panel-replay.json N1-N6",
+  "states_driven": {
+   "empty(new note)": "ok (N5: blank editor per scope)",
+   "populated": "ok (N1: General seed loads; scope chip RELIANCE loads its note)",
+   "editing(:426)": "broken (N1: typed text reaches the store after the 600 ms debounce; clearing the note is never persisted; an edit followed by a scope switch within the debounce is lost = COD-frontend-panels-data-surfaces-2 live. N2: agent write_note append to the open scope lands in the store but not in the editor, and the user's next keystroke overwrites it ('user thesis v1!') = COD-frontend-panels-data-surfaces-1 live; scope 'global' writes a GLOBAL ticker note and a mode-less write replaces = COD-host-actions-proposed-changes-11/-2 live)",
+   "export-status(:214)": "partial (N6: outside Tauri the .md export falls back to a Blob download and says 'Downloaded .md'; the Tauri write_text_atomic path is NEEDS-GUI)",
+   "huge note": "ok (N3: 1.97 M chars loads in 1.7 s, keystroke ~0.2 s (full getMarkdown per update), round-trip +154 chars of Markdown normalisation, 1.99 MB workspace blob POST 200 and reads back)",
+   "prompt-injection note": "ok (N4: raw <img onerror>/<script> not rendered, javascript: href emptied, window flags untouched; code-read: no path sends notes to the agent (context-provider/ChatSidebar never read useNotesStore), the MCP get_workspace tool calls /workspaces which 404s)"
+  }
+ },
+ {
+  "id": "notes-toolbar",
+  "area": "notes",
+  "surface": "Notes formatting toolbar",
+  "entry": "src/modules/notes/NotesToolbar.tsx:131",
+  "states": [
+   "populated(active mark states per Tiptap editor selection)"
+  ],
+  "drive": "browser",
+  "notes": "Depends on a live Tiptap Editor instance prop — needs jsdom mount, not a pure function.",
+  "driven": "partial",
+  "evidence": "surface/portfolio-notes/21-notes-toolbar-replay.json",
+  "states_driven": {
+   "populated(active mark states per Tiptap editor selection)": "ok for 10 of 11 buttons (H1-H3, bold, italic, code, lists, quote, code block apply to the selection and report aria-pressed=true)",
+   "Link": "broken without window.prompt (unhandled TypeError 'window.prompt is not a function' = COD-frontend-panels-data-surfaces-11; works when prompt is stubbed)",
+   "Insert [[wikilink]]": "broken (replaces the selected word with '[[' -> SURF-PORTFOLIO-NOTES-8)"
+  }
+ },
+ {
+  "id": "notes-slash-menu",
+  "area": "notes",
+  "surface": "Notes '/' slash-command menu",
+  "entry": "src/modules/notes/SlashCommandExtension.ts; src/modules/notes/slash-commands.ts",
+  "states": [
+   "open(filtered list)",
+   "closed"
+  ],
+  "drive": "browser",
+  "notes": "Dispatches DOM CustomEvent 'notes:slash-menu'; NotesPanel listens (NotesPanel.tsx:94-95 slashMenu/slashActiveIdx state).",
+  "driven": "partial",
+  "evidence": "surface/portfolio-notes/20-notes-panel-replay.json N5-menus.slash",
+  "states_driven": {
+   "open(filtered list)": "ok (10 items on '/', '/tab' filters to ['Table'], popup renders)",
+   "closed": "ok",
+   "commands": "9 of 10 ok; 'Task List' throws TypeError toggleTaskList is not a function = COD-frontend-panels-data-surfaces-10 live",
+   "keyboard navigation": "NEEDS-GUI (arrow/Enter handling: onKeyDown handles Escape only, per code-read; real key routing into the suggestion plugin is not reproducible in jsdom)"
+  }
+ },
+ {
+  "id": "notes-wikilink-menu",
+  "area": "notes",
+  "surface": "Notes [[wikilink]] suggestion popup",
+  "entry": "src/modules/notes/WikiLinkExtension.ts",
+  "states": [
+   "open(symbol matches)",
+   "closed"
+  ],
+  "drive": "browser",
+  "notes": "CustomEvent 'notes:wikilink-menu'; inserted [[SYMBOL]] click fires loadSymbolIntoChart (shared chart-command bus, same channel as brief chips per CLAUDE.md).",
+  "driven": "broken",
+  "evidence": "surface/portfolio-notes/20-notes-panel-replay.json N5-menus (wikiItems, afterWiki, wikiItemsAfterWatchlistAdd)",
+  "states_driven": {
+   "open(symbol matches)": "partial (lists symbols with notes + watchlist at mount; symbols added later never appear -> SURF-PORTFOLIO-NOTES-8)",
+   "closed": "ok",
+   "inserted link": "broken (plain decorated text, saved as escaped \\[\\[RELIANCE.NS\\]\\]; no click-to-chart = COD-frontend-panels-data-surfaces-10)"
+  }
+ }
+]

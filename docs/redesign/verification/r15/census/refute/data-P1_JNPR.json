@@ -1,0 +1,47 @@
+[
+  {
+    "raw_id": "DAT-P1-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Core claim holds and reproduces: disclosures gate on bundled-master membership only (is_nse_symbol/is_bse_symbol are pure dict lookups, no live fallback), JNPR is in neither master, so shareholding, announcements and the results calendar all 502 for a live mainboard stock (and every listing after the June 2026 master generation). Correction: the '~44% understated institutional holding' sub-claim is a definitional difference, not a mismatch - held_percent_institutions is a passthrough of Yahoo's heldPercentInstitutions (vendor institutional-ownership measure), not the SEBI FII+DII category sum, so per PROMPT_data_s2 it is not a defect; severity stands on the 502 alone.",
+    "evidence": "sidecar/services/corporate_disclosures.py:284-290,386-393; sidecar/services/nse_provider.py:355-361; sidecar/services/india_provider.py:128-138; sidecar/services/symbol_resolver.py:403-415; sidecar/services/resolver_masters/bse_instruments.json:3 (_generated 2026-06-09); sidecar/services/yfinance_provider.py:399; https://www.screener.in/company/JNPR/consolidated/ (fetched 2026-09-23T00:58:43Z: Promoters 85.94% FIIs 1.77% DIIs 5.07% Public 7.22%, Aug 2026)",
+    "evidence_checked": "Opened the three gate sites and the resolver lookup; grep for 'JNPR' across all resolver_masters/*.json = 0 hits; re-ran the three disclosures GETs (plus JNPR.NS) against :52152 on 2026-09-23; re-fetched screener.in consolidated page to confirm the outside shareholding split.",
+    "repro_check": "curl -s 127.0.0.1:52152/disclosures/shareholding?symbol=JNPR, /announcements?symbol=JNPR&limit=25, /results?symbol=JNPR, /shareholding?symbol=JNPR.NS -> all 502 'not a known NSE/BSE instrument' / 'nse_direct: not a known NSE instrument' (2026-09-23T00:57Z)."
+  },
+  {
+    "raw_id": "DAT-P1-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The internal inconsistency is real: eps and pe_ratio are straight passthroughs of Yahoo trailingEps/trailingPE (not computed downstream as the notes say), while net_income_ttm/shares_outstanding in the same payload gives 0.918 (which matches the pack's consolidated TTM 0.91); the served eps also drifted 0.74 -> 0.70 (P/E 358.3 -> 383.9) between 19 and 23 Sep with no new filing. Downgraded high -> medium: the fresh 0.70 is within 1.4% of businesstoday's 0.71 and the P/E sits inside the outside envelope (screener's own consolidated Stock P/E read 580 on 23 Sep), so this is an unlabelled, unstable basis on a hypersensitive sub-1-rupee EPS rather than a demonstrably false number.",
+    "evidence": "sidecar/services/yfinance_provider.py:366,375,393-395; sidecar/services/correctness_gate.py:181-189 (only a pe x eps price-band check, no eps vs net_income/shares reconciliation); docs/redesign/verification/r15/battery/collected/P1_JNPR.json:201,210,223-224; https://www.screener.in/company/JNPR/consolidated/ (fetched 2026-09-23T00:58:43Z: Stock P/E 580; quarterly EPS 0.44/0.44/0.68, FY26 EPS 0.83)",
+    "evidence_checked": "Opened the yfinance mapping and correctness gate; fresh GET /fundamentals/JNPR against :52152 (the one refreshed read, 2026-09-23T00:57:48Z); re-fetched screener.in consolidated page.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/JNPR -> eps=0.7, pe_ratio=383.857, net_income_ttm=522289984, shares_outstanding=568998442 (ratio 0.918): eps still does not reconcile with the payload's own inputs."
+  },
+  {
+    "raw_id": "DAT-P1-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real, but the gap is not unexplained and not FY-end vs MRQ as the notes guess: book_value is Yahoo's bookValue passthrough and 70.02 = FY2026 equity 34,238,830,000 / the PRE-IPO share count 488,989,292 (exactly 70.0196), whereas the payload's shares_outstanding is the post-IPO 568,998,442. So price_to_book 3.79x mixes a post-IPO price with a pre-IPO-share BVPS, disagreeing with both the payload's own market_cap/equity (4.41x) and the post-IPO truth (2.90x); medium stands.",
+    "evidence": "sidecar/services/yfinance_provider.py:369,372; docs/redesign/verification/r15/battery/collected/P1_JNPR.json:204,207,995-1024; docs/redesign/verification/r15/battery/packs/P1_JNPR.json:182-206,313-323 (pre-IPO share count 48,89,89,292 cited from screener)",
+    "evidence_checked": "Opened the yfinance mapping; arithmetic check 34238830000/488989292=70.02, /568998442=60.17, market_cap/equity=4.41; fresh GET /fundamentals/JNPR still book_value=70.02, price_to_book=3.837.",
+    "repro_check": "python3 -c 'print(34238830000/488989292)' -> 70.0196 = served book_value, proving the pre-IPO-denominator mechanism."
+  },
+  {
+    "raw_id": "DAT-P1-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "ROE/ROA null is confirmed as a yfinance passthrough with no derivation fallback, but it is an HONEST labelled gap (field_meta status 'unavailable', reason 'provider did not publish this field'), not a silent blank, and the proposed derived ROE (TTM-to-Jun income / pre-IPO FY26 equity = 1.53%) matches none of the three outside bases. Scope correction: ROCE is not 'null' - it does not exist in the Fundamentals contract at all, which is the more consequential gap versus the screener.in benchmark (screener shows ROCE 3.30%, ROE 0.43% on 23 Sep); medium holds on that basis.",
+    "evidence": "sidecar/models/fundamentals.py:81-82 (roe/roa only; no roce field anywhere in sidecar/models or services); sidecar/services/yfinance_provider.py:381-382; sidecar/services/provider_registry.py:239-260; docs/redesign/verification/r15/battery/collected/P1_JNPR.json:215-216,370-376; https://www.screener.in/company/JNPR/consolidated/ (fetched 2026-09-23T00:58:43Z)",
+    "evidence_checked": "Opened the model, yfinance mapping and registry acceptor; grep 'roce' over sidecar services/routers/models (non-test) = no field; fresh GET confirms roe=None with the unavailable label.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/JNPR -> roe=null, field_meta.roe.status='unavailable'; no roce key in the response."
+  },
+  {
+    "raw_id": "DAT-P1-5",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds as stated: the Fundamentals contract carries only fifty_two_week_high/low values with no per-leg date, and field_meta.as_of is the fetch timestamp, so the app cannot say when the extremes occurred or that a 44-day-old listing has no true 52-week range. Values match outside truth (282/232.11 vs 282/232.1), so low is right.",
+    "evidence": "sidecar/models/fundamentals.py:77-79; sidecar/services/yfinance_provider.py:377-378; docs/redesign/verification/r15/battery/collected/P1_JNPR.json:212-213,349-355; https://www.screener.in/company/JNPR/consolidated/ (fetched 2026-09-23T00:58:43Z: High / Low 282 / 232)",
+    "evidence_checked": "Opened the model and mapping; fresh GET shows as_of = 2026-09-23T00:57:47Z (fetch time) on the 52w fields.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/JNPR -> fifty_two_week_high=282.0/low=232.11 with field_meta as_of = request time, no extreme dates."
+  }
+]

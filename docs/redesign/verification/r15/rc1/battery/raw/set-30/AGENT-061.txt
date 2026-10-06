@@ -1,0 +1,3 @@
+=== AGENT-061: fundamentals not_found over MCP-equivalent REST ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP:404

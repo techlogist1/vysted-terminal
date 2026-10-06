@@ -1,0 +1,4 @@
+GET /sec/filings?limit=40&symbol=NOTAREALSYM
+status=502
+---
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}

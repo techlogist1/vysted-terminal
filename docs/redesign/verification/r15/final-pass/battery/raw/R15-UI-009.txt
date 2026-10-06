@@ -1,0 +1,29 @@
+# R15-UI-009 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:50+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'saveTextArtifact\|downloadCsv' src/lib/csv.ts src/modules/watchlist/WatchlistPanel.tsx src/modules/portfolio/PortfolioPanel.tsx | head -8; ls /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-009/
+--- output ---
+src/lib/csv.ts:8:import { saveTextArtifact, type ExportResult } from "@/lib/export-artifact";
+src/lib/csv.ts:36: * (`saveTextArtifact`), never the Blob + `<a download>` primitive: WKWebView
+src/lib/csv.ts:40:export async function downloadCsv(filename: string, content: string): Promise<ExportResult> {
+src/lib/csv.ts:41:  return saveTextArtifact("csv", filename, content);
+src/modules/watchlist/WatchlistPanel.tsx:10:import { buildCsv, downloadCsv } from "@/lib/csv";
+src/modules/watchlist/WatchlistPanel.tsx:335:      const r = await downloadCsv("vysted-watchlist.csv", csv);
+src/modules/portfolio/PortfolioPanel.tsx:11:import { buildCsv, downloadCsv } from "@/lib/csv";
+src/modules/portfolio/PortfolioPanel.tsx:736:      const r = await downloadCsv(`vysted-portfolio-${safeName}.csv`, csv);
+DRIVE.md
+VERIFY.md
+ace7dd7-01-boot-passive.png
+ace7dd7-02-layout-after-terms.png
+ace7dd7-03-portfolio-populated.png
+ace7dd7-04-portfolio-export-clicked.png
+ace7dd7-05-watchlist-populated.png
+ace7dd7-06-watchlist-export-clicked.png
+ace7dd7-07-screener-open.png
+ace7dd7-08-screener-criteria-trimmed.png
+ace7dd7-09-screener-run.png
+ace7dd7-10-screener-results-banner-dismissed.png
+ace7dd7-11-screener-export-clicked.png
+raw
+
+EXIT=0 (0.0s)

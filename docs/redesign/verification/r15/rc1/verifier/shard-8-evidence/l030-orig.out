@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  24.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_23b838a23aaf40c7b612443373a67fa3", "name": "financial_statements", "input": {"symbol": "SIFY", "period": "annual", "statement": "income"}}
+[  26.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_23b838a23aaf40c7b612443373a67fa3", "name": "financial_statements", "ok": true, "error": null}
+[  29.5s] done: {"kind": "done", "usage": {"input_tokens": 2885, "output_tokens": 45, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Since we don't have the TTM revenue data available for SIFY in USD, I'll call the screener tool to get more information about SIFY.
+
+Let me check what's available on Sify Technologies Ltd.
+
+=== ok · 29.5s · events {'heartbeat': 2, 'tool_use': 1, 'tool_result': 1, 'delta': 44, 'done': 1} · usage in=2885 out=45 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,414 @@
+[
+ {
+  "autonomy": "ask",
+  "tool": "portfolio_add_position",
+  "input": {
+   "symbol": "TCS",
+   "quantity": 5,
+   "cost_basis": 3500,
+   "asset_class": "equity"
+  },
+  "kind": "data-write",
+  "title": "Add 5 TCS @ ₹3,500 to the portfolio",
+  "before": "Portfolio: 1 position",
+  "after": "Portfolio: +TCS ×5 @ ₹3,500 (2 total)",
+  "enqueueOutcome": "staged",
+  "status": "pending",
+  "detail": null,
+  "storeChanged": false,
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-3f3fd720-1e49-4a81-a221-12ad44ca9f47\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-1a0e6706-2f20-48f0-b870-b6b6fc4e8561\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT"
+   ]
+  },
+  "acks": []
+ },
+ {
+  "autonomy": "ask",
+  "tool": "add_to_watchlist",
+  "input": {
+   "symbol": "INFY",
+   "asset_class": "equity"
+  },
+  "kind": "watchlist",
+  "title": "Add INFY to your watchlist",
+  "before": "Watchlist: 1 symbol",
+  "after": "Watchlist: +INFY once it resolves to one listing (2 total)",
+  "enqueueOutcome": "staged",
+  "status": "pending",
+  "detail": null,
+  "storeChanged": false,
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-3f3fd720-1e49-4a81-a221-12ad44ca9f47\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-1a0e6706-2f20-48f0-b870-b6b6fc4e8561\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT"
+   ]
+  },
+  "acks": []
+ },
+ {
+  "autonomy": "ask",
+  "tool": "portfolio_delete_position",
+  "input": {
+   "position_id": "<get_portfolio> .positions[0].id"
+  },
+  "kind": "data-write",
+  "title": "Remove position from the portfolio",
+  "before": "Portfolio: unchanged",
+  "after": "can't apply — <get_portfolio> .positions[0].id is not in the active portfolio",
+  "enqueueOutcome": "staged",
+  "status": "pending",
+  "detail": null,
+  "storeChanged": false,
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-3f3fd720-1e49-4a81-a221-12ad44ca9f47\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-1a0e6706-2f20-48f0-b870-b6b6fc4e8561\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT"
+   ]
+  },
+  "acks": []
+ },
+ {
+  "autonomy": "ask",
+  "tool": "portfolio_delete_position",
+  "input": {
+   "position_id": "AAPL"
+  },
+  "kind": "data-write",
+  "title": "Remove position from the portfolio",
+  "before": "Portfolio: unchanged",
+  "after": "can't apply — AAPL is not in the active portfolio",
+  "enqueueOutcome": "staged",
+  "status": "pending",
+  "detail": null,
+  "storeChanged": false,
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-3f3fd720-1e49-4a81-a221-12ad44ca9f47\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-1a0e6706-2f20-48f0-b870-b6b6fc4e8561\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT"
+   ]
+  },
+  "acks": []
+ },
+ {
+  "autonomy": "ask",
+  "humanAccept": "portfolio_add_position",
+  "input": {
+   "symbol": "TCS",
+   "quantity": 5,
+   "cost_basis": 3500,
+   "asset_class": "equity"
+  },
+  "result": "applied",
+  "status": "accepted",
+  "detail": null,
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-3f3fd720-1e49-4a81-a221-12ad44ca9f47\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-1a0e6706-2f20-48f0-b870-b6b6fc4e8561\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"},{\"id\":\"h-2852d0eb-3810-425c-b372-aa775cf5a9a3\",\"symbol\":\"TCS\",\"quantity\":5,\"costBasis\":3500,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT"
+   ]
+  },
+  "acks": [
+   {
+    "tool_call_id": "fp-ac2-ask-0",
+    "status": "applied",
+    "detail": {
+     "action": "portfolio_add_position",
+     "symbol": "TCS"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "ask",
+  "humanAccept": "add_to_watchlist",
+  "input": {
+   "symbol": "INFY",
+   "asset_class": "equity"
+  },
+  "result": "applied",
+  "status": "accepted",
+  "detail": null,
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-3f3fd720-1e49-4a81-a221-12ad44ca9f47\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-1a0e6706-2f20-48f0-b870-b6b6fc4e8561\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"},{\"id\":\"h-2852d0eb-3810-425c-b372-aa775cf5a9a3\",\"symbol\":\"TCS\",\"quantity\":5,\"costBasis\":3500,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT",
+    "INFY"
+   ]
+  },
+  "acks": [
+   {
+    "tool_call_id": "fp-ac2-ask-1",
+    "status": "applied",
+    "detail": {
+     "action": "add_to_watchlist",
+     "symbol": "INFY"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "ask",
+  "humanAccept": "portfolio_delete_position",
+  "input": {
+   "position_id": "<get_portfolio> .positions[0].id"
+  },
+  "result": "failed",
+  "status": "pending",
+  "detail": "<get_portfolio> .positions[0].id is not in the active portfolio",
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-3f3fd720-1e49-4a81-a221-12ad44ca9f47\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-1a0e6706-2f20-48f0-b870-b6b6fc4e8561\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"},{\"id\":\"h-2852d0eb-3810-425c-b372-aa775cf5a9a3\",\"symbol\":\"TCS\",\"quantity\":5,\"costBasis\":3500,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT",
+    "INFY"
+   ]
+  },
+  "acks": [
+   {
+    "tool_call_id": "fp-ac2-ask-2",
+    "status": "failed",
+    "detail": {
+     "action": "portfolio_delete_position"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "ask",
+  "humanAccept": "portfolio_delete_position",
+  "input": {
+   "position_id": "AAPL"
+  },
+  "result": "failed",
+  "status": "pending",
+  "detail": "AAPL is not in the active portfolio",
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-3f3fd720-1e49-4a81-a221-12ad44ca9f47\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-1a0e6706-2f20-48f0-b870-b6b6fc4e8561\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"},{\"id\":\"h-2852d0eb-3810-425c-b372-aa775cf5a9a3\",\"symbol\":\"TCS\",\"quantity\":5,\"costBasis\":3500,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT",
+    "INFY"
+   ]
+  },
+  "acks": [
+   {
+    "tool_call_id": "fp-ac2-ask-3",
+    "status": "failed",
+    "detail": {
+     "action": "portfolio_delete_position"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "tool": "portfolio_add_position",
+  "input": {
+   "symbol": "TCS",
+   "quantity": 5,
+   "cost_basis": 3500,
+   "asset_class": "equity"
+  },
+  "kind": "data-write",
+  "title": "Add 5 TCS @ ₹3,500 to the portfolio",
+  "before": "Portfolio: 1 position",
+  "after": "Portfolio: +TCS ×5 @ ₹3,500 (2 total)",
+  "enqueueOutcome": "staged",
+  "status": "pending",
+  "detail": null,
+  "storeChanged": false,
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-99ce1957-d536-42cf-9218-a20e91ae0806\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-fa0490a6-6677-4119-b8ce-adcf80653bab\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT"
+   ]
+  },
+  "acks": [
+   {
+    "tool_call_id": "fp-ac2-auto-0",
+    "status": "staged",
+    "detail": {
+     "action": "portfolio_add_position",
+     "symbol": "TCS"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "tool": "add_to_watchlist",
+  "input": {
+   "symbol": "INFY",
+   "asset_class": "equity"
+  },
+  "kind": "watchlist",
+  "title": "Add INFY to your watchlist",
+  "before": "Watchlist: 1 symbol",
+  "after": "Watchlist: +INFY once it resolves to one listing (2 total)",
+  "enqueueOutcome": "applied",
+  "status": "accepted",
+  "detail": null,
+  "storeChanged": true,
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-99ce1957-d536-42cf-9218-a20e91ae0806\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-fa0490a6-6677-4119-b8ce-adcf80653bab\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT",
+    "INFY"
+   ]
+  },
+  "acks": [
+   {
+    "tool_call_id": "fp-ac2-auto-1",
+    "status": "applied",
+    "detail": {
+     "action": "add_to_watchlist",
+     "symbol": "INFY"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "tool": "portfolio_delete_position",
+  "input": {
+   "position_id": "<get_portfolio> .positions[0].id"
+  },
+  "kind": "data-write",
+  "title": "Remove position from the portfolio",
+  "before": "Portfolio: unchanged",
+  "after": "can't apply — <get_portfolio> .positions[0].id is not in the active portfolio",
+  "enqueueOutcome": "staged",
+  "status": "pending",
+  "detail": null,
+  "storeChanged": false,
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-99ce1957-d536-42cf-9218-a20e91ae0806\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-fa0490a6-6677-4119-b8ce-adcf80653bab\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT",
+    "INFY"
+   ]
+  },
+  "acks": [
+   {
+    "tool_call_id": "fp-ac2-auto-2",
+    "status": "staged",
+    "detail": {
+     "action": "portfolio_delete_position"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "tool": "portfolio_delete_position",
+  "input": {
+   "position_id": "AAPL"
+  },
+  "kind": "data-write",
+  "title": "Remove position from the portfolio",
+  "before": "Portfolio: unchanged",
+  "after": "can't apply — AAPL is not in the active portfolio",
+  "enqueueOutcome": "staged",
+  "status": "pending",
+  "detail": null,
+  "storeChanged": false,
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-99ce1957-d536-42cf-9218-a20e91ae0806\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-fa0490a6-6677-4119-b8ce-adcf80653bab\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT",
+    "INFY"
+   ]
+  },
+  "acks": [
+   {
+    "tool_call_id": "fp-ac2-auto-3",
+    "status": "staged",
+    "detail": {
+     "action": "portfolio_delete_position"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "humanAccept": "portfolio_add_position",
+  "input": {
+   "symbol": "TCS",
+   "quantity": 5,
+   "cost_basis": 3500,
+   "asset_class": "equity"
+  },
+  "result": "applied",
+  "status": "accepted",
+  "detail": null,
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-99ce1957-d536-42cf-9218-a20e91ae0806\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-fa0490a6-6677-4119-b8ce-adcf80653bab\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"},{\"id\":\"h-b9be0dfa-148c-43bb-82fa-c224d1cfa4f8\",\"symbol\":\"TCS\",\"quantity\":5,\"costBasis\":3500,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT",
+    "INFY"
+   ]
+  },
+  "acks": [
+   {
+    "tool_call_id": "fp-ac2-auto-0",
+    "status": "applied",
+    "detail": {
+     "action": "portfolio_add_position",
+     "symbol": "TCS"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "humanAccept": "portfolio_delete_position",
+  "input": {
+   "position_id": "<get_portfolio> .positions[0].id"
+  },
+  "result": "failed",
+  "status": "pending",
+  "detail": "<get_portfolio> .positions[0].id is not in the active portfolio",
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-99ce1957-d536-42cf-9218-a20e91ae0806\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-fa0490a6-6677-4119-b8ce-adcf80653bab\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"},{\"id\":\"h-b9be0dfa-148c-43bb-82fa-c224d1cfa4f8\",\"symbol\":\"TCS\",\"quantity\":5,\"costBasis\":3500,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT",
+    "INFY"
+   ]
+  },
+  "acks": [
+   {
+    "tool_call_id": "fp-ac2-auto-2",
+    "status": "failed",
+    "detail": {
+     "action": "portfolio_delete_position"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "humanAccept": "portfolio_delete_position",
+  "input": {
+   "position_id": "AAPL"
+  },
+  "result": "failed",
+  "status": "pending",
+  "detail": "AAPL is not in the active portfolio",
+  "snapAfter": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-99ce1957-d536-42cf-9218-a20e91ae0806\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-fa0490a6-6677-4119-b8ce-adcf80653bab\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"},{\"id\":\"h-b9be0dfa-148c-43bb-82fa-c224d1cfa4f8\",\"symbol\":\"TCS\",\"quantity\":5,\"costBasis\":3500,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT",
+    "INFY"
+   ]
+  },
+  "acks": [
+   {
+    "tool_call_id": "fp-ac2-auto-3",
+    "status": "failed",
+    "detail": {
+     "action": "portfolio_delete_position"
+    }
+   }
+  ]
+ }
+]

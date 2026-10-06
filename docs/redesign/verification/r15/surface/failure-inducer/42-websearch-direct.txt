@@ -1,0 +1,7 @@
+{"case": "dead_custom_url_127.0.0.1:9", "secs": 42.6, "result": {"ok": true, "backend": "keyless-fallback", "query": "Kaynes Technology India news", "n_results": 5}}
+{"case": "no_custom_url_nodocker_keyless", "secs": 1.6, "result": {"ok": true, "backend": "keyless-fallback", "query": "Kaynes Technology India news", "n_results": 5}}
+--- order: keyless dead
+--- order: dead dead keyless
+--- base env (docker on PATH, managed SearXNG ready), cold process, no custom URL
+{"case": "0:no_custom_url_base_managed_searxng", "secs": 47.4, "result": {"ok": true, "backend": "keyless-fallback", "query": "Kaynes Technology order book", "n_results": 5}}
+{"case": "1:no_custom_url_base_managed_searxng", "secs": 4.0, "result": {"ok": true, "backend": "keyless-fallback", "query": "Kaynes Technology order book", "n_results": 5}}

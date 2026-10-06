@@ -1,0 +1,45 @@
+GET /quotes/AMAL {} -> {"symbol":"AMAL","price":674.4,"change":-13.25,"change_percent":-1.926852323129499,"volume":13368.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+GET /quotes/AMAL {'X-Vysted-Region': 'US'} -> ERR HTTP Error 429: Too Many Requests
+GET /quotes/META {} -> {"symbol":"META","price":8.14,"change":-0.019999999999999574,"change_percent":-0.24509803921568107,"volume":11.39,"open":8.2,"high":8.3,"low":7.83,"prev_close":8.16,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"bse","freshness":"eod"}
+GET /quotes/META {'X-Vysted-Region': 'US'} -> ERR HTTP Error 429: Too Many Requests
+GET /quotes/SMR {} -> {"symbol":"SMR","price":94.0,"change":-2.0,"change_percent":-2.083333333333333,"volume":9000.0,"open":94.0,"high":94.0,"low":92.0,"prev_close":96.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"bse","freshness":"eod"}
+GET /quotes/SMR {'X-Vysted-Region': 'US'} -> ERR HTTP Error 429: Too Many Requests
+GET /resolve?q=AMAL -> {"ok":true,"query":"AMAL","region":"IN","resolved":{"symbol":"AMAL","name":"Amal Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"AMAL.NS","confidence":1.0,"isin":"INE841D01013","bse_code":"506597","industry":null,"former_name":null,"board":"mainboard","exchange_group":"B","face_value":10.0},"needs_disambiguation":false,"candidates":[{"symbol":"AMAL","name":"Amal Limi
+GET /resolve?q=META -> {"ok":true,"query":"META","region":"IN","resolved":{"symbol":"META","name":"String Metaverse Ltd","exchange":"BSE","region":"IN","asset_class":"equity","yahoo_symbol":"META.BO","confidence":1.0,"isin":"INE958L01034","bse_code":"534535","industry":null,"former_name":null,"board":"mainboard","exchange_group":"T","face_value":1.0},"needs_disambiguation":false,"candidates":[{"symbol":"META","name":"St
+GET /resolve?q=SMR -> {"ok":true,"query":"SMR","region":"IN","resolved":{"symbol":"SMR","name":"SMR Jewels Ltd","exchange":"BSE","region":"IN","asset_class":"equity","yahoo_symbol":"SMR.BO","confidence":1.0,"isin":"INE11XK01017","bse_code":"544774","industry":null,"former_name":null,"board":"SME","exchange_group":"M","face_value":10.0},"needs_disambiguation":false,"candidates":[{"symbol":"SMR","name":"SMR Jewels Ltd","
+
+== code at 81fbfe910d472ecd154fa62e42d86bce213a697e
+-- src/modules/watchlist/WatchlistPanel.tsx:286-291 (candidate region dropped)
+  const pickCandidate = (symbol: string) => {
+    addSymbol(symbol, "equity");
+    setDraft("");
+    setAcOpen(false);
+    setAcActive(0);
+  };
+-- :558-563 (row click passes symbol only)
+            onRowClick={(row) => {
+              setSelectedSymbol(row.entry.symbol);
+              // The equity overview has no crypto path: a pair opens its chart.
+              if (row.entry.assetClass === "crypto") {
+                loadSymbolIntoChart(row.entry.symbol);
+              } else {
+                openCompanyOverview(row.entry.symbol);
+              }
+-- src/store/symbols.ts:15-18 SymbolEntry has no region
+export interface SymbolEntry {
+  symbol: string;
+  assetClass: "equity" | "crypto";
+}
+-- src/components/CommandPalette.tsx:150-154 live candidates deduped by bare symbol against the watchlist corpus
+  const liveCandidates = useSymbolAutocomplete(searchAllInstruments ? query : "", 6);
+  const liveSymbolRows = useMemo(() => {
+    const known = new Set(symbols.map((i) => i.symbolEntry?.symbol.toUpperCase()).filter(Boolean));
+    return liveCandidates.filter((c) => !known.has(c.symbol.toUpperCase()));
+  }, [liveCandidates, symbols]);
+-- :203-208 corpus symbol pick -> loadSymbolIntoChart(symbol) with no region
+          if (item.symbolEntry) {
+            // The always-consumed chart-command channel (opens a chart if none
+            // is on screen) — not the opt-in sync bus, which the chart ignores
+            // by default.
+            loadSymbolIntoChart(item.symbolEntry.symbol);
+          }

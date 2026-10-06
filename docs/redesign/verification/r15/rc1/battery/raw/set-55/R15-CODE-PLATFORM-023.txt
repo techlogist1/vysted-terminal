@@ -1,0 +1,3 @@
+cmd: find src -iname metrics.ts (portfolio); grep -l "Sharpe|Sortino|maxDrawdown" src/**/*.test.ts*
+output: src/modules/portfolio/metrics.ts present; src/modules/portfolio/metrics.test.ts, src/store/backtest.test.ts, src/modules/portfolio/PortfolioPanel.test.tsx present and cover per-currency buckets, null-under-30-days, and Risk section loading/insufficient states per batch-11 cert. The independent Python cross-check (TCS.NS vs ^NSEI, agreement to 1e-15) is a live-data-dependent one-off already performed by batch-11's fresh verifier; not repeated this shard (frontend-only computation, no server-side behaviour to regress independently of the pinned vitest suite).
+verdict: ci_pinned

@@ -1,0 +1,15 @@
+before kill:
+{"available":true,"provider":"openbb-mcp","endpoint":"http://127.0.0.1:52349/mcp","lastToolCallOk":null,"lastError":null}
+after kill (sleep pid 81907, closes openbb-mcp stdin):
+{"available":true,"provider":"openbb-mcp","endpoint":"http://127.0.0.1:52349/mcp","lastToolCallOk":null,"lastError":null}
+
+HTTP_CODE:000
+=== after fundamentals call, status ===
+{"available":true,"provider":"openbb-mcp","endpoint":"http://127.0.0.1:52349/mcp","lastToolCallOk":true,"lastError":null}
+=== fundamentals response (200, provider yfinance, fell through) ===
+{"symbol":"MAZDOCK.NS","name":"Mazagon Dock Shipbuilders Limited","sector":"Industrials","industry":"Capital Goods / Ship Building & Allied Services","sector_source":"resolver","currency":"INR","financial_currency":null,"ratio_price":2199.6,"market_cap":887274668032.0,"pe_ratio":33.111546,"forward_pe":28.561806,"peg_ratio":null,"price_to_book":9.095684,"price_to_sales":6.6595116,"ev_to_ebitda":31.715,"book_value":241.829,"dividend_yield":0.0095,"dividend_per_share":20.83,"eps":70.85,"beta":0.617... [truncated, full 200 OK with provider:yfinance seen]
+=== RETRY: openbb-mcp worker 81918 + bootloader 81912 killed directly (sh-wrapper kill was insufficient) ===
+status immediately after real kill:
+{"available":true,"provider":"openbb-mcp","endpoint":"http://127.0.0.1:52349/mcp","lastToolCallOk":true,"lastError":null}=== status after real openbb-mcp kill + fundamentals call (KPITTECH, 200 fell through to yfinance) ===
+{"available":false,"provider":"openbb-mcp","endpoint":"http://127.0.0.1:52349/mcp","lastToolCallOk":false,"lastError":"ProviderError: MCP server 'openbb-mcp' failed to open: ConnectError('All connection attempts failed')"}
+=== HTTP 200 confirmed, fell through to yfinance (fix holds: no more 500, no more false-green status after tool call) ===

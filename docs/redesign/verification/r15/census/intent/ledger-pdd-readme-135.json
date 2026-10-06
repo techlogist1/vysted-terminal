@@ -1,0 +1,452 @@
+[
+  {
+    "pid": "INT-PD-136",
+    "promise": "Phases 0-10 (data layer, charting, AI copilot, node editor + backtest, broker read-only + \u00a76.5 safety, macro/research/QuantLib, integrations hub) are merged to main; the agent-native redesign is being specified and its build follows operator review.",
+    "source": "README.md#Status",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "README.md:180-185 (verbatim 'Phases 0-10 merged to main ... agent-native redesign is being specified; build follows operator review')",
+    "gap": "The literal text still matches the README, but the claim itself is stale: the redesign has moved well past the specification stage across branches 001-agent-native-redesign through the current 004-r4-experience-rebuild (this branch), with P1-P3 shipped (docs/redesign/P1_P3_BUILD_REPORT.md) and an R15 verification census in flight. The README's own Status paragraph was never updated to reflect that build (not just spec) is underway.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-137",
+    "promise": "A single capability catalog (sidecar/services/agent_tools/catalog.py) is the one source of truth from which TOOL_SCHEMAS, the custom-agent allow-list, and the external MCP surface all derive.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_tools/catalog.py:142 CAPABILITY_CATALOG; sidecar/services/agent_tools/schemas.py:33-36 TOOL_SCHEMAS comprehension over internal_capabilities(); sidecar/models/custom_agent.py:38 KNOWN_TOOL_IDS = agent_selectable_tool_ids(); catalog.py:1496-1508 mcp_capabilities()/mcp_tool_ids() project the same dict for the MCP surface.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-138",
+    "promise": "Every registered, agent-intended tool handler has a schema entry, closing the earlier '~11 handlers unreachable' gap; the catalog defines 27 internal capabilities.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "sidecar/services/agent_tools/catalog.py \u2014 CAPABILITY_CATALOG now holds 50 internal capabilities (verified live: `internal_capabilities()` returns 50), not 27; read_handler_ids()/registered_tools() completeness is still enforced (test_capability_catalog.py per CLAUDE.md).",
+    "gap": "The '~11 unreachable -> closed' mechanism still holds, but the specific count (27) is stale \u2014 the catalog has grown to 50 internal capabilities since this baseline (organic growth through R10-R13 work, not a regression).",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-139",
+    "promise": "Gemini multi-round tool use is fixed by threading the tool name onto the tool-result message.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/services/llm/gemini.py:43-60 (function_response keyed by message.metadata['name']); sidecar/services/agent_runtime.py:1578-1586 (tool_result_msg carries metadata={'name': tool_call.name} with the exact Gemini-pairing rationale in the comment).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-140",
+    "promise": "The custom-agent tool allow-list (KNOWN_TOOL_IDS) is derived from the capability catalog with 0 unresolvable tools.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/models/custom_agent.py:38 `KNOWN_TOOL_IDS: frozenset[str] = agent_selectable_tool_ids()`; :59-63 validates a custom agent's tools against it and raises on unknown ids.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-141",
+    "promise": "The external MCP tool surface is projected from the capability catalog (26 tools), sharing names/schemas with the internal copilot and deriving readOnlyHint from read_only, under a standing parity audit (SC-004).",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "sidecar/services/agent_tools/catalog.py:1496-1508 mcp_capabilities()/mcp_tool_ids() project CAPABILITY_CATALOG entries with c.mcp=True by the same id/schema as the internal surface, read_only -> readOnlyHint; live count is 28 tools, not 26.",
+    "gap": "Mechanism (shared names/schemas, readOnlyHint derivation, parity projection) is delivered and unchanged; only the specific tool count is stale (26 -> 28, same organic growth as PD-138).",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-142",
+    "promise": "A single `news` MCP tool now serves both the internal copilot and the external MCP surface.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_tools/catalog.py:48,241,256,281 \u2014 a single 'news' capability/domain entry serves both surfaces (internal + mcp flags both true on the same Capability record, per the shared-catalog projection confirmed under PD-137/141).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-143",
+    "promise": "Plugin manifest-to-instance id/version matching and requiredHostVersion checks are implemented: a mismatched plugin is rejected at load and the rejection is surfaced to the user.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/plugin-runtime.ts:129,362,497-524 and src/lib/plugin-runtime.test.ts:497-524 ('rejects a plugin whose requiredHostVersion the host does not satisfy' / 'loads a compatible plugin') \u2014 hostSatisfies(HOST_VERSION, manifest.requiredHostVersion) gates load, tested both ways.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-144",
+    "promise": "PluginConfig secret resolution is keychain-backed (FR-054/SC-015).",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/store/marketplace.ts:18 (imports getSecret/setSecret/deleteSecret/KEYCHAIN_NAMESPACES from @/lib/keychain), :75 (getSecret(secretAccount(...)) on config load), :224 (setSecret(account, value) on config save); src/store/marketplace.test.ts:96-100 asserts the keychain account string.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-145",
+    "promise": "The frontend's shell:allow-open Tauri capability is granted, so in-app 'open in browser' calls (Kite OAuth login, SEC filings) work.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src-tauri/capabilities/default.json:10 `\"shell:allow-open\"` is present in the granted capability list.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-146",
+    "promise": "Boot-path panics are hardened with a port-0 sentinel and a temp-dir fallback so the app no longer panics with no window on a boot-path failure.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src-tauri/src/lib.rs:111-131 resolve_data_dir() falls back to std::env::temp_dir() on app_data_dir() Err and logs+continues (does not panic) on create_dir_all() Err; :183,199-201 port-0 sentinel documented and checked (`if port == 0`).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-147",
+    "promise": "A keyless AI provider must be reachable before the first agent call, so the shipped default no longer silently fails by routing to an absent local Ollama install.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/components/OnboardingFlow.tsx:437-620 (Local/Ollama step gates on `ollama.running && installed` before completion) and :337-360 (Cloud/OpenRouter step calls validateKey('openrouter', key) and only completes onDone() on success) \u2014 the user cannot finish onboarding with an unreachable/unvalidated provider; :61 OPENROUTER_DEFAULT_MODEL is the shipped default, not an assumed-present local Ollama.",
+    "gap": "Verified at the onboarding-UI gate, not as a separate backend pre-flight check on every /agents/{id}/invoke call; sufficient to support the promise as worded ('before the first agent call').",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-148",
+    "promise": "A four-mode agent spine (Ask / Edit-panel / Build / Delegate, keyboard-switchable via Option+1-4) makes the agent a co-equal primary surface alongside the hand-driven cockpit.",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/store/agent-mode.ts:1-23 (four-mode AgentMode store, DEFAULT_AGENT_MODE, keyboard-switchable per its own doc comment 'Option+1-4').",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-149",
+    "promise": "Every agent-proposed mutation routes through a diff/accept trust gate; the four host-action tools (open_panel, set_chart_symbol, add_to_watchlist, propose_order -- the catalog's only write-capable capabilities) never auto-apply (SC-003).",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "src/store/proposed-changes.ts:1-9 ('NOTHING lands before acceptance ... There is no auto-apply path'); src/lib/host-actions.ts:65-83 HOST_ACTION_NAMES \u2014 the full mutating set is now 19 ids (open_panel, close_panel, focus_panel, arrange_layout, set_chart_symbol, set_chart_indicators, add_to_watchlist, remove_from_watchlist, publish_brief, propose_order, write_screener_filters, open_company_overview, portfolio_add_position, portfolio_update_position, portfolio_delete_position, write_note, save_layout, save_screen, set_region), confirmed live as CAPABILITY_CATALOG's 19 read_only=False entries.",
+    "gap": "The diff/accept never-auto-apply guarantee still holds (all 19 ids route through the same proposed-changes staging per host-actions.ts's own toolbelt-integrity comment), but the promise's enumeration ('the four host-action tools ... the catalog's only write-capable capabilities') is significantly stale: R10-era work (D41/E6, per host-actions.ts:62-64) added 15 more mutating tools (paper-portfolio writes, notes, screens, layout, region) that CURRENT_STATE.md never accounts for.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-150",
+    "promise": "Onboarding offers both the keyboard-driven cockpit and the agent-first path ('offer-both') rather than forcing the user into one.",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/components/OnboardingFlow.tsx:149 (handleDismiss -> finish('skip')), :279-282 ('Skip \u2014 I'll explore first ->' control) lets the user bypass agent setup straight into the keyboard-driven cockpit.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-151",
+    "promise": "A minimal-dark 'cold-instrument' shell with re-valued design tokens (mirrored in chart-theme.ts), a teaching command palette, and status chrome ship as part of the P2 redesign (FR-033).",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/chart-theme.ts:28-49 (chart accent token comments mirroring the token system); tokens.css re-valuation + globals.css --accent-rgb per CLAUDE.md's own standing gotcha ('change ALL THREE in lockstep').",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-152",
+    "promise": "A plugin marketplace is the primary extensibility model: brokers, data sources, panels, and agents are all install/enable/configure/remove entries (src/lib/marketplace.ts).",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/marketplace.ts:82 CATALOG_ROWS (single array of {manifest, entry, plugin} rows spanning data/agent/broker/panel categories), driven by useMarketplaceStore for install/enable/configure/remove.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-153",
+    "promise": "First-party data plugins (yfinance + news) are pre-installed keyless; no broker adapter is registered at boot by default (bootstrap_default_adapters is no longer called from the app lifespan, FR-051/SC-013); Kite is the reference broker plugin.",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/lib/marketplace.ts:83-176 (vysted-yfinance, vysted-news both preinstalled:true, keyless); marketplace.ts ~190-320 (7 broker rows, category:'broker', none preinstalled); plugin-bootstrap.ts:1-13 own doc comment: 'the seven broker entries are available-but-not-pre-installed (FR-051: no broker registered at boot)'.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-154",
+    "promise": "MCP serves as an extension framework for external tools (FR-025): statically-imported compiled-in plugins are governed by the marketplace, while genuinely external plugin loading goes through the stdio-MCP path.",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/marketplace.ts CATALOG_ROWS governs statically-imported compiled-in plugins (openbb-mcp, tradesa-v2, example, lenses, news, yfinance, brokers); sidecar/routers/mcp.py + services/mcp_server.py provide the separate stdio/streamable-HTTP MCP path for genuinely external tools.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-155",
+    "promise": "A provider-shaped data registry (provider_registry.py) resolves data by standard model key plus a preference order rather than a fixed asset-class chain, and every result carries its serving provider as provenance (FR-035/040).",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/provider_registry.py:24 ('declaration table and the same preference-order fallthrough'), :84 (rank = preference order within a model-key), :309,345,379 (walks providers for model_key in preference order).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-156",
+    "promise": "A BYOK credentials hub renders each provider's configuration form generically from its marketplace entry's credentialFields, with zero per-source custom UI (SC-007).",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/marketplace.ts:145-160 (vysted-news credentialFields array rendered generically); src/store/marketplace.ts:75 (getSecret keyed per-field) \u2014 one generic form component drives every provider's config from its own credentialFields.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-157",
+    "promise": "News is now a first-party data plugin (plugins/vysted-news) with an optional NewsAPI key sent as the X-Vysted-Newsapi-Key header from the keychain (FR-036).",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/marketplace.ts:131-160 vysted-news row: credentialFields=[{key:'newsapi_key', required:false, ...}], plugin secretNamespace 'plugin'; CLAUDE.md's own gotcha section confirms the X-Vysted-Newsapi-Key header from the keychain.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-158",
+    "promise": "Granular broker reads are real: GET /brokers/{id}/positions, /holdings, and /margins return distinct shapes via a positions_info/holdings_info/margins_info adapter seam (Kite implements it; other brokers fall back to the account summary), each result labeled with provenance so paper/synthetic values are badged (FR-041/042/SC-012); the routes remain GET-only.",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/routers/brokers.py:193-240 (_read_granular dispatches to positions_info/holdings_info/margins_info with an account_info() fallback per docstring); route decorators for /positions /holdings /margins confirmed present in the same file.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-159",
+    "promise": "Durable Delegate runs execute detached, survive the launching connection, and are bounded by a BudgetGuard (tokens/spend/wall-clock/steps) whose first ceiling breach aborts the run with a stated reason and a resumable checkpoint (SC-008); the agents rail shows live cost-so-far.",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/run_manager.py, runs_store.py, budget_guard.py all present; run_manager.py:421-436 shutdown() cancels in-flight run tasks (lifespan-managed detachment).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-160",
+    "promise": "Cursor-grade settings and remappable keybindings persist in the workspace blob (FR-038/039/SC-011).",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/workspace.ts:29,34-35 imports useKeybindingsStore/useSettingsStore; :218 serializeWorkspace includes settings: useSettingsStore.getState().toBundle(); :325-326 deserializeWorkspace restores it.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-161",
+    "promise": "Through the P1-P3 redesign, all \u00a76.5 and Tier-1 LOCKED files remain byte-for-byte untouched, the \u00a76.5 safety audit stays 9/9, and the broker read surface adds no write/execution path.",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "sidecar/models/audit_log.py, sidecar/services/kill_switch.py, src-tauri/src/kill_switch.rs, types/plugin.ts all still exist with their documented safety mechanisms (append-only triggers, kill-switch bus, plugin contract) per CLAUDE.md's own still-current Tier-1 section.",
+    "gap": "A byte-for-byte-untouched claim through P1-P3 was not independently re-verified via a file-hash diff in this pass (out of scope for a code-read verification); the operator-approved 23-Sep relicense commit (0c63d46) touches types/plugin.ts's license header, which is a Tier-4-sanctioned change outside the P1-P3 window this promise scopes to, not a violation of it.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-162",
+    "promise": "Everything Vysted persists lives under the OS app-data directory plus the OS keychain -- there is no other storage surface.",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src-tauri/src/lib.rs:111-131 resolve_data_dir() (app_data_dir, sqlite stores + workspaces beneath it) and keychain.rs (OS keychain for secrets) are the only two persistence surfaces reachable from the frontend/sidecar boundary.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-163",
+    "promise": "The cockpit ships approximately 18 first-party modules, including a manual SQLite-backed Portfolio panel and an Agent Builder.",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "src/modules/ currently has 22 first-party module directories (agent-builder, analyst-ratings, backtest, broker-connect, chart, chat, earnings, equity-overview, macro, marketplace, news, node-editor, notes, platform, plugin-manager, portfolio, quant, research, safety, screener, sec, watchlist), including portfolio (sidecar/services/portfolio_db.py:1,16 confirms SQLite-backed) and agent-builder.",
+    "gap": "The 'approximately 18' count is stale (now 22, from R10+ additions like notes/marketplace/plugin-manager/broker-connect/research/safety/platform); the qualitative claim (SQLite Portfolio + Agent Builder present) still holds.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-164",
+    "promise": "The copilot's tool-use loop iterates up to 6 rounds per agent invocation.",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_runtime.py:543 `_MAX_TOOL_ROUNDS = 6`; :1472,1627 enforce the cap in the tool-use loop.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-165",
+    "promise": "Of the 7 supported LLM provider ids, only 5 adapters actually exist (DeepSeek and xAI ride the OpenAI adapter via a base-url override).",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "sidecar/models/llm.py:27 LLMProviderId now lists 8 ids (adds 'openrouter'); sidecar/services/llm/__init__.py get_provider() dispatches anthropic/openai/gemini/groq/ollama to 5 concrete adapter classes, with deepseek/xai/openrouter all riding OpenAIProvider via base_url override (3 ids on one adapter, not 2).",
+    "gap": "The shape of the claim (fewer adapter classes than provider ids, extra ids ride the OpenAI-compatible adapter) still holds, but the specific numbers are stale: 8 provider ids now (not 7), 3 ids ride the OpenAI adapter (not 2, deepseek+xai+openrouter). The adapter code's own docstring (sidecar/services/llm/__init__.py, get_provider docstring) still says 'seven BYOK provider ids', so this staleness exists in-code too, not just in CURRENT_STATE.md.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-166",
+    "promise": "A full \u00a76.5-safety-gated order execution machine (propose to confirm to place, kill switch, append-only audit log, position limits) exists in code but is paper-only by hard default and has never been live-validated.",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product (per PROMPT_offmachine_s2.md SCOPE FACTS and docs/redesign/DECISIONS.md D68/relicense commit 0c63d46 same-day context); this promise is about the broker order-execution machine's validation status, which is out of scope by decision and never a defect/gap per COMMON.md."
+  },
+  {
+    "pid": "INT-PD-167",
+    "promise": "Of the plugin platform, only three plugins actually load (example, openbb-mcp, tradesa-v2); seven broker plugins exist in the tree but are not wired, and there is no filesystem or marketplace loader yet at this baseline.",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "deferred-item",
+    "status": "partial",
+    "evidence": "src/lib/marketplace.ts:82-320 CATALOG_ROWS replaces the old fixed BUNDLED_PLUGINS list with an install/enable-driven marketplace (5 first-party preinstalled rows + 7 broker rows discoverable-but-not-installed); src/lib/plugin-bootstrap.ts:1-13 doc comment confirms the runtime now 'DISCOVERS all of them ... but LOADS only those installed+enabled'.",
+    "gap": "The baseline's specific claim ('only three plugins load: example, openbb-mcp, tradesa-v2', 'no filesystem or marketplace loader yet') is superseded by the P2 marketplace work (PD-152/153 above) \u2014 not a regression, a since-delivered improvement the pre-redesign baseline text predates.",
+    "decision_ref": "docs/CURRENT_STATE.md \u00a70.5 P2 delta (marketplace as primary extensibility model)"
+  },
+  {
+    "pid": "INT-PD-168",
+    "promise": "As an MCP server, Vysted re-exposes its own endpoints as MCP tools for external clients such as Claude Desktop and Claude Code.",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/routers/mcp.py + sidecar/services/mcp_server.py mount a FastMCP sub-app projecting CAPABILITY_CATALOG's mcp=True entries (confirmed under PD-141) as MCP tools for external clients.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-169",
+    "promise": "The auto-updater is configured but produces no artifacts; distribution at this baseline is 'download the CI artifact.'",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "deferred-item",
+    "status": "delivered",
+    "evidence": "src-tauri/tauri.conf.json:45 `\"createUpdaterArtifacts\": false`; no `.check(`/`downloadAndInstall` call sites found anywhere under src/ (grep returns zero non-test hits).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-170",
+    "promise": "The Tauri Rust core owns the OS surface: windowing, keychain, the global kill-switch shortcut, sidecar lifecycle, and dynamic port assignment.",
+    "source": "docs/CURRENT_STATE.md \u00a72",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src-tauri/src/lib.rs (keychain.rs commands, kill_switch.rs global-shortcut, sidecar spawn via app.shell().sidecar(...), pick_free_port/wait_for_port for dynamic port assignment) collectively confirm the Rust core owns exactly this OS surface.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-171",
+    "promise": "The Next.js frontend is served as a static export by the core -- there is no Node server at runtime.",
+    "source": "docs/CURRENT_STATE.md \u00a72",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "package.json has no 'next' dependency; vite.config.ts + index.html at repo root + package.json:9 `\"build\": \"vite build\"`; git log shows commit 8c2f9ab 'feat(shell): migrate Next.js -> Vite 8 + React 19 (WS1)'; src-tauri/tauri.conf.json:7 `\"frontendDist\": \"../out\"` (static files, core-served, unchanged).",
+    "gap": "The underlying guarantee (static export served by the core, no Node server at runtime) still holds, but the specific framework name is wrong: the frontend was migrated from Next.js to Vite (decision D6 in docs/redesign/DECISIONS.md). This exact staleness is already raised as a raw finding in other R15 census chunks (intent-spec-45.json, intent-pdd-readme-45.json \u2014 CLAUDE.md/constitution.md still name Next.js 16), so it is not re-emitted as a new raw finding here to avoid duplication.",
+    "decision_ref": "D6 (docs/redesign/DECISIONS.md) \u2014 Vite migration"
+  },
+  {
+    "pid": "INT-PD-172",
+    "promise": "The two MCP subprocesses are spawned on parallel threads and joined before the main sidecar spawns, so their port env vars are settled first; the entire MCP handshake is an environment variable, with no IPC negotiation.",
+    "source": "docs/CURRENT_STATE.md \u00a72",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src-tauri/src/lib.rs:472-485 `openbb_thread = thread::spawn(...)`, `sec_thread = thread::spawn(...)`, then `openbb_thread.join()` / `sec_thread.join()` before the main sidecar spawn proceeds.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-173",
+    "promise": "The frontend learns the sidecar's port via a Tauri command and polls /health with backoff (a 120-second deadline) before declaring the connection ready.",
+    "source": "docs/CURRENT_STATE.md \u00a72",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/lib/sidecar-client.ts:127 `const deadline = Date.now() + 120_000;` :138 checked against Date.now() in the /health polling loop.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-174",
+    "promise": "If an MCP subprocess fails to spawn, it degrades gracefully (registers as unavailable / port 0) rather than panicking -- openbb falls back to yfinance and the SEC router responds 501.",
+    "source": "docs/CURRENT_STATE.md \u00a72",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src-tauri/src/lib.rs (port-0 'register_unavailable' pattern per the doc comment at :26); sidecar's openbb/sec_filings providers fall back to yfinance / return 501 respectively when their MCP subprocess is unbound (per CURRENT_STATE.md's own still-accurate \u00a72 text, code paths in sidecar/services/openbb_mcp_provider.py and routers/sec_filings.py exist and are unchanged in this area).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-175",
+    "promise": "The main-sidecar readiness check is fire-and-forget logging -- nothing blocks the UI on sidecar readiness, so the frontend tolerates a not-yet-up sidecar.",
+    "source": "docs/CURRENT_STATE.md \u00a72",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src-tauri/src/lib.rs wait_for_port_with_retries()/wait_for_port_timeout() (lines 46-109) are invoked for logging/readiness only; nothing in main.rs/lib.rs blocks window creation or UI mount on their result.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-176",
+    "promise": "The main-sidecar spawn, app-data-dir resolution, and directory creation all use an unwrap-or-panic pattern, so any failure there panics the whole app at boot with no UI shown.",
+    "source": "docs/CURRENT_STATE.md \u00a72",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "src-tauri/src/lib.rs:111-131 resolve_data_dir() uses `match`+fallback (not .expect()/.unwrap()) for both app_data_dir() resolution and create_dir_all(); :206,215 sidecar spawn also uses `match`, not .expect().",
+    "gap": "This claim describes the pre-redesign baseline's panic pattern, which is exactly the defect PD-146 (\u00a70 foundation update) reports as fixed with a port-0 sentinel + temp-dir fallback. Current code confirms the fix: none of the three named failure points (spawn, app-data-dir resolution, directory creation) panic anymore. Not a live defect \u2014 the doc's own \u00a70 delta already supersedes this \u00a72 sentence; flagged here only because this INTENT pass is per-sentence.",
+    "decision_ref": "\u00a70 foundation update (docs/CURRENT_STATE.md, same doc as PD-146) \u2014 boot-path hardening"
+  },
+  {
+    "pid": "INT-PD-177",
+    "promise": "The sidecar is one FastAPI app assembled from 24 router modules, exposing approximately 107 HTTP routes plus one WebSocket and one mounted MCP sub-app.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "sidecar/app.py:68-97 `_ROUTERS` tuple currently lists 29 router modules (health, quotes, history, crypto, disclosures, fundamentals, macro, indicators, portfolio, news, resolve, workspace, plugins, llm, agents, custom_agents, runs, mcp, safety, sec_filings, workflow, backtest, brokers, quant, earnings, screener, search_status, search_tiers, system), not 24; matches `ls sidecar/routers/*.py` (29 files).",
+    "gap": "The architecture description (one FastAPI app assembled from router modules, one WS, one mounted MCP sub-app) still holds; only the specific counts are stale (24 -> 29 routers; custom_agents/runs/search_status/search_tiers routers were added by the R-series durable-delegate and search-tier work after this baseline was written). Exact current route count not independently re-tallied.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-178",
+    "promise": "The sidecar's CORS policy is fully permissive (wildcard), justified by the assumption that the process binds loopback only, though that bind is enforced by the launcher script rather than by the FastAPI app itself.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/app.py:302-303 `CORSMiddleware, allow_origins=[\"*\"]`; the loopback-bind enforcement remains main.py/uvicorn's job, not app.py's, exactly as described.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-179",
+    "promise": "Server-Sent Events (text/event-stream) is the standard streaming convention for /llm/chat, /agents/{id}/invoke, /backtest/run, and /workflow/run.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/routers/agents.py:112, workflow.py:73, backtest.py:96 all `StreamingResponse(_generator(), media_type=\"text/event-stream\")`; routers/llm.py:13 docstring states the same `text/event-stream` framing for /llm/chat.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-180",
+    "promise": "The version reported by GET /health is derived from the running FastAPI app's version attribute rather than a separately hardcoded string.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/routers/health.py:26 `\"version\": request.app.version`; sidecar/app.py:289 `FastAPI(title=..., version=\"0.8.0\", ...)` is the single hardcoded literal /health now reads from, not a duplicated string.",
+    "gap": "",
+    "decision_ref": ""
+  }
+]

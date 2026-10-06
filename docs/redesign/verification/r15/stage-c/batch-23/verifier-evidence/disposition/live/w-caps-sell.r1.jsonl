@@ -1,0 +1,22 @@
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " assist"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " buying"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " selling"}
+{"kind": "delta", "text": " securities"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Is"}
+{"kind": "delta", "text": " there"}
+{"kind": "delta", "text": " anything"}
+{"kind": "delta", "text": " else"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2739, "output_tokens": 21, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

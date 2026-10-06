@@ -1,0 +1,44 @@
+{"kind": "tool_use", "tool_call_id": "call_154d873542c44e41be36bcc8c93bc27c", "name": "resolve_symbol", "input": {"query": "SIFY"}}
+{"kind": "tool_result", "tool_call_id": "call_154d873542c44e41be36bcc8c93bc27c", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_190ccbb0a09742a5923c520d5db496df", "name": "sec_filings_list", "input": {"symbol": "SIFY", "form_type": "10-K", "limit": 20}}
+{"kind": "tool_result", "tool_call_id": "call_190ccbb0a09742a5923c520d5db496df", "name": "sec_filings_list", "ok": true, "error": null}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources. "}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": " typically"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " ADR"}
+{"kind": "delta", "text": "s"}
+{"kind": "delta", "text": " representing"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources. "}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " confirmation"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " recommend"}
+{"kind": "delta", "text": " checking"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " company's"}
+{"kind": "delta", "text": " specific"}
+{"kind": "delta", "text": " investor"}
+{"kind": "delta", "text": " relations"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " annual"}
+{"kind": "delta", "text": " report"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " most"}
+{"kind": "delta", "text": " accurate"}
+{"kind": "delta", "text": " details"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 8994, "output_tokens": 64, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.016149}

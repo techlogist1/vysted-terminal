@@ -1,0 +1,9 @@
+=== R15-RESEARCH-006 repro: ULTRA cross-check verdict loop bounded by remaining budget wall ===
+candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, in-process, sidecar venv
+5 numeric claims, each verdict call fakes a 60s-slow LLM turn, BudgetGuard(max_wall_seconds=0.3)
+cross_check wall time: 0.30s (budget wall was 0.3s)
+structured.cross_check: {'claims': [{'claim': 'Revenue grew 1% in Q1', 'verdict': 'unverified', 'detail': 'not checked: the cross-check ran out of its time budget', 'domains': ['example.com']}, {'claim': 'Revenue grew 2% in Q2', 'verdict': 'unverified', 'detail': 'not checked: the cross-check ran out of its time budget', 'domains': ['example.com']}, {'claim': 'Revenue grew 3% in Q3', 'verdict': 'unverified', 'detail': 'not checked: the cross-check ran out of its time budget', 'domains': ['example.com']}, {'claim': 'Revenue grew 4% in Q4', 'verdict': 'unverified', 'detail': 'not checked: the cross-check ran out of its time budget', 'domains': ['example.com']}, {'claim': 'Revenue grew 5% in Q5', 'verdict': 'unverified', 'detail': 'not checked: the cross-check ran out of its time budget', 'domains': ['example.com']}], 'disagreements': 0, 'min_domains': 1}
+PASS: returned within 1s of the 0.3s wall
+
+Matches register's certified evidence: '5 slow verdicts inside a 0.3s wall return within 1s, tail UNVERIFIED.' Known residual (not tested here, filed as issue 5 in batch-3 VERDICTS.md): a slow claim-extract or slow re-check search runs BEFORE this asyncio.timeout wraps, so the fix scopes only the sequential verdict loop, not the whole cross_check call.
+exit: 0

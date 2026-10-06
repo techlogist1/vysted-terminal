@@ -1,0 +1,4 @@
+36s tool_use {"kind": "tool_use", "tool_call_id": "call_723ef609934447da9e57d0e2e8dfc010", "name": "financial_statements", "input": {"symbol": "DHANBANK.NS", "statement": "income", "period": "quarterly"}}
+65s done {"kind": "done", "usage": {"input_tokens": 5591, "output_tokens": 110, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+DONE 65s
+TEXT: The revenue for DHANBANK (DHANBANK.NS) for each of the last 6 quarters is as follows* June 2026: ₹212.51 cr* March 2026: ₹256.34 cr* December 2025: ₹203.47 cr* September 2025: Not available* June 2025: ₹178.40 cr* March 2025: ₹177.32 crNote that the revenue for September 2025 is not available.

@@ -1,0 +1,32 @@
+# SearXNG card when Docker CLI is installed but the daemon is stopped (head d38b5d1a)
+
+CMD: curl -s -H 'Origin: http://localhost:5173' http://127.0.0.1:52845/search/searxng/status   (own sidecar, final-cand source; OrbStack installed, not running)
+HTTP 200 15016 ms
+{"state":"not_installed_docker","detail":"docker CLI found but the daemon is not running — start Docker/OrbStack","reason":null,"last_error":null,"port":null,"url":null,"container":null,"container_name":"vysted-searxng","image":"searxng/searxng","docker":{"cli_present":true,"daemon_running":false,"runtime":null}}
+
+## Contract (sidecar/services/searxng_manager.py:13-16 @d38b5d1a)
+  ``not_installed_docker``        no usable docker (CLI missing OR daemon down —
+                                  ``docker.cli_present`` / ``docker.daemon_running``
+                                  in the status payload disambiguate the CTA:
+                                  "Install Docker/OrbStack" vs "Start it").
+
+## Frontend: chip (SettingsPanel.tsx:841-842) and health line (:967-978) branch on state only
+  switch (state) {
+    case "not_installed_docker":
+      return { label: "Docker not found", className: "text-caution border-caution/40" };
+  switch (status.state) {
+    case "not_installed_docker":
+      healthLine = (
+        <span>
+          SearXNG runs in a local Docker container, and Docker isn&rsquo;t available on this
+          machine. {/* Plain-text install hint — deliberately NOT a link (no external nav). */}
+          <span className="text-charcoal-500">
+            Install Docker first — docs.docker.com/get-started/get-docker — then setup from here is
+            one click.
+          </span>
+        </span>
+      );
+      break;
+
+## grep -rn 'daemon_running|daemonRunning|cli_present|cliPresent' src types  -> (no hits)
+(end grep)

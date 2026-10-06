@@ -1,0 +1,20 @@
+# R15-CODE-PLATFORM-076 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; python3 -c "import json,glob; [print(f, len(json.load(open(f)).get('systemPrompt','').encode())) for f in sorted(glob.glob('sidecar/agents/*.json'))]"
+--- output ---
+sidecar/agents/_schema.json 0
+sidecar/agents/buffett.json 2581
+sidecar/agents/copilot.json 4382
+sidecar/agents/dalio.json 3687
+sidecar/agents/druckenmiller.json 3272
+sidecar/agents/graham.json 2696
+sidecar/agents/klarman.json 3209
+sidecar/agents/lynch.json 2733
+sidecar/agents/marks.json 3145
+sidecar/agents/munger.json 3084
+sidecar/agents/portfolio_advisor.json 3421
+sidecar/agents/researcher.json 3556
+sidecar/agents/soros.json 3467
+sidecar/agents/strategy_critic.json 3900
+
+EXIT=0 (0.0s)

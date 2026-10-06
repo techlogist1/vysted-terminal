@@ -1,0 +1,21 @@
+# rc1-verifier g2 concurrence evidence: R15-CODE-PLATFORM-001 (kill switch), R15-UI-042/043 (Audit Log viewer) removed_with_feature; tree 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2; 2026-09-26T12:24:55Z
+## git grep -n -i -E 'kill.?switch|fireKillSwitch|audit_orders|AuditLog|audit-log|OrderEntry|order-entry' 4c6dfe8c -- src src-tauri/src plugins sidecar ':!sidecar/tests' ':!sidecar/.venv' | wc -l
+       4
+## hits (all, if any)
+4c6dfe8c:src/lib/workspace.test.ts:1042:      layout: { grid: { root: "a" }, panels: { p1: { contentComponent: "audit-log-viewer" } } },
+4c6dfe8c:src/lib/workspace.test.ts:1104:                  orders: { id: "orders", contentComponent: "broker-order-entry-panel" },
+4c6dfe8c:src/modules/safety/DisclaimerFlow.test.tsx:58:  it("states research-only terms and promises no order routing or kill switch", async () => {
+4c6dfe8c:src/modules/safety/DisclaimerFlow.test.tsx:66:    expect(text).not.toMatch(/kill switch|Cmd\/Ctrl\+Shift\+K/i);
+## files that existed at r13-bedrock and are gone at 4c6dfe8c
+src-tauri/src/kill_switch.rs: r13-bedrock=present 4c6dfe8c=absent
+sidecar/services/kill_switch.py: r13-bedrock=present 4c6dfe8c=absent
+sidecar/models/audit_log.py: r13-bedrock=present 4c6dfe8c=absent
+## audit-log / order-entry module dirs at r13-bedrock vs 4c6dfe8c
+-- at 4c6dfe8c:
+(none)
+## removal commits
+4af4cf90 2026-09-23 Merge remote-tracking branch 'origin/worktree-agent-trading-frontend' into worktree-agent-trading-int
+3d037351 2026-09-23 refactor(sidecar): remove trading layer - brokers, orders, kill switch, audit log (D81)
+5d45a0ae 2026-09-23 refactor(tauri): remove the kill-switch shortcut and global-shortcut plugin (D81)
+## tauri.conf.json globalShortcut
+(no globalShortcut in tauri.conf.json)

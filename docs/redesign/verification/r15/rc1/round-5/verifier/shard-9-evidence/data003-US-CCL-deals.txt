@@ -1,0 +1,3 @@
+### 16:48:43 curl -H X-Vysted-Region: US http://127.0.0.1:52609/disclosures/deals?symbol=CCL&kind=bulk
+{"symbol":"CCL","kind":"bulk","count":0,"deals":[],"sources":[],"errors":{},"coverage":"not_applicable","note":"CCL is not an NSE/BSE instrument; Indian exchange disclosures do not apply"}
+HTTP 200 0.001218s

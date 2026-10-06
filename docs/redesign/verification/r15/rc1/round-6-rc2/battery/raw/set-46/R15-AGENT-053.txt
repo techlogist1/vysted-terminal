@@ -1,0 +1,13 @@
+CMD: grep pinned tests (candidate ace7dd76)
+250:  it("carries a backtest AND a news publish, each as a generic summary", () => {
+294:  it("caps a generic summary to 200 characters", () => {
+305:  it("never duplicates chart/watchlist/portfolio sources into otherPanels", () => {
+EXIT=0
+-- source branch
+110: * hand-modelled fields (chart/watchlist/portfolio) — news, backtest,
+134:   *  backtest, earnings, analyst ratings, SEC filings, screener, macro,
+136:  otherPanels: TerminalPanelSummary[];
+371:  const otherPanels: TerminalPanelSummary[] = [];
+408:      // R15-AGENT-053: every other publisher (news, backtest, earnings,
+412:      otherPanels.push({
+489:    otherPanels,

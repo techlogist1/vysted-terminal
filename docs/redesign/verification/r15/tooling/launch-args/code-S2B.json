@@ -1,0 +1,22 @@
+{
+ "tag": "code-S2B",
+ "common": "Read docs/redesign/verification/r15/tooling/COMMON.md, PROMPT_code.md and PROMPT_code_s2.md fully before doing anything else (PROMPT_refute.md too, before the refute stage). Continue from any existing output file for your id - never restart a partial file. This is R15 Stage B item 2, VERIFY-AND-FINISH pass for subsystems that already have raw findings + refute verdicts but no critique .md.",
+ "stages": [
+  {
+   "label": "critique",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "VERIFY-AND-FINISH subsystem \"{{id}}\". Follow PROMPT_code_s2.md's VERIFY-AND-FINISH SEMANTICS exactly. Step 1: write the missing docs/redesign/verification/r15/census/code/{{id}}.md critique file from the EXISTING docs/redesign/verification/r15/census/raw/code-{{id}}.json findings and their docs/redesign/verification/r15/census/refute/code-{{id}}.json verdicts (same table shape as PROMPT_code.md's CRITIQUE output 1; reflect refuted/corrected severities, do not present refuted findings as live). Step 2: hunt {{id}}'s files (entry in docs/redesign/verification/r15/census/CODE_PARTITION.json) fresh for MISSED findings the existing raw file does not cover, same rigor as a normal critique. Write any new findings to docs/redesign/verification/r15/census/raw/code-{{id}}-2.json, standard raw shape, raw_id prefix COD-{{id}}-2, an EMPTY array if nothing new (do not pad)."
+  },
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "REFUTE docs/redesign/verification/r15/census/raw/code-{{id}}-2.json (the NEW findings file only - the original code-{{id}}.json/refute/code-{{id}}.json pair is already done, do not touch it). Follow PROMPT_refute.md exactly. Read the raw file first and get your finding count from it - cover EVERY raw_id. If the raw file has zero findings, write an empty verdict array and return count 0. OUTPUT: docs/redesign/verification/r15/census/refute/code-{{id}}-2.json. Return counts by verdict."
+  }
+ ],
+ "items": [
+  {"id": "llm-adapters"},
+  {"id": "error-layer"}
+ ]
+}

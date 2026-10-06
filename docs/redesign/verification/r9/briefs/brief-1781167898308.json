@@ -1,0 +1,75 @@
+{
+ "query": "",
+ "symbol": "SAKSOFT",
+ "mode": "DEEP",
+ "depth": "deep",
+ "markdown": "# Research Brief: Saksoft (SAKSOFT.NS)\n\n**As of:** June 10, 2026 closing | **Mode:** Quick scan\n\n## Overview\nSaksoft Limited is a Chennai-based IT services company (Information Technology Services sector). The stock closed at **\u20b9142.28** (+1.07%) on June 10, 2026 [29].\n\n## Key Metrics\n\n| Metric | Value |\n|--------|-------|\n| Market cap | **\u20b91,781 Cr** (~$213M) |\n| P/E (TTM) | **13.7x** |\n| Forward P/E | **4.1x** |\n| P/B | 2.3x |\n| EV/EBITDA | 8.6x |\n| ROE | **19.1%** |\n| Profit margin | 13.2% |\n| Debt/Equity | **0.06** (near debt-free) |\n| Beta | 0.36 |\n| EPS (TTM) | \u20b910.19 |\n\n## Price Context\n- **52-week range:** \u20b9107.59 \u2013 \u20b9253.99\n- **52-week change:** -29.2%\n- **Off ~44% from the 52-week high** \u2014 significantly beaten down\n\n## Dividends\n- Total DPS (trailing 12m): **\u20b91.00/share** (yield ~0.72%)\n- \u20b90.45 interim + \u20b90.55 proposed final (pending AGM)\n\n## Key Strengths\n- **Clean balance sheet:** D/E of 0.06, strong current ratio of 2.17\n- **Decent profitability:** ROE ~19%, profit margin ~13%\n- **Low beta (0.36):** Less volatile than the broader market\n- **Revenue growing:** ~3.7% YoY; earnings growth ~21.6%\n- **Insider-held:** ~72.5% promoter holding \u2014 strong alignment\n\n## Risks / Watch-Outs\n- **Down 29% in 52 weeks** \u2014 the market has re-rated this name sharply\n- **Low institutional interest** \u2014 only 0.2% held by institutions (poor liquidity signal)\n- **Acquisition integration (Augmento Labs, \u20b9100 Cr in June 2024)** \u2014 unclear financial impact so far\n- **Scanned PDF filings** \u2014 Q4 FY2026 tables were unparsed, making it harder to confirm quarterly trends\n- **Thin volumes** \u2014 avg daily volume ~4.5L shares\n\n## Bottom Line\nSaksoft looks **inexpensive** on P/E (13.7x) and EV/EBITDA (8.6x) relative to its ROE (~19%) and debt-free balance sheet. The forward P/E of 4.1x suggests earnings are expected to rise meaningfully. However, the 44% drawdown from the 52-week high and very low institutional ownership warrant caution \u2014 dig into the Q4 results (check the investor presentation linked in filings) before making a move.\n\n*Want a deeper dive into margins, revenue trajectory, or a comparison with peers? Just ask.*\n",
+ "sources": [
+  {
+   "url": "https://finance.yahoo.com/quote/SAKSOFT.NS/",
+   "title": "Saksoft Limited (SAKSOFT.NS) Stock Price",
+   "excerpt": "52 Week Range 107.59 - 253.99"
+  },
+  {
+   "url": "https://www.nseindia.com/get-quote/equity/Saksoft/Saksoft-Limited",
+   "title": "Saksoft Limited - NSE",
+   "excerpt": "NSE quote page"
+  },
+  {
+   "url": "https://www.business-standard.com/markets/news/saksoft-to-acquire-100-equity-in-augmento-labs-for-rs-100-cr-stock-up-15-124061300200_1.html",
+   "title": "Saksoft to acquire 100% equity in Augmento Labs for Rs 100 cr",
+   "excerpt": "Acquisition of Augmento Labs"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_25052026134035_OutcomeofBM25052026Signed.pdf",
+   "title": "Q4 FY2026 Board Meeting Outcome",
+   "excerpt": "Financial results for period ended March 31, 2026"
+  }
+ ],
+ "sourceCount": 4,
+ "webAvailable": true,
+ "structured": {
+  "resolved": {
+   "ok": true,
+   "query": "Saksoft",
+   "resolved": {
+    "symbol": "SAKSOFT",
+    "name": "Saksoft Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "SAKSOFT.NS"
+   }
+  },
+  "price": {
+   "ok": true,
+   "data": {
+    "symbol": "SAKSOFT",
+    "price": 142.28,
+    "change_percent": 1.07,
+    "volume": 193697,
+    "currency": "INR"
+   }
+  },
+  "fundamentals": {
+   "ok": true,
+   "data": {
+    "symbol": "SAKSOFT.NS",
+    "market_cap": 17813112832,
+    "pe_ratio": 13.67,
+    "forward_pe": 4.08,
+    "price_to_book": 2.29,
+    "ev_to_ebitda": 8.62,
+    "roe": 0.19065,
+    "profit_margin": 0.13232,
+    "debt_to_equity": 0.05607,
+    "dividend_yield": 0.007,
+    "beta": 0.356,
+    "fifty_two_week_high": 253.99,
+    "fifty_two_week_low": 107.59
+   }
+  }
+ },
+ "backend": "native",
+ "createdAt": 1781167898308
+}

@@ -1,0 +1,13 @@
+{
+  "prompt": "Which tool gave you that market cap figure? Show exactly what it returned.",
+  "provider": "ollama",
+  "model": "llama3.1:8b",
+  "mode": "ask",
+  "autonomy": "ask",
+  "options": {
+    "history": [
+      {"role": "user", "content": "What is AAPL's market cap?"},
+      {"role": "assistant", "content": "The market cap of AAPL is $4.90T.\n\n[tool steps: Using fundamentals]"}
+    ]
+  }
+}

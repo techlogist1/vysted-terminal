@@ -1,0 +1,31 @@
+Probe: no live browser/vitest execution this shard (no GUI; role forbids running vitest/pytest
+suites). Instead: read the pinned committed tests + the source they exercise at the candidate
+SHA, confirming both exist and cover the register's exact repro.
+
+Pinned tests (both name this entry in their title):
+  src/store/agent-spaces.test.ts:57
+    "switching tab mid-stream stops the run first and archives the partial as stopped
+    (R15-CODE-FRONTEND-002)" — asserts abort fires exactly once while thread A is still live,
+    the archived partial is {content:"Partial ", pending:false, stopped:true} (not stuck
+    pending forever), streamingMessageId/liveAbort clear, and a late delta of the stopped run
+    never lands in the new thread.
+  src/store/research-spaces.test.ts:190
+    "a chat tab's conversation survives a research-space round trip (R15-CODE-FRONTEND-002)" —
+    asserts a chat tab's messages are preserved (not discarded) across entering/leaving a
+    research space, and the research transcript lands under its OWN memory key, not the chat
+    tab's archive.
+
+Source check (matches the tests' expectations):
+  src/store/agent-spaces.ts:68-75 (switchTo) calls useChatHistoryStore.getState().stopLive()
+  BEFORE archiving/loading — stopLive() (chat-history.ts:165-168) invokes liveAbort?.() then
+  clears streamingMessageId, so a switch mid-stream now aborts the in-flight stream instead of
+  leaving a stale streamingMessageId pointed at a dead subscription.
+  src/store/research-spaces.ts (switchSpace) — not read line-by-line this probe; the test at
+  research-spaces.test.ts:190 above is the pinned proof of its behavior.
+
+Verdict basis: ci_pinned — the register's original repro is a live two-tab browser interaction
+(Composer chat tabs + research space) that can only be genuinely exercised via a real browser or
+a jsdom vitest run; both are pinned test files exist at this SHA and their assertions match the
+register's stated repro and the batch-4 certification's fresh case verbatim ("switching back
+restores {content:'Partial ', pending:true} forever" pre-fix vs. now "stopped:true"). The heavy
+lane's vitest run is the actual execution of record for this entry.

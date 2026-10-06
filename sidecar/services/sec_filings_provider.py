@@ -7,9 +7,9 @@ and exposes a small, typed surface the ``/sec`` REST router consumes:
   - :func:`list_filings(cik_or_symbol, form_type, limit)` →
     :class:`FilingsListResponse` — the filings index for a company.
   - :func:`get_filing(accession)` → :class:`FilingDetail` (with sections).
-  - :func:`get_filing_sections(accession)` → ``list[FilingSection]`` —
-    the same parser output without the wrapping metadata; the panel
-    uses this for the section-navigation rail.
+    ``get_filing_sections(accession)`` returns just the ``sections`` list off
+    the same call — no separate REST route (R15-CODE-DATA-013 deleted the
+    caller-less pass-through ``/sections`` route).
   - :func:`list_insider_transactions(cik_or_symbol, form, limit)` →
     :class:`InsiderTransactionsResponse`.
   - :func:`search_companies(query, limit)` → lookup helper for the
@@ -35,10 +35,11 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import re
-from datetime import UTC, date, datetime
+from datetime import date
 from typing import Any
+
+import httpx
 
 from models.sec import (
     Filing,
@@ -63,70 +64,44 @@ _log = logging.getLogger(__name__)
 _PORT_ENV = "VYSTED_SEC_EDGAR_MCP_PORT"
 _HOST_ENV = "VYSTED_SEC_EDGAR_MCP_HOST"
 
-# Cached availability flag. ``None`` = not yet probed.
-_AVAILABLE: bool | None = None
-
-# In-memory state mirrors openbb_mcp_provider for plugin-manager observability.
-_last_tool_call_ok: bool | None = None
-_last_error: str | None = None
+# Shared discovery/status/health-tracked-call shape (R15-CODE-AGENT-024);
+# mirrors openbb_mcp_provider's own ``_subprocess`` for plugin-manager parity.
+_subprocess = mcp_client.LocalMcpSubprocess("sec-edgar-mcp", port_env=_PORT_ENV, host_env=_HOST_ENV)
 
 # Cache TTLs.
 _FILINGS_INDEX_TTL = 3600.0  # 1h
 _FILING_CONTENT_TTL = 86400.0  # 24h
 _INSIDER_TTL = 3600.0  # 1h
 
+# R15-UI-032: sec-edgar-mcp 1.0.8's ``search_companies`` tool swallows every
+# ``edgar.search()`` exception into an empty list (core/client.py), so the
+# panel's symbol field never finds a company by name. SEC EDGAR itself
+# publishes a full ticker/CIK/name index; reading that directly is a working
+# local path that doesn't depend on the MCP subprocess at all.
+_COMPANY_TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
+_COMPANY_TICKERS_CACHE_KEY = "sec:company_tickers"
+_COMPANY_TICKERS_TTL = 86400.0  # 24h — SEC ships this file roughly daily.
+# SEC fair-access guidance wants a contact UA (mirrors services.sec_ownership).
+_SEC_USER_AGENT = "Vysted Terminal (contact: support@vysted.com)"
+
 # ---------------------------------------------------------------------------
 # Port + availability discovery
 # ---------------------------------------------------------------------------
 
 
-def _resolve_endpoint() -> str | None:
-    """Return the Streamable-HTTP endpoint, or ``None`` if not bundled.
-
-    Mirrors :func:`openbb_mcp_provider._resolve_endpoint`. ``None`` means
-    sec-edgar-mcp is not bundled in this build; the router 501s.
-    """
-    port = os.environ.get(_PORT_ENV)
-    if not port or port == "0":
-        return None
-    host = os.environ.get(_HOST_ENV, "127.0.0.1")
-    return f"http://{host}:{port}/mcp"
-
-
 def is_available() -> bool:
     """Return whether the sec-edgar-mcp subprocess is reachable."""
-    global _AVAILABLE
-    if _AVAILABLE is None:
-        _AVAILABLE = _resolve_endpoint() is not None
-    return bool(_AVAILABLE)
+    return _subprocess.is_available()
 
 
 async def status() -> dict[str, Any]:
     """Status payload for ``GET /sec/status`` (consumed by plugin manager)."""
-    endpoint = _resolve_endpoint()
-    available = endpoint is not None
-    return {
-        "available": available,
-        "provider": PROVIDER,
-        "endpoint": endpoint,
-        "lastToolCallOk": _last_tool_call_ok,
-        "lastError": _last_error,
-    }
+    return await _subprocess.status(PROVIDER)
 
 
 # ---------------------------------------------------------------------------
 # Client + tool dispatch
 # ---------------------------------------------------------------------------
-
-
-async def _get_client() -> mcp_client.McpClient:
-    """Return the cached :class:`McpClient` for the sec-edgar-mcp subprocess."""
-    endpoint = _resolve_endpoint()
-    if endpoint is None:
-        raise ProviderError(
-            "sec-edgar-mcp subprocess is not running — VYSTED_SEC_EDGAR_MCP_PORT not set."
-        )
-    return await mcp_client.get_client("sec-edgar-mcp", transport="http", endpoint=endpoint)
 
 
 def _decode_tool_result(result: dict[str, Any], tool_name: str) -> Any:
@@ -140,36 +115,34 @@ def _decode_tool_result(result: dict[str, Any], tool_name: str) -> Any:
             f"sec-edgar-mcp tool {tool_name!r} reported error: {result.get('content')!r}"
         )
     blocks = result.get("content") or []
+    decoded: Any = None
     for block in blocks:
         if isinstance(block, dict) and block.get("type") == "text":
             text = block.get("text", "")
             try:
-                return json.loads(text)
+                decoded = json.loads(text)
             except (TypeError, ValueError):
                 # Some tools (e.g. filing-content) return long-form prose;
                 # surface as the raw text body.
                 return text
-    # Fallback: structured content (FastMCP 3.x with output_schema).
-    structured = result.get("structuredContent")
-    if isinstance(structured, dict):
-        return structured
-    raise ProviderError(f"sec-edgar-mcp tool {tool_name!r} returned no content")
+            break
+    else:
+        # Fallback: structured content (FastMCP 3.x with output_schema).
+        decoded = result.get("structuredContent")
+        if not isinstance(decoded, dict):
+            raise ProviderError(f"sec-edgar-mcp tool {tool_name!r} returned no content")
+    # sec-edgar-mcp reports its own failures in-band as ``{"success": false,
+    # "error": ...}``; parsed as data they became a cached empty (R15-DATA-038).
+    if isinstance(decoded, dict) and decoded.get("success") is False:
+        raise ProviderError(
+            f"sec-edgar-mcp tool {tool_name!r} failed: {decoded.get('error') or 'unknown error'}"
+        )
+    return decoded
 
 
 async def _call_tool(name: str, arguments: dict[str, Any]) -> Any:
     """Invoke a sec-edgar-mcp tool and return the decoded body."""
-    global _last_tool_call_ok, _last_error
-    client = await _get_client()
-    try:
-        raw = await client.call_tool(name, arguments)
-    except Exception as exc:
-        _last_tool_call_ok = False
-        _last_error = f"{type(exc).__name__}: {exc}"
-        raise ProviderError(f"sec-edgar-mcp call {name!r} failed: {exc}") from exc
-    decoded = _decode_tool_result(raw, name)
-    _last_tool_call_ok = True
-    _last_error = None
-    return decoded
+    return await _subprocess.call_tool_json(name, arguments, decode=_decode_tool_result)
 
 
 # ---------------------------------------------------------------------------
@@ -214,26 +187,18 @@ def _coerce_str(value: Any) -> str | None:
     return str(value)
 
 
-def _coerce_form_type(value: Any) -> FilingFormType | None:
-    """Coerce the upstream form-type string to the Literal we surface."""
+def _coerce_form_type(value: Any) -> str | None:
+    """Normalise the upstream form-type string; ``None`` only when absent.
+
+    EDGAR's form space is open (20-F, 6-K, 10-K/A, SC 13D, 424B4, ...), so any
+    form is kept as filed; only the undashed spellings of the common forms are
+    mapped (R15-DATA-039).
+    """
     if value is None:
         return None
     raw = str(value).strip().upper()
-    # sec-edgar-mcp normalises common form types; map a few edge cases.
-    mapping = {
-        "10-K": "10-K",
-        "10K": "10-K",
-        "10-Q": "10-Q",
-        "10Q": "10-Q",
-        "8-K": "8-K",
-        "8K": "8-K",
-        "DEF 14A": "DEF 14A",
-        "DEF14A": "DEF 14A",
-        "3": "3",
-        "4": "4",
-        "5": "5",
-    }
-    return mapping.get(raw)  # type: ignore[return-value]
+    mapping = {"10K": "10-K", "10Q": "10-Q", "8K": "8-K", "DEF14A": "DEF 14A"}
+    return mapping.get(raw, raw) or None
 
 
 def _edgar_url(accession: str, cik: str) -> str:
@@ -287,7 +252,6 @@ def _filings_from_payload(
     for raw in rows:
         form_type = _coerce_form_type(raw.get("form") or raw.get("form_type"))
         if form_type is None:
-            # Skip exotic forms not in our v0.6.0 set.
             continue
         accession = str(raw.get("accession") or raw.get("accession_number") or "")
         if not accession:
@@ -322,22 +286,42 @@ def _filings_from_payload(
     return cik_padded, company_name, symbol, filings
 
 
+_SECTION_TITLES = {
+    "business": "Business",
+    "risk_factors": "Risk Factors",
+    "mda": "Management's Discussion and Analysis",
+}
+
+
+def _parse_error(tool_name: str, detail: str) -> ProviderError:
+    """A success payload the parser could not read: logged, raised, never cached."""
+    _log.warning("sec-edgar-mcp %s payload not parsed: %s", tool_name, detail)
+    return ProviderError(f"sec-edgar-mcp {tool_name} returned a payload Vysted could not parse")
+
+
 def _sections_from_payload(payload: Any) -> list[FilingSection]:
     """Pull sections out of ``get_filing_sections`` / ``get_filing_content``.
 
-    sec-edgar-mcp 1.x emits sections as a list of dicts (id / title /
-    text). Tolerate a bare-text shape for filings the parser cannot
-    section (older 8-K filings, exhibits) by wrapping in one synthetic
-    section.
+    sec-edgar-mcp 1.0.8 emits ``sections`` as a dict of ``name -> text``
+    (plus non-text flags such as ``has_financials``); a list of dicts
+    (id / title / text) is also accepted. A bare-text shape (the raw
+    ``get_filing_content`` fallback for a filing ``get_filing_sections``
+    could not section — every form but a 10-K, and often a 10-Q too,
+    R15-DATA-038) is wrapped in one synthetic "Filing Content" section. An
+    empty ``sections`` here is a real empty (the caller decides whether to
+    fall back); any other shape raises, uncached.
     """
     sections: list[FilingSection] = []
     rows: list[dict[str, Any]] = []
-    if isinstance(payload, dict):
-        raw_sections = payload.get("sections")
-        if isinstance(raw_sections, list):
-            for item in raw_sections:
-                if isinstance(item, dict):
-                    rows.append(item)
+    if isinstance(payload, dict) and isinstance(payload.get("sections"), dict):
+        for key, text in payload["sections"].items():
+            if isinstance(text, str) and text.strip():
+                title = _SECTION_TITLES.get(key) or key.replace("_", " ").title()
+                rows.append({"id": key, "title": title, "text": text})
+    elif isinstance(payload, dict) and isinstance(payload.get("sections"), list):
+        for item in payload["sections"]:
+            if isinstance(item, dict):
+                rows.append(item)
     elif isinstance(payload, list):
         for item in payload:
             if isinstance(item, dict):
@@ -353,6 +337,8 @@ def _sections_from_payload(payload: Any) -> list[FilingSection]:
                 word_count=len(text.split()),
             )
         ]
+    else:
+        raise _parse_error("get_filing_sections", f"unrecognised shape {type(payload).__name__}")
 
     for i, raw in enumerate(rows):
         text = str(raw.get("text") or raw.get("body") or raw.get("content") or "")
@@ -391,27 +377,44 @@ def _direction_from_code(code: str | None) -> InsiderTransactionDirection:
 
 
 def _insider_rows_from_payload(payload: Any) -> tuple[str, str, list[InsiderTransaction]]:
-    """Pull ``(cik, issuer_name, transactions)`` out of an insider payload."""
+    """Pull ``(cik, issuer_name, transactions)`` out of an insider payload.
+
+    sec-edgar-mcp 1.0.8 returns FILING-level rows (``filing_date``,
+    ``form_type``, ``accession_number``, ``company_name``, ``cik``, optional
+    ``owner_name``/``owner_title``) under a top-level issuer ``name``, with no
+    per-trade date, code, direction or share count. Such a row is kept with its
+    filing date and a null direction/shares; per-trade rows keep their detail.
+    An unrecognised shape, or rows that all fail to parse, raises.
+    """
     cik = ""
     issuer_name = ""
     rows: list[dict[str, Any]] = []
     if isinstance(payload, dict):
         cik = str(payload.get("cik") or payload.get("issuer_cik") or "")
-        issuer_name = str(payload.get("issuer_name") or payload.get("company_name") or "")
-        raw_list = (
-            payload.get("transactions")
-            or payload.get("insider_transactions")
-            or payload.get("results")
-            or []
+        issuer_name = str(
+            payload.get("issuer_name") or payload.get("company_name") or payload.get("name") or ""
         )
-        if isinstance(raw_list, list):
-            for row in raw_list:
-                if isinstance(row, dict):
-                    rows.append(row)
+        raw_list = next(
+            (
+                payload[key]
+                for key in ("transactions", "insider_transactions", "results")
+                if isinstance(payload.get(key), list)
+            ),
+            None,
+        )
+        if raw_list is None:
+            raise _parse_error("get_insider_transactions", f"no rows list in {sorted(payload)}")
+        for row in raw_list:
+            if isinstance(row, dict):
+                rows.append(row)
     elif isinstance(payload, list):
         for row in payload:
             if isinstance(row, dict):
                 rows.append(row)
+    else:
+        raise _parse_error(
+            "get_insider_transactions", f"unrecognised shape {type(payload).__name__}"
+        )
 
     transactions: list[InsiderTransaction] = []
     for raw in rows:
@@ -424,16 +427,22 @@ def _insider_rows_from_payload(payload: Any) -> tuple[str, str, list[InsiderTran
         accession = str(raw.get("accession") or raw.get("accession_number") or "")
         if not accession:
             continue
-        txn_date = _coerce_date(raw.get("transaction_date") or raw.get("trade_date"))
+        txn_date = _coerce_date(
+            raw.get("transaction_date") or raw.get("trade_date") or raw.get("filing_date")
+        )
         if txn_date is None:
             continue
         direction_str = str(raw.get("direction") or "").strip().lower()
-        direction: InsiderTransactionDirection
+        direction: InsiderTransactionDirection | None
         if direction_str in {"acquired", "disposed"}:
             direction = direction_str  # type: ignore[assignment]
-        else:
+        elif raw.get("transaction_code"):
             direction = _direction_from_code(raw.get("transaction_code"))
-        shares = str(raw.get("shares") or raw.get("transaction_shares") or raw.get("amount") or "0")
+        else:
+            direction = None  # a filing-level row carries no trade to classify
+        shares = _coerce_str(
+            raw.get("shares") or raw.get("transaction_shares") or raw.get("amount")
+        )
         price = _coerce_str(raw.get("price_per_share") or raw.get("price"))
         value = _coerce_str(raw.get("transaction_value") or raw.get("value"))
         issuer_cik_raw = str(raw.get("issuer_cik") or raw.get("cik") or cik)
@@ -448,7 +457,7 @@ def _insider_rows_from_payload(payload: Any) -> tuple[str, str, list[InsiderTran
                 reporter_name=str(raw.get("reporter_name") or raw.get("owner_name") or ""),
                 reporter_cik=reporter_cik,
                 issuer_cik=issuer_cik,
-                issuer_name=str(raw.get("issuer_name") or issuer_name),
+                issuer_name=str(raw.get("issuer_name") or raw.get("company_name") or issuer_name),
                 issuer_symbol=_coerce_str(raw.get("issuer_symbol") or raw.get("ticker")),
                 form_type=form,
                 transaction_date=txn_date,
@@ -457,9 +466,13 @@ def _insider_rows_from_payload(payload: Any) -> tuple[str, str, list[InsiderTran
                 price_per_share=price,
                 transaction_value=value,
                 transaction_code=str(raw.get("transaction_code") or raw.get("code") or ""),
-                reporter_title=_coerce_str(raw.get("reporter_title") or raw.get("title")),
+                reporter_title=_coerce_str(
+                    raw.get("reporter_title") or raw.get("owner_title") or raw.get("title")
+                ),
             )
         )
+    if rows and not transactions:
+        raise _parse_error("get_insider_transactions", f"{len(rows)} rows, none parsed")
     cik_padded = cik.zfill(10) if cik.isdigit() else cik
     return cik_padded, issuer_name, transactions
 
@@ -504,16 +517,49 @@ async def list_filings(
     return response
 
 
+#: ``get_filing``'s metadata-lookup windows, smallest first (R15-LEAD-010).
+#: sec-edgar-mcp 1.0.8 reads each row's ``period_of_report``, which fetches that
+#: filing's SGML from EDGAR, so a window's cost grows per row: 200+ rows time
+#: out or fail ("cannot unpack non-iterable NoneType") and 400 hangs past the
+#: client timeout. The lookup opens with base's 40-row request and widens once.
+_FILING_WINDOWS = (40, 100)
+
+#: Periodic-report forms tried, form-filtered at the smallest window only, when
+#: no explicit ``form_type`` hint locates the accession in the unfiltered
+#: windows above (R15-LEAD-010) — the annual/quarterly forms a heavy
+#: Form-4/144 filer's recency stream pushes past row 100.
+# ponytail: bounded to these 3 extra 40-row calls; an unhinted filing of a
+# rarer form still outside all of the above (e.g. an 8-K) is not_found — the
+# caller's form hint is how that one resolves.
+_PERIODIC_FORMS = ("10-K", "10-Q", "20-F")
+
+
 async def get_filing(
     accession: str,
     *,
     cik_or_symbol: str | None = None,
+    form_type: str | None = None,
 ) -> FilingDetail:
     """Return the parsed filing detail for one accession.
 
     ``cik_or_symbol`` is required by sec-edgar-mcp's
     ``get_filing_content`` upstream tool; the panel always passes the
     same identifier it used to fetch the list.
+
+    R15-DATA-007: metadata is resolved FIRST, against the issuer's recent
+    filings list. A miss raises ``ProviderError(kind="not_found")`` — never
+    a synthesised ``Filing`` — so an accession outside the list window (or
+    one sec-edgar-mcp doesn't recognise) surfaces as an honest 404, not a
+    filing that reads "10-K filed today" with no company name.
+
+    R15-LEAD-010: ``form_type`` is the listed row's form — the lookup runs over
+    that form-filtered list first (what the panel showed), then, with no hint
+    or on a miss, over the unfiltered list. Each pass opens with a 40-row
+    window and widens to 100 only when a full window misses. A failed hinted
+    lookup falls back to the unfiltered list. With no hint, once the unfiltered
+    list also misses, the lookup tries each periodic-report form's own
+    40-row list (``_PERIODIC_FORMS``) before raising — a heavy Form-4/144
+    filer's 10-K/10-Q can sit well past row 100 of the raw recency stream.
     """
     if not accession:
         raise ProviderError("accession is required")
@@ -523,36 +569,57 @@ async def get_filing(
     if cached is not None:
         return FilingDetail.model_validate(cached)
 
+    # Metadata FIRST — the sectioning call below needs the filing's REAL
+    # form_type (a 10-Q sectioned as "10-K" mis-parses its headings), and a
+    # miss here must raise, not synthesise a filing (§6 D-B2, R15-DATA-007).
+    passes: list[tuple[dict[str, str], tuple[int, ...]]] = (
+        ([({"form_type": form_type}, _FILING_WINDOWS)] if form_type else [])
+        + [({}, _FILING_WINDOWS)]
+        + ([] if form_type else [({"form_type": f}, _FILING_WINDOWS[:1]) for f in _PERIODIC_FORMS])
+    )
+    match = None
+    for form_filter, windows in passes:
+        for limit in windows:
+            try:
+                list_payload = await _call_tool(
+                    "get_recent_filings",
+                    {"identifier": identifier, "limit": limit, **form_filter},
+                )
+            except ProviderError:
+                if not form_filter:
+                    raise
+                break  # this filtered list failed: fall through to the next pass
+            _, _, _, filings = _filings_from_payload(list_payload, fallback_cik=identifier)
+            match = next((f for f in filings if f.accession == accession), None)
+            if match is not None or len(filings) < limit:
+                break  # found, or the list is exhausted: a wider window adds nothing
+        if match is not None:
+            break
+    if match is None:
+        raise ProviderError(f"filing metadata unavailable for {accession!r}", kind="not_found")
+
     sections_payload = await _call_tool(
         "get_filing_sections",
-        {"identifier": identifier, "accession_number": accession, "form_type": "10-K"},
+        {"identifier": identifier, "accession_number": accession, "form_type": match.form_type},
     )
     sections = _sections_from_payload(sections_payload)
-
-    # Pull a minimal filing metadata row by hitting the filings list and
-    # filtering by accession — keeps the FilingDetail payload self-contained.
-    list_payload = await _call_tool(
-        "get_recent_filings",
-        {"identifier": identifier, "limit": 40},
-    )
-    _, _, _, filings = _filings_from_payload(list_payload, fallback_cik=identifier)
-    match = next((f for f in filings if f.accession == accession), None)
-    if match is None:
-        # Sec-edgar-mcp returned sections but the listing page no
-        # longer surfaces the accession — synthesise a minimal Filing
-        # so the panel can still render.
-        match = Filing(
-            accession=accession,
-            cik=identifier.zfill(10) if identifier.isdigit() else identifier,
-            company_name="",
-            symbol=None if not identifier.isalpha() else identifier,
-            form_type="10-K",
-            filed_date=datetime.now(tz=UTC).date(),
-            period_of_report=None,
-            edgar_url=_edgar_url(
-                accession, identifier.zfill(10) if identifier.isdigit() else identifier
-            ),
+    if not sections:
+        # sec-edgar-mcp 1.0.8's ``get_filing_sections`` only extracts
+        # business/risk_factors/mda when the filing object exposes them
+        # (10-K, and rarely 10-Q); every other form (8-K, and most 10-Qs)
+        # comes back with an empty (or ``has_financials``-only) sections
+        # dict — a real filing with zero parsed sections, not a real empty
+        # (R15-DATA-038). Fall back to the raw filing text.
+        content_payload = await _call_tool(
+            "get_filing_content", {"identifier": identifier, "accession_number": accession}
         )
+        content = content_payload.get("content") if isinstance(content_payload, dict) else None
+        if isinstance(content, str) and content.strip():
+            sections = _sections_from_payload(content)
+        if not sections:
+            raise ProviderError(
+                f"sec-edgar-mcp: {accession!r} has no sectioned or raw content to read"
+            )
 
     total_chars = sum(len(s.text) for s in sections)
     detail = FilingDetail(filing=match, sections=sections, total_chars=total_chars)
@@ -564,14 +631,18 @@ async def get_filing_sections(
     accession: str,
     *,
     cik_or_symbol: str | None = None,
+    form_type: str | None = None,
 ) -> list[FilingSection]:
     """Return just the sections list for an accession.
 
-    Thin wrapper over :func:`get_filing` so the panel's section-only
-    navigation rail can hit a cheaper route without re-fetching the
-    metadata row.
+    Thin wrapper over :func:`get_filing` — it does not skip the metadata
+    lookup or the cache (R15-CODE-DATA-013: the earlier "cheaper route" claim
+    was false; ``get_filing``'s own ``data_cache`` TTL is what makes a repeat
+    call cheap). No REST route exposes this; it exists for callers that only
+    want the sections. ``form_type`` (R15-LEAD-010) is the same lookup hint
+    ``get_filing`` takes — forward it when the caller has it.
     """
-    detail = await get_filing(accession, cik_or_symbol=cik_or_symbol)
+    detail = await get_filing(accession, cik_or_symbol=cik_or_symbol, form_type=form_type)
     return list(detail.sections)
 
 
@@ -609,41 +680,70 @@ async def list_insider_transactions(
     return response
 
 
+async def _load_company_tickers() -> dict[str, dict[str, Any]]:
+    """The SEC's full ticker/CIK/name index, cached 24h.
+
+    ``company_tickers.json`` is a ``{"0": {"cik_str": ..., "ticker": ...,
+    "title": ...}, "1": {...}, ...}`` map, refreshed by SEC roughly daily and
+    reachable without the sec-edgar-mcp subprocess.
+    """
+    cached = await data_cache.get(_COMPANY_TICKERS_CACHE_KEY, _COMPANY_TICKERS_TTL)
+    if isinstance(cached, dict) and cached:
+        return cached
+    try:
+        async with httpx.AsyncClient(
+            headers={"User-Agent": _SEC_USER_AGENT}, timeout=30.0, follow_redirects=True
+        ) as client:
+            resp = await client.get(_COMPANY_TICKERS_URL)
+        resp.raise_for_status()
+        payload = resp.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        raise ProviderError(f"sec company_tickers.json fetch failed: {exc}") from exc
+    if not isinstance(payload, dict) or not payload:
+        raise ProviderError("sec company_tickers.json returned an unexpected shape")
+    await data_cache.set(_COMPANY_TICKERS_CACHE_KEY, payload)
+    return payload
+
+
+def _company_ticker_row(raw: dict[str, Any]) -> dict[str, Any]:
+    cik = str(raw.get("cik_str") or raw.get("cik") or "")
+    if cik.isdigit():
+        cik = cik.zfill(10)
+    ticker = _coerce_str(raw.get("ticker"))
+    return {"cik": cik, "name": str(raw.get("title") or ""), "ticker": ticker}
+
+
 async def search_companies(query: str, limit: int = 10) -> list[dict[str, Any]]:
     """Search the EDGAR company index — used by the panel's symbol field.
 
-    sec-edgar-mcp exposes a ``search_companies`` tool; pass-through is
-    fine because results are advisory only (the panel displays them
-    in a dropdown). Returns a list of ``{cik, name, ticker}`` rows.
+    R15-UI-032: sec-edgar-mcp 1.0.8's ``search_companies`` tool swallows
+    every ``edgar.search()`` exception into ``[]`` (its ``core/client.py``),
+    so it never actually finds a company. This reads SEC's own
+    ``company_tickers.json`` index instead — a working local path that needs
+    no MCP round-trip. Matching is a case-insensitive substring over both the
+    ticker and the company name; an exact ticker match is returned first.
+    Returns a list of ``{cik, name, ticker}`` rows, capped at ``limit``.
     """
-    if not query or not query.strip():
+    q = query.strip().lower()
+    if not q:
         return []
-    cache_key = f"sec:search:{query.strip().lower()}:{limit}"
-    cached = await data_cache.get(cache_key, _FILINGS_INDEX_TTL)
-    if isinstance(cached, list):
-        return cached  # type: ignore[return-value]
-    payload = await _call_tool("search_companies", {"query": query.strip(), "limit": int(limit)})
-    rows: list[dict[str, Any]] = []
-    raw_list: list[Any] = []
-    if isinstance(payload, dict):
-        raw_list = payload.get("results") or payload.get("companies") or []  # type: ignore[assignment]
-    elif isinstance(payload, list):
-        raw_list = payload
-    for row in raw_list:
-        if not isinstance(row, dict):
+    tickers = await _load_company_tickers()
+    exact: list[dict[str, Any]] = []
+    partial: list[dict[str, Any]] = []
+    for raw in tickers.values():
+        if not isinstance(raw, dict):
             continue
-        cik = str(row.get("cik") or row.get("CIK") or "")
-        if cik.isdigit():
-            cik = cik.zfill(10)
-        rows.append(
-            {
-                "cik": cik,
-                "name": str(row.get("name") or row.get("company_name") or ""),
-                "ticker": _coerce_str(row.get("ticker") or row.get("symbol")),
-            }
-        )
-    await data_cache.set(cache_key, rows)
-    return rows
+        ticker = str(raw.get("ticker") or "").lower()
+        title = str(raw.get("title") or "").lower()
+        if not ticker and not title:
+            continue
+        if ticker == q:
+            exact.append(_company_ticker_row(raw))
+        elif q in ticker or q in title:
+            partial.append(_company_ticker_row(raw))
+        if len(exact) >= limit:
+            break
+    return (exact + partial)[:limit]
 
 
 # ---------------------------------------------------------------------------
@@ -653,10 +753,7 @@ async def search_companies(query: str, limit: int = 10) -> list[dict[str, Any]]:
 
 def _reset_for_tests() -> None:
     """Clear cached availability + last-call state — used only from tests."""
-    global _AVAILABLE, _last_tool_call_ok, _last_error
-    _AVAILABLE = None
-    _last_tool_call_ok = None
-    _last_error = None
+    _subprocess.reset_for_tests()
 
 
 __all__ = [

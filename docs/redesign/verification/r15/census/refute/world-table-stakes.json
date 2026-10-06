@@ -1,0 +1,128 @@
+[
+  {
+    "raw_id": "WLD-T-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Holds: no alert/schedule/trigger surface exists. The catalog's 51 ids contain no alert/notify/schedule/trigger id, the workflow node set is fetch/compute/agent/logic/action/transform/sleep with no trigger node, and the only run starts are POST /workflow/run and POST /agents/{id}/runs. Severity corrected critical -> high: COMMON's critical is wrong money data, data loss or a safety boundary; a missing central capability is the definition of high.",
+    "evidence": "sidecar/services/agent_tools/catalog.py (all _cap ids enumerated), sidecar/services/workflow_nodes/builtin.py:52-400 (node handlers, no trigger), sidecar/services/workflow_nodes/builtin.py:325-340 (notify_desktop only records an intent), sidecar/routers/workflow.py:38, sidecar/routers/runs.py:63, src/lib/desktop-notification.ts:1-25",
+    "evidence_checked": "Enumerated every catalog id, grepped sidecar/routers for alert|notify|schedul|trigger|cron (only resolve.py's symbol-master schedule_refresh and earnings docstring), grepped src/ types/ plugins/ for alert/cron (only 'acronym' false positives), listed workflow node handlers and run routes.",
+    "repro_check": "grep -nE 'alert|notify|schedul|trigger|cron' sidecar/routers/*.py -> no alert/schedule surface; grep '@router' workflow.py runs.py -> only interactive POST starts."
+  },
+  {
+    "raw_id": "WLD-T-2",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed by reading the webview stack, not only the repo comment. downloadCsv uses a Blob plus <a download>. The app registers no on_download handler. On macOS, wry's WKWebView navigation delegate answers every shouldPerformDownload action with Cancel when no download handler exists, so both Export CSV buttons are silent no-ops on macOS: no throw, no toast. Windows WebView2 may use its default download UI; Windows is unverified.",
+    "evidence": "src/lib/csv.ts:27-37, src/lib/export-artifact.ts:4-11, src/modules/watchlist/WatchlistPanel.tsx:265, src/modules/portfolio/PortfolioPanel.tsx:504, ~/.cargo/registry/src/.../wry-0.55.1/src/wkwebview/navigation.rs:59-74, ~/.cargo/registry/src/.../tauri-2.11.1/src/webview/mod.rs:357,740 (download_handler defaults None)",
+    "evidence_checked": "Read csv.ts and export-artifact.ts, grepped both callers, grepped src-tauri/src for on_download (none), then read the locked tauri 2.11.1, tauri-runtime-wry and wry 0.55.1 sources for default download behaviour. No GUI click (forbidden).",
+    "repro_check": "grep -rn on_download src-tauri/src -> none; wry navigation.rs:68-74 -> should_download && !has_download_handler => WKNavigationActionPolicy::Cancel."
+  },
+  {
+    "raw_id": "WLD-T-3",
+    "verdict": "removed_with_feature",
+    "severity_final": "high",
+    "reason": "This concerns the Kite broker session-expiry cue in the broker-connect BrokerReadsSection and brokers router. That surface exists only for broker connectivity, which is being deleted with the trading removal.",
+    "evidence": "sidecar/routers/brokers.py:184-188, src/modules/broker-connect/BrokerReadsSection.tsx:52-53 (as cited)",
+    "evidence_checked": "Scope classification only, per PROMPT_refute: the subject exists only to connect a broker.",
+    "repro_check": "n/a: removed_with_feature"
+  },
+  {
+    "raw_id": "WLD-T-4",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed. GET /fundamentals/{symbol}/income|balance|cashflow exist, but agent_tools has no statement capability. The only fundamentals tool returns the point-in-time Fundamentals model. The research finance helpers never fetch statements either. The live route returns only 5 annual periods for RELIANCE.NS, which also bears out the provider-depth claim.",
+    "evidence": "sidecar/routers/fundamentals.py:177-192, sidecar/services/agent_tools/catalog.py:224-238, sidecar/services/agent_tools/fundamentals.py:180-216, sidecar/services/provider_registry.py:134-136,210-212, sidecar/services/research/finance.py:100,246",
+    "evidence_checked": "Read the routes, the catalog fundamentals entry and its handler. Grepped agent_tools/, research/ and agents/ for income|balance|cash_flow|statement: the only hit is the open_company_overview host-action description. Ran a GET against :52152.",
+    "repro_check": "curl 127.0.0.1:52152/fundamentals/RELIANCE.NS/income -> periods ['2026','2025','2024','2023','2022'] (5 annual), provider yfinance-shaped; no catalog id reaches it."
+  },
+  {
+    "raw_id": "WLD-T-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The core claim holds: the product has no config, route or UI to add a user-chosen MCP server, and only openbb-mcp and sec-edgar-mcp are wired. Three corrections. (1) The 'universal tool layer' promise in the constitution and spec is MCP-as-SERVER, where one catalog is projected to external clients; nothing promises consuming user-added servers, so there is no positioning contradiction. (2) A generic stdio/http McpClient already exists (mcp_client.py:218), so the missing piece is only a config surface. (3) Most of the cited example servers are broker servers, which are now out of scope. Downgraded high -> medium.",
+    "evidence": "sidecar/services/mcp_client.py:1-20,218-232, sidecar/services/openbb_mcp_provider.py:177, sidecar/services/sec_filings_provider.py:129, sidecar/routers/mcp.py:28,44, types/mcp.ts:1-40, .specify/memory/constitution.md:26-31, specs/001-agent-native-redesign/spec.md:399-404",
+    "evidence_checked": "Grepped sidecar/ src/ src-tauri/src/ types/ plugins/ for MCP client and config surfaces. Only two hardcoded get_client callers exist; McpServerConfig has no consumer outside types/ and the keychain namespace. Read the constitution Principle II and spec US7 wording.",
+    "repro_check": "grep -rn 'get_client(' sidecar --include=*.py -> only openbb-mcp and sec-edgar-mcp call sites; no route or UI takes an MCP server config."
+  },
+  {
+    "raw_id": "WLD-T-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "No dedicated transcript capability exists; that holds. But transcripts are not merely 'incidental'. For India targets, research deliberately routes transcript/concall/conference-call-shaped sub-questions to the exchange announcement feed, whose attachment PDFs the extract lane reads. The real gap is narrower: no guaranteed selection (transcript rows rank in the lowest band behind results filings and presentations, with a cap of 5 source rows per researcher), no chat-level tool that reads the PDF, and no US coverage. Downgraded high -> medium.",
+    "evidence": "sidecar/services/research/disclosures.py:1-23,44,61-74,78-92,112-119,179, sidecar/services/agent_tools/catalog.py (no transcript id; corporate_announcements at :654-684)",
+    "evidence_checked": "Grepped catalog.py for transcript|concall (none). Read the research disclosures module's keyword gate, ranking bands and source cap.",
+    "repro_check": "grep -n -i 'transcript|concall' sidecar/services/agent_tools/catalog.py -> none; disclosures.py:86-87 keywords route concall questions to the announcement feed."
+  },
+  {
+    "raw_id": "WLD-T-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Holds. earnings_upcoming with no watchlist uses a hardcoded 10-ticker US universe via yfinance, and the live repro returns only US names. The fix shape is wrong, though. The existing India results calendar is PER-SYMBOL (get_results_calendar(symbol) and GET /disclosures/results?symbol=), so registering it as one catalog entry would still not answer 'which Indian companies report this week'. That needs a market-wide NSE/BSE board-meeting feed.",
+    "evidence": "sidecar/services/earnings_provider.py:61-76, sidecar/services/agent_tools/earnings_tools.py:29-60, sidecar/services/agent_tools/catalog.py:502-525, sidecar/services/research/disclosures.py:185-200, sidecar/routers/disclosures.py:74-92, sidecar/services/corporate_disclosures.py:335-358",
+    "evidence_checked": "Read the provider default universe, tool handler and catalog entry, plus the India calendar service, route and research wrapper. Ran a GET against :52152.",
+    "repro_check": "curl '127.0.0.1:52152/earnings/upcoming?days=30' -> symbols ['JPM','TSLA'] (US default universe only)."
+  },
+  {
+    "raw_id": "WLD-T-8",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed. The only 'pledge' token in sidecar/, src/ and types/ is the corporate_announcements description. The ShareholdingPattern model has promoter/fii/dii/institutions/public/employee-trust fields and no pledge field. No pledge level or history exists anywhere.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:659, sidecar/models/announcements.py:91-140",
+    "evidence_checked": "grep -rni pledge over sidecar/ src/ types/ (excluding tests and .venv) -> 1 hit. Listed the ShareholdingPattern fields.",
+    "repro_check": "grep -rni pledge sidecar src types --include=*.py --include=*.ts --include=*.tsx -> only catalog.py:659."
+  },
+  {
+    "raw_id": "WLD-T-9",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed. There are no bulk-deal, block-deal or SAST surfaces. The disclosures router serves only announcements/results/shareholding, while the SEC insider route and capability ship. A live 50-row merged announcement pull for ADANIENT contained no SAST or insider rows, so the generic feed does not incidentally cover it either.",
+    "evidence": "sidecar/routers/disclosures.py:44,74,95, sidecar/services/agent_tools/catalog.py:625-630, sidecar/routers/sec_filings.py:149-155",
+    "evidence_checked": "Grepped sidecar/ src/ types/ for bulk/block deal, SAST and non-SEC insider (none). Checked announcement categories on :52152.",
+    "repro_check": "curl '127.0.0.1:52152/disclosures/announcements?symbol=ADANIENT&limit=50' -> 50 rows, categories exclude any SAST/insider-trading type."
+  },
+  {
+    "raw_id": "WLD-T-10",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed live. shareholding_pattern for RELIANCE returns fii_percent 17.2, dii_percent 21.19 and institutions_percent 38.39, stamped split_source BSE. The same handler unconditionally appends a note saying the FII/DII split 'lives in each quarter's linked xbrl_url filing', and the catalog description says the same, so the model is told the data is absent while holding it.",
+    "evidence": "sidecar/services/agent_tools/disclosure_tools.py:67-89, sidecar/services/corporate_disclosures.py:460-540, sidecar/services/agent_tools/catalog.py:685-692",
+    "evidence_checked": "Read the handler, the BSE split merge and the catalog description. Ran a GET against :52152.",
+    "repro_check": "curl '127.0.0.1:52152/disclosures/shareholding?symbol=RELIANCE' -> 2026-06-30 fii 17.2 / dii 21.19 / split_source BSE; handler note is hardcoded regardless."
+  },
+  {
+    "raw_id": "WLD-T-11",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed as a gap. There is no composite, quality or scorecard capability or model (and no Piotroski/Altman-style score) in sidecar services/models or src. Watchlist rows are price/change columns. The raw finding rates this medium; that is not disproved.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:224-238, src/modules/watchlist/WatchlistPanel.tsx:274-290",
+    "evidence_checked": "grep -rniE 'composite_score|quality_score|scorecard|piotroski|altman' over sidecar/services, sidecar/models and src -> none. Read the watchlist column definitions.",
+    "repro_check": "grep over sidecar/services sidecar/models src for scorecard terms -> zero hits."
+  },
+  {
+    "raw_id": "WLD-T-12",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. There are no open_interest, openInterest or option-chain symbols anywhere in sidecar/, src/ or types/ outside tests. Greeks are model-computed only (price_option, compute_greeks). This is market data for research, not trading, so the trading removal does not affect it. The finding's broker_reads citation becomes moot with that removal, but the defect stands.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:710,756",
+    "evidence_checked": "grep -rniE 'open_interest|openInterest|option.?chain' over sidecar/ src/ types/ (excluding tests and .venv) -> none.",
+    "repro_check": "grep for OI/option-chain terms -> zero non-test hits."
+  },
+  {
+    "raw_id": "WLD-T-13",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The gap holds: the sidecar models and services have no segment or operational-metric data. One mechanism claim is wrong. The existing BSE XBRL parser reads the SHAREHOLDING-pattern filing (Reg 31), while segment results sit in the separate financial-results filing (Reg 33). The XBRL-parsing approach is reusable, but it is not 'the same filings'. Severity stays medium.",
+    "evidence": "sidecar/services/bse_provider.py:613-640, sidecar/services/agent_tools/catalog.py:224-238",
+    "evidence_checked": "grep -rni segment over sidecar/services and sidecar/models -> only exchange-segment, filename and industry-label hits. Read the BSE get_shareholding parser scope.",
+    "repro_check": "grep -rniE 'segment' sidecar/services sidecar/models -> no revenue-segment data path."
+  },
+  {
+    "raw_id": "WLD-T-14",
+    "verdict": "removed_with_feature",
+    "severity_final": "medium",
+    "reason": "This concerns Kite Connect broker onboarding (api_secret exchange, request_token paste, POST /brokers/kite/session). That surface exists only to connect a broker and is being deleted with the trading removal. The hosted-MCP alternative it proposes is also a broker surface.",
+    "evidence": "sidecar/services/brokers/kite.py:13-17, sidecar/routers/brokers.py:415 (as cited)",
+    "evidence_checked": "Scope classification only, per PROMPT_refute: the subject exists only to connect a broker.",
+    "repro_check": "n/a: removed_with_feature"
+  }
+]

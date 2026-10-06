@@ -1,0 +1,137 @@
+[
+  {
+    "raw_id": "COD-host-actions-proposed-changes-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: enqueue stores only {name,input} (proposed-changes.ts:97-101) and applyHostActionAsync re-resolves via activePortfolio()+resolveHolding() at accept time (host-actions.ts:533-536, 545-560, 1352-1389), and the user can switch the active portfolio from PortfolioPanel.tsx:560 while a change is pending; reproduced (B's lot deleted, A untouched). Corrected: for delete the cross-portfolio hit needs the model to send `symbol`, which the delete schema does not declare (catalog.py:1367 position_id only) - without it the id-miss returns null honestly; the realistic path is portfolio_update_position (schema declares both position_id and symbol) and portfolio_add_position landing in the accept-time portfolio. Requires a portfolio switch between proposal and accept in ASK mode, so medium, not high.",
+    "evidence": "src/store/proposed-changes.ts:95-111, src/lib/host-actions.ts:533-560, src/lib/host-actions.ts:1352-1389, src/modules/portfolio/PortfolioPanel.tsx:560, sidecar/services/agent_tools/catalog.py:1335-1370",
+    "evidence_checked": "Opened the gate store, resolveHolding/activePortfolio, async apply, catalog schemas, portfolio switcher; re-ran proof P5 locally.",
+    "repro_check": "pnpm exec vitest run --config <scratch>/hapc/vitest.config.ts --silent=false (critic's proof test copied verbatim to scratch, run against HEAD d6dc63c) -> P5 after [[\"A\",[\"h-a:10\"]],[\"B\",[]]]"
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-2",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Catalog declares mode default 'append' (catalog.py:1388) but both describe (host-actions.ts:805) and apply (host-actions.ts:1183-1185) treat anything but an explicit 'append' as replace; the sidecar passes tool args through raw with no schema-default fill (agent_runtime.py:1190-1219), so a mode-less write_note overwrites the note, with no review under AUTO (proposed-changes.ts:118-120). Reproduced.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:1374-1392, src/lib/host-actions.ts:802-815, src/lib/host-actions.ts:1176-1190, sidecar/services/agent_runtime.py:1190-1219, src/store/proposed-changes.ts:118-120",
+    "evidence_checked": "Opened catalog entry, both host-action branches, runtime host-action dispatch (checked for any default-filling - none); re-ran proof P2 and P8.",
+    "repro_check": "pnpm exec vitest run --config <scratch>/hapc/vitest.config.ts --silent=false (critic's proof test copied verbatim to scratch, run against HEAD d6dc63c) -> P2 'Wrote the NVDA note' {\"NVDA\":\"new line\"}; P8 {\"INFY\":\"x\"}"
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The user-facing hint ('UI changes apply instantly', ComposerPlusMenu.tsx:185), the autonomy docstring (agent-autonomy.ts:7-17) and the enqueue comment (proposed-changes.ts:113-114) all promise only panel/chart/watchlist auto-apply, while the predicate `kind !== 'order'` (proposed-changes.ts:118) auto-applies data-write and settings too - reproduced. Corrected mechanism: data-write auto-apply is a documented R10 decision (types/proposed-change.ts:16-20, catalog.py:1303-1307), not an accident; the defect is that the copy the user reads to choose AUTO misrepresents it, and the blacklist predicate has no remaining exemption once orders go. Actual damage needs a bad write (e.g. -2), so medium.",
+    "evidence": "src/store/proposed-changes.ts:113-120, src/store/agent-autonomy.ts:7-17, src/modules/chat/ComposerPlusMenu.tsx:183-186, types/proposed-change.ts:15-28, sidecar/services/agent_tools/catalog.py:1303-1307",
+    "evidence_checked": "Opened all five cited sites; re-ran proof P8 (AUTO note replace applied with no review).",
+    "repro_check": "pnpm exec vitest run --config <scratch>/hapc/vitest.config.ts --silent=false (critic's proof test copied verbatim to scratch, run against HEAD d6dc63c) -> P8 {\"INFY\":\"x\"} after AUTO enqueue of write_note"
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real bug: the store's saveScreen takes only `name` and snapshots the current draft (screener.ts:218, 612-627); host-actions casts it to a (name,payload) signature (host-actions.ts:1216-1235) so the agent's criteria/group/formula/universe are silently dropped, the success label is returned, and a same-name screen is replaced while the diff says '+name'. Reproduced. Severity corrected to medium: agent save_screen is a secondary flow and the saved recipe is visible on load; not a core-flow or money-data defect.",
+    "evidence": "src/lib/host-actions.ts:1207-1236, src/store/screener.ts:216-218, src/store/screener.ts:612-627, src/modules/screener/ScreenerPanel.tsx:180",
+    "evidence_checked": "Opened host-actions branch, store type + impl, the only other caller (panel); re-ran proof P3.",
+    "repro_check": "pnpm exec vitest run --config <scratch>/hapc/vitest.config.ts --silent=false (critic's proof test copied verbatim to scratch, run against HEAD d6dc63c) -> P3 saved screen holds pe_ratio lt 20 + market_cap + sector (defaults), not pe_ratio lt 15"
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "applyFilters destructures without `run` (screener.ts:302) and its doc puts the runScreener() chaining on the host-action caller (screener.ts:200-203); host-actions only forwards run:true through a cast and never calls runScreener (host-actions.ts:1140-1174), yet narrates 'running'. The catalog tells the model run:true runs the screen (catalog.py:1279-1285). Reproduced (0 runScreener calls).",
+    "evidence": "src/lib/host-actions.ts:1140-1174, src/store/screener.ts:198-210, src/store/screener.ts:302-313, sidecar/services/agent_tools/catalog.py:1279-1285",
+    "evidence_checked": "Opened apply branch, store contract + impl, catalog arg, grep of all runScreener callers (only panel buttons/presets); re-ran proof P4.",
+    "repro_check": "pnpm exec vitest run --config <scratch>/hapc/vitest.config.ts --silent=false (critic's proof test copied verbatim to scratch, run against HEAD d6dc63c) -> P4 'Wrote 1 screener criterion — running' runScreener calls: 0"
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "describeHostAction (host-actions.ts:577-866) and applyHostAction/Async parse inputs independently: cost-only update diff shows x0 while apply keeps x10 (num() vs positionBody fallback, 776-788 vs 1263-1266); close_panel describe uses raw getPanel (615-624) while apply uses resolvePanelToken; open_panel diff hardcodes 'not open' (603-613); set_region diff echoes an invalid value (855-862); unknown names default to kind 'panel' (864). Reproduced P6 and P7b.",
+    "evidence": "src/lib/host-actions.ts:603-624, src/lib/host-actions.ts:776-789, src/lib/host-actions.ts:855-865, src/lib/host-actions.ts:950-960, src/lib/host-actions.ts:1263-1273",
+    "evidence_checked": "Read both switches in full; re-ran proofs P6, P7b.",
+    "repro_check": "pnpm exec vitest run --config <scratch>/hapc/vitest.config.ts --silent=false (critic's proof test copied verbatim to scratch, run against HEAD d6dc63c) -> P6 'TCS: ×0 @ ₹3,100 | Updated TCS: ×10 @ ₹3,100'; P7b 'Screener panel: not open'"
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: enqueue returns only an id and fire-and-forgets accept (proposed-changes.ts:118-121); ChatSidebar narrates 'Applied:' synchronously from the autonomy flag, duplicating the predicate (ChatSidebar.tsx:959-968, 582-589), and the 584 comment ('already gone from changes') is false. Corrected severity: the failure IS surfaced - accept re-pends with a detail (proposed-changes.ts:165-169) that the review card renders ('Couldn't apply: ...', ProposedChangesReview.tsx:121-123), and the model's tool result is rewritten from the ack (agent_runtime.py:1620-1625); only the transcript step line is stale, so low.",
+    "evidence": "src/store/proposed-changes.ts:118-121, src/store/proposed-changes.ts:165-169, src/modules/chat/ChatSidebar.tsx:572-590, src/modules/chat/ChatSidebar.tsx:952-968, src/modules/chat/ProposedChangesReview.tsx:121-123, sidecar/services/agent_runtime.py:1620-1625",
+    "evidence_checked": "Opened both ChatSidebar enqueue callers, gate accept/re-pend path, review card detail rendering, runtime ack read-back.",
+    "repro_check": "code-only: AUTO + saveWorkspace throwing -> tool step 'Applied: ...' appended before applyHostActionAsync resolves null; review bar shows the re-pended change with the failure detail."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: `clear()` (proposed-changes.ts:229) has no production caller and both /clear paths (ChatSidebar.tsx:631-633, 708-711) clear chat history and notices but leave pending changes, which ⌘↵ acceptAll (ChatSidebar.tsx:554-557, proposed-changes.ts:209-216) then applies; resolved entries are never pruned. Corrected severity: the stale items stay fully visible in the review bar with their diffs and still need an explicit accept, and there is no multi-conversation switcher (only /clear), so low.",
+    "evidence": "src/store/proposed-changes.ts:209-229, src/modules/chat/ChatSidebar.tsx:554-560, src/modules/chat/ChatSidebar.tsx:631-633, src/modules/chat/ChatSidebar.tsx:708-711, src/modules/chat/ProposedChangesReview.tsx:21-27, src/store/chat-history.ts:236",
+    "evidence_checked": "Opened gate store, all /clear handlers, review component; grepped src for proposed-changes clear() callers (none outside tests) and for conversation switching (none).",
+    "repro_check": "code-only: ASK, stage write_note replace, type /clear -> chat empties, review bar still lists the change; ⌘↵ applies it."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-9",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "No reader of the sidecar ledger exists: GET /portfolio/positions has no caller in src/ or sidecar/ (grep), portfolio_db is only used by its router; PUT/DELETE require an integer id (portfolio.py:33-47) while frontend ids are 'h-<uuid>', so sidecarPositionId() is undefined and DELETE hits the collection route (405, swallowed); the awaited fetch has no AbortSignal (host-actions.ts:1281-1310) inside the accept path; purchased_at goes only to this ledger (1270-1272). Reproduced the DELETE-without-id fetch.",
+    "evidence": "src/lib/host-actions.ts:1254-1317, src/lib/host-actions.ts:1337, src/lib/host-actions.ts:1361, src/lib/host-actions.ts:1381, sidecar/routers/portfolio.py:21-47, src/store/portfolios.ts:53-57, src/store/portfolios.ts:210-213",
+    "evidence_checked": "Opened sync helpers, router, portfolios id generator; grepped src + sidecar for '/portfolio/positions' and portfolio_db readers; re-ran proof P5 fetch log.",
+    "repro_check": "pnpm exec vitest run --config <scratch>/hapc/vitest.config.ts --silent=false (critic's proof test copied verbatim to scratch, run against HEAD d6dc63c) -> P5 fetch [[\"http://127.0.0.1:1/portfolio/positions\",\"DELETE\"],...] (no id)"
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-10",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "The only KillSwitchBus subscriber / is_fired consumers are broker adapters (broker_base.py:103, 251, 345); no agent runtime, run_manager, workflow or frontend gate subscribes, the kill-switch UI was removed (src/modules/safety/index.ts:10-12), and every audit_log.append call site is in broker_base.py (142, 158, 190). What they gate: the kill switch gates broker-adapter order placement ONLY (nothing in agent autonomy / host actions / durable runs), and the append-only audit log records only broker/order/disclaimer events - so both are order-only as built and the surviving data-write gate has neither a stop button nor a durable audit trail.",
+    "evidence": "sidecar/services/kill_switch.py:63-77, sidecar/services/broker_base.py:103, sidecar/services/broker_base.py:142-190, sidecar/services/broker_base.py:251, sidecar/services/broker_base.py:345, sidecar/routers/safety.py:120-146, src/modules/safety/index.ts:10-12",
+    "evidence_checked": "Grepped sidecar, src-tauri/src and src for get_bus()/subscribe/is_fired/audit_log.append; opened kill_switch.subscribe and safety router.",
+    "repro_check": "grep -rn 'get_bus()\\|\\.subscribe(\\|is_fired' sidecar src-tauri/src -> only broker_base.py + safety router; grep audit_log.append -> only broker_base.py"
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-11",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Catalog tells the model scope 'global' (catalog.py:1377, 1385) but noteScope only maps 'general' to the General bucket (host-actions.ts:563-566), so 'global' writes a GLOBAL ticker note (reproduced P1); save_layout without a name saves 'Agent layout' in both describe (829) and apply (1391) though the catalog says omitting name updates the active layout (catalog.py:1408).",
+    "evidence": "sidecar/services/agent_tools/catalog.py:1374-1388, sidecar/services/agent_tools/catalog.py:1403-1410, src/lib/host-actions.ts:563-566, src/lib/host-actions.ts:828-835, src/lib/host-actions.ts:1390-1397",
+    "evidence_checked": "Opened catalog entries and both host-action branches; re-ran proof P1.",
+    "repro_check": "pnpm exec vitest run --config <scratch>/hapc/vitest.config.ts --silent=false (critic's proof test copied verbatim to scratch, run against HEAD d6dc63c) -> P1 {\"general\":\"\",\"bySymbol\":{\"GLOBAL\":\"hello\"}}"
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-12",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "arrange_layout focus uses raw dockviewApi.getPanel(panel) (host-actions.ts:1010-1019) while focus_panel resolves aliases via resolvePanelToken/findOpenPanel (962-975); reproduced null vs 'Focused Screener'.",
+    "evidence": "src/lib/host-actions.ts:962-975, src/lib/host-actions.ts:1010-1019",
+    "evidence_checked": "Opened both branches; re-ran proof P7.",
+    "repro_check": "pnpm exec vitest run --config <scratch>/hapc/vitest.config.ts --silent=false (critic's proof test copied verbatim to scratch, run against HEAD d6dc63c) -> P7 'null | Focused Screener'"
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-13",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Every null apply re-pends with the fixed copy 'its arguments were incomplete' (proposed-changes.ts:149-153) regardless of cause (e.g. saveWorkspace throw at host-actions.ts:1392-1396), and publishAckStatus derives kept_previous by `label.startsWith('Kept')` (host-actions.ts:1411-1416).",
+    "evidence": "src/store/proposed-changes.ts:149-153, src/lib/host-actions.ts:1390-1397, src/lib/host-actions.ts:1411-1416, src/lib/host-actions.ts:1117-1126",
+    "evidence_checked": "Opened the accept path, publishAckStatus, publish_brief Kept labels, save_layout failure branch.",
+    "repro_check": "code-only: any null label from applyHostActionAsync -> detail 'Could not apply this change — its arguments were incomplete.'"
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-14",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real duplication: addPosition/updatePosition/deletePosition (portfolios.ts:223-264) and appendGeneral/appendSymbolNote (notes.ts:26-31, 57-67) have zero production callers (grep), and host-actions re-implements append with different trimming (host-actions.ts:1183-1185 vs joinNote notes.ts:45-50). Corrected: the 'no null check on add' consequence does not bite - apply already rejects an empty symbol / non-positive quantity before addHolding (host-actions.ts:1331-1334), and normalizeHolding only rejects an empty symbol (portfolios.ts:69-77).",
+    "evidence": "src/lib/host-actions.ts:1176-1190, src/lib/host-actions.ts:1329-1350, src/store/portfolios.ts:69-89, src/store/portfolios.ts:215-264, src/store/notes.ts:26-67",
+    "evidence_checked": "Opened both stores' seams and normalizeHolding; grepped src for callers of the five seam functions (none outside the store files/tests).",
+    "repro_check": "grep -rn 'addPosition\\|updatePosition\\|deletePosition\\|appendSymbolNote\\|appendGeneral' src (excluding tests + defining files) -> no hits"
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-15",
+    "verdict": "removed_with_feature",
+    "severity_final": "low",
+    "reason": "Serves AI order proposal / broker routing / the §6.5 order confirm dialog (propose_order describe, routeOrderProposal, kind 'order' branches, order-only safety types) - the surface is being deleted with trading (23 Sep). Carry the critic's removal note: once 'order' leaves ProposedChangeKind the AUTO predicate at proposed-changes.ts:118 exempts nothing (see -3).",
+    "evidence": "src/lib/host-actions.ts:728-741, src/store/proposed-changes.ts:55-62, src/store/proposed-changes.ts:139-147, types/proposed-change.ts:26",
+    "evidence_checked": "Confirmed the cited branches are order-only; no deep refute per PROMPT_refute.md scope-change rule.",
+    "repro_check": "n/a (removed_with_feature)"
+  }
+]

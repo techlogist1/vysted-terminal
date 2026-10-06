@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+One SIFY ADR represents Six Equity Shares. SIFY's TTM revenue in USD is ₹4,651 crores.
+
+=== ok · 48.9s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 27, 'done': 1} · usage in=5769 out=27 · est $0.00000 · llama3.1:8b

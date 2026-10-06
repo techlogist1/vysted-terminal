@@ -1,0 +1,64 @@
+## smoke :95-102
+const MAIN_BOOT_TIMEOUT_MS = 120_000;
+const MAIN_POLL_INTERVAL_MS = 500;
+// MCP bind budget — aligned with the Rust supervisor's MCP_PORT_WAIT_SECS(45) x
+// MCP_PORT_WAIT_ATTEMPTS(2) = 90s. A cold `_MEI*` extraction binds at ~34s
+// isolated on an M1 (Phase 9.5 measurement); 90s covers contended cold boots.
+const MCP_BIND_TIMEOUT_MS = 90_000;
+// After binding, confirm the process survives a short settle window (catches a
+// bind-then-immediately-crash).
+## lib.rs MCP_PORT_WAIT
+148:pub(crate) const MCP_PORT_WAIT_SECS: u64 = 45;
+152:/// unbounding startup — total worst case ~`MCP_PORT_WAIT_SECS * MCP_PORT_WAIT_ATTEMPTS`.
+153:pub(crate) const MCP_PORT_WAIT_ATTEMPTS: u32 = 2;
+156:/// `MCP_PORT_WAIT_SECS`. Returns `true` on the first successful TCP connect.
+158:/// The total budget is `MCP_PORT_WAIT_SECS * MCP_PORT_WAIT_ATTEMPTS`; the
+324:            MCP_PORT_WAIT_SECS,
+325:            MCP_PORT_WAIT_ATTEMPTS,
+329:                     {attempt}/{attempts} ({MCP_PORT_WAIT_SECS}s); cold PyInstaller \
+610:        MCP_ENDPOINT_FILENAME, MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS, MCP_PROTOCOL_VERSION,
+774:        // Guards against an accidental zeroing of MCP_PORT_WAIT_ATTEMPTS that
+## openbb_mcp.rs / sec_edgar_mcp.rs
+src-tauri/src/sec_edgar_mcp.rs:37:    pick_free_port, wait_for_port_with_retries, MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS,
+src-tauri/src/sec_edgar_mcp.rs:159:        MCP_PORT_WAIT_SECS,
+src-tauri/src/sec_edgar_mcp.rs:160:        MCP_PORT_WAIT_ATTEMPTS,
+src-tauri/src/sec_edgar_mcp.rs:164:                 ({MCP_PORT_WAIT_SECS}s); cold PyInstaller extraction may be slow — retrying."
+src-tauri/src/sec_edgar_mcp.rs:171:             {MCP_PORT_WAIT_SECS}s x {MCP_PORT_WAIT_ATTEMPTS} attempts; treating as \
+src-tauri/src/openbb_mcp.rs:37:    pick_free_port, wait_for_port_with_retries, MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS,
+src-tauri/src/openbb_mcp.rs:162:        MCP_PORT_WAIT_SECS,
+src-tauri/src/openbb_mcp.rs:163:        MCP_PORT_WAIT_ATTEMPTS,
+src-tauri/src/openbb_mcp.rs:167:                 ({MCP_PORT_WAIT_SECS}s); cold PyInstaller extraction may be slow — retrying."
+src-tauri/src/openbb_mcp.rs:174:             {MCP_PORT_WAIT_SECS}s x {MCP_PORT_WAIT_ATTEMPTS} attempts; treating as \
+## any test tying MCP_BIND_TIMEOUT_MS to rust?
+docs/redesign/verification/vysted-r15-register.json:15012:   "evidence": "scripts/smoke-test-sidecars.mjs:97-100 (MCP_BIND_TIMEOUT_MS = 90_000 + alignment comment, lead re-verified); src-tauri/src/lib.rs:78, :83; src-tauri/src/openbb_mcp.rs:149-152; src-tauri/src/sec_edgar_mcp.rs:148-151. Refuter COD-scripts-build-10 admitted low.",
+docs/redesign/verification/vysted-r15-register.json:15014:   "fix_shape": "Cheapest: a cargo test that parses scripts/smoke-test-sidecars.mjs for MCP_BIND_TIMEOUT_MS and asserts it equals MCP_PORT_WAIT_SECS * MCP_PORT_WAIT_ATTEMPTS * 1000 (or a shared constants JSON both read).",
+docs/redesign/verification/r15/census/merge-in/release.json:89:  "evidence": "scripts/smoke-test-sidecars.mjs:97-100 (const MCP_BIND_TIMEOUT_MS = 90_000 with the comment 'aligned with the Rust supervisor's MCP_PORT_WAIT_SECS(45) x MCP_PORT_WAIT_ATTEMPTS(2) = 90s'), src-tauri/src/lib.rs:78 (MCP_PORT_WAIT_SECS = 45), src-tauri/src/lib.rs:83 (MCP_PORT_WAIT_ATTEMPTS = 2), src-tauri/src/openbb_mcp.rs:149-152 and src-tauri/src/sec_edgar_mcp.rs:148-151 (the consumers)",
+docs/redesign/verification/r15/census/merge-in/release.json:95:   "reason": "Confirmed. MCP_BIND_TIMEOUT_MS=90_000 is tied to lib.rs MCP_PORT_WAIT_SECS=45 x ATTEMPTS=2 only by a comment. The one Rust guard, mcp_wait_budget_constants_drive_the_helper, asserts only budget_secs >= 15, so dropping it to 20 passes every test while the smoke gate keeps certifying 90s binds."
+docs/redesign/verification/r15/census/refute/code-scripts-build.json:87:    "reason": "Confirmed. MCP_BIND_TIMEOUT_MS=90_000 is tied to lib.rs MCP_PORT_WAIT_SECS=45 x ATTEMPTS=2 only by a comment. The one Rust guard, mcp_wait_budget_constants_drive_the_helper, asserts only budget_secs >= 15, so dropping it to 20 passes every test while the smoke gate keeps certifying 90s binds.",
+docs/redesign/verification/r15/census/merge/release.json:204:      "evidence": "scripts/smoke-test-sidecars.mjs:97-100 (MCP_BIND_TIMEOUT_MS = 90_000 + alignment comment, lead re-verified); src-tauri/src/lib.rs:78, :83; src-tauri/src/openbb_mcp.rs:149-152; src-tauri/src/sec_edgar_mcp.rs:148-151. Refuter COD-scripts-build-10 admitted low.",
+docs/redesign/verification/r15/census/merge/release.json:206:      "fix_shape": "Cheapest: a cargo test that parses scripts/smoke-test-sidecars.mjs for MCP_BIND_TIMEOUT_MS and asserts it equals MCP_PORT_WAIT_SECS * MCP_PORT_WAIT_ATTEMPTS * 1000 (or a shared constants JSON both read).",
+docs/redesign/verification/r15/census/intent/ledger-deferred-0.json:30:    "evidence": "scripts/smoke-test-sidecars.mjs:474-503 (_tcpConnectOk/_waitForBind), :100 + :810 (MCP_BIND_TIMEOUT_MS=90s TCP bind gate per MCP binary), :686-689 + :760-770 (/agents count > 0 assert), :641-648 (/health version assert), :696 (/mcp/status); DECISIONS.md D80 records an end-to-end green run",
+docs/redesign/verification/r15/census/raw/code-scripts-build.json:99:    "evidence": "scripts/smoke-test-sidecars.mjs:97-100 (const MCP_BIND_TIMEOUT_MS = 90_000 with the comment 'aligned with the Rust supervisor's MCP_PORT_WAIT_SECS(45) x MCP_PORT_WAIT_ATTEMPTS(2) = 90s'), src-tauri/src/lib.rs:78 (MCP_PORT_WAIT_SECS = 45), src-tauri/src/lib.rs:83 (MCP_PORT_WAIT_ATTEMPTS = 2), src-tauri/src/openbb_mcp.rs:149-152 and src-tauri/src/sec_edgar_mcp.rs:148-151 (the consumers)",
+scripts/smoke-test-sidecars.mjs:53://        MCP_BIND_TIMEOUT_MS) — process-alive is not enough, the UC1
+## lib.rs:770-790 (only Rust guard on the budget)
+    fn mcp_wait_budget_constants_drive_the_helper() {
+        // Exercise the shipped constants through the helper on an unbound
+        // port with a zeroed per-attempt budget (keeps the test instant)
+        // to confirm they wire together and the attempt count is honoured.
+        // Guards against an accidental zeroing of MCP_PORT_WAIT_ATTEMPTS that
+        // would make the bind probe a no-op and reintroduce the UC1
+        // silent-lie. (The seconds budget is asserted via a runtime read so
+        // clippy doesn't flag a constant-only assertion.)
+        let free_port = pick_free_port().expect("bind a free port");
+        let budget_secs = std::hint::black_box(MCP_PORT_WAIT_SECS);
+        assert!(budget_secs >= 15, "cold-boot budget must stay >= 15s");
+
+        let attempts = std::hint::black_box(MCP_PORT_WAIT_ATTEMPTS);
+        let calls = AtomicU32::new(0);
+        let ok = wait_for_port_with_retries(free_port, 0, attempts, |_, _| {
+            calls.fetch_add(1, Ordering::SeqCst);
+        });
+        assert!(!ok);
+        // on_retry fires (attempts - 1) times; this also proves attempts >= 1.
+        assert_eq!(calls.load(Ordering::SeqCst), attempts.saturating_sub(1));
+    }

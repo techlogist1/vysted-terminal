@@ -1,0 +1,20 @@
+CMD: grep -rn 'locale_domains|preferredDomains|detect_searxng|KNOWN_BACKENDS|breaker_status|untrusted_context_message' --include=*.py sidecar/ (candidate 1006c6da)
+sidecar/tests/test_web_search.py:191:    # (services.search.searxng.detect_searxng was deleted, R15-CODE-RESEARCH-004);
+sidecar/tests/test_search_exports.py:4:(``locale_domains``, ``KNOWN_BACKENDS``, ``detect_searxng``, ``breaker_status``,
+sidecar/tests/test_search_exports.py:5:``untrusted_context_message``, ``SearchResponse.metadata``) that was exported
+sidecar/services/search/base.py:109:    ``options`` — e.g. ``preferredDomains``/``maxResults``/``region``) into a
+---files present check---
+__pycache__
+__init__.py
+base.py
+brave.py
+breaker.py
+ddg.py
+extract.py
+keyless.py
+mojeek.py
+pacing.py
+registry.py
+scrub.py
+searxng.py
+transport.py

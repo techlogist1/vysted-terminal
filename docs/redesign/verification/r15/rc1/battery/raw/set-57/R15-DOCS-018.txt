@@ -1,0 +1,42 @@
+=== CURRENT_STATE.md ===
+All under `sidecar/services/`. `provider_registry.py` resolves by **standard
+model key** (`quote`, `ohlcv`, `fundamentals`, `income_statement`, …), walking
+installed providers in **preference order** until one succeeds — `asset_class`
+is a resolution _hint_ layered on top, not the dispatch switch (FR-035/053; a
+`ProviderDeclaration` table — id, model-keys served, preference rank,
+credential/availability gate, region gate — is the single source of truth, and
+`active_providers()` at `/health` derives from it rather than being
+hand-maintained). `get_quote`/`get_history` stay **synchronous** (ccxt/yfinance
+providers, wrapped in `asyncio.to_thread`); openbb-backed methods stay `async`
+— two resolvers (sync/async) share one declaration table and the same
+preference-order fallthrough. For region `IN`, three keyless providers
+outrank the broad default on `quote`/`ohlcv`: `nse_direct` (rank 15,
+exchange-direct EOD, the anti-bot curl_cffi lane), `nse` (rank 20,
+jugaad-data), `bse` (rank 25, the micro-cap EOD default for groups NSE never
+listed) — IN fundamentals still fall through to yfinance (no region-scoped
+fundamentals provider exists).
+=== provider_registry.py ranks ===
+129:        rank=10,
+141:        rank=10,
+167:        rank=15,
+184:        rank=20,
+203:        rank=25,
+219:        rank=50,
+=== /health chain ===
+{
+    "status": "ok",
+    "service": "vysted-sidecar",
+    "version": "0.8.0",
+    "providers": {
+        "analyst_rating": "openbb-mcp (yfinance fallback)",
+        "balance_sheet": "openbb-mcp (yfinance fallback)",
+        "cash_flow": "openbb-mcp (yfinance fallback)",
+        "fundamentals": "openbb-mcp (yfinance fallback)",
+        "income_statement": "openbb-mcp (yfinance fallback)",
+        "macro_series": "openbb-mcp",
+        "ohlcv": "ccxt (nse_direct, nse, bse, yfinance fallback)",
+        "quote": "ccxt (nse_direct, nse, bse, yfinance fallback)",
+        "openbb-mcp": "available"
+    },
+    "agents_degraded": []
+}

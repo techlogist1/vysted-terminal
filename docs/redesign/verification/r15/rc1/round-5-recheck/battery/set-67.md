@@ -1,0 +1,7 @@
+# battery shard 5 — set-67 (batch-18/unassigned)
+
+| id | repro run | observed | verdict |
+|---|---|---|---|
+| R15-LEAD-034 | In-process at candidate 949c3c9f: `_match_key('INSPIRE')` vs `_match_key('INSPIRE-SM.NS')` both → `INSPIRE`; `symbols_match('INSPIRE','INSPIRE-SM.NS')` → `True`; `correctness_gate.validate_fundamentals(yfinance_fundamentals_for_INSPIRE-SM.NS, 'INSPIRE', 'IN')` → accepted, returns `symbol='INSPIRE-SM.NS'` (no CorrectnessError). Also ran the register's exact outer call `provider_registry.get_fundamentals('INSPIRE'/'IPHL'/'ISHAN')` under region IN. | The `-SM.NS` infix is stripped by `_SUFFIX_RE` (services/correctness_gate.py:59, explicitly commented "R15-LEAD-034") before comparison, so the symbol-mismatch rejection this entry describes no longer fires — the gate call that used to raise `CorrectnessError` now returns the fundamentals object. Adjacent note (not part of this entry's defect): the outer `provider_registry.get_fundamentals('INSPIRE')` call still raises `ProviderError` for all 3 test symbols, but via a DIFFERENT path — the registry's `fallback_ok` gate at services/provider_registry.py:487-493 rejects the result as an "unusable shell" because almost every fundamentals field (market_cap, pe_ratio, eps, etc.) is legitimately `None` for this illiquid NSE Emerge micro-cap on yfinance, not because of a symbol mismatch. Confirmed via direct calls that this is unrelated to the LEAD-034 defect class. | holds |
+
+COVERAGE: 1/1 ids raw; no raw: none.

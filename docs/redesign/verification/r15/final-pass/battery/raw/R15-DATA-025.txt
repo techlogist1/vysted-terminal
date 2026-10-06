@@ -1,0 +1,27 @@
+# R15-DATA-025 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:05:31+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in JONJUA ELCIDIN AMAL; do echo "\$ GET /disclosures/corporate-actions?symbol=$s [IN]"; curl -s -m 100 -H "X-Vysted-Region: IN" "$H/disclosures/corporate-actions?symbol=$s" | python3 -c "
+import sys,json;d=json.load(sys.stdin);a=d.get('actions') or d.get('items') or []
+print('count',len(a),'sources',d.get('sources'))
+for x in a[:4]: print({k:x.get(k) for k in ('kind','purpose','ratio','amount','ex_date','record_date','source','sources') if x.get(k) is not None})"; done
+--- output ---
+$ GET /disclosures/corporate-actions?symbol=JONJUA [IN]
+count 5 sources ['BSE']
+{'kind': 'bonus', 'purpose': 'Bonus issue 7:24', 'ratio': '7:24', 'ex_date': '2026-09-04', 'record_date': '2026-09-04'}
+{'kind': 'bonus', 'purpose': 'Bonus issue 5:40', 'ratio': '5:40', 'ex_date': '2026-01-23', 'record_date': '2026-01-23'}
+{'kind': 'dividend', 'purpose': 'Final Dividend', 'ex_date': '2025-09-19', 'record_date': '2025-09-20'}
+{'kind': 'bonus', 'purpose': 'Bonus issue 1:20', 'ratio': '1:20', 'ex_date': '2025-07-28', 'record_date': '2025-07-28'}
+$ GET /disclosures/corporate-actions?symbol=ELCIDIN [IN]
+count 5 sources ['NSE', 'BSE']
+{'kind': 'dividend', 'purpose': 'Dividend - Rs 25 Per Share', 'ex_date': '2026-07-24', 'record_date': '2026-07-24'}
+{'kind': 'dividend', 'purpose': 'Final Dividend', 'ex_date': '2025-07-23', 'record_date': '2025-07-23'}
+{'kind': 'dividend', 'purpose': 'Final Dividend', 'ex_date': '2024-08-16', 'record_date': '2024-08-16'}
+{'kind': 'dividend', 'purpose': 'Final Dividend', 'ex_date': '2023-09-15', 'record_date': '2023-09-15'}
+$ GET /disclosures/corporate-actions?symbol=AMAL [IN]
+count 5 sources ['NSE', 'BSE']
+{'kind': 'dividend', 'purpose': 'Final Dividend', 'ex_date': '2026-07-31', 'record_date': '2026-07-31'}
+{'kind': 'dividend', 'purpose': 'Dividend', 'ex_date': '2025-08-14', 'record_date': '2025-08-14'}
+{'kind': 'rights', 'purpose': 'Right Issue of Equity Shares', 'ex_date': '2023-02-21', 'record_date': '2023-02-21'}
+{'kind': 'dividend', 'purpose': 'Dividend'}
+
+EXIT=0 (1.8s)

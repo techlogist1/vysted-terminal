@@ -1,0 +1,1 @@
+20:**v1.0 scope:** 20 modules shipped in 0.9 (see §4 for the full ~37-module v1.0 roadmap), 12 AI agents, full plugin architecture, MCP server, node editor for workflow automation, backtest engine. Trading (broker connectivity, order placement, simulated accounts) was removed permanently (D81, 23 Sep 2026).

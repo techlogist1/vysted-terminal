@@ -1,0 +1,11 @@
+save-A 200 {"status":"saved","name":"PLX"}
+save-B 200 {"status":"saved","name":"PLX"}
+delete 204 
+files after delete: ['PLX.vysted-workspace.bak']
+list 200 ["__autosave__","a/b","निवेश योजना"]
+get-after-delete 404 {"detail":"Workspace 'PLX' not found."}
+save-C-new 200 {"status":"saved","name":"PLX"}
+corrupted own file /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-drive-panels-layouts/workspaces/PLX.vysted-workspace
+get-after-corrupt 200 {"name":"PLX","layout":null,"notes":{"general":"A-old-holdings"}}
+files: ['PLX.vysted-workspace', 'PLX.vysted-workspace.bak', 'PLX.vysted-workspace.corrupt-1791025706776']
+cleanup 204 

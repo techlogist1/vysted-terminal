@@ -1,0 +1,3 @@
+REGION=IN SYM=AAPL
+{"symbol":"AAPL","price":341.07000732421875,"change":5.160007324218725,"change_percent":1.536127928379246,"volume":29950100.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:00:01Z","provider":"yfinance","freshness":"eod"}
+HTTP_STATUS:200

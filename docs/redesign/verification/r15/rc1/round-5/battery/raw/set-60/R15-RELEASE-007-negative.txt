@@ -1,0 +1,8 @@
+../release007-scan/src/modules/research/brief-blocks.tsx:1096  off-grid step  gap-1.5
+../release007-scan/src/modules/research/brief-blocks.tsx:1096  arbitrary value  px-[7px]
+../release007-scan/src/modules/research/brief-blocks.tsx:1096  arbitrary value  text-[12px]
+
+— per-file —
+   3  ../release007-scan/src/modules/research/brief-blocks.tsx
+
+3 violation(s) of R9_DESIGN_SYSTEM.md

@@ -1,0 +1,12 @@
+COMMAND: curl -s -o /dev/null -w '%{http_code}' on sidecar :52360: POST /portfolio/positions, PUT/DELETE /portfolio/positions/AAPL, GET /portfolio/positions; openapi methods
+EXIT: 0
+OUTPUT:
+POST /portfolio/positions -> 405 {"detail":"Method Not Allowed"}
+PUT /portfolio/positions/AAPL -> 404 {"detail":"Not Found"}
+DELETE /portfolio/positions/AAPL -> 404 {"detail":"Not Found"}
+GET /portfolio/positions -> 200 []
+{'/portfolio/positions': ['get']}
+--- client-side writers to sidecar portfolio (grep, expect none):
+src/modules/portfolio/api.ts:65: * /portfolio/positions`), where tracked holdings lived before they moved into
+src/modules/portfolio/api.ts:70:  const response = await fetch(new URL("/portfolio/positions", base).toString());
+[grep done]

@@ -1,0 +1,28 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9  lib.rs:186-203 (resolve_data_dir -> app_data_dir); sidecar/config.py:544-549; grep cache-dir sidecar/main.py sidecar/config.py
+fn resolve_data_dir(app: &AppHandle) -> String {
+    let dir = match app.path().app_data_dir() {
+        Ok(dir) => dir,
+        Err(err) => {
+            diag_eprintln!(
+                "[vysted] could not resolve the app data directory ({err}); \
+                 falling back to a temp directory"
+            );
+            std::env::temp_dir().join("vysted-terminal")
+        }
+    };
+    if let Err(err) = std::fs::create_dir_all(&dir) {
+        diag_eprintln!(
+            "[vysted] could not create the data directory {dir:?} ({err}); \
+             sidecar persistence may be degraded"
+        );
+    }
+    dir.to_string_lossy().to_string()
+...
+def get_data_dir() -> Path:
+    """Return the application data directory, creating it if necessary."""
+    raw = os.environ.get(DATA_DIR_ENV)
+    path = Path(raw) if raw else Path.home() / ".vysted-terminal"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+...
+(0 hits)

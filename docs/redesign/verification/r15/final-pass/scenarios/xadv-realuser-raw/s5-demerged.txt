@@ -1,0 +1,12 @@
+== ITCHOTELS
+{"symbol":"ITCHOTELS","price":158.51,"change":-5.6200000000000045,"change_percent":-3.424115030768296,"volume":2346443.0,"open":163.2,"high":163.3,"low":157.05,"prev_close":164.13,"currency":"INR","market_state":"CLOSED","timestamp":"2026-1
+  F: {'symbol': 'ITCHOTELS.NS', 'name': 'ITC Hotels Limited', 'market_cap': 330686496768.0, 'pe_ratio': 38.25301, 'eps': 4.16, 'revenue_ttm': 42598800000.0, 'net_income_ttm': 8640400000.0, 'book_value': 55.967, 'roe': 0.0741167764127427, 'roce': 0.09189175573536318, 'fifty_two_week_high': 226.63, 'fifty_two_week_low': 137.3, 'first_trade_date': '2025-01-29', 'shares_outstanding': 2083064424.0}
+== ENRIN
+{"symbol":"ENRIN","price":3334.0,"change":134.0,"change_percent":4.1875,"volume":1649842.0,"open":3213.0,"high":3358.0,"low":3187.0,"prev_close":3200.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"
+  F: {'symbol': 'ENRIN.NS', 'name': None, 'market_cap': 1187305750528.0, 'pe_ratio': 79.9904, 'eps': 41.79, 'revenue_ttm': 94363000000.0, 'net_income_ttm': 14880000000.0, 'book_value': None, 'roe': None, 'roce': None, 'fifty_two_week_high': None, 'fifty_two_week_low': None, 'first_trade_date': None, 'shares_outstanding': None}
+== SIEMENS
+{"symbol":"SIEMENS","price":3804.0,"change":78.40000000000009,"change_percent":2.1043590294180827,"volume":243713.0,"open":3725.7,"high":3804.0,"low":3709.5,"prev_close":3725.6,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-0
+  F: {'symbol': 'SIEMENS.NS', 'name': None, 'market_cap': 1354682466304.0, 'pe_ratio': 80.0, 'eps': None, 'revenue_ttm': None, 'net_income_ttm': None, 'book_value': None, 'roe': None, 'roce': None, 'fifty_two_week_high': None, 'fifty_two_week_low': None, 'first_trade_date': None, 'shares_outstanding': None}
+== SAMMAANCAP
+{"symbol":"SAMMAANCAP","price":132.48,"change":-4.060000000000002,"change_percent":-2.9734876226746763,"volume":6813037.0,"open":136.4,"high":137.3,"low":130.0,"prev_close":136.54,"currency":"INR","market_state":"CLOSED","timestamp":"2026-1
+  F: {'symbol': 'SAMMAANCAP.NS', 'name': 'Sammaan Capital Limited', 'market_cap': 152315887616.0, 'pe_ratio': None, 'eps': -89.32, 'revenue_ttm': 74177300000.0, 'net_income_ttm': -72355600000.0, 'book_value': None, 'roe': None, 'roce': None, 'fifty_two_week_high': None, 'fifty_two_week_low': None, 'first_trade_date': None, 'shares_outstanding': None}

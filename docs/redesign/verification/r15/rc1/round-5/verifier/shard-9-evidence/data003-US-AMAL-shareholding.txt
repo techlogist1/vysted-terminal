@@ -1,0 +1,3 @@
+### 16:44:53 curl -H X-Vysted-Region: US http://127.0.0.1:52609/disclosures/shareholding?symbol=AMAL
+
+HTTP 000 90.000586s

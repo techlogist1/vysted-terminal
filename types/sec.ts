@@ -17,7 +17,8 @@
 // Filing identity
 // ---------------------------------------------------------------------------
 
-/** The form types Vysted's filings reader surfaces in v0.6.0. */
+/** The form types the filings list can be FILTERED by. A listed filing's own
+ * ``form_type`` is an open string (20-F, 6-K, 10-K/A, SC 13D, ...). */
 export type FilingFormType = "10-K" | "10-Q" | "8-K" | "DEF 14A" | "3" | "4" | "5";
 
 /**
@@ -33,8 +34,8 @@ export interface Filing {
   company_name: string;
   /** Primary ticker, where the filing exposes one (10-K/10-Q/8-K do). */
   symbol: string | null;
-  /** Form type — e.g. ``"10-K"``, ``"4"``. */
-  form_type: FilingFormType;
+  /** Form type as filed — e.g. ``"10-K"``, ``"20-F"``, ``"SC 13D"``. */
+  form_type: string;
   /** ISO-8601 date the filing was accepted by EDGAR. */
   filed_date: string;
   /** ISO-8601 date the filing's reporting period closes (e.g. fiscal-year end). */
@@ -127,12 +128,14 @@ export interface InsiderTransaction {
   issuer_symbol: string | null;
   /** Filing form type — one of ``"3" | "4" | "5"``. */
   form_type: "3" | "4" | "5";
-  /** ISO-8601 transaction date (NOT the filing date — the trade date). */
+  /** ISO-8601 trade date; a filing-level row (no per-trade detail upstream)
+   * carries its filing date. */
   transaction_date: string;
-  /** ``"acquired" | "disposed"``. */
-  direction: InsiderTransactionDirection;
-  /** Number of shares as a string — exact XBRL value (may exceed safe int). */
-  shares: string;
+  /** ``"acquired" | "disposed"``; ``null`` on a filing-level row. */
+  direction: InsiderTransactionDirection | null;
+  /** Number of shares as a string — exact XBRL value (may exceed safe int);
+   * ``null`` on a filing-level row. */
+  shares: string | null;
   /** Per-share price as a string; ``null`` for gift / inheritance transactions. */
   price_per_share: string | null;
   /** Total transaction value (``shares × price_per_share``) as a string;

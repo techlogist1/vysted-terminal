@@ -1,0 +1,15 @@
+# R15-AGENT-081 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:10+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+from services.agent_tools import catalog
+for c in catalog.CAPABILITY_CATALOG.values():
+    if c.id=='open_company_overview': print('desc:',c.description)
+PY
+cd "$C"; grep -n 'highlightMetric' src/modules/equity-overview/EquityOverviewPanel.tsx | head -5; grep -rn 'a highlight command' src --include=*.test.tsx | head -3
+--- output ---
+desc: Open the Equity Overview panel ON a company (fundamentals, statements, ratings) by ticker. Optional `highlight` names ONE metric to spotlight for the user (e.g. pe_ratio, market_cap, dividend_yield) — use it when explaining a specific metric ('what is a P/E ratio? show me on X').
+864:    const { symbol, region, highlightMetric } = equityCommand;
+867:      setSpotlight(resolveMetric(highlightMetric));
+src/modules/equity-overview/EquityOverviewPanel.test.tsx:573:  it("a highlight command spotlights that metric's row (R15-AGENT-081)", async () => {
+
+EXIT=0 (0.9s)

@@ -1,0 +1,252 @@
+[
+  {
+    "raw_id": "DAT-P13-1",
+    "title": "ELCIDIN (P13): identity.board is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> identity.board absent/blank; compare to battery/packs/P13_ELCIDIN.json identity.board (source: https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid=)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: identity.board), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "The collected snapshot (self-declared 'complete': true) never returns a board/segment field for ELCIDIN across any of its 11 calls (resolve x3, quote, fundamentals, income, balance, cashflow, ratings, shareholding, announcements, results_calendar). Inferred absence, not a directly-observed null like identity.industry."
+  },
+  {
+    "raw_id": "DAT-P13-2",
+    "title": "ELCIDIN (P13): identity.sector is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> identity.sector absent/blank; compare to battery/packs/P13_ELCIDIN.json identity.sector (source: https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid=)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: identity.sector), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "No 'sector' key appears anywhere in the complete collected snapshot; /resolve carries an 'industry' key (returned null, see identity.industry row) but has no sibling 'sector' key at all. Inferred absence."
+  },
+  {
+    "raw_id": "DAT-P13-3",
+    "title": "ELCIDIN (P13): identity.industry is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> identity.industry absent/blank; compare to battery/packs/P13_ELCIDIN.json identity.industry (source: https://www.screener.in/company/ELCIDIN/)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: identity.industry), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "Directly observed: /resolve?q=ELCIDIN and /resolve?q=503681 both return 'industry': null for every candidate despite the classification being unambiguous and multiply-corroborated (BSE ComHeader ISubGroup='Investment Company', screener 'Financial Services > Finance > Investment Company', the Q1 FY27 filing's own segment note). This is the single most solid app-blank in this pack since the field key is present and explicitly null, not merely absent from a payload."
+  },
+  {
+    "raw_id": "DAT-P13-4",
+    "title": "ELCIDIN (P13): price.bse_day_range / nse_day_range (OHLC) is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> price.bse_day_range / nse_day_range (OHLC) absent/blank; compare to battery/packs/P13_ELCIDIN.json price.bse_day_range / nse_day_range (OHLC) (source: https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=503681&seriesid=)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: price.bse_day_range / nse_day_range (OHLC)), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "The /quotes payload returned only symbol/price/change/change_percent/volume/currency/market_state/timestamp/provider/freshness \u2014 no open/high/low keys at all in the complete snapshot."
+  },
+  {
+    "raw_id": "DAT-P13-5",
+    "title": "ELCIDIN (P13): market_cap is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> market_cap absent/blank; compare to battery/packs/P13_ELCIDIN.json market_cap (source: https://www.indmoney.com/stocks/elcid-investments-ltd-share-price)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: market_cap), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+  },
+  {
+    "raw_id": "DAT-P13-6",
+    "title": "ELCIDIN (P13): pe_ttm is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> pe_ttm absent/blank; compare to battery/packs/P13_ELCIDIN.json pe_ttm (source: https://www.screener.in/company/ELCIDIN/consolidated/)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: pe_ttm), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+  },
+  {
+    "raw_id": "DAT-P13-7",
+    "title": "ELCIDIN (P13): pb is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> pb absent/blank; compare to battery/packs/P13_ELCIDIN.json pb (source: https://www.screener.in/company/ELCIDIN/consolidated/)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: pb), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+  },
+  {
+    "raw_id": "DAT-P13-8",
+    "title": "ELCIDIN (P13): roe is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> roe absent/blank; compare to battery/packs/P13_ELCIDIN.json roe (source: https://www.screener.in/company/ELCIDIN/)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: roe), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+  },
+  {
+    "raw_id": "DAT-P13-9",
+    "title": "ELCIDIN (P13): roce is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> roce absent/blank; compare to battery/packs/P13_ELCIDIN.json roce (source: https://www.screener.in/company/ELCIDIN/)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: roce), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+  },
+  {
+    "raw_id": "DAT-P13-10",
+    "title": "ELCIDIN (P13): debt_to_equity is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> debt_to_equity absent/blank; compare to battery/packs/P13_ELCIDIN.json debt_to_equity (source: https://www.screener.in/company/ELCIDIN/consolidated/)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: debt_to_equity), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+  },
+  {
+    "raw_id": "DAT-P13-11",
+    "title": "ELCIDIN (P13): revenue_ttm is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> revenue_ttm absent/blank; compare to battery/packs/P13_ELCIDIN.json revenue_ttm (source: https://www.screener.in/company/ELCIDIN/consolidated/)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: revenue_ttm), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+  },
+  {
+    "raw_id": "DAT-P13-12",
+    "title": "ELCIDIN (P13): net_profit_ttm is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> net_profit_ttm absent/blank; compare to battery/packs/P13_ELCIDIN.json net_profit_ttm (source: https://www.screener.in/company/ELCIDIN/consolidated/)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: net_profit_ttm), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+  },
+  {
+    "raw_id": "DAT-P13-13",
+    "title": "ELCIDIN (P13): revenue_growth_yoy is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> revenue_growth_yoy absent/blank; compare to battery/packs/P13_ELCIDIN.json revenue_growth_yoy (source: https://www.screener.in/company/ELCIDIN/consolidated/)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: revenue_growth_yoy), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+  },
+  {
+    "raw_id": "DAT-P13-14",
+    "title": "ELCIDIN (P13): eps_ttm is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> eps_ttm absent/blank; compare to battery/packs/P13_ELCIDIN.json eps_ttm (source: https://www.screener.in/company/ELCIDIN/consolidated/)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: eps_ttm), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+  },
+  {
+    "raw_id": "DAT-P13-15",
+    "title": "ELCIDIN (P13): book_value_per_share is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> book_value_per_share absent/blank; compare to battery/packs/P13_ELCIDIN.json book_value_per_share (source: https://groww.in/stocks/elcid-investments-ltd)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: book_value_per_share), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+  },
+  {
+    "raw_id": "DAT-P13-16",
+    "title": "ELCIDIN (P13): face_value is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> face_value absent/blank; compare to battery/packs/P13_ELCIDIN.json face_value (source: https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid=)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: face_value), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+  },
+  {
+    "raw_id": "DAT-P13-17",
+    "title": "ELCIDIN (P13): dividend.last_declared_per_share is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> dividend.last_declared_per_share absent/blank; compare to battery/packs/P13_ELCIDIN.json dividend.last_declared_per_share (source: https://groww.in/stocks/elcid-investments-ltd)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: dividend.last_declared_per_share), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+  },
+  {
+    "raw_id": "DAT-P13-18",
+    "title": "ELCIDIN (P13): dividend.paid_trailing_12m_per_share is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> dividend.paid_trailing_12m_per_share absent/blank; compare to battery/packs/P13_ELCIDIN.json dividend.paid_trailing_12m_per_share (source: https://groww.in/stocks/elcid-investments-ltd)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: dividend.paid_trailing_12m_per_share), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure. Mandatory subtle-tier check: pack explicitly flags this as a DIFFERENT fact from last_declared_per_share (a naive TTM window would double-count the 23-Jul-2025 and 24-Jul-2026 Rs 25 dividends to Rs 50) \u2014 both are equally absent in-app, so the app cannot currently get this wrong OR right; the gap itself is the finding."
+  },
+  {
+    "raw_id": "DAT-P13-19",
+    "title": "ELCIDIN (P13): dividend.yield is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> dividend.yield absent/blank; compare to battery/packs/P13_ELCIDIN.json dividend.yield (source: https://www.screener.in/company/ELCIDIN/)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: dividend.yield), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+  },
+  {
+    "raw_id": "DAT-P13-20",
+    "title": "ELCIDIN (P13): week52.high is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> week52.high absent/blank; compare to battery/packs/P13_ELCIDIN.json week52.high (source: https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=503681)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: week52.high), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure. Mandatory subtle-tier field. Pack separately documents a three-way 52w-high disagreement across BSE/INDmoney/Groww (144500/137000/133699.95) \u2014 moot for this diff since the app shows none of them."
+  },
+  {
+    "raw_id": "DAT-P13-21",
+    "title": "ELCIDIN (P13): week52.low is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> week52.low absent/blank; compare to battery/packs/P13_ELCIDIN.json week52.low (source: https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=503681)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: week52.low), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure. Mandatory subtle-tier field; each leg (high vs low) carries its own as-of date per the pack (17 Oct 2025 vs 2 Apr 2026) and both are absent in-app."
+  },
+  {
+    "raw_id": "DAT-P13-22",
+    "title": "ELCIDIN (P13): corporate_actions_2026 is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> corporate_actions_2026 absent/blank; compare to battery/packs/P13_ELCIDIN.json corporate_actions_2026 (source: https://www.bseindia.com/xml-data/corpfiling/AttachHis/8ac2ae04-d96d-4e27-96e5-ff24523bb4a8.pdf)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: corporate_actions_2026), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "No corporate-actions/dividends-calendar endpoint was called in the collected snapshot at all (11 calls made: resolve x3, quote, fundamentals, income, balance, cashflow, ratings, shareholding, announcements, results_calendar \u2014 none return corporate-action rows). Inferred absence from the complete snapshot."
+  },
+  {
+    "raw_id": "DAT-P13-23",
+    "title": "ELCIDIN (P13): latest_results (quarter / filing_date) is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> latest_results (quarter / filing_date) absent/blank; compare to battery/packs/P13_ELCIDIN.json latest_results (quarter / filing_date) (source: https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: latest_results (quarter / filing_date)), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "Directly observed: App GET /disclosures/results?symbol=ELCIDIN -> HTTP 200, {symbol: ELCIDIN, count: 0, events: []}. The company filed and had its Q1 FY2026-27 results reviewed and published on BSE just over five weeks before the 2026-09-19 collection date; the app's dedicated results-calendar route shows zero events for this scrip."
+  },
+  {
+    "raw_id": "DAT-P13-24",
+    "title": "ELCIDIN (P13): last_3_announcements is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> last_3_announcements absent/blank; compare to battery/packs/P13_ELCIDIN.json last_3_announcements (source: https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260401&strScrip=503681&strSearch=P&strToDate=20260919&strType=C&subcategory=-1)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: last_3_announcements), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "Directly observed: App GET /disclosures/announcements?symbol=ELCIDIN&limit=25 -> HTTP 200, count: 2, returning exactly the pack's #1 and #2 items with matching timestamps/headlines/attachment URLs (though on the AttachLive path, which the pack separately flags \u2014 traps.bse_attachment_path_attachhis_not_attachlive \u2014 as 404ing for this filer; AttachHis is what actually resolves). The pack's 3rd of its 'last 3 announcements' (2026-08-14 Reg 30 Newspaper Publication of results) is absent from the app's 25-row-limit pull despite being chronologically between the two dates the app DOES return correctly."
+  },
+  {
+    "raw_id": "DAT-P13-25",
+    "title": "ELCIDIN (P13): consolidated_vs_standalone (basis indicator) is blank in-app while outside truth exists",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P13_ELCIDIN",
+    "repro": "curl 'http://127.0.0.1:52152/...' per battery/collected/P13_ELCIDIN.json 'calls' block -> consolidated_vs_standalone (basis indicator) absent/blank; compare to battery/packs/P13_ELCIDIN.json consolidated_vs_standalone (basis indicator) (source: https://www.screener.in/company/ELCIDIN/consolidated/)",
+    "evidence": "docs/redesign/verification/r15/battery/diffs/P13_ELCIDIN.json (field: consolidated_vs_standalone (basis indicator)), docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json, docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+    "notes": "No field in the collected snapshot names which basis (standalone vs consolidated) any app value would use, and since /fundamentals never returned data at all, the app cannot currently be checked against either basis for this scrip. Recorded per the pack's explicit instruction that 'the differ must establish which basis the app claims before scoring any of these as wrong' \u2014 here it can establish neither, which is itself the gap."
+  }
+]

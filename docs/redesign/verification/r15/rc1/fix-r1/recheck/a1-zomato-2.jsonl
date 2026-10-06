@@ -1,0 +1,66 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_35f3bcc515614ff0a5adfc4147a120ad", "name": "get_terminal_state", "input": {}}
+{"kind": "tool_use", "tool_call_id": "call_78ee256baa904f138ba7415670fbb3c0", "name": "price_data", "input": {"symbol": "ZOMATO.NS", "timeframe": "1d"}}
+{"kind": "delta", "text": "Sorry"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " hear"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " due"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " provider"}
+{"kind": "delta", "text": " error"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " We"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " find"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " alternative"}
+{"kind": "delta", "text": " source"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " again"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " different"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " {\""}
+{"kind": "delta", "text": "name"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "get"}
+{"kind": "delta", "text": "_stock"}
+{"kind": "delta", "text": "_quote"}
+{"kind": "delta", "text": "\","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "parameters"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " {\""}
+{"kind": "delta", "text": "symbol"}
+{"kind": "delta", "text": "\":\""}
+{"kind": "delta", "text": "Z"}
+{"kind": "delta", "text": "OM"}
+{"kind": "delta", "text": "ATO"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "\"}}"}
+{"kind": "done", "usage": {"input_tokens": 2810, "output_tokens": 62, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,12 @@
+# sp500 screen PTC row (rc1-vshard-6, round 5, own sidecar :52606 at 633f8440 on a copy of rc1-round-5-seed-data)
+$ curl -X POST :52606/screener/run -d '{"universe":"sp500","criteria":[],"limit":1000}'
+coverage: screened 501 of 503 — 2 unavailable · spans INR, USD — ranked within each currency · 501 rows on stale/snapshot basis (oldest 2026-09-23)
+skip_details: [{'symbol': 'ECHO', 'reason': 'rate_limited'}, {'symbol': 'VMRK', 'reason': 'rate_limited'}]
+PTC row: {"symbol": "PTC", "name": "PTC India Limited", "sector": "Utilities", "industry": "Power / Power Trading", "market_cap": 45907931136.0, "pe_ratio": 9.027357, "forward_pe": 11.749243, "peg_ratio": 1.3113, "price_to_book": 0.76730883, "dividend_yield": 0.0709, "roe": 0.08503420288691925, "debt_to_equity": 0.25059000000000003, "price": 155.09, "change_percent_1d": -0.5131823721855046, "volume": 997223.0, "matched_criteria": [], "currency": "INR", "data_basis": "snapshot", "data_as_of": 1790438523.6824079}
+fundamentals_cache.db rows (seed copy):
+symbol|name|currency|market_cap|peg_ratio|quote_price|provider|info_at
+PTC.NS|PTC India Limited|INR|45907931136.0||155.09|yahoo-v7-batch|2026-09-25 06:18:19
+PTCIL.NS|PTC Industries Limited|INR|326987481088.0||21810.0|yahoo-v7-batch|2026-09-25 05:21:10
+PTC|PTC India Limited|INR|45907931136.0|1.3113|155.09|yfinance|2026-09-26 21:32:03
+bundled US seed pack row: PTC Inc., USD, market_cap 15314574336, peg_ratio 1.3113 (us_fundamentals_seed.json.gz)
+LEAD-044 fix 5dbc1813 committed 2026-09-27 08:33 IST, after the row's info_at

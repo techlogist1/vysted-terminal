@@ -1,0 +1,8 @@
+CMD: sidecar/.venv/bin/python scratch b23_set109.py (garbled bundled masters via fake resources.files; FastAPI TestClient GET /resolve)
+symbol_resolver: missing or garbled bundled master nse_instruments.json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+symbol_resolver: missing or garbled bundled master bse_instruments.json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+symbol_resolver: missing or garbled bundled master india_sector_map.json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+symbol_resolver: missing or garbled bundled master bse_instruments.json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+LIFECYCLE-036 GET /resolve?q=RELIANCE with garbled master -> 200 {"ok":true,"query":"RELIANCE","region":"IN","resolved":{"symbol":"RELIANCE","name":"Reliance Industries Limited","exchan
+LIFECYCLE-036 GET /resolve?q=TATASTEEL with garbled master -> 200 {"ok":true,"query":"TATASTEEL","region":"IN","resolved":{"symbol":"TATASTEEL","name":"Tata Steel Limited","exchange":"NS
+EXIT=0

@@ -1,0 +1,3 @@
+CMD: curl POST /llm/keys/validate provider=openai api_key='sk-R15CANARY-round5 '(trailing space)
+{"ok":false,"reason":"invalid","detail":"OpenAI rejected this key."}
+HTTP 200

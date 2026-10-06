@@ -1,0 +1,7 @@
+=== R15-LIFECYCLE-021: dead nseindia session -> fallthrough visibility ===
+-- /system/provider-health (baseline) --
+{"yahoo":{"open":false,"cooldown_remaining":0.0,"consecutive_throttles":0.0,"consecutive_opens":0,"opens_total":0,"throttles_total":0.0},"fallthroughs":[{"provider":"nse","model_key":"quote","count":2,"last_error":"nse: 'ZZZNOTREAL.NS' is not a known NSE instrument","last_at":1790523176.6992629},{"provider":"bse","model_key":"quote","count":2,"last_error":"bse: 'ZZZNOTREAL.NS' is not a known BSE instrument","last_at":1790523176.6992881}]}
+HTTP:200
+-- /health --
+{"status":"ok","service":"vysted-sidecar","version":"0.8.0","providers":{"analyst_rating":"openbb-mcp (yfinance fallback)","balance_sheet":"openbb-mcp (yfinance fallback)","cash_flow":"openbb-mcp (yfinance fallback)","fundamentals":"openbb-mcp (yfinance fallback)","income_statement":"openbb-mcp (yfinance fallback)","macro_series":"openbb-mcp","ohlcv":"ccxt (nse_direct, nse, bse, yfinance fallback)","quote":"ccxt (nse_direct, nse, bse, yfinance fallback)","openbb-mcp":"available"},"agents_degraded":[]}
+HTTP:200

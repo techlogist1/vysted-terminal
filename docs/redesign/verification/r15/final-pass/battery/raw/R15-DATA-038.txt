@@ -1,0 +1,15 @@
+# R15-DATA-038 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:09:32+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+echo '$ GET /sec/filings/0000320193-25-000079?identifier=AAPL'; curl -s -m 100 "$H/sec/filings/0000320193-25-000079?identifier=AAPL" | python3 -c "
+import sys,json;d=json.load(sys.stdin);f=d.get('filing',d);s=f.get('sections') or d.get('sections') or {}
+print('form',f.get('form_type'),'sections',[(x.get('title') or x.get('name') or x.get('item'), len(x.get('text') or x.get('content') or '')) for x in s] if isinstance(s,list) else s)"
+for q in "AAPL" "NVDA?form=4"; do echo -n "\$ GET /sec/insider/$q: "; curl -s -m 100 "$H/sec/insider/$q" | python3 -c "
+import sys,json;d=json.load(sys.stdin);r=d.get('transactions') or d.get('rows') or d.get('items') or (d if isinstance(d,list) else [])
+print(len(r),'rows; issuers',sorted({x.get('issuer') or x.get('issuer_name') or '' for x in r})[:3], 'forms',sorted({str(x.get('form') or x.get('form_type')) for x in r}))"; done
+--- output ---
+$ GET /sec/filings/0000320193-25-000079?identifier=AAPL
+form 10-K sections [('Business', 10000), ('Risk Factors', 10000)]
+$ GET /sec/insider/AAPL: 16 rows; issuers ['Apple Inc.'] forms ['3', '4']
+$ GET /sec/insider/NVDA?form=4: 16 rows; issuers ['NVIDIA CORP'] forms ['4']
+
+EXIT=0 (0.1s)

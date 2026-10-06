@@ -1,0 +1,10 @@
+CMD: re-run of round-4 verifier's a010v2.py (a never-answering local proxy socket standing in for a hung HTTPS_PROXY) against candidate's symbol_resolver, cwd=sidecar, PYTHONPATH=sidecar
+   _scan_names 0.25 s ('infosys', 1)
+warm masters 0.3
+   _scan_names 0.64 s ('zzqx vericheck unfound co', 4)
+   _live_lookup 5.45 s ('zzqx vericheck unfound co', 'US')
+'zzqx vericheck unfound co' US wall_s 6.09 max_gap_ms 27 result False unresolved
+   _scan_names 0.75 s ('qqzv bramblewick holdings plc', 4)
+   _live_lookup 5.01 s ('qqzv bramblewick holdings plc', 'IN')
+   _us_isin_http_get 3.05 s ('SLMT',)
+'qqzv bramblewick holdings plc' IN wall_s 8.83 max_gap_ms 27 result True disambiguate

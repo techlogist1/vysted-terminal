@@ -1,0 +1,207 @@
+{
+ "all": {
+  "text": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSESymbols (comma or space)Run screener> SavedNo saved screensSave screenPARTIALscreened 5 of 6 — 1 unavailable5 live1 unavailable — 1 rate-limitedquotes 41.64699196815491s ago · valuation 41.64699912071228s ago · deep fields 46.1444091796875s ago> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNo criteria — every universe member will match.Custom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, roe, …) · abs, min, max · and / or / not, + - * /, comparisonsExamplesvalue + qualityyield, low debtcalm compounders5 matched · showing top 5 by market cap (5 evaluated, 1 skipped, 509 ms) Export CSVcustomSymbolNameSectorMarket cap▼P/EFwd P/EROED/EDivPrice1d %VolumeRELIANCEReliance Industries LimitedEnergy₹15.8T21.1416.358.27%0.462780.00%₹1,167.70-1.63%16.7MTCSTata Consultancy Services LimitedTechnology₹7.51T15.0812.8047.74%0.102113.17%₹2,075.00+1.19%3.4MINFYInfosys LimitedTechnology₹4.19T13.3012.9432.00%0.095410.05%₹1,035.00+4.11%15.1MPAYTMOne97 Communications LimitedFinancial Services₹1.06T163.9646.254.06%0.01073—₹1,656.00-1.31%1.9MNIFTYBEESNippon India ETF Nifty 50 BeES——19.62————₹256.50-0.77%16.7M",
+  "rows": [
+   [
+    "RELIANCE",
+    "Reliance Industries Limited",
+    "Energy",
+    "₹15.8T",
+    "21.14"
+   ],
+   [
+    "TCS",
+    "Tata Consultancy Services Limited",
+    "Technology",
+    "₹7.51T",
+    "15.08"
+   ],
+   [
+    "INFY",
+    "Infosys Limited",
+    "Technology",
+    "₹4.19T",
+    "13.30"
+   ],
+   [
+    "PAYTM",
+    "One97 Communications Limited",
+    "Financial Services",
+    "₹1.06T",
+    "163.96"
+   ],
+   [
+    "NIFTYBEES",
+    "Nippon India ETF Nifty 50 BeES",
+    "—",
+    "—",
+    "19.62"
+   ]
+  ],
+  "error": null
+ },
+ "mcapClick1": {
+  "rows": [
+   [
+    "PAYTM",
+    "One97 Communications Limited",
+    "Financial Services",
+    "₹1.06T",
+    "163.96"
+   ],
+   [
+    "INFY",
+    "Infosys Limited",
+    "Technology",
+    "₹4.19T",
+    "13.30"
+   ],
+   [
+    "TCS",
+    "Tata Consultancy Services Limited",
+    "Technology",
+    "₹7.51T",
+    "15.08"
+   ],
+   [
+    "RELIANCE",
+    "Reliance Industries Limited",
+    "Energy",
+    "₹15.8T",
+    "21.14"
+   ],
+   [
+    "NIFTYBEES",
+    "Nippon India ETF Nifty 50 BeES",
+    "—",
+    "—",
+    "19.62"
+   ]
+  ],
+  "sort": "asc"
+ },
+ "mcapClick2": {
+  "rows": [
+   [
+    "RELIANCE",
+    "Reliance Industries Limited",
+    "Energy",
+    "₹15.8T",
+    "21.14"
+   ],
+   [
+    "TCS",
+    "Tata Consultancy Services Limited",
+    "Technology",
+    "₹7.51T",
+    "15.08"
+   ],
+   [
+    "INFY",
+    "Infosys Limited",
+    "Technology",
+    "₹4.19T",
+    "13.30"
+   ],
+   [
+    "PAYTM",
+    "One97 Communications Limited",
+    "Financial Services",
+    "₹1.06T",
+    "163.96"
+   ],
+   [
+    "NIFTYBEES",
+    "Nippon India ETF Nifty 50 BeES",
+    "—",
+    "—",
+    "19.62"
+   ]
+  ],
+  "sort": "desc"
+ },
+ "sectorClick1": [
+  [
+   "TCS",
+   "Tata Consultancy Services Limited",
+   "Technology",
+   "₹7.51T",
+   "15.08"
+  ],
+  [
+   "INFY",
+   "Infosys Limited",
+   "Technology",
+   "₹4.19T",
+   "13.30"
+  ],
+  [
+   "PAYTM",
+   "One97 Communications Limited",
+   "Financial Services",
+   "₹1.06T",
+   "163.96"
+  ],
+  [
+   "RELIANCE",
+   "Reliance Industries Limited",
+   "Energy",
+   "₹15.8T",
+   "21.14"
+  ],
+  [
+   "NIFTYBEES",
+   "Nippon India ETF Nifty 50 BeES",
+   "—",
+   "—",
+   "19.62"
+  ]
+ ],
+ "sectorClick2": [
+  [
+   "RELIANCE",
+   "Reliance Industries Limited",
+   "Energy",
+   "₹15.8T",
+   "21.14"
+  ],
+  [
+   "PAYTM",
+   "One97 Communications Limited",
+   "Financial Services",
+   "₹1.06T",
+   "163.96"
+  ],
+  [
+   "TCS",
+   "Tata Consultancy Services Limited",
+   "Technology",
+   "₹7.51T",
+   "15.08"
+  ],
+  [
+   "INFY",
+   "Infosys Limited",
+   "Technology",
+   "₹4.19T",
+   "13.30"
+  ],
+  [
+   "NIFTYBEES",
+   "Nippon India ETF Nifty 50 BeES",
+   "—",
+   "—",
+   "19.62"
+  ]
+ ],
+ "empty": {
+  "text": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSESymbols (comma or space)Run screener> SavedNo saved screensSave screenscreened 5 of 6 — 1 unavailable1 unavailable — 1 not foundquotes 33.20072913169861s ago · valuation 33.20073914527893s ago · deep fields 52.1444091796875s ago> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket cap (listing currency)P/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook value (listing currency)Dividend yield (frac, 0.02 = 2%)EPS (listing currency)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high (listing currency)52w low (listing currency)1y change (frac)Insider holding (Yahoo)Institutional holding (frac)Price (listing currency)1-day %Volume><≥≤betweenCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, roe, …) · abs, min, max · and / or / not, + - * /, comparisonsExamplesvalue + qualityyield, low debtcalm compounders0 matched · showing top 0 by market cap (5 evaluated, 1 skipped, 2456 ms) Export CSVcustomNo rows matched the criteriaNo stocks in this universe passed every filter. Loosen a threshold or reset to the defaults.Reset filters",
+  "rows": [],
+  "error": null
+ },
+ "error": {
+  "text": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSESymbols (comma or space)Run screenerScreener failed: [object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Retry> SavedNo saved screensSave screenscreened 5 of 6 — 1 unavailable1 unavailable — 1 not foundquotes 33.20072913169861s ago · valuation 33.20073914527893s ago · deep fields 52.1444091796875s ago> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, roe, …) · abs, min, max · and / or / not, + - * /, comparisonsExamplesvalue + qualityyield, low debtcalm compounders0 matched · showing top 0 by market cap (5 evaluated, 1 skipped, 2456 ms) Export CSVcustomNo rows matched the criteriaNo stocks in this universe passed every filter. Loosen a threshold or reset to the defaults.Reset filters",
+  "rows": [],
+  "error": "POST /screener/run/stream failed (422): [object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]"
+ }
+}

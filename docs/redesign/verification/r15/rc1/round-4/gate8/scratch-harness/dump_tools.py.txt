@@ -1,0 +1,24 @@
+import asyncio, sys, os
+out = sys.argv[1]
+from app import create_app
+from models.custom_agent import KNOWN_TOOL_IDS
+from services import agent_tools, mcp_server
+from services.agent_tools import catalog
+from services.agent_tools.schemas import TOOL_SCHEMAS
+agent_tools.register_v0_5_0_tools(); agent_tools.register_v0_6_0_tools()
+def w(name, ids):
+    open(f"{out}/tools-{name}.txt","w").write("\n".join(sorted(ids))+"\n"); print(name, len(set(ids)))
+w("CAPABILITY_CATALOG", [f"{k}\t{v.kind}" for k,v in catalog.CAPABILITY_CATALOG.items()])
+w("TOOL_SCHEMAS", list(TOOL_SCHEMAS))
+w("KNOWN_TOOL_IDS", list(KNOWN_TOOL_IDS))
+w("registered_tools", list(agent_tools.registered_tools()))
+mcp_server._reset_for_tests()
+tools = asyncio.run(mcp_server.get_mcp_server().list_tools())
+w("mcp_list_tools", [t.name for t in tools])
+w("default_grant", list(catalog.default_grant_tool_ids()))
+print("FORBIDDEN_TOOL_SUBSTRINGS", catalog.FORBIDDEN_TOOL_SUBSTRINGS)
+app = create_app()
+rows=[]
+for r in app.routes:
+    rows.append(f"{','.join(sorted(getattr(r,'methods',None) or []))}\t{getattr(r,'path',None)}\t{type(r).__name__}")
+open(f"{out}/app-routes-all.txt","w").write("\n".join(sorted(rows))+"\n"); print("app.routes", len(rows))

@@ -1,0 +1,19 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_ce369a1debc74b94b28e5627c6e9d81b", "name": "price_data", "input": {"asset_class": "equity", "range": "2y", "symbol": "RELIANCE.NS", "timeframe": "1d"}}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  51.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_ce369a1debc74b94b28e5627c6e9d81b", "name": "price_data", "ok": true, "error": null}
+[  61.8s] heartbeat: {"kind": "heartbeat"}
+[  71.8s] heartbeat: {"kind": "heartbeat"}
+[  81.8s] heartbeat: {"kind": "heartbeat"}
+[  83.3s] done: {"kind": "done", "usage": {"input_tokens": 7080, "output_tokens": 11, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+RELIANCE.NS closed at ₹1,226.00 yesterday.
+
+This answer came from the `price_data` function. 
+
+The tool that came from is `price_data`.
+
+=== ok · 83.3s · events {'heartbeat': 7, 'delta': 37, 'tool_use': 1, 'tool_result': 1, 'done': 1} · usage in=7080 out=11 · est $0.00000 · llama3.1:8b

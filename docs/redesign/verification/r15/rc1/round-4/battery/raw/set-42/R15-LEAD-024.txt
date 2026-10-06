@@ -1,0 +1,13 @@
+Repro (live, own sidecar :52346, X-Vysted-Region: IN), same series (IMF WEO India GDP growth) as
+the batch-9 verifier's live check:
+
+$ curl -s "http://127.0.0.1:52346/macro/WEO/IND.NGDP_RPCH.A?provider=imf" -H "X-Vysted-Region: IN"
+observations (last 6 of 52): 2026..2031 each carry {"value":..., "is_projection": true}
+
+Code trace: imf_provider.py:193 `is_projection=cutoff is not None and date.year >= cutoff`;
+models/market.py:81 `is_projection: bool = False` added to the observation model;
+MacroChart.tsx:60-92 renders `is_projection` points on a visually distinct "projected" series.
+
+Verdict: holds live. Every point at/after the IMF's own current-year cutoff (2026-2031 in this
+run) now carries is_projection=true end to end (provider → model → chart), so a 2031 forecast
+value no longer renders identically to an observed one.

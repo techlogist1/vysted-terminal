@@ -1,0 +1,22 @@
+[
+  {
+    "key": "rc1-vshard-6:1",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-LIFECYCLE-024",
+    "title": "The first upgrade from any shipped build (19-Sep 0.8.0 / v0.8.0, no data_cache meta.build row) takes no data-dir backup: ensure_build clears the cache and the stores migrate with nothing copied to backups/",
+    "repro": "cp -R seed data; sqlite3 data_cache.db 'DROP TABLE meta'; every db PRAGMA user_version=0 (the pre-ca25a5ca shape, as the 19-Sep 7969d087 and v0.8.0 data_cache.py have no meta table); at 633f8440: cd sidecar && VYSTED_DATA_DIR=<dir> ./.venv/bin/python3 -c 'import asyncio; from services import data_cache; print(asyncio.run(data_cache.ensure_build(\"0.9.0\")))' -> 'cache written by an unversioned build - cleared', 38 rows deleted, no backups/ dir. Control with meta.build=0.7.9-prior backs up to backups/0.7.9-prior.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-6-raw/LIFECYCLE-024.txt",
+    "suspected_files": ["sidecar/services/data_cache.py"]
+  },
+  {
+    "key": "rc1-vshard-6:2",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "sp500 screen serves S&P 500 member PTC as 'PTC India Limited' (INR, mcap 45.9e9, price 155.09) from a fundamentals_cache row cross-written by a pre-LEAD-044 build; nothing repairs such rows on upgrade",
+    "repro": "own sidecar :52606 at 633f8440 on a copy of rc1-round-5-seed-data: POST /screener/run {universe: sp500, criteria: [], limit: 1000} -> row symbol PTC name 'PTC India Limited' currency INR (peg_ratio 1.3113 = PTC Inc.'s seed value, a mixed-entity row); coverage 'spans INR, USD'. fundamentals_cache.db bare 'PTC' row: PTC India Limited, INR, provider yfinance, info_updated 2026-09-26 21:32 IST (before 5dbc1813). ensure_build clears data_cache only; the boot seed-pack apply leaves the row.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-6-raw/adjacent-sp500-PTC.txt",
+    "suspected_files": ["sidecar/services/fundamentals_store.py", "sidecar/services/screener.py", "sidecar/services/fundamentals_warm.py"]
+  }
+]

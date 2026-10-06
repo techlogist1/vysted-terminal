@@ -10,8 +10,11 @@ provider-specific id parsing where relevant.
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 
+import httpx
 import pandas as pd
 import pytest
 
@@ -97,8 +100,12 @@ def test_fred_get_series_maps_pandas_into_extended_shape(fake_fred: _FakeFred) -
 
 def test_fred_get_series_raises_without_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("FRED_API_KEY", raising=False)
-    with pytest.raises(ProviderError, match="FRED_API_KEY"):
+    # R9 V8: the keyless detail is user-facing product copy — it must speak
+    # Settings-language (free key, where to get it, keyless alternatives),
+    # never the raw env-var name.
+    with pytest.raises(ProviderError, match="needs a free API key") as excinfo:
         fred_provider.get_series("DGS10")
+    assert "FRED_API_KEY" not in str(excinfo.value)
 
 
 def test_fred_get_series_wraps_upstream_errors(fake_fred: _FakeFred) -> None:
@@ -123,6 +130,16 @@ def test_fred_catalog_returns_curated_set(fake_fred: _FakeFred) -> None:
     assert cat.provider == "fred"
     assert len(cat.entries) >= 5
     assert any(e.series_id == "DGS10" for e in cat.entries)
+
+
+def test_fred_sa_bw_map_to_other() -> None:
+    """R15-DATA-099: semiannual ('sa') and biweekly ('bw') are distinct from
+    quarterly/weekly and must not collapse onto them."""
+    assert fred_provider._FREQ_MAP["sa"] == "other"
+    assert fred_provider._FREQ_MAP["bw"] == "other"
+    # The genuine quarterly/weekly codes are untouched.
+    assert fred_provider._FREQ_MAP["q"] == "quarterly"
+    assert fred_provider._FREQ_MAP["w"] == "weekly"
 
 
 # ---------------------------------------------------------------------------
@@ -197,76 +214,146 @@ def test_ecb_catalog_returns_curated_set(fake_ecb: _FakeEcbModule) -> None:
 # ---------------------------------------------------------------------------
 
 
-class _FakeObs:
-    def __init__(self, period: str, value: float | None) -> None:
-        self.dim = period
-        self.value = value
+# A live SDMX 3.0 answer for CPI/USA.CPI._T.IX.M?lastNObservations=3, recorded
+# 2026-09-24 and trimmed to the fields the parser reads (R15-UI-053).
+_IMF_CPI_USA_MESSAGE: dict[str, Any] = {
+    "meta": {},
+    "data": {
+        "dataSets": [
+            {
+                "structure": 0,
+                "action": "Replace",
+                "series": {
+                    "0:0:0:0:0": {
+                        "attributes": [0, None, 0, "2010A", "true"],
+                        "observations": {
+                            "0": ["153.150000802548", None, 0, "2010A", None],
+                            "1": ["153.1344084418875", None, 0, "2010A", None],
+                            "2": ["NaN", None, 0, "2010A", None],
+                        },
+                    }
+                },
+            }
+        ],
+        "structures": [
+            {
+                "dataSets": [0],
+                "dimensions": {
+                    "series": [
+                        {"id": "COUNTRY", "keyPosition": 0, "values": [{"id": "USA"}]},
+                        {"id": "INDEX_TYPE", "keyPosition": 1, "values": [{"id": "CPI"}]},
+                        {"id": "COICOP_1999", "keyPosition": 2, "values": [{"id": "_T"}]},
+                        {
+                            "id": "TYPE_OF_TRANSFORMATION",
+                            "keyPosition": 3,
+                            "values": [{"id": "IX"}],
+                        },
+                        {"id": "FREQUENCY", "keyPosition": 4, "values": [{"id": "M"}]},
+                    ],
+                    "observation": [
+                        {
+                            "id": "TIME_PERIOD",
+                            "keyPosition": 5,
+                            "values": [
+                                {"value": "2026-M06"},
+                                {"value": "2026-M07"},
+                                {"value": "2026-M08"},
+                            ],
+                        }
+                    ],
+                },
+            }
+        ],
+    },
+}
 
-
-class _FakeSeries:
-    def __init__(self, obs: list[_FakeObs]) -> None:
-        self.obs = obs
-
-
-class _FakeDataSet:
-    def __init__(self, series: list[_FakeSeries]) -> None:
-        self.series = series
-
-
-class _FakeMessage:
-    def __init__(self, datasets: list[_FakeDataSet]) -> None:
-        self.data = datasets
-
-
-class _FakeSdmxClient:
-    """Stand-in for ``sdmx.Client``."""
-
-    def __init__(self) -> None:
-        self.calls: list[tuple[str, dict[str, Any]]] = []
-
-    def data(self, dataflow: str, **kwargs: Any) -> _FakeMessage:
-        self.calls.append((dataflow, kwargs))
-        if kwargs.get("key", "").startswith("FAIL"):
-            raise RuntimeError("IMF upstream said no")
-        return _FakeMessage(
-            [
-                _FakeDataSet(
-                    [
-                        _FakeSeries(
-                            [
-                                _FakeObs("2022", 100.0),
-                                _FakeObs("2023", 102.5),
-                                _FakeObs("2024", float("nan")),
-                            ]
-                        )
-                    ]
-                )
-            ]
-        )
+# What the API answers for a key the dataflow does not carry: 200, no series.
+_IMF_EMPTY_MESSAGE: dict[str, Any] = {
+    "meta": {},
+    "data": {"dataSets": [{"structure": 0, "action": "Replace"}], "structures": [{}]},
+}
 
 
 @pytest.fixture
-def fake_imf(monkeypatch: pytest.MonkeyPatch) -> _FakeSdmxClient:
-    fake = _FakeSdmxClient()
-    monkeypatch.setattr(imf_provider, "_make_client", lambda source="IMF_DATA": fake)
-    return fake
+def fake_imf(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, str]]:
+    calls: list[tuple[str, str]] = []
+
+    def fetch(dataflow: str, key: str) -> dict[str, Any]:
+        calls.append((dataflow, key))
+        if key.startswith("FAIL"):
+            request = httpx.Request("GET", "https://api.imf.org/x")
+            raise httpx.ConnectError("IMF upstream said no", request=request)
+        if key.startswith("ZZZ"):
+            return _IMF_EMPTY_MESSAGE
+        return _IMF_CPI_USA_MESSAGE
+
+    monkeypatch.setattr(imf_provider, "_fetch", fetch)
+    return calls
 
 
-def test_imf_get_series_parses_slash_dataflow(fake_imf: _FakeSdmxClient) -> None:
-    series = imf_provider.get_series("IFS/A.US.NGDP_R_K_IX")
+def test_imf_get_series_parses_a_recorded_sdmx3_message(fake_imf: list[tuple[str, str]]) -> None:
+    series = imf_provider.get_series("CPI/USA.CPI._T.IX.M")
     assert series.provider == "imf"
-    assert series.frequency == "annual"
-    assert len(series.observations) == 3
-    assert series.observations[1].value == pytest.approx(102.5)
+    assert series.frequency == "monthly"
+    assert series.title == "Consumer Price Index, monthly, United States"
+    assert [o.date.date().isoformat() for o in series.observations] == [
+        "2026-06-01",
+        "2026-07-01",
+        "2026-08-01",
+    ]
+    assert series.observations[1].value == pytest.approx(153.1344084418875)
     assert series.observations[2].value is None  # NaN -> None
-    # And the dispatcher saw the right dataflow + key.
-    assert fake_imf.calls[0][0] == "IFS"
-    assert fake_imf.calls[0][1]["key"] == "A.US.NGDP_R_K_IX"
+    assert fake_imf == [("CPI", "USA.CPI._T.IX.M")]
 
 
-def test_imf_get_series_wraps_upstream_errors(fake_imf: _FakeSdmxClient) -> None:
-    with pytest.raises(ProviderError, match="IMF upstream error"):
-        imf_provider.get_series("IFS/FAIL.X.X")
+_IMF_FIXTURES = Path(__file__).parent / "fixtures" / "imf"
+
+
+@pytest.mark.parametrize(
+    ("series_id", "fixture", "last_actual"),
+    [
+        # Recorded live 2026-09-24: the October 2025 WEO vintage (update dates
+        # 9/30/2025 and 9/26/2025), running to 2031.
+        ("WEO/USA.NGDP_RPCH.A", "weo_usa_ngdp_rpch_a_20260924.json", 2024),
+        ("WEO/IND.PCPIPCH.A", "weo_ind_pcpipch_a_20260924.json", 2024),
+    ],
+)
+def test_weo_years_from_the_vintage_on_are_projections(
+    monkeypatch: pytest.MonkeyPatch, series_id: str, fixture: str, last_actual: int
+) -> None:
+    """R15-LEAD-024: a WEO series ran to 2031 with nothing marking the forecast
+    years; each year from the vintage year on is now a projection."""
+    message = json.loads((_IMF_FIXTURES / fixture).read_text(encoding="utf-8"))
+    monkeypatch.setattr(imf_provider, "_fetch", lambda _dataflow, _key: message)
+    observations = imf_provider.get_series(series_id).observations
+    by_year = {o.date.year: o.is_projection for o in observations}
+    assert by_year[last_actual] is False
+    assert by_year[last_actual + 1] is True
+    assert by_year[2031] is True
+    assert not any(p for y, p in by_year.items() if y <= last_actual)
+
+
+def test_a_non_weo_series_is_never_flagged_projected(fake_imf: list[tuple[str, str]]) -> None:
+    series = imf_provider.get_series("CPI/USA.CPI._T.IX.M")
+    assert not any(o.is_projection for o in series.observations)
+
+
+def test_imf_period_formats_parse() -> None:
+    assert imf_provider._parse_period("2031").month == 1
+    assert imf_provider._parse_period("2026-Q2").month == 4
+    assert imf_provider._parse_period("2026-M11").month == 11
+
+
+def test_imf_get_series_wraps_upstream_errors(fake_imf: list[tuple[str, str]]) -> None:
+    with pytest.raises(ProviderError, match="IMF upstream error") as info:
+        imf_provider.get_series("CPI/FAIL.X.X")
+    assert info.value.kind == "network"
+
+
+def test_imf_unknown_key_is_not_found(fake_imf: list[tuple[str, str]]) -> None:
+    with pytest.raises(ProviderError) as info:
+        imf_provider.get_series("CPI/ZZZ.CPI._T.IX.M")
+    assert info.value.kind == "not_found"
 
 
 def test_imf_get_series_rejects_unparseable_key() -> None:
@@ -288,6 +375,8 @@ def test_imf_catalog_returns_curated_set() -> None:
     cat = imf_provider.catalog()
     assert cat.provider == "imf"
     assert len(cat.entries) >= 5
+    # The retired SDMX 2.1 IFS dataflow answers 204/404 upstream (R15-UI-053).
+    assert not any(e.series_id.startswith("IFS") for e in cat.entries)
 
 
 # ---------------------------------------------------------------------------
@@ -342,6 +431,14 @@ def test_wb_get_series_explicit_country(fake_wb: _FakeWbModule) -> None:
     assert "DEU" in series.title
 
 
+def test_wb_bare_id_takes_the_region_country(fake_wb: _FakeWbModule) -> None:
+    # R15-DATA-046: IN routes macro to World Bank for India series, but a bare
+    # featured id used to read as USA. An explicit country still wins.
+    assert world_bank_provider.get_series("NY.GDP.MKTP.KD.ZG", region="IN").title.endswith("IND")
+    series = world_bank_provider.get_series("NY.GDP.MKTP.KD.ZG:DEU", region="IN")
+    assert series.title.endswith("DEU")
+
+
 def test_wb_get_series_with_wb_prefix(fake_wb: _FakeWbModule) -> None:
     series = world_bank_provider.get_series("WB:NY.GDP.PCAP.CD:GBR")
     assert "GBR" in series.title
@@ -350,6 +447,19 @@ def test_wb_get_series_with_wb_prefix(fake_wb: _FakeWbModule) -> None:
 def test_wb_get_series_wraps_upstream_errors(fake_wb: _FakeWbModule) -> None:
     with pytest.raises(ProviderError, match="World Bank upstream error"):
         world_bank_provider.get_series("FAIL")
+
+
+def test_wb_get_series_titles_with_the_indicator_name(
+    fake_wb: _FakeWbModule, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-DATA-085: wbgapi's ``series.info`` is a Featureset whose ``items`` is a
+    list of dicts; the ``callable(info.items)`` guard left every title a raw code."""
+    import wbgapi
+
+    info = wbgapi.Featureset([{"id": "NY.GDP.MKTP.CD", "value": "GDP (current US$)"}])
+    monkeypatch.setattr(fake_wb.series, "info", lambda indicator: info)
+    series = world_bank_provider.get_series("NY.GDP.MKTP.CD")
+    assert series.title == "GDP (current US$) — USA"
 
 
 def test_wb_search_falls_back_to_curated_catalog(fake_wb: _FakeWbModule) -> None:
@@ -362,3 +472,23 @@ def test_wb_catalog_returns_curated_set(fake_wb: _FakeWbModule) -> None:
     cat = world_bank_provider.catalog()
     assert cat.provider == "world-bank"
     assert len(cat.entries) >= 5
+
+
+# ---------------------------------------------------------------------------
+# Provider identity typing (R15-CODE-PLATFORM-043)
+# ---------------------------------------------------------------------------
+
+
+def test_provider_constants_are_macro_provider_values() -> None:
+    """Each PROVIDER constant is a value of the MacroProvider Literal the
+    model already defines — a typo here would otherwise only be caught by
+    Pydantic at request time, never by a type checker."""
+    from typing import get_args
+
+    from models.macro_extended import MacroProvider
+
+    valid = get_args(MacroProvider)
+    assert fred_provider.PROVIDER in valid
+    assert ecb_provider.PROVIDER in valid
+    assert imf_provider.PROVIDER in valid
+    assert world_bank_provider.PROVIDER in valid

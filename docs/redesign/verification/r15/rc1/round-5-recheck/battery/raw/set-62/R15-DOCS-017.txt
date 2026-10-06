@@ -1,0 +1,25 @@
+=== R15-DOCS-017: screener universe counts + CURRENT_STATE.md 3.3 doc accuracy ===
+-- live GET /screener/universe?id= for each universe --
+
+HTTP:200
+nse-all count: 3506
+
+HTTP:200
+bse-all count: 5042
+
+HTTP:200
+india-all count: 5891
+
+HTTP:200
+sp500 count: 503
+-- CURRENT_STATE.md screener bullet (now lines 369-377) --
+  reseeded from the bundled snapshot on cache expiry — a live "refresh from
+  ccxt" worker still does **not exist**), `nse-all` (every NSE master row as
+  `SYMBOL.NS` — 3,506 symbols: EQ 2,584 + ETF 351 + SM 571, SM = NSE Emerge),
+  `bse-all` (BSE master rows with STATUS == "Active" as `SYMBOL.BO` — 5,042
+  symbols), `india-all` (the union of the two, NSE listing preferred when a
+  symbol is dual-listed — 5,891 symbols), `custom`. The three India
+  universes resolve from the same bundled resolver-master JSON the symbol
+  resolver reads (offline, deterministic). Criteria support **nested AND/OR**
+  via `CriterionGroup` (`models/screener.py`, `combinator: "and"|"or"`) — OR-
+  grouping is no longer reserved/unimplemented.

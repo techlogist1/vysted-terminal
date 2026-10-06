@@ -1,0 +1,58 @@
+{
+ "S1-default-sp500": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 0,
+   "result_count": 0,
+   "rows": 0,
+   "partial": false,
+   "throttled": true,
+   "coverage": "screened 0 of 506 — 506 unavailable"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screener> SavedNo saved screensSave screenscreened 0 of 506 — 506 unavailableData provider is throttling this IP — showing cached/snapshot values; they refresh automatically.506 unavailable — 506 rate-limited> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityFounder-aligned (NSE)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Op ..... ward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenandNumericStringSetSectorIndustryCurrencyequalsCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, roe, …) · abs, min, max · and / or / not, + - * /, comparisonsExamplesvalue + qualityyield, low debtcalm compounders0 rows (0 evaluated, 506 skipped, 20 ms) Export CSVsp500No rows matched the criteriaNo stocks in this universe passed every filter. Loosen a threshold or reset to the defaults.Reset filters",
+  "request": {
+   "url": "http://127.0.0.1:52219/screener/run/stream",
+   "body": {
+    "universe": "sp500",
+    "criteria": [
+     {
+      "field": "pe_ratio",
+      "operator": "lt",
+      "value": 20
+     },
+     {
+      "field": "market_cap",
+      "operator": "gt",
+      "value": 100000000000
+     },
+     {
+      "field": "sector",
+      "operator": "eq",
+      "value": "Technology"
+     }
+    ],
+    "limit": 200
+   }
+  }
+ },
+ "S2-indiaall-loose": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 5066,
+   "result_count": 200,
+   "rows": 200,
+   "partial": false,
+   "throttled": true,
+   "coverage": "screened 5,066 of 5,156 — 90 unavailable · 183 rows on stale/snapshot basis (oldest 2026-07-09)"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screener> SavedNo saved screensSave screenscreened 5,066 of 5,156 — 90 unavailable · 183 rows on stale/snapshot basis (oldest 2026-07-09)Data provider is throttling this IP — showing cached/snapshot values; they refresh automatically.17 live · 183 mixed90 unavailable — 90 rate-limitedquotes 70d ago · valuation 75d ago · deep fields 75d ago> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityFounder-aligned (NSE)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket capP/E ratioForward P/EPEG ratioPric ..... 1.20%1.1MIGLmixedIndraprastha Gas LimitedUtilities₹205B16.6511.0913.93%0.008481.97%₹146.68-1.46%2.5MBRIGADEmixedBrigade Enterprises LimitedReal Estate₹201B34.7718.3910.79%0.843160.29%₹616.55+1.28%276KTATAELXSImixedTata Elxsi LimitedTechnology₹201B32.1523.5321.30%0.053362.22%₹3,220.00-2.04%523KAADHARHFCmixedAADHAR HOUSING FINANCE LFinancial Services₹200B20.9713.9115.75%2.56—₹457.85-1.76%362KSHRIPISTONmixedSPR Auto Technologies LimitedConsumer Cyclical₹199B33.8222.22——0.24%₹4,512.60+0.09%52.0KRATNAMANImixedRatnamani Metals & Tubes LimitedBasic Materials₹195B38.2227.0413.58%0.074880.39%₹2,781.70+0.17%27.4KCASTROLINDmixedCastrol India LimitedEnergy₹193B18.9216.53—0.033054.77%₹195.61+1.09%3.5MSUNTVmixedSun TV Network LimitedCommunication Services₹193B13.6611.2411.85%0.008371.01%₹490.10+7.11%3.4MCHALETmixedChalet Hotels LimitedConsumer Cyclical₹191B27.8226.0519.13%0.640410.25%₹872.35+1.43%141K"
+ },
+ "S6-error-frame": {
+  "status": "error",
+  "error": "Stream ended without a result frame",
+  "result": null,
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screenerStream ended without a result frameRetry> SavedNo saved screensSave screen> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityFounder-aligned (NSE)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings grow ..... rice1-day %Volume><≥≤betweenandNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenandNumericStringSetSectorIndustryCurrencyequalsCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, roe, …) · abs, min, max · and / or / not, + - * /, comparisonsExamplesvalue + qualityyield, low debtcalm compoundersCould not load resultsThe screener run failed. Retry — if it persists, loosen a criterion or check the data engine.Retry"
+ }
+}

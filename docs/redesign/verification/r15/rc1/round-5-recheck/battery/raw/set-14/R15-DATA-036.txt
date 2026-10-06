@@ -1,0 +1,7 @@
+warm-up request (populate cache):
+http_code=200 time=0.334113s
+timed request (warm cache):
+http_code=200 time=0.334547s
+provider bse
+n bars 255
+last bar {'timestamp': '2026-09-25T00:00:00Z', 'open': 184.7, 'high': 184.7, 'low': 179.25, 'close': 180.8, 'volume': 1529.0}

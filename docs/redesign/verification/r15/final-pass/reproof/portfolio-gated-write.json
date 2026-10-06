@@ -1,0 +1,45 @@
+{
+ "toolUse": {
+  "kind": "tool_use",
+  "tool_call_id": "call_66cb990983834ed6b3650282643446e7",
+  "name": "portfolio_add_position",
+  "input": {
+   "cost_basis": 3500,
+   "symbol": "TCS",
+   "quantity": 5
+  }
+ },
+ "before": [
+  {
+   "symbol": "INFY.NS",
+   "quantity": 20,
+   "costBasis": 1500
+  }
+ ],
+ "enqueue": "staged",
+ "staged": {
+  "kind": "data-write",
+  "status": "pending",
+  "title": "Add 5 TCS @ ₹3,500 to the portfolio"
+ },
+ "whilePending": [
+  {
+   "symbol": "INFY.NS",
+   "quantity": 20,
+   "costBasis": 1500
+  }
+ ],
+ "accept": "applied",
+ "after": [
+  {
+   "symbol": "INFY.NS",
+   "quantity": 20,
+   "costBasis": 1500
+  },
+  {
+   "symbol": "TCS",
+   "quantity": 5,
+   "costBasis": 3500
+  }
+ ]
+}

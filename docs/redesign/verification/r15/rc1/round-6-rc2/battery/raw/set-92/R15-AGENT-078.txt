@@ -1,0 +1,5 @@
+# probe at ace7dd76 (candidate worktree), run 05:55:38
+$ grep -c 'requestAnimationFrame' src/lib/layout-templates.ts
+0
+$ grep -n 'R15-AGENT-078' src/lib/layout-templates.test.ts src/lib/layout-templates.ts | head -5
+src/lib/layout-templates.test.ts:269:describe("appliers run synchronously (R15-AGENT-078)", () => {

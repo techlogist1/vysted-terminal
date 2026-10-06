@@ -1,4 +1,4 @@
-"""Concrete backtest strategy archetypes — Teammate K v0.5.0 deliverable.
+"""Concrete backtest strategy archetypes.
 
 The Phase-4 foundation ships an event-driven engine + abstract
 :class:`BacktestStrategy` + a strategy registry in
@@ -38,6 +38,7 @@ import statistics
 from collections import deque
 from typing import Any
 
+from services.backtest_dsl import CustomDslStrategy
 from services.backtest_engine import (
     BacktestOrderIntent,
     BacktestStrategy,
@@ -162,6 +163,41 @@ STRATEGY_SPECS: list[dict[str, Any]] = [
             },
         },
     },
+    {
+        "id": "custom",
+        "name": "Custom Strategy (DSL)",
+        "description": (
+            "Your own entry/exit rules over indicator comparisons — e.g. enter "
+            "when sma(20) > sma(50), exit when rsi(14) > 70. Parsed and "
+            "evaluated server-side with a restricted expression grammar."
+        ),
+        "paramsSchema": {
+            "type": "object",
+            "properties": {
+                "entry": {
+                    "type": "string",
+                    "default": "sma(20) > sma(50)",
+                    "description": (
+                        "Entry rule. Fields: open, high, low, close, volume. "
+                        "Functions: sma(n), ema(n), rsi(n), highest(n), lowest(n), "
+                        "stdev(n), change(n). Operators: + - * /, comparisons, and/or/not."
+                    ),
+                },
+                "exit": {
+                    "type": "string",
+                    "default": "rsi(14) > 70",
+                    "description": "Exit rule — same grammar as entry.",
+                },
+                "position_size": {
+                    "type": "number",
+                    "default": 100,
+                    "minimum": 1,
+                    "description": "Fixed share quantity per trade.",
+                },
+            },
+            "required": ["entry", "exit"],
+        },
+    },
 ]
 
 
@@ -173,6 +209,42 @@ def list_strategy_specs() -> list[dict[str, Any]]:
     model so the schema sub-object stays free-form.
     """
     return [dict(spec) for spec in STRATEGY_SPECS]
+
+
+_TYPE_NAMES = {"integer": "an integer", "number": "a number", "string": "text"}
+
+
+def validate_params(strategy_id: str, params: dict[str, Any]) -> None:
+    """Raise ``ValueError`` naming the first param outside its ``paramsSchema``.
+
+    A strategy reads its params with ``int()``/``float()``, so a string or an
+    out-of-range value would otherwise crash mid-stream or run a nonsense
+    window (R15-UI-010). Strategies without a spec (test doubles) pass.
+    """
+    spec = next((s for s in STRATEGY_SPECS if s["id"] == strategy_id), None)
+    properties = spec["paramsSchema"]["properties"] if spec else {}
+    for key, value in params.items():
+        schema = properties.get(key)
+        if schema is None:
+            continue
+        kind = schema["type"]
+        if kind == "string":
+            ok = isinstance(value, str)
+        else:
+            ok = isinstance(value, int | float) and not isinstance(value, bool)
+            if kind == "integer" and ok:
+                ok = float(value).is_integer()
+        if not ok:
+            raise ValueError(f"`{key}` must be {_TYPE_NAMES[kind]}")
+        low, high = schema.get("minimum"), schema.get("maximum")
+        if kind != "string" and not (
+            (low is None or value >= low) and (high is None or value <= high)
+        ):
+            if high is None:
+                raise ValueError(f"`{key}` must be at least {low}")
+            if low is None:
+                raise ValueError(f"`{key}` must be at most {high}")
+            raise ValueError(f"`{key}` must be between {low} and {high}")
 
 
 # ---------------------------------------------------------------------------
@@ -413,6 +485,7 @@ def register_all() -> None:
     register_strategy("mean_reversion", MeanReversionStrategy)
     register_strategy("trend_following", TrendFollowingStrategy)
     register_strategy("regime_aware", RegimeAwareStrategy)
+    register_strategy("custom", CustomDslStrategy)
     logger.info(
         "backtest_strategies: registered %s",
         ", ".join(spec["id"] for spec in STRATEGY_SPECS),

@@ -1,0 +1,19 @@
+CMD: grep -n "R15-AGENT-096" src/store/screener.test.ts src/lib/host-actions.test.ts (candidate 949c3c9f)
+Frontend store logic (screener.applyFilters group-vs-flat-criteria); no sidecar endpoint. Certified via pinned vitest.
+src/store/screener.test.ts:494:    it("applyFilters: a FLAT group supersedes the caller's flat criteria — runScreener must send the group's leaves, not the stale list (R15-AGENT-096)", () => {
+src/lib/host-actions.test.ts:1361:    // later test in this file (R15-AGENT-096's own tests need the REAL
+src/lib/host-actions.test.ts:1385:  // R15-AGENT-096: a flat group (AND or OR) supersedes the flat `criteria`
+src/lib/host-actions.test.ts:1388:  describe("write_screener_filters / save_screen: a flat group's leaves are what actually runs (R15-AGENT-096)", () => {
+    it("applyFilters: a FLAT group supersedes the caller's flat criteria — runScreener must send the group's leaves, not the stale list (R15-AGENT-096)", () => {
+      useScreenerStore.getState().applyFilters({
+        criteria: [{ field: "market_cap", operator: "gt", value: 1000 }],
+        group: {
+          combinator: "and",
+          criteria: [{ field: "pe_ratio", operator: "lt", value: 20 }],
+        },
+      });
+      expect(useScreenerStore.getState().advanced).toBe(false);
+      expect(useScreenerStore.getState().criteria).toEqual([
+        { field: "pe_ratio", operator: "lt", value: 20 },
+      ]);
+    });

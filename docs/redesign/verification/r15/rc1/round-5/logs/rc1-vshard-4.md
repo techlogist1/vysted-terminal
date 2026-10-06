@@ -1,0 +1,22 @@
+# rc1-vshard-4 working log (gate round 5)
+
+- 2026-09-27 16:34:58 IST candidate worktree HEAD 633f844071d972b337f4c3526d86555c80df0568 confirmed
+- own sidecar :52604, data dir scratchpad/rc1-round-5-data-rc1-vshard-4, sleep pid 87867 (sh 87864, python 87868)
+- 16:38:49 DATA-086 holds (in-process dead-proxy: ProviderError kind=network, no cache row; online real hits 0.75) scratch vshard4-r5/data086.out
+- 16:38:49 LIFECYCLE-019 holds (503 -> block page -> ReadTimeout -> ok: 4 attempts, lane loaded; all-fail -> lane unavailable, gave_up today; live GUJGASLTD->GUJENERGY rename_lane available)
+- 16:38:49 LIFECYCLE-022 holds (UDiFF 404 + live legacy body 25 Sep -> 2926 rows; all-404 20-day walk -> only 2026-09-14 table holiday marked, WARNING names URL)
+- 16:38:49 CODE-AGENT-004 holds (real genai usage type, None-valued first chunk: in 1450 / out 9500)
+- 16:38:49 CODE-AGENT-007 holds (registry edit + reload: dispatch == registry == PROVIDER_INFO for deepseek/xai/openrouter); adjacent: research lanes sonar.py:42 + deep_research.py:795 hardcode openrouter chat URL
+- 16:38:49 CODE-AGENT-016 holds (enum == registry ids; openrouter agent file loads in _discover_specs)
+- 16:47:26 AGENT-008 live run: my Ollama lock (made 16:45) vanished ~16:47 and another holder re-created it; killed my sh wrapper (SIGKILL, no trap) so my exit cannot rmdir another agent's lock; curl 99791 left to finish
+- 17:04:58 CODE-AGENT-005 holds (live /llm/chat deepseek+openai fake key -> provider 401; unsupported option keys dropped + logged)
+- 17:04:58 CODE-AGENT-008 holds (brief_for mode/depth + sources for iter/heavy/ultra; live Ollama autobrief published)
+- 17:04:58 LIFECYCLE-025 holds; CROSS-PLATFORM-002 holds (adjacent chain: flaky test_research_fast time-box test)
+- 17:04:58 DATA-094 holds; LIFECYCLE-018 holds; DATA-052 holds; LIFECYCLE-021 holds; UI-051/UI-016/UI-052 hold (vitest green)
+- 17:04:58 LEAD-023 REFUTED (still raises; D-B9-2 reframe for lead); DATA-073 REFUTED (NSE ends 2026-12-25; test weakened to Dec 1)
+- 17:04:58 DATA-069 holds (live AAPL 972 history rows / 60 individual, 0 null targets; adjacent throttle-swallow)
+- 17:04:58 UI-058 REFUTED partial (scratch vitest probe: {settings:{fontSize}} / unknown-only keybindings / empty sections -> 'Imported settings.')
+- 17:04:58 LEAD-018 holds (fixture + reasoning tests 4 passed; adjacent: echo-then-answer leaks); LIFECYCLE-015 holds; UI-010 holds (live 422s)
+- 17:04:58 note: worktree spend-ledger.jsonl +3 lines from other agents' vy.py runs, not this shard
+- 17:04:58 wrote verifier/shard-4.md + findings/rc1-vshard-4.json (8 rows); stopping sidecar sleep pid 87867
+- 17:05:04 sidecar stopped (killed sleep 87867)

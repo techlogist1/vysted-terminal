@@ -1,0 +1,75 @@
+# R15-AGENT-009 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:27:46Z, sidecar :52348
+# kind=sh
+# command:
+#   cd $C/sidecar; export VYSTED_DATA_DIR=$S
+#   ./.venv/bin/python3 - <<'P'
+#   import asyncio, json
+#   from services.agent_tools.screener_tools import _screener_run
+#   from services import screener
+#   from models.screener import ScreenerRequest
+#   args={'universe':'india-all','criteria':[{'field':'roe','operator':'gt','value':0.25}]}
+#   async def main():
+#       r=await _screener_run(args)
+#       res=r['result']
+#       print('ok',r['ok'],'tool payload bytes',len(json.dumps(r)),'has skip_details',('skip_details' in res),'skip_summary',res.get('skip_summary'),'n skip_examples',len(res.get('skip_examples',[])), 'rows', len(res.get('rows',res.get('results',[]))))
+#       full=await screener.run_screener(ScreenerRequest.model_validate({**args,'limit':50}))
+#       print('HTTP-shape ledger rows (unchanged for panel):',len(full.skip_details),'bytes',len(full.model_dump_json()))
+#   asyncio.run(main())
+#   P
+# output:
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'KHERIAAUTO'
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'SPECTRAA'
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'SANGINITA'
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'TEAMTECH'
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'RFBL'
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'SIMCA'
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'APSISAERO'
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'GJL'
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+screener: fallback retry hit its budget at 34/405
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'ARMOUR'
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'AVANA'
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'ASHUTOSH.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'SHANTIINOR.NS': Too Many Requests. Rate limited. Try after a while.
+provider health: yahoo circuit OPEN for 63s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'SUMAX.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'ABH.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'MADHURKNIT.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'SKYTECH.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'FASCINATE.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'CREDENT.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'PRAMODINI.NS': Too Many Requests. Rate limited. Try after a while.
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'DHARARAIL'
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'KHERIAAUTO'
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'SPECTRAA'
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'SANGINITA'
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+ok True tool payload bytes 787 has skip_details False skip_summary {'missing_field:roe': 5515, 'timeout': 12, 'no_data': 234, 'not_found': 129} n skip_examples 5 rows 0
+HTTP-shape ledger rows (unchanged for panel): 5890 bytes 311310
+# exit=0

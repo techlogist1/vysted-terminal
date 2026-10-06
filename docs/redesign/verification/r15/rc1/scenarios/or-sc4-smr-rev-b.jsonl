@@ -1,0 +1,15 @@
+{"kind": "thinking", "text": "We"}
+{"kind": "thinking", "text": " need to get"}
+{"kind": "thinking", "text": " S"}
+{"kind": "thinking", "text": "MR's latest quarter"}
+{"kind": "thinking", "text": "ly revenue. First"}
+{"kind": "thinking", "text": ", resolve"}
+{"kind": "thinking", "text": " SMR symbol in"}
+{"kind": "thinking", "text": " India region"}
+{"kind": "thinking", "text": " (session"}
+{"kind": "thinking", "text": " locale IN"}
+{"kind": "thinking", "text": "). Use resolve_symbol"}
+{"kind": "thinking", "text": ".\n"}
+{"kind": "tool_use", "tool_call_id": "call_bb06dafa6a82488aacb4998eefe1e3eb", "name": "resolve_symbol", "input": {"region": "IN", "query": "SMR"}}
+{"kind": "error", "message": "OpenRouter returned a server error \u2014 it may be a temporary outage.", "action": "Try again in a few minutes.", "detail": "Upstream error from Nvidia: Service temporarily overloaded", "code": "provider_5xx"}
+{"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}

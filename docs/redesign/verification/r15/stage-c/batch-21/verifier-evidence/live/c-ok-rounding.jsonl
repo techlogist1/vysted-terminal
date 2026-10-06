@@ -1,0 +1,29 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_436ac8848a2548f2820a196e998220c8", "name": "price_data", "input": {"asset_class": "equity", "range": "1d", "symbol": "NVDA", "timeframe": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_436ac8848a2548f2820a196e998220c8", "name": "price_data", "ok": true, "error": null}
+{"kind": "delta", "text": "NV"}
+{"kind": "delta", "text": "DA"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "225"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Note"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " rounded"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " nearest"}
+{"kind": "delta", "text": " dollar"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " requested"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 3092, "output_tokens": 25, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

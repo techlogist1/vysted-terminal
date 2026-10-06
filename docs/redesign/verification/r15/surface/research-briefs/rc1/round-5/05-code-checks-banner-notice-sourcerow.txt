@@ -1,0 +1,36 @@
+=== grep -n 'noWeb\|bodyCitesWeb\|webAvailable' src/modules/research/BriefPanel.tsx (honest no-web banner, WS3 reconciliation) ===
+28:  bodyCitesWeb,
+174:          reconciled `webAvailable` flag — that flag is true whenever ANY source
+739:  // `noWeb` is the honest no-web state, already reconciled in briefFromInput with
+746:  const noWeb = brief.webAvailable === false;
+748:  const bodyCites = bodyCitesWeb(brief.markdown);
+828:              `noWeb` is already reconciled with the source count (a sourced brief
+836:          {noWeb ? (
+
+=== sed -n '285,300p' src/lib/host-actions.ts (webAvailable reconciled with actual evidence, symptom #2 fix) ===
+  //    derives FALSE from the (lack of) evidence rather than implying web ran.
+  // TRUE iff a source was cited (web OR structured/native) OR the pipeline
+  // explicitly affirmed web; an omitted flag with zero sources stays FALSE (no
+  // default-true), an explicit false with zero sources stays FALSE (real outage).
+  const webAvailable = sources.length > 0 || input.web_available === true;
+  return {
+    query: str(input, "query"),
+    symbol,
+    mode,
+    depth,
+    markdown: str(input, "markdown"),
+    sources,
+    sourceCount: sources.length,
+    cost: cost ? { tokens: cost.tokens, spendUsd: cost.spendUsd ?? cost.spend_usd } : undefined,
+    webAvailable,
+    webReason: str(input, "web_reason") || undefined,
+
+=== grep -n 'isRuntimeNotice\|step_kind' src/modules/chat/message-notices.ts (AGENT-031/UI-054: structural kind marker, not a prose regex) ===
+6: *   - the runtime's notices (`step_kind: "notice"` — publish divergence,
+66: * Matching the copy drifted twice (R15-AGENT-031 / R15-UI-054).
+68:export function isRuntimeNotice(stepKind: string): boolean {
+
+=== grep -n 'href={source.url}\|ExternalLink' src/modules/research/BriefPanel.tsx (UI-080: vysted:// still renders as external link, open/expected, not a regression) ===
+10:  ExternalLink,
+263:          href={source.url}
+269:          <ExternalLink className="text-charcoal-500 group-hover:text-charcoal-100 mt-0.5 size-3 shrink-0" />

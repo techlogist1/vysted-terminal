@@ -1,0 +1,10 @@
+{
+  "certified": ["R15-CODE-AGENT-033"],
+  "needs_gui": [],
+  "not_certified": [
+    {"id": "R15-AGENT-090", "reason": "The class fix closes the three batch-13 escapes and the planner's fresh cases, but the claim class is still decided by wording, and it now errs both ways. (1) Fabrications with no cue word still pass through _guard_ratio_claims untouched against a fundamentals result with no depositary term: '1 ADR = 6 shares.', 'One ADR is worth 10 shares of Sify.' and 'A single SIFY ADR gives you 2 shares.'. Live on the running sidecar, llama3.1:8b emitted '1 ADR = 6 shares.' verbatim and it reached the stream unguarded (verifier-evidence/live-2.jsonl). (2) The bare 'each' cue makes true prose a claim. 'Each ADR closed at 5.20 USD on Friday.', 'Each ADS's 52-week high was 12.4.' and 'SIFY's ADSs each gained 3 points in 2024.' are all replaced by RATIO_UNAVAILABLE. The base guard at 4cfd283e kept all three, so this is a new over-replacement in agent-chat. (3) On the live bar, 1 of 5 original-repro runs still answered with an untraced 1:1: 'For SIFY, one ordinary share represents 1 share.' (sify-2). The sentence has no depositary term because the claim is split over sentences, which the ponytail note accepts as a limit. In the same run the model reported 'TTM revenue for SIFY in USD is ₹4,411 cr' while both of its tool calls had errored."}
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-14-int@11e23ace729ed82bfed63a1c42e989514c70ae9b"
+}

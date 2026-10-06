@@ -1,0 +1,5 @@
+# R15-DATA-097 in-process (yf.Search stubbed, monotonic time-travel)
+1st (empty) [] 1
+2nd within TTL: calls 1
+after 301s: calls 2 ['NEWLISTCO']
+non-empty stays cached: calls 2

@@ -1,0 +1,9 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52340
+$ curl -s -m 60 '127.0.0.1:52340/disclosures/shareholding?symbol=DAL' | python3 -c "import sys,json;d=json.load(sys.stdin);print(list(d.keys()));[print({k:r.get(k) for k in ('quarter_end','promoter_percent','pledged_percent_of_promoter','pledge_basis','pledged_as_of')}) for r in d.get('patterns',[])[:4]]; print(list(d['patterns'][0].keys()))"
+exit=0
+['symbol', 'count', 'patterns', 'coverage', 'note', 'provider', 'major_shareholders', 'source_url']
+{'quarter_end': '2026-06-30', 'promoter_percent': 70.86, 'pledged_percent_of_promoter': None, 'pledge_basis': None, 'pledged_as_of': None}
+{'quarter_end': '2026-03-31', 'promoter_percent': 70.86, 'pledged_percent_of_promoter': None, 'pledge_basis': None, 'pledged_as_of': None}
+{'quarter_end': '2025-12-31', 'promoter_percent': 70.86, 'pledged_percent_of_promoter': None, 'pledge_basis': None, 'pledged_as_of': None}
+{'quarter_end': '2025-09-30', 'promoter_percent': 70.86, 'pledged_percent_of_promoter': None, 'pledge_basis': None, 'pledged_as_of': None}
+['symbol', 'quarter_end', 'quarter_basis', 'promoter_percent', 'fii_percent', 'dii_percent', 'institutions_percent', 'public_percent', 'public_basis', 'public_non_institutional_percent', 'employee_trusts_percent', 'submission_date', 'xbrl_url', 'source', 'split_source', 'split_as_of', 'split_basis', 'promoter_pledged_percent', 'promoter_pledge_basis']

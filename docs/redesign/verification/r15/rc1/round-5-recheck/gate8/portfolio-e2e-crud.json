@@ -1,0 +1,375 @@
+{
+  "steps": [
+    {
+      "step": "0 fresh blob slot",
+      "pass": true,
+      "detail": {
+        "status": 404
+      }
+    },
+    {
+      "step": "1 add 3 holdings via the panel form",
+      "pass": true,
+      "detail": [
+        {
+          "symbol": "RELIANCE.NS",
+          "quantity": 10,
+          "costBasis": 1200,
+          "assetClass": "equity",
+          "note": null
+        },
+        {
+          "symbol": "AAPL",
+          "quantity": 5,
+          "costBasis": 180,
+          "assetClass": "equity",
+          "note": "core, long-term — gate8 note"
+        },
+        {
+          "symbol": "MSFT",
+          "quantity": 3,
+          "costBasis": 400,
+          "assetClass": "equity",
+          "note": null
+        }
+      ]
+    },
+    {
+      "step": "2 persist + read back (POST /workspace, GET /workspace/{name})",
+      "pass": true,
+      "detail": {
+        "list": [
+          {
+            "id": "default",
+            "name": "Portfolio",
+            "holdings": [
+              {
+                "id": "h-f3e537a8-580a-4962-b14f-45368cdf104d",
+                "symbol": "RELIANCE.NS",
+                "quantity": 10,
+                "costBasis": 1200,
+                "assetClass": "equity"
+              },
+              {
+                "id": "h-e201407a-8562-4dde-bfc3-f895ed16d378",
+                "symbol": "AAPL",
+                "quantity": 5,
+                "costBasis": 180,
+                "assetClass": "equity",
+                "note": "core, long-term — gate8 note"
+              },
+              {
+                "id": "h-a023b310-6e3a-4f5e-8e6e-af342c3d1c2f",
+                "symbol": "MSFT",
+                "quantity": 3,
+                "costBasis": 400,
+                "assetClass": "equity"
+              }
+            ]
+          }
+        ],
+        "activeId": "default"
+      }
+    },
+    {
+      "step": "3 CSV via the panel Export button: columns + rows vs holdings",
+      "pass": true,
+      "detail": {
+        "cols": [
+          "Symbol",
+          "Quantity",
+          "Cost basis",
+          "Asset class",
+          "Currency",
+          "Price",
+          "Market value",
+          "P&L",
+          "P&L %",
+          "Weight %",
+          "Note"
+        ],
+        "rows": [
+          {
+            "Symbol": "RELIANCE.NS",
+            "Quantity": "10",
+            "Cost basis": "1200",
+            "Asset class": "equity",
+            "Currency": "INR",
+            "Price": "1226",
+            "Market value": "12260",
+            "P&L": "260",
+            "P&L %": "2.166666666666667",
+            "Weight %": "",
+            "Note": ""
+          },
+          {
+            "Symbol": "AAPL",
+            "Quantity": "5",
+            "Cost basis": "180",
+            "Asset class": "equity",
+            "Currency": "USD",
+            "Price": "341.07000732421875",
+            "Market value": "1705.3500366210938",
+            "P&L": "805.3500366210938",
+            "P&L %": "89.48333740234375",
+            "Weight %": "",
+            "Note": "core, long-term — gate8 note"
+          },
+          {
+            "Symbol": "MSFT",
+            "Quantity": "3",
+            "Cost basis": "400",
+            "Asset class": "equity",
+            "Currency": "USD",
+            "Price": "516.1699829101562",
+            "Market value": "1548.5099487304688",
+            "P&L": "348.50994873046875",
+            "P&L %": "29.042495727539062",
+            "Weight %": "",
+            "Note": ""
+          }
+        ]
+      }
+    },
+    {
+      "step": "4 P&L recomputed from /quotes/{sym} equals the panel's",
+      "pass": true,
+      "detail": [
+        {
+          "symbol": "RELIANCE.NS",
+          "quotePrice": 1226,
+          "currency": "INR",
+          "provider": "nse_direct",
+          "recomputedPnl": 260,
+          "panelPnl": 260,
+          "diff": 0
+        },
+        {
+          "symbol": "AAPL",
+          "quotePrice": 341.07000732421875,
+          "currency": "USD",
+          "provider": "yfinance",
+          "recomputedPnl": 805.3500366210938,
+          "panelPnl": 805.3500366210938,
+          "diff": 0
+        },
+        {
+          "symbol": "MSFT",
+          "quotePrice": 516.1699829101562,
+          "currency": "USD",
+          "provider": "yfinance",
+          "recomputedPnl": 348.50994873046875,
+          "panelPnl": 348.50994873046875,
+          "diff": 0
+        }
+      ]
+    },
+    {
+      "step": "5 update AAPL (Edit, same id) + delete RELIANCE.NS (ConfirmButton x2)",
+      "pass": true,
+      "detail": [
+        {
+          "symbol": "AAPL",
+          "quantity": 7,
+          "costBasis": 175,
+          "assetClass": "equity",
+          "note": "core, long-term — gate8 note (edited)"
+        },
+        {
+          "symbol": "MSFT",
+          "quantity": 3,
+          "costBasis": 400,
+          "assetClass": "equity",
+          "note": null
+        }
+      ]
+    },
+    {
+      "step": "6 persist + read back after update/delete",
+      "pass": true,
+      "detail": {
+        "list": [
+          {
+            "id": "default",
+            "name": "Portfolio",
+            "holdings": [
+              {
+                "id": "h-e201407a-8562-4dde-bfc3-f895ed16d378",
+                "symbol": "AAPL",
+                "quantity": 7,
+                "costBasis": 175,
+                "assetClass": "equity",
+                "note": "core, long-term — gate8 note (edited)"
+              },
+              {
+                "id": "h-a023b310-6e3a-4f5e-8e6e-af342c3d1c2f",
+                "symbol": "MSFT",
+                "quantity": 3,
+                "costBasis": 400,
+                "assetClass": "equity"
+              }
+            ]
+          }
+        ],
+        "activeId": "default"
+      }
+    },
+    {
+      "step": "7 CSV after update: rows == holdings",
+      "pass": true,
+      "detail": {
+        "cols": [
+          "Symbol",
+          "Quantity",
+          "Cost basis",
+          "Asset class",
+          "Currency",
+          "Price",
+          "Market value",
+          "P&L",
+          "P&L %",
+          "Weight %",
+          "Note"
+        ],
+        "rows": [
+          {
+            "Symbol": "AAPL",
+            "Quantity": "7",
+            "Cost basis": "175",
+            "Asset class": "equity",
+            "Currency": "USD",
+            "Price": "341.07000732421875",
+            "Market value": "2387.4900512695312",
+            "P&L": "1162.4900512695312",
+            "P&L %": "94.89714704241071",
+            "Weight %": "60.66",
+            "Note": "core, long-term — gate8 note (edited)"
+          },
+          {
+            "Symbol": "MSFT",
+            "Quantity": "3",
+            "Cost basis": "400",
+            "Asset class": "equity",
+            "Currency": "USD",
+            "Price": "516.1699829101562",
+            "Market value": "1548.5099487304688",
+            "P&L": "348.50994873046875",
+            "P&L %": "29.042495727539062",
+            "Weight %": "39.34",
+            "Note": ""
+          }
+        ]
+      }
+    },
+    {
+      "step": "8 restore round-trip from the read-back blob (portfolios slice)",
+      "pass": true,
+      "detail": [
+        {
+          "symbol": "AAPL",
+          "quantity": 7,
+          "costBasis": 175,
+          "assetClass": "equity",
+          "note": "core, long-term — gate8 note (edited)"
+        },
+        {
+          "symbol": "MSFT",
+          "quantity": 3,
+          "costBasis": 400,
+          "assetClass": "equity",
+          "note": null
+        }
+      ]
+    },
+    {
+      "step": "9 notes CRUD (create/update/delete, blob read back each step)",
+      "pass": true,
+      "detail": [
+        {
+          "create": {
+            "general": "gate8 general thesis",
+            "bySymbol": {
+              "MSFT": "azure capex watch"
+            },
+            "focusSymbol": ""
+          }
+        },
+        {
+          "update": {
+            "general": "gate8 general thesis",
+            "bySymbol": {
+              "MSFT": "azure capex watch — updated"
+            },
+            "focusSymbol": ""
+          }
+        },
+        {
+          "delete": {
+            "general": "",
+            "bySymbol": {
+              "MSFT": ""
+            },
+            "focusSymbol": ""
+          },
+          "captured": {
+            "general": "",
+            "bySymbol": {}
+          }
+        }
+      ]
+    },
+    {
+      "step": "10 watchlist CRUD (add INFY.NS IN, read back, remove, read back)",
+      "pass": true,
+      "detail": {
+        "seed": [
+          "SPY|",
+          "QQQ|",
+          "BTC/USDT|",
+          "ETH/USDT|",
+          "NVDA|",
+          "AAPL|"
+        ],
+        "afterRemove": [
+          "SPY|",
+          "QQQ|",
+          "BTC/USDT|",
+          "ETH/USDT|",
+          "NVDA|",
+          "AAPL|"
+        ],
+        "hadInfy": true
+      }
+    },
+    {
+      "step": "11 agent context snapshot carries the ledger",
+      "pass": true,
+      "detail": {
+        "positionCount": 2,
+        "totalValue": 3936,
+        "activePortfolioId": "default",
+        "activePortfolioName": "Portfolio",
+        "holdings": [
+          {
+            "id": "h-e201407a-8562-4dde-bfc3-f895ed16d378",
+            "symbol": "AAPL",
+            "quantity": 7,
+            "costBasis": 175,
+            "assetClass": "equity",
+            "marketValue": 2387.4900512695312,
+            "pnl": 1162.4900512695312
+          },
+          {
+            "id": "h-a023b310-6e3a-4f5e-8e6e-af342c3d1c2f",
+            "symbol": "MSFT",
+            "quantity": 3,
+            "costBasis": 400,
+            "assetClass": "equity",
+            "marketValue": 1548.5099487304688,
+            "pnl": 348.50994873046875
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+ownership_check.is_applicable('AMAL') = False
+market_cap_witness.is_applicable('AMAL') = False
+range_check.is_applicable('AMAL') = False
+ownership_check.is_applicable('AMAL.BO') = True
+market_cap_witness.is_applicable('AMAL.BO') = True
+range_check.is_applicable('AMAL.BO') = True
+ownership_check.is_applicable('SMR') = False
+market_cap_witness.is_applicable('SMR') = False
+range_check.is_applicable('SMR') = False
+ownership_check.is_applicable('SMR.BO') = True
+market_cap_witness.is_applicable('SMR.BO') = True
+range_check.is_applicable('SMR.BO') = True

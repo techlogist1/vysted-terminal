@@ -1,0 +1,960 @@
+[
+{
+"cmd": "click",
+"x": 1139,
+"y": 205
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-17-portfolio-T054.png"
+},
+{
+"cmd": "click",
+"x": 451,
+"y": 705
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-18-layouts-focus-input.png"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-19-layouts-tab1.png"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-20-layouts-tab2.png"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-21-layouts-tab3.png"
+},
+{
+"cmd": "key",
+"combo": "tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-22-layouts-tab4.png"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-23-settings-shifttab8.png"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-24-settings-shifttab16.png"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-25-settings-shifttab24.png"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-26-settings-shifttab32.png"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-27-settings-shifttab40.png"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-28-settings-shifttab48.png"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-29-settings-shifttab56.png"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-30-settings-shifttab64.png"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-31-settings-shifttab72.png"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-32-settings-shifttab80.png"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "key",
+"combo": "shift+tab"
+},
+{
+"cmd": "wait",
+"seconds": 0.6
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-33-settings-shifttab88.png"
+}
+]

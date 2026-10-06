@@ -1,0 +1,6 @@
+COMMAND: python3 probe_agent059_012.py (in-process, candidate venv) — inspect invoke_agent MCP tool's published JSON-schema parameters
+EXIT: 0
+OUTPUT:
+=== R15-CODE-AGENT-012: invoke_agent MCP tool schema has no api_key parameter ===
+  invoke_agent parameters schema: {'additionalProperties': False, 'properties': {'agent_id': {'type': 'string'}, 'prompt': {'type': 'string'}}, 'required': ['agent_id', 'prompt'], 'type': 'object'}
+  PASS: api_key is not in the published tool schema; properties = ['agent_id', 'prompt']

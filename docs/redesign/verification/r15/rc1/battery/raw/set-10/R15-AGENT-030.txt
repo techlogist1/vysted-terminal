@@ -1,0 +1,6 @@
+RuntimeError -> {'kind': 'error', 'message': 'The terminal hit an internal error.', 'action': 'Try again; if it keeps happening, restart Vysted.', 'detail': 'RuntimeError: runs_store: database connection is closed', 'code': 'internal'}
+ValueError -> {'kind': 'error', 'message': 'The terminal hit an internal error.', 'action': 'Try again; if it keeps happening, restart Vysted.', 'detail': "ValueError: could not parse depth 'ultra2'", 'code': 'internal'}
+TypeError -> {'kind': 'error', 'message': 'The terminal hit an internal error.', 'action': 'Try again; if it keeps happening, restart Vysted.', 'detail': "TypeError: got an unexpected keyword argument 'research_depth'", 'code': 'internal'}
+KeyError -> {'kind': 'error', 'message': 'The terminal hit an internal error.', 'action': 'Try again; if it keeps happening, restart Vysted.', 'detail': "KeyError: 'connect_args'", 'code': 'internal'}
+httpx.ConnectError -> {'kind': 'error', 'message': 'The terminal hit an internal error.', 'action': 'Try again; if it keeps happening, restart Vysted.', 'detail': 'ConnectError: Connection refused', 'code': 'internal'}
+humanize(None, ConnectError) -> HumanError(message='Could not reach the AI provider — check your network.', action='Check your internet connection and try again.', detail='Connection refused', code='network')

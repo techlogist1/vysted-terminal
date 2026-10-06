@@ -1,0 +1,4 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9
+cmd: diff <(sed 's/[Bb]rave/ENG/g; s/[Mm]ojeek/ENG/g' brave.py) <(same on mojeek.py) | grep -c '^[<>]'
+=> 78   (brave.py 140 lines, mojeek.py 132 lines)
+code: brave.py:52 _clean, :57 _is_organic_url, :101 class BraveSearchBackend(SearchBackend); mojeek.py:48 _clean, :52 _is_organic_url, :93 class MojeekSearchBackend(SearchBackend); no _HtmlSerp* base in services/search/

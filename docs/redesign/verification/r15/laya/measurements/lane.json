@@ -1,0 +1,32 @@
+{
+  "role": "laya-lane-check",
+  "clear": true,
+  "heavy_jobs": [],
+  "ollama": {
+    "listed_models": ["llama3.1:8b"],
+    "runner_pid": 84457,
+    "runner_cpu_pct_sample1": 0.0,
+    "runner_cpu_pct_sample2": 0.0,
+    "sample_interval_s": 30,
+    "generation_in_progress": false
+  },
+  "sidecars_up": [
+    { "port": 52154, "command": "vysted-se(rver?) pid57745" },
+    { "port": 52153, "command": "vysted-op(erator?) pid57746" },
+    { "port": 52152, "command": "Python pid57934" }
+  ],
+  "load": { "load1": 4.95, "load5": 4.00, "load15": 3.83 },
+  "ncpu": 8,
+  "load_threshold": 6.0,
+  "free_gb": 6.34,
+  "free_gb_threshold": 3.0,
+  "reasons_not_clear": [],
+  "sources": {
+    "heavy_jobs": "pgrep -fl 'ci-local|cargo|pnpm build|tauri build|pyinstaller|vitest|pytest'",
+    "ollama": "ollama ps; ps -o pid,%cpu,command -p 84457 (two samples 30s apart)",
+    "sidecars_up": "lsof -nP -iTCP -sTCP:LISTEN | grep 127.0.0.1:52",
+    "load": "sysctl -n vm.loadavg (resampled after wait)",
+    "ncpu": "sysctl -n hw.ncpu",
+    "free_gb": "vm_stat: (Pages free 9750 + Pages inactive 405819) * 16384 bytes"
+  }
+}

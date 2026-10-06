@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_ed05c24edd1e4d61ad7df7f60e9c0706", "name": "price_data", "input": {"symbol": "SBIN.NS"}}
+[  38.0s] tool_result: {"kind": "tool_result", "tool_call_id": "call_ed05c24edd1e4d61ad7df7f60e9c0706", "name": "price_data", "ok": true, "error": null}
+[  48.0s] heartbeat: {"kind": "heartbeat"}
+[  58.0s] heartbeat: {"kind": "heartbeat"}
+[  68.8s] done: {"kind": "done", "usage": {"input_tokens": 6964, "output_tokens": 14, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of SBIN.NS is ₹983.0
+
+=== ok · 68.8s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 13, 'done': 1} · usage in=6964 out=14 · est $0.00000 · llama3.1:8b

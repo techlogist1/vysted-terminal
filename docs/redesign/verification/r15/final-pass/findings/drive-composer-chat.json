@@ -1,0 +1,65 @@
+[
+ {
+  "key": "drive-composer-chat:nd-1",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "scenario": "composer-chat t4 note (AUTO, accept)",
+  "title": "write_note files a note under the literal company name ('COCHIN SHIPYARD') instead of resolving it to the ticker, so the symbol's note view (COCHINSHIP) stays empty",
+  "area": "agent-chat",
+  "repro": "Ollama llama3.1:8b, AUTO: 'Write a note on Cochin Shipyard: valuation looks stretched at ~50x trailing P/E; revisit after Q2 results.' -> write_note{scope:'Cochin Shipyard'} staged; accept -> note stored in bucket 'COCHIN SHIPYARD'; noteFor('COCHINSHIP') returns empty. noteScope() only uppercases (no /resolve), while the catalog schema asks for 'a symbol like NVDA' and add_to_watchlist already resolves names via GET /resolve.",
+  "evidence_file": "docs/redesign/verification/r15/surface/composer-chat/final/17-t4-note-accept-readback.json",
+  "suspected_files": [
+   "src/lib/host-actions.ts",
+   "sidecar/services/agent_tools/catalog.py"
+  ]
+ },
+ {
+  "key": "drive-composer-chat:kl-1",
+  "kind": "known_limitation",
+  "severity": "medium",
+  "register_id": "R15-LEAD-037",
+  "scenario": "composer-chat t2 compare (ASK, history)",
+  "title": "Follow-up compare picks wrong tickers (MDL.NS = Marvel Decor, IBULHSGFIN.NS = Sammaan Capital) and states their price/mcap as Mazagon Dock and Cochin Shipyard; value-only grounding passes them",
+  "area": "agent-chat",
+  "repro": "t1 then 'How does it compare with Mazagon Dock on valuation \u2014 which one is cheaper?' on llama3.1:8b",
+  "evidence_file": "docs/redesign/verification/r15/surface/composer-chat/final/12-t2-compare.json",
+  "suspected_files": []
+ },
+ {
+  "key": "drive-composer-chat:kl-2",
+  "kind": "known_limitation",
+  "severity": "medium",
+  "register_id": "R15-LEAD-030",
+  "scenario": "composer-chat ASK chart",
+  "title": "ASK chart turn stages both chart actions correctly but prints a fabricated BDL block (price 130.60 vs real 1087.9, RSI 40.23, P/E 6.32, yield 2.12%) with no data tool call behind it",
+  "area": "agent-chat",
+  "repro": "ASK, llama3.1:8b: 'Pull up Bharat Dynamics on the chart and add the RSI indicator'",
+  "evidence_file": "docs/redesign/verification/r15/surface/composer-chat/final/23-ask-chart.json",
+  "suspected_files": []
+ },
+ {
+  "key": "drive-composer-chat:gui-1",
+  "kind": "needs_gui",
+  "severity": "low",
+  "register_id": null,
+  "scenario": "composer-chat t6 arrange (AUTO)",
+  "title": "arrange_layout compare apply needs a mounted dockview: jsdom shows an honest \"Couldn't apply \u2026 the layout has not mounted\" and an honest reply; the real apply is rig-only",
+  "area": "ui-panels",
+  "repro": "AUTO: 'Arrange my workspace to compare Cochin Shipyard and Bharat Dynamics side by side'",
+  "evidence_file": "docs/redesign/verification/r15/surface/composer-chat/final/22-t6-arrange-auto.json",
+  "suspected_files": []
+ },
+ {
+  "key": "drive-composer-chat:gui-2",
+  "kind": "needs_gui",
+  "severity": "low",
+  "register_id": null,
+  "scenario": "composer-mount collapse ladder",
+  "title": "Composer controls collapse ladder paint at real dock widths (logic thresholds pass headless)",
+  "area": "ui-panels",
+  "repro": "resize the chat dock to ~300/360/420 px on the rig",
+  "evidence_file": "docs/redesign/verification/r15/surface/composer-chat/final/03-pure-logic.json",
+  "suspected_files": []
+ }
+]

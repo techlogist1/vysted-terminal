@@ -1,0 +1,14 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_3413ca222d7a47a6a8c02e881da71747", "name": "read_notes", "input": {"scope": ""}}
+{"kind": "tool_result", "tool_call_id": "call_3413ca222d7a47a6a8c02e881da71747", "name": "read_notes", "ok": true, "error": null}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": " A"}
+{"kind": "delta", "text": "DR"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2845, "output_tokens": 9, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

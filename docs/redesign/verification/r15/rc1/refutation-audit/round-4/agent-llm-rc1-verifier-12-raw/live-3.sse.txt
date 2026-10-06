@@ -1,0 +1,4 @@
+data: {"kind": "delta", "text": "{\"name\": \"portfolio_delete_position\", \"parameters\": {\"asset_class\": \"equity\", \"symbol\": \"ITC.NS\"}}"}
+
+data: {"kind": "done", "usage": {"input_tokens": 6023, "output_tokens": 29, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+

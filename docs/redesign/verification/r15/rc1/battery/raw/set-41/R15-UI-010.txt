@@ -1,0 +1,6 @@
+--window:0--
+{"detail":"`window` must be between 5 and 200"}
+--window:-5--
+{"detail":"`window` must be between 5 and 200"}
+--window:'' (empty string)--
+{"detail":"`window` must be an integer"}

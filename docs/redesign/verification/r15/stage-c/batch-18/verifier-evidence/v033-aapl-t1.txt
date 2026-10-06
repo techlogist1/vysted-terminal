@@ -1,0 +1,14 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  43.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_13355d9f94b54261ba0da8a7592fff0a", "name": "fundamentals", "input": {"symbol": "AAPL"}}
+[  47.9s] tool_result: {"kind": "tool_result", "tool_call_id": "call_13355d9f94b54261ba0da8a7592fff0a", "name": "fundamentals", "ok": true, "error": null}
+[  57.9s] heartbeat: {"kind": "heartbeat"}
+[  67.9s] heartbeat: {"kind": "heartbeat"}
+[  71.5s] done: {"kind": "done", "usage": {"input_tokens": 5894, "output_tokens": 21, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The market capitalization of Apple Inc. (AAPL) is approximately $4.90 trillion.
+
+=== ok · 71.5s · events {'heartbeat': 6, 'tool_use': 1, 'tool_result': 1, 'delta': 21, 'done': 1} · usage in=5894 out=21 · est $0.00000 · llama3.1:8b

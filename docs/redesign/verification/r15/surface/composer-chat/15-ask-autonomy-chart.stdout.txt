@@ -1,0 +1,8 @@
+[  79.0s] tool_use set_chart_symbol {"symbol": "BDL"}
+
+=== TEXT ===
+I've set Bharat Dynamics (BDL) as the new symbol on your chart. Now, let's add the RSI indicator to get a better view of its price action.
+
+{"name": "set_chart_indicators", "parameters": {"indicators": "['RSI']"}}
+
+=== ok 88.3s kinds={'tool_use': 1, 'delta': 59, 'done': 1} usage={'input_tokens': 2820, 'output_tokens': 60, 'cache_read_input_tokens': None, 'cache_creation_input_tokens': None}

@@ -1,0 +1,7 @@
+-- ticker with no last/close field --
+raised ProviderError ccxt ticker for binance:BTC/USDT carries no last or close price
+-- ticker last:0, close:0 --
+quote built 0.0
+gate rejected: CorrectnessError correctness gate: non-positive price 0.0 for 'BTC/USDT' from 'ccxt:binance'
+== live crypto quotes via sidecar ==
+[{"symbol":"BTC/USDT","price":84153.35,"change":327.78,"change_percent":0.391,"volume":7635.66609,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-09-26T21:47:42.006000Z","provider":"ccxt:binance","freshness":"live"},{"symbol":"ETH/USDT","price":2684.97,"change":3.68,"change_percent":0.137,"volume":85406.9696,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-09-26T21:47:40.989000Z","provider":"ccxt:binance","freshness":"live"}]

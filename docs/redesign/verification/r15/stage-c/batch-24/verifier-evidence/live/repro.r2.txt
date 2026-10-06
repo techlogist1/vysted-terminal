@@ -1,0 +1,10 @@
+[   3.1s] done: {"kind": "done", "usage": {"input_tokens": 2750, "output_tokens": 58, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Based on your statement, your sale price was ₹3,100 per share. Since you sold 5 shares, your total proceeds would be:
+
+₹3,100 x 5 = ₹15,500
+
+Let me know if I should verify this with a tool for accuracy!
+
+=== ok · 3.1s · events {'delta': 57, 'done': 1} · usage in=2750 out=58 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,103 @@
+=== find ConfirmButton component ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/components/ConfirmButton.test.tsx
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/components/ConfirmButton.tsx
+=== AgentBuilderPanel delete usage ===
+25:import { ConfirmButton } from "@/components/ConfirmButton";
+207:  const handleDelete = useCallback(
+543:                <ConfirmButton
+546:                  onConfirm={() => handleDelete(agent.id)}
+551:                </ConfirmButton>
+=== WorkspaceDialog delete usage ===
+6:import { ConfirmButton } from "@/components/ConfirmButton";
+209:  async function handleDelete(name: string) {
+286:              <ConfirmButton
+290:                onConfirm={() => handleDelete(name)}
+295:              </ConfirmButton>
+=== SettingsPanel delete usage ===
+20:import { ConfirmButton } from "@/components/ConfirmButton";
+584:                        <ConfirmButton
+593:                        </ConfirmButton>
+1789:        <ConfirmButton
+1796:          Reset to default
+1797:        </ConfirmButton>
+1846:                <ConfirmButton
+1860:                </ConfirmButton>
+=== PortfolioPanel delete usage ===
+10:import { ConfirmButton } from "@/components/ConfirmButton";
+542:  const handleDelete = useCallback(
+668:          <ConfirmButton
+672:            onConfirm={() => r.holding && handleDelete(r.holding.id)}
+676:          </ConfirmButton>
+681:  }, [showQty, showCost, showPrice, showWeight, mixedCurrencies, handleEdit, handleDelete]);
+856:            <ConfirmButton
+865:            </ConfirmButton>
+=== keychain.ts try/catch ===
+}
+
+/** Read a secret from the OS keychain. Returns `null` if no value is stored. */
+export async function getSecret(account: string): Promise<string | null> {
+  const value = await invoke<string | null>("keychain_get", { account });
+  return value ?? null;
+}
+
+/** Remove a secret from the OS keychain. No-op if the secret was never set. */
+export async function deleteSecret(account: string): Promise<void> {
+  await invoke<void>("keychain_delete", { account });
+}
+
+/** Report from {@link migrateDevKeystore}. */
+export interface KeychainMigrateReport {
+  /** `"dev-keystore"` in dev builds, `"os-keychain"` in release. */
+  backend: string;
+  /** How many accounts were copied keychain→file on this call. */
+  migrated: number;
+  /** True when migration had already run (no-op) or in release (nothing to do). */
+  already_done: boolean;
+}
+
+/**
+ * Every account the dev keystore migration should sweep from the OS keychain on
+ * first dev boot. Generous by design — reading a non-existent account is a
+function ProvidersSection() {
+  const providers = useLLMProvidersStore((s) => s.providers);
+  const defaultProviderId = useLLMProvidersStore((s) => s.defaultProviderId);
+  const setDefaultProviderId = useLLMProvidersStore((s) => s.setDefaultProviderId);
+  const status = useProviderKeysStore((s) => s.status);
+  const refresh = useProviderKeysStore((s) => s.refresh);
+  const refreshOne = useProviderKeysStore((s) => s.refreshOne);
+  const providerOrder = useSettingsStore((s) => s.providerOrder);
+  const setProviderOrder = useSettingsStore((s) => s.setProviderOrder);
+  const ordered = orderedProviders(providers, providerOrder);
+
+  const [dialogProvider, setDialogProvider] = useState<LLMProviderId | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+  const [dragId, setDragId] = useState<LLMProviderId | null>(null);
+
+  /** Move one provider to position `to` of the fallback order. */
+  function moveProvider(id: LLMProviderId, to: number) {
+    const ids = ordered.map((p) => p.id).filter((other) => other !== id);
+    ids.splice(to, 0, id);
+    setProviderOrder(ids);
+  }
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  async function handleRemove(id: LLMProviderId) {
+    setRemoveError(null);
+    try {
+      await deleteSecret(KEYCHAIN_NAMESPACES.llmProvider(id));
+      await refreshOne(id);
+    } catch (error) {
+      setRemoveError(error instanceof Error ? error.message : "Could not remove the key.");
+    }
+  }
+
+  return (
+    <section aria-labelledby="settings-providers">
+      <SectionHeader
+        id="settings-providers"
+        title="AI Providers"
+432:  const [removeError, setRemoveError] = useState<string | null>(null);
+602:        {removeError && <p className="text-negative text-caption">{removeError}</p>}

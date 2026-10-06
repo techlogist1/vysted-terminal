@@ -1,0 +1,38 @@
+[
+  {
+    "raw_id": "WLD-agent-native-ux-1",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds. The only notes capability is write_note (catalog.py:1373-1395); captureTerminalState assembles charts/watchlist/portfolio/brief/researchSpace with no note text (context-provider.ts:217-330), get_terminal_state returns that same snapshot, and _render_terminal_preamble renders no notes (agent_runtime.py:376-441). The one agent-visible 'memory' is summarizeTranscript's last-3-user-questions line (research-spaces.ts:33-45) injected as 'Prior research memory' (agent_runtime.py:397-399), never shown or editable in the UI; write_note replace overwrites a note the agent cannot read (host-actions.ts:1176-1192), the review showing only a char count (host-actions.ts:802-815).",
+    "evidence": "sidecar/services/agent_tools/catalog.py:1373-1395, src/modules/chat/context-provider.ts:217-330, sidecar/services/agent_runtime.py:376-441, src/store/research-spaces.ts:33-45, src/lib/host-actions.ts:802-815, src/lib/host-actions.ts:999, src/lib/host-actions.ts:1176-1192, src/modules/chat/ChatSidebar.tsx:276",
+    "evidence_checked": "Opened all cited code at HEAD f763a44; grep for notes/noteFor/useNotesStore across src/modules/chat, src/lib, sidecar/services and sidecar/routers finds no read path (only host-actions write/describe, workspace persist, layout char-count); grep getMemory finds only context-provider.ts:305 and tests (no .tsx consumer). Stack :52152 up, not needed for a design claim.",
+    "repro_check": "grep -rn 'noteFor|useNotesStore' src/modules/chat src/lib sidecar -> only host-actions.ts (describe/apply write_note) and workspace.ts (blob persist); no note text enters __terminal__ or any read tool."
+  },
+  {
+    "raw_id": "WLD-agent-native-ux-2",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. AUTO applies every non-order kind including data-write (proposed-changes.ts:118-120, despite the comment naming only UI/layout/chart/watchlist); accept applies via applyHostActionAsync with no pre-image captured (proposed-changes.ts:123-170); the review renders only status==='pending' (ProposedChangesReview.tsx:27); the stored 'before' is a prose string (host-actions.ts:776-815); portfolio_delete_position removes the holding after a sidecar DELETE (host-actions.ts:1376-1389); resolveHolding falls back to the first same-base-symbol holding (host-actions.ts:545-560). No undo/restore in proposed-changes/notes/portfolios stores. Subject is the user's tracked portfolio + notes (not trading), so in scope.",
+    "evidence": "src/store/proposed-changes.ts:113-170, src/modules/chat/ProposedChangesReview.tsx:27, src/lib/host-actions.ts:545-560, src/lib/host-actions.ts:776-815, src/lib/host-actions.ts:1176-1192, src/lib/host-actions.ts:1376-1389",
+    "evidence_checked": "Opened each cited range at HEAD; grep -i 'undo|preImage|restore' over proposed-changes.ts, notes.ts, portfolios.ts, ProposedChangesReview.tsx, NotesPanel.tsx finds nothing undo-related (only blob-restore comments).",
+    "repro_check": "Code trace: set autonomy=auto, agent emits portfolio_delete_position{symbol} -> propose() calls accept() -> removeHolding(); change status 'accepted' filtered out of ProposedChangesReview; no store keeps the removed Holding row."
+  },
+  {
+    "raw_id": "WLD-agent-native-ux-3",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. The client sends only the last 10 user/assistant messages as {role, content} (ChatSidebar.tsx:749-753) and _coerce_history caps again at out[-10:] (agent_runtime.py:469-482), so tool results never re-enter history and turns older than ~5 exchanges drop silently. Per-message usage is stored (chat-history.ts:46-47, 213-218) but no .tsx renders message.usage or any context meter (grep: only the SSE parse at ChatSidebar.tsx:2027-2028; BriefPanel's token label is per-brief cost, not the chat window).",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:749-753, sidecar/services/agent_runtime.py:469-482, src/store/chat-history.ts:46-47, src/store/chat-history.ts:213-218, src/modules/chat/ChatSidebar.tsx:2027-2028, src/modules/research/BriefPanel.tsx:114",
+    "evidence_checked": "Opened cited ranges; grep '.usage|inputTokens|contextWindow|tokens' over src/**/*.tsx found no chat context/usage display.",
+    "repro_check": "grep -rn 'inputTokens' src --include=*.tsx -> only ChatSidebar.tsx:2028 (writing usage), nothing reads it for display."
+  },
+  {
+    "raw_id": "WLD-agent-native-ux-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. _planner_enabled returns True only for mode=='agent' (agent_runtime.py:110-112), and _drive_run invokes with mode='delegate' (run_manager.py:~1395), so a delegate run never plans; the launch path POSTs immediately after a fixed note with no plan/confirm step (ChatSidebar.tsx:838-866). The driver flattens tool_use events to '[tool_use <name>]' transcript strings (run_manager.py:164-173) and the run wire has no activity field (delegate-runs.ts:30-38; live GET /runs rows carry only id/agent/mode/status/cost/budget/detail/question/timestamps). AgentsRail renders name, mode, tokens and $ only; cost.steps is never rendered (AgentsRail.tsx:94-108, grep 'steps' empty).",
+    "evidence": "sidecar/services/agent_runtime.py:110-112, sidecar/services/agent_runtime.py:1387-1413, sidecar/services/run_manager.py:150-181, src/modules/chat/ChatSidebar.tsx:838-866, src/modules/chat/AgentsRail.tsx:94-108, src/lib/delegate-runs.ts:30-38",
+    "evidence_checked": "Opened cited code at HEAD; GET http://127.0.0.1:52152/runs (isolated stack, read-only) returned 2 runs whose row keys are agentId/agentName/budget/cost/createdAt/detail/id/mode/question/status/updatedAt (+snake_case) - no activity field.",
+    "repro_check": "curl -s 127.0.0.1:52152/runs | python3 -c \"...print(sorted(runs[0].keys()))\" -> no activity/plan key; grep -n steps src/modules/chat/AgentsRail.tsx -> no match."
+  }
+]

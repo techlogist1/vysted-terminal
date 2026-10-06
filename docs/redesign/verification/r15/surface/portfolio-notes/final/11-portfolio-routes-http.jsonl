@@ -1,0 +1,7 @@
+{"tag": "shared-get", "m": "GET", "path": "/portfolio/positions", "req_len": 0, "req": null, "status": 200, "secs": 0.005, "len": 2, "resp": "[]"}
+{"tag": "own-get", "m": "GET", "path": "/portfolio/positions", "req_len": 0, "req": null, "status": 200, "secs": 0.006, "len": 2, "resp": "[]"}
+{"tag": "own-post", "m": "POST", "path": "/portfolio/positions", "req_len": 73, "req": "{\"symbol\":\"TCS.NS\",\"quantity\":5,\"cost_basis\":2500,\"asset_class\":\"equity\"}", "status": 405, "secs": 0.002, "len": 31, "resp": "{\"detail\":\"Method Not Allowed\"}"}
+{"tag": "own-put", "m": "PUT", "path": "/portfolio/positions/1", "req_len": 14, "req": "{\"quantity\":7}", "status": 404, "secs": 0.002, "len": 22, "resp": "{\"detail\":\"Not Found\"}"}
+{"tag": "own-delete", "m": "DELETE", "path": "/portfolio/positions/1", "req_len": 0, "req": null, "status": 404, "secs": 0.002, "len": 22, "resp": "{\"detail\":\"Not Found\"}"}
+{"tag": "own-orders", "m": "GET", "path": "/portfolio/orders", "req_len": 0, "req": null, "status": 404, "secs": 0.002, "len": 22, "resp": "{\"detail\":\"Not Found\"}"}
+{"tag": "own-openapi-portfolio", "m": "GET", "path": "/openapi.json", "req_len": 0, "req": null, "status": 200, "secs": 0.242, "len": 184269, "resp": "(openapi.json trimmed; portfolio/order/broker paths: {\"/portfolio/positions\": [\"get\"]})"}

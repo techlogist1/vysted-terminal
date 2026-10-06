@@ -1,0 +1,7 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ for s in AMAL.BO AMAL.NS; do echo == $s; curl -s -m 60 'http://127.0.0.1:52350/history/'$s'?range=1y' | python3 -c 'import sys,json;d=json.load(sys.stdin);b=d.get("bars") or d.get("ohlcv") or d.get("data") or [];print({k:v for k,v in d.items() if not isinstance(v,list)},"nbars",len(b),"first",b[0] if b else None)'; done
+== AMAL.BO
+{'symbol': 'AMAL', 'timeframe': '1d', 'provider': 'bse', 'freshness': 'eod', 'reason': None, 'partial': False, 'coverage_start': None} nbars 255 first {'timestamp': '2025-09-18T00:00:00Z', 'open': 878.3, 'high': 885.3, 'low': 876.0, 'close': 879.75, 'volume': 5185.0}
+== AMAL.NS
+{'symbol': 'AMAL', 'timeframe': '1d', 'provider': 'nse_direct', 'freshness': 'eod', 'reason': None, 'partial': False, 'coverage_start': None} nbars 33 first {'timestamp': '2026-08-17T00:00:00Z', 'open': 762.0, 'high': 762.0, 'low': 730.05, 'close': 751.25, 'volume': 1174.0}
+EXIT=0

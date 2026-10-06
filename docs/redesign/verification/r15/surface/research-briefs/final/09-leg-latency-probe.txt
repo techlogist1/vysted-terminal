@@ -1,0 +1,6 @@
+own /fundamentals/BIRLASOFT 404 1.910003s
+own /quotes?symbols=BIRLASOFT 200 1.937444s
+own /fundamentals/ZENSARTECH 200 15.777992s
+own /quotes?symbols=ZENSARTECH 200 1.288074s
+direct yfinance .info NIITLTD.NS 1.2 s keys 158
+direct yfinance .info CYIENTDLM.NS 0.52 s keys 150

@@ -1,0 +1,21 @@
+# probe at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52357 — analysis of the three raw screener runs in this directory
+CMD: python3 /private/tmp/b17/anal.py R15-LEAD-044-<run>.txt HAL CCL IEX ACGL PTC (full bodies in R15-LEAD-044-sp500-IN.txt, -sp500-US.txt, -nifty50-US.txt)
+== sp500-IN
+@@HTTP 200 time 0.8 evaluated 503 rows 503 skipped 0 basis {'live': 503} cov screened 503 of 503 — 0 unavailable
+currencies Counter({'USD': 503})
+HAL Halliburton Company USD 31.85 live
+CCL Carnival Corporation Ltd. USD 25.76 live
+IEX IDEX Corporation USD 232.99 live
+ACGL Arch Capital Group Ltd. USD 93.6 live
+PTC PTC Inc. USD 144.03 live
+== sp500-US
+@@HTTP 200 time 0.1 evaluated 503 rows 503 skipped 0 basis {'live': 503} cov screened 503 of 503 — 0 unavailable
+currencies Counter({'USD': 503})
+HAL Halliburton Company USD 31.85 live
+CCL Carnival Corporation Ltd. USD 25.76 live
+IEX IDEX Corporation USD 232.99 live
+ACGL Arch Capital Group Ltd. USD 93.6 live
+PTC PTC Inc. USD 144.03 live
+== nifty50-US
+@@HTTP 200 time 0.2 evaluated 50 rows 50 skipped 0 basis {'live': 50} cov screened 50 of 50 — 0 unavailable
+currencies Counter({'INR': 50})

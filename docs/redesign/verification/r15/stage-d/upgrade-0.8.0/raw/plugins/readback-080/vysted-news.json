@@ -1,0 +1,15 @@
+{
+    "enabled": false,
+    "granted_secret_ids": [
+        "newsapi-key"
+    ],
+    "plugin_id": "vysted-news",
+    "settings": {
+        "maxItems": 40,
+        "sentiment": "on",
+        "sources": [
+            "reuters",
+            "wsj"
+        ]
+    }
+}

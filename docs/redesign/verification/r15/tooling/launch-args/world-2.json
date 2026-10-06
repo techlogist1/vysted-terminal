@@ -1,0 +1,39 @@
+{
+ "tag": "world-2",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly.",
+ "stages": [
+  {
+   "label": "research",
+   "model": "opus",
+   "prompt": "Your task spec is the {{spec1}} section of docs/redesign/verification/r15/tooling/PROMPT_census.md, with <topic> = \"{{id}}\"."
+  },
+  {
+   "label": "compare",
+   "model": "fable",
+   "prompt": "Your task spec is the WORLD-COMPARE section of docs/redesign/verification/r15/tooling/PROMPT_census.md, with <topic> = \"{{id}}\"."
+  }
+ ],
+ "items": [
+  {
+   "id": "harness-context",
+   "spec1": "WORLD-RESEARCH"
+  },
+  {
+   "id": "harness-tools",
+   "spec1": "WORLD-RESEARCH"
+  },
+  {
+   "id": "agent-native-ux",
+   "skip": [
+    0
+   ]
+  },
+  {
+   "id": "opp-ledger",
+   "spec1": "OPP-LEDGER",
+   "skip": [
+    1
+   ]
+  }
+ ]
+}

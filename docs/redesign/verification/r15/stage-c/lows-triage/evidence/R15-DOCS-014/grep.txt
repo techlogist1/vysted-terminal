@@ -1,0 +1,29 @@
+cmd: sed -n 124,142p docs/archive/PHASE_8_PERF_BASELINE.md @e032be7
+---
+
+## Agent first-token latency
+
+**Not measured this session.** Requires BYOK provider key (Anthropic /
+OpenAI / etc.) in the OS keychain, which is unreachable from the Chrome
+F7 fallback path. **Deferred to Phase 9 operator manual test** where the
+Tauri shell with real keychain access can exercise each provider.
+
+Future-Phase-9 procedure:
+
+1. In Tauri shell, open AI Assistant.
+2. `/key set anthropic <key>` for each provider that has a key.
+3. Send `Summarise AAPL fundamentals` via `/ask`.
+4. Measure send-click → first character streamed using browser
+   performance API.
+5. Per-provider median over 5 send-recv cycles.
+
+---
+
+cmd: grep -rn -i 'first-token|first token|TTFT' docs CHANGELOG.md (excl verification/r15)
+docs/archive/PHASE_8_PERF_BASELINE.md:126:## Agent first-token latency
+docs/archive/PHASE_8_PERF_BASELINE.md:198:| Agent first-token latency   | deferred      | Phase 9 with keychain             |
+docs/archive/PHASE_8_HANDOFF.md:265:  Cohere / Ollama — each one's first-token-latency measurement (deferred
+docs/redesign/REBUILD_SPEC.md:210:  (~500-800ms) on first token → rAF-batched appends (bypass Framer Motion) →
+docs/redesign/R10_TRACK_RESOLVE_BRIEF.md:46:- **First-token normalization**: strip trailing punctuation ("reliance," → "reliance")
+docs/redesign/REBUILD_R3_SPEC.md:92:| `deepseek/deepseek-v4-flash`          | $0.10/$0.20   | 1M   | **NO** (thinking opt-in via `"thinking":{"type":"enabled"}`) | **HIGH** — 3.04T wkly tokens, 14+ providers, ~145 tok/s, 1.3s TTFT       |
+docs/redesign/verification/vysted-r15-register.md:957:| R15-DOCS-014 | low | docs | llm-adapters | No BYOK provider has a documented first-token latency; the Phase-8 perf baseline still says 'Not measured' and was never superseded | open | INT-deferred-0-13 |

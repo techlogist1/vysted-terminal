@@ -1,0 +1,26 @@
+# rc1-vshard-3 working log (gate round 5)
+- 2026-09-27 16:34:53 IST candidate worktree HEAD = 633f844071d972b337f4c3526d86555c80df0568 (checked)
+- data dir: scratchpad/rc1-round-5-data-rc1-vshard-3 (cp -R of rc1-round-5-seed-data)
+- own sidecar :52603 from worktree source, sleep pid 87680, worker pid 87681, log scratchpad/rc1-round-5-vshard-3-sidecar.log
+- DATA-076: in-process get_quarterly_yoy TCS/ICICIBANK/SBIN/DALBHARAT source=nse (exchange-filed witness), AAPL fallback yfinance; TCS rev +13.93% matches screener.in; ICICIBANK filed 6.9% vs yahoo 11.4% disagree -> witness independent. holds
+- DATA-060: SIFY 3 routes 200 (shareholding covered sec-20f 83.78%); fresh ADRs IBN/HDB: 20-F exists with holders table but lane parses [] and answers bare not_applicable -> claim not certified
+- LEAD-015: DHANBANK quarterly income/balance gaps ['2025-09-30']; annual labels ISO (DHANBANK, AAPL, TCS.NS yfinance); openbb pivots on ISO period_ending; fresh synthetic 2 consecutive missing quarters + missing annual year both marked. holds
+- AGENT-034: budget {} / all-null snake_case -> stored 120000/$1/600s/12; 0 and negative -> 422 (camel + snake). holds
+- LIFECYCLE-013: ollama llama3.1:8b maxTokens 2000 -> error breach 7600; resume (lock held) -> provider ollama model llama3.1:8b, /api/ps [llama3.1:8b], cost 15208 over 2 steps; keyless fresh case openai resume stays openai; ask_user capability wired (catalog). holds
+- frontend: candidate pinned vitest (20 files, 408 tests) green in scratch copy scratchpad/vs3-vitest (src rsynced from worktree, node_modules symlinked; worktree untouched)
+- UI-023 fresh (timeframe-change failure, slow load clears overlays, SAR vs new closes) pass. holds
+- UI-026 fresh (added row survives poll, INF->INFY Enter, backoff reset) pass. holds
+- UI-031 fresh (3 commands reverse settle, superseded rejection hidden, agent context newest) pass; no AbortController (fix_shape parenthetical) -> noted. holds
+- RESEARCH-026 fresh (EUR/JPY = formatCompactMoney; unknown ccy on revenue/dividend) pass. holds
+- RESEARCH-024: live keyless DDG rows carry bare host; fresh SearXNG-shaped payload carries date+host through _record_web. holds; adjacent: perplexity/sonar vendor lanes drop search_results date
+- RESEARCH-033 fresh pytest 2 of 3 explorers crash (TimeoutError, KeyError): 2 error steps + 2 log lines. holds
+- UI-040 holds (paused run adopted->done; network-throw cancel leaves running). AGENT-041 holds. AGENT-043 holds. UI-057 holds (trailing space / tab+newline, 5 providers rejected-key sentence).
+- AGENT-044: blank-row harm fixed; MAZAGONDOCK fails with 0 candidates -> register fix_shape "fails with a suggestion" not met -> refuted (claim-level)
+- AGENT-030: error_frame code internal in both router guards; humanize class-name matching (RuntimeError 'connection is closed' -> unknown). holds; adjacent low: ollama adapter catch-all blames Ollama
+- LIFECYCLE-023 fresh (click-driven throw, effect throw, persistent throw on Reload) contained. holds
+- UI-012 fresh (live /llm/chat 422 array, 404 string, non-JSON 500, mid-stream death) humanized. holds
+- RESEARCH-032 fresh (60 s slow poll alone Ready->Error, refused fetch named, recovery clears). holds; adjacent low: fetchLocalModelRecommendation collapses to null
+- UI-019 fresh (dismissal survives relaunch via real keychain refreshBanner). holds. UI-049 fresh (4-case promotion matrix incl. race). holds
+- UI-029 fresh (catalog SidecarError(0) -> error+Retry -> recover). holds. UI-030 fresh (keyless 502 one request; rapid 3 tabs one request each, live tab defaults = catalog heads). holds; adjacent medium: macro search failure -> false "No matching series"
+- wrote verifier/shard-3.md + findings/rc1-vshard-3.json (7 rows: 2 regression claim-level, 5 new_defect)
+- 2026-09-27 17:05:21 IST stopped own sidecar (kill 87680)

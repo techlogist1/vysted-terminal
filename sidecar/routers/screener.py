@@ -1,28 +1,62 @@
-"""Screener router — Phase 6 (Teammate Sc).
+"""Screener router — Phase 6 (Teammate Sc); R7 Pillar 3 formula layer; R10 SSE.
 
-Two endpoints:
+Five endpoints:
 
-  - ``POST /screener/run``        — run the screener; returns
-    :class:`ScreenerResult`.
-  - ``GET  /screener/universe``    — resolve a universe by id; returns
+  - ``POST /screener/run``              — run the screener (unary, now wall-
+    budget-bounded — D40); returns :class:`ScreenerResult`.
+  - ``POST /screener/run/stream``        — the same run as an SSE stream:
+    ``{"event":"progress",phase,done,total,detail}`` frames per engine
+    phase/chunk, then one ``{"event":"result", …ScreenerResult}``. A client
+    disconnect cancels the engine task; the engine finalizes its partial
+    (the store keeps every completed chunk) and stops.
+  - ``GET  /screener/universe``          — resolve a universe by id; returns
     :class:`ScreenerUniverse`.
+  - ``GET  /screener/default-universe``  — the request region's default
+    universe id (``{"universe": …}``; US→sp500, IN→nifty50, FR-060).
+  - ``POST /screener/formula/validate``  — validate a custom formula against
+    the restricted expression grammar; returns :class:`FormulaValidation`
+    (``ok`` / ``error`` / caret ``position`` / referenced ``fields``) — never
+    a 4xx for a bad formula.
 
 The screener engine ( :mod:`services.screener` ) owns the filter
 semantics; this router is a thin adapter that validates the request
-body against the Pydantic shapes in :mod:`models.screener` and shapes
-provider failures into the standard 502 response handled by the
-ProviderError exception handler in :mod:`app`.
+body against the Pydantic shapes in :mod:`models.screener`; provider
+failures reach the one ProviderError exception handler in :mod:`app`.
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query
+import asyncio
+import contextlib
+import json
+import logging
+from collections.abc import AsyncIterator
 
-from models.screener import ScreenerRequest, ScreenerResult, ScreenerUniverse, ScreenerUniverseId
-from services import screener
-from services.errors import ProviderError
+from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, ConfigDict
+
+from models.screener import (
+    FormulaValidation,
+    ScreenerRequest,
+    ScreenerResult,
+    ScreenerUniverse,
+    ScreenerUniverseId,
+)
+from services import screener, screener_formula
+from services.errors import ProviderError, provider_error_response
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/screener", tags=["screener"])
+
+
+class FormulaValidateRequest(BaseModel):
+    """Body for ``POST /screener/formula/validate``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    formula: str
 
 
 @router.post("/run", response_model=ScreenerResult)
@@ -33,18 +67,118 @@ async def run_screener(request: ScreenerRequest) -> ScreenerResult:
     (custom universes use the request's ``custom_symbols``). Provider
     failures during the fan-out are swallowed per-symbol so a single
     upstream hiccup does not fail the whole run; if the universe itself
-    cannot be resolved the route returns 502.
+    cannot be resolved the route returns 502. The whole run is bounded by
+    the engine's 120 s wall budget (R10/D40) — a starved run returns an
+    honest partial (``partial`` / ``coverage`` / ``budget_exhausted``
+    skips), never a multi-minute hang.
+
+    ``ScreenerRequest.universe`` is required (no default), so the universe is
+    always explicit here. A caller that must *choose* a default reads it from
+    ``GET /screener/default-universe`` (the panel adopts it on mount, FR-060).
     """
     try:
         return await screener.run_screener(request)
-    except ProviderError:
-        # Re-raised so the app-level exception handler maps it to 502.
-        raise
-    except ValueError as exc:
-        # Pydantic-style validation surface beyond what the request model
-        # already enforces (e.g. an unknown universe id is a ValueError
-        # in the engine).
+    except screener_formula.FormulaError as exc:
+        # The engine re-compiles ``formula``; an unparseable one is the
+        # caller's (the request model already 422s it, so this is the backstop).
+        # Anything else raised here is an engine bug and stays a 500; an
+        # unknown universe id never reaches here (Literal -> 422).
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+def _sse_frame(payload: dict) -> bytes:
+    """One SSE ``data:`` frame (precedent ``routers/backtest.py``)."""
+    return f"data: {json.dumps(payload)}\n\n".encode()
+
+
+@router.post("/run/stream")
+async def run_screener_stream(request: ScreenerRequest) -> StreamingResponse:
+    """Run the screener with live progress over SSE (R10, D40).
+
+    Frames are ``{"event":"progress",phase,done,total,detail}`` (mirrors
+    ``ScreenerProgressFrame`` in ``types/screener.ts``) followed by one
+    ``{"event":"result", …ScreenerResult}``. An engine crash emits one
+    ``{"event":"error","message"}`` frame instead of the result (mirrors
+    ``ScreenerErrorFrame``; the message is the unary route's error detail for a
+    ProviderError — or a sanitized one-liner, never raw
+    debug/provider output). The engine runs as a separate task; when the
+    client disconnects the generator is torn down and the task cancelled —
+    the engine catches the cancellation, finalizes an honest partial, and
+    stops (no orphaned sweep). The cancelled task is AWAITED before the
+    generator closes so a server shutdown never destroys a pending task.
+    """
+
+    async def _generator() -> AsyncIterator[bytes]:
+        queue: asyncio.Queue[dict | None] = asyncio.Queue()
+
+        def _on_progress(phase: str, done: int, total: int, detail: str) -> None:
+            frame = {"event": "progress", "phase": phase, "done": done, "total": total}
+            queue.put_nowait({**frame, "detail": detail})
+
+        async def _run() -> None:
+            try:
+                result = await screener.run_screener(request, on_progress=_on_progress)
+                await queue.put({"event": "result", **result.model_dump(mode="json")})
+            except asyncio.CancelledError:
+                raise
+            except ProviderError as exc:
+                # The same sentence the unary route's error body carries.
+                logger.exception("screener stream run failed")
+                _status, body = provider_error_response(exc)
+                await queue.put({"event": "error", "message": body["detail"]})
+            except Exception as exc:  # noqa: BLE001 — surface a clean error frame
+                logger.exception("screener stream run crashed")
+                await queue.put(
+                    {
+                        "event": "error",
+                        "message": f"screener run failed ({type(exc).__name__}); see sidecar logs",
+                    }
+                )
+            finally:
+                queue.put_nowait(None)
+
+        task = asyncio.create_task(_run())
+        try:
+            while True:
+                frame = await queue.get()
+                if frame is None:
+                    break
+                yield _sse_frame(frame)
+        finally:
+            if not task.done():
+                task.cancel()
+            # The engine uncancels itself to finalize an honest partial, so a
+            # bare cancel() leaves it running detached — await it (suppressing
+            # teardown noise) so shutdown never logs "Task was destroyed but
+            # it is pending".
+            with contextlib.suppress(BaseException):
+                await task
+
+    return StreamingResponse(_generator(), media_type="text/event-stream")
+
+
+@router.post("/formula/validate", response_model=FormulaValidation)
+async def validate_formula(request: FormulaValidateRequest) -> FormulaValidation:
+    """Validate a custom screener formula (R7 Pillar 3).
+
+    The recovery-first inline-validation surface: a malformed formula is an
+    ``ok: false`` body carrying the parser's message and 0-based caret
+    ``position`` — never an HTTP error — so an editor or the agent can render
+    the ``^`` marker and self-correct. A valid formula returns the sorted
+    canonical fields it references.
+    """
+    return FormulaValidation(**screener_formula.validate_formula(request.formula))
+
+
+@router.get("/default-universe")
+async def get_default_universe() -> dict[str, ScreenerUniverseId]:
+    """The request region's default universe (R15-CODE-DATA-004, FR-060).
+
+    The one source of the region→universe map is
+    :func:`services.screener.default_universe_for_region`; the panel adopts
+    this on mount unless the user or a saved screen already chose one.
+    """
+    return {"universe": screener.default_universe_for_region()}
 
 
 @router.get("/universe", response_model=ScreenerUniverse)
@@ -63,7 +197,4 @@ async def get_universe(
             status_code=400,
             detail="custom universe is resolved per-request; pass custom_symbols on /screener/run",
         )
-    try:
-        return await screener.resolve_universe(id)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return await screener.resolve_universe(id)

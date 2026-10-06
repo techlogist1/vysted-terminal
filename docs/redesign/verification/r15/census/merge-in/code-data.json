@@ -1,0 +1,354 @@
+[
+ {
+  "raw_id": "COD-disclosures-witnesses-4",
+  "title": "Lane loops guard only ProviderError while the same file documents why that is insufficient",
+  "severity": "high",
+  "area": "code",
+  "subsystem": "disclosures-witnesses",
+  "repro": "Make bse_provider.get_shareholding raise a KeyError (the exact hazard named in the :514-519 comment). Through _merge_bse_split it degrades to 'no split enrichment' as designed. Through get_shareholding's lane loop (:396-402, ProviderError only) it propagates, the router converts only ProviderError to 502 (routers/disclosures.py:110), so GET /disclosures/shareholding returns 500 even though the NSE lane succeeded. Same asymmetry for get_announcements (:297-302) with the NSE/BSE fetchers.",
+  "evidence": "sidecar/services/corporate_disclosures.py:514, sidecar/services/corporate_disclosures.py:399, sidecar/services/corporate_disclosures.py:300, sidecar/routers/disclosures.py:68, sidecar/routers/disclosures.py:110",
+  "notes": "Modifying existing code / consistency: the author diagnosed the hazard and guarded it on the enrichment path only; the documented 'one lane failing degrades honestly to a partial merge' invariant (:25-27) therefore holds for exactly one exception type. Per CLAUDE.md the resulting 500 surfaces in the webview as a bogus CORS error, so the failure is also mis-diagnosable. Smallest fix: widen both lane loops to `except Exception` — they already record the reason into `errors`, so the degradation stays honest and visible.",
+  "source_file": "code-disclosures-witnesses.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The asymmetry is real: the announcement and shareholding lane loops catch only ProviderError, the router maps only ProviderError to 502, and _merge_bse_split catches Exception. But every realistic failure in the lanes is already converted to ProviderError: transport, HTTP status, non-JSON and malformed-payload in _bse_get_json, nse _get_json/ensure/_fetch_corporate_list and bse _fetch_shp_index; XBRL parse misses return None; and _pct/_as_float never raise. No reachable non-ProviderError path was found beyond a broken curl_cffi install or a future code bug, so this is a maintainability hazard, not a failure hit in normal use."
+  }
+ },
+ {
+  "raw_id": "COD-disclosures-witnesses-7",
+  "title": "The witness family duplicates its two core predicates across five modules",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "disclosures-witnesses",
+  "repro": "design — grep 'def is_applicable' under sidecar/services: five byte-identical India-listing bodies (market_cap_witness, ownership_check, research/range_check, dividend_actions; earnings_quality deliberately differs). grep 'def _is_blocked': identical in ownership_check and range_check (and dividend_actions). _row_value in earnings_quality is a self-declared copy of growth_check's. is_india_target exists twice (research/disclosures.py vs research/relevance.py) and research/fast.py imports the other copy than research/disclosures.py uses.",
+  "evidence": "sidecar/services/market_cap_witness.py:98, sidecar/services/ownership_check.py:94, sidecar/services/research/range_check.py:121, sidecar/services/ownership_check.py:107, sidecar/services/research/range_check.py:179, sidecar/services/earnings_quality.py:134, sidecar/services/research/disclosures.py:101, sidecar/services/research/relevance.py:374",
+  "notes": "Information leakage: two design decisions — 'which listings are Indian' and 'which errors count as a block' — are each held in three to five files. The next change (a third exchange, adding HTTP 503 to the block set, a different suffix form) lands in some copies and not others, and the witnesses silently disagree about when to fire. Smallest fix: one services/witness.py exporting is_india_listing(symbol) and is_block_error(exc); the five modules import it. Net deletion, no new abstraction.",
+  "source_file": "code-disclosures-witnesses.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "Duplication is real, but overcounted. is_applicable is byte-identical in three modules (market_cap_witness, ownership_check, range_check); dividend_actions' copy is NSE-only by design and earnings_quality's is universal. _is_blocked has an identical body in three (ownership_check, range_check, dividend_actions). _row_value is a self-declared mirror in earnings_quality, and is_india_target exists twice (disclosures.py adds a None guard), with fast.py importing the relevance.py copy. That makes 3 identical India-listing predicates, not 5; the maintenance hazard stands."
+  }
+ },
+ {
+  "raw_id": "COD-disclosures-witnesses-13",
+  "title": "compute_range builds its 52-week window twice with the same predicate",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "disclosures-witnesses",
+  "repro": "design — `windowed` and `windowed_ts` are two separate comprehensions over `stamped` with the identical `ts >= window_start` filter; coverage_days is derived from one list and the bar count from the other.",
+  "evidence": "sidecar/services/research/range_check.py:159, sidecar/services/research/range_check.py:160, sidecar/services/research/range_check.py:163",
+  "notes": "Obviousness: one edit to either predicate desyncs coverage_days from the bars it claims to describe, and the coverage floor is the gate that keeps a thin series from emitting a false 52-week high. Smallest fix: build one list of (ts, bar) pairs and derive both from it.",
+  "source_file": "code-disclosures-witnesses.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Real as described: windowed and windowed_ts are two comprehensions over `stamped` with the same `ts >= window_start` predicate, and coverage_days comes from one while the bar count comes from the other. They are adjacent and identical today, so it is a latent desync hazard only."
+  }
+ },
+ {
+  "raw_id": "COD-fundamentals-profile-10",
+  "title": "Three verbatim copies of the ratings cache-fetch-store block, each carrying an except clause the global handler already performs",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "fundamentals-profile",
+  "repro": "design",
+  "evidence": "sidecar/routers/fundamentals.py:206-222, sidecar/routers/fundamentals.py:225-241, sidecar/routers/fundamentals.py:244-260, sidecar/app.py:312-315",
+  "notes": "Repetition. Three 16-line blocks differing only in the cache-key suffix, the response model and the service function. Each ends with `except ProviderError: raise HTTPException(502)` — exactly what app.py:312-315 does unconditionally, so all three except clauses are dead code that additionally BLOCKS the kind-aware fix in COD-fundamentals-profile-3 from reaching these routes. No test asserts the three stay identical, so a cache-policy change is a 3x edit that can drift. Smallest fix: one `_cached(key, ttl, model, fetch)` helper, and delete the three except blocks.",
+  "source_file": "code-fundamentals-profile.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Real: three near-identical cache/fetch/store blocks (routers/fundamentals.py:206-260), each with an except ProviderError -> 502 that duplicates app.py:312-315. This is repetition and redundancy, not a defect: behaviour is identical to the global handler, so medium -> low. The 'blocks the kind-aware fix' point holds only if that fix is placed in the global handler."
+  }
+ },
+ {
+  "raw_id": "COD-fundamentals-profile-12",
+  "title": "FieldMeta.status is a closed union in TypeScript and an unvalidated str in Pydantic",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "fundamentals-profile",
+  "repro": "design; FieldMeta(status='unavaliable') validates and serializes on the Python side; the TS consumer's switch over \"ok\"|\"withheld\"|\"unavailable\" believes itself exhaustive and silently falls through.",
+  "evidence": "sidecar/models/fundamentals.py:39, sidecar/models/fundamentals.py:23-33, types/data.ts:179",
+  "notes": "Define errors out of existence, and the CLAUDE.md hand-mirror gotcha (types/data.ts mirrors sidecar/models by hand) biting in KIND rather than in presence. The three legal values are enumerated in the docstring at :23-33 — an invariant held by a comment when the type could hold it, on the one field whose entire job is to be machine-readable. Smallest fix: status: Literal['ok','withheld','unavailable'].",
+  "source_file": "code-fundamentals-profile.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Real: Pydantic FieldMeta.status is a plain str (models/fundamentals.py:39), while the TS mirror is a closed union (types/data.ts:179). But every producer emits one of the three literals, and the TS consumer degrades safely on an unknown value: no chip, no tooltip (EquityOverviewPanel.tsx:190-220), not a wrong render. This is a type-tightening nit: medium -> low."
+  }
+ },
+ {
+  "raw_id": "COD-market-data-providers-1-8",
+  "title": "A provider raising anything other than ProviderError bypasses the registry's preference-order fallthrough entirely",
+  "severity": "high",
+  "area": "code",
+  "subsystem": "market-data-providers-1",
+  "repro": "design. _resolve_sync and _resolve_async both `except ProviderError`. india_provider._stock_df carefully wraps every jugaad FETCH failure as ProviderError, but the PARSE path does not: get_quote does float(last['CLOSE']) / last['DATE'] and _frame_to_bars does float(row['OPEN'/'HIGH'/'LOW'/'CLOSE']) with no guard, so an upstream column rename raises a bare KeyError/ValueError. That escapes _resolve_sync uncaught -- the bse and yfinance candidates are never attempted -- and surfaces as a 500. nse_provider._rows_to_bars and bse_provider._assemble_history have the same unguarded float()/indexing.",
+  "evidence": "sidecar/services/provider_registry.py:360, sidecar/services/provider_registry.py:410, sidecar/services/india_provider.py:147, sidecar/services/india_provider.py:189, sidecar/services/india_provider.py:104",
+  "notes": "Pull complexity downward + consistency (APOSD #6, #12). The registry's entire value proposition is 'a failure advances to the next provider', and the single most likely failure mode for a scraped keyless source -- an upstream schema drift -- is precisely the one that escapes it. The inconsistency is inside one module: india_provider wraps the network call and leaves the parse bare. Smallest fix: catch Exception (not ProviderError) in both resolvers, log at error with the provider id, and fall through; re-raise only when no candidate remains. One change at the seam all callers route through beats wrapping every parse site.",
+  "source_file": "code-market-data-providers-1.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "It is true that both resolvers catch only ProviderError. But every trigger the finding cites fails to raise a non-ProviderError from a non-last provider. jugaad's stock_df selects fixed NSE headers and renames them itself, so an upstream rename raises KeyError inside stock_df, which _stock_df wraps as ProviderError, and india_provider then indexes jugaad's own fixed columns. nse_provider._rows_to_bars is fully guarded (.get plus _num). bse _assemble_history indexes columns that parse_bhavcopy itself creates. yfinance is the last candidate (rank 50), so there is nothing after it to skip. The seam is a latent design fragility, not a live fallthrough failure."
+  }
+ },
+ {
+  "raw_id": "COD-market-data-providers-1-13",
+  "title": "Four divergent _is_rate_limited implementations classify the same 429 differently, so the shared breaker is fed inconsistently",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "market-data-providers-1",
+  "repro": "design. yfinance_provider._is_rate_limited matches `type(node).__name__ == 'YFRateLimitError' or 'Too Many Requests' in str(node)`. growth_check._is_rate_limited, dividend_history._is_rate_limited and earnings_quality._is_rate_limited all match `name == 'YFRateLimitError' or 'ratelimit' in name.lower()` -- a type-name test with no message test. symbol_resolver has a fifth, inline `type(exc).__name__ == 'YFRateLimitError'`. Neither predicate is a superset of the other: a 429 surfaced only as an HTTPError with 'Too Many Requests' in its message is a throttle to yfinance_provider and invisible to the other three; a differently-named rate-limit class is the reverse.",
+  "evidence": "sidecar/services/yfinance_provider.py:38, sidecar/services/growth_check.py:160, sidecar/services/dividend_history.py:74, sidecar/services/earnings_quality.py:210, sidecar/services/symbol_resolver.py:1006",
+  "notes": "Information leakage (APOSD #3) -- 'what counts as a Yahoo throttle' is duplicated five times and has already drifted into two incompatible answers, and all five feed ONE shared breaker whose whole purpose is a consistent global view of Yahoo's health. earnings_quality.py:214 even documents that it mirrors growth_check, which proves the copies were made knowingly. Smallest fix: one `provider_health.is_rate_limit(exc)` holding the union of both predicates, imported by all five call sites.",
+  "source_file": "code-market-data-providers-1.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The duplication is real: the yfinance_provider predicate matches the 'Too Many Requests' message, the three siblings match 'ratelimit' in the type name, and symbol_resolver checks the exact type name. But the claimed divergence has no current trigger. The pinned yfinance 1.3.0 routes every 429 through data.py and raises YFRateLimitError at data.py:233, :341 and :451, which every predicate matches. What remains is maintenance debt."
+  }
+ },
+ {
+  "raw_id": "COD-market-data-providers-1-14",
+  "title": "data_cache is an unbounded, never-evicted SQLite cache: stale rows are read past TTL and left, and invalidate/clear/size have no production callers",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "market-data-providers-1",
+  "repro": "design. data_cache.get documents that a stale row 'is NOT auto-evicted'; nothing sweeps. grep over sidecar/services + sidecar/routers for data_cache.invalidate / .clear / .size returns ZERO non-test hits, while routers/earnings.py, routers/disclosures.py and routers/fundamentals.py each write one row per symbol per endpoint (earnings:<sym>:history, disclosures:<sym>:announcements, ratings:<sym>:*, ...). Every symbol a user ever looks at leaves permanent rows in data_cache.db.",
+  "evidence": "sidecar/services/data_cache.py:107, sidecar/services/data_cache.py:152, sidecar/services/data_cache.py:168, sidecar/services/data_cache.py:174, sidecar/routers/earnings.py:80, sidecar/routers/fundamentals.py:221",
+  "notes": "A cache with no bound on a local-first desktop app whose stated ambition is screener.in-scale coverage (thousands of scrips): the file grows monotonically for the life of the install, and the only eviction API shipped is dead code. The module's own 'Design choices' section argues for SQLite because 'the cache must survive sidecar restarts' without ever addressing size. Smallest fix: a `DELETE FROM cache WHERE updated_at < ?` sweep on the stale-read path in get() (the row is already identified as expired there), or a row-count cap with oldest-first eviction in set().",
+  "source_file": "code-market-data-providers-1.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "True as stated: get() leaves stale rows in place, and invalidate(), clear() and size() have no production callers. The impact is small, though. Rows are per-symbol, per-endpoint JSON blobs, and the operator's own long-lived install data_cache.db is 2.6 MB. Growth tracks symbols viewed, and at screener.in scale that is tens of MB at most. This is hygiene, not a medium defect."
+  }
+ },
+ {
+  "raw_id": "COD-market-data-providers-2-9",
+  "title": "Earnings router copy-pastes the cache-read/validate/fetch/502/cache-write block four times",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "market-data-providers-2 / earnings",
+  "repro": "design. Adding stale-while-revalidate, a cache-bypass header, an as-of stamp (see -8) or a metrics counter requires four identical edits; miss one and that route drifts silently.",
+  "evidence": "sidecar/routers/earnings.py:68-81, :89-100, :108-119, :127-138 (four copies of get -> isinstance dict -> try model_validate -> except log warning -> provider call -> except ProviderError -> 502 -> set -> return)",
+  "notes": "Repetition red flag with real change amplification; the only per-route variation is (cache key, TTL, model, provider fn). Smallest fix: one helper async def _cached(key, ttl, model, fetch) in this file -- roughly 12 lines replacing about 48, with the four routes becoming one-liners.",
+  "source_file": "code-market-data-providers-2.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Four near-identical cache/validate/fetch/502/set blocks confirmed at the cited ranges. Severity corrected to low: a same-file ~12-line repetition with no present defect; it is change amplification for a future edit, not something a user or the next maintainer trips on unaware (the copies sit adjacent)."
+  }
+ },
+ {
+  "raw_id": "COD-market-data-providers-2-12",
+  "title": "get_filing_sections is a pass-through whose docstring claims a cheaper path it does not take",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "market-data-providers-2 / sec-filings",
+  "repro": "GET /sec/filings/{accession}/sections -> get_filing_sections -> get_filing -> TWO upstream MCP calls (get_filing_sections + get_recent_filings limit=40) plus the full FilingDetail build, despite the docstring promising the section rail can 'hit a cheaper route without re-fetching the metadata row'.",
+  "evidence": "sidecar/services/sec_filings_provider.py:563-575 (docstring vs body: 'detail = await get_filing(...); return list(detail.sections)'), sidecar/services/sec_filings_provider.py:526-538 (both upstream calls), sidecar/routers/sec_filings.py:127-141 (publishes it as a separate route)",
+  "notes": "Pass-through method (different layer / same abstraction) plus an interface comment that is actively false -- worse than no comment, because it tells the next reader not to check. The FilingViewer's section rail pays the 40-filing listing cost on every navigation. Smallest fix: either delete the route and have the panel read detail.sections from the call it already made, or split the upstream sections call into its own function and have get_filing call THAT (making the comment true).",
+  "source_file": "code-market-data-providers-2.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The pass-through and its false docstring are real (get_filing_sections just calls get_filing). The cost claim is refuted: no frontend code calls /sec/filings/{acc}/sections (src/store/sec.ts calls only /sec/filings, /sec/filings/{acc}, /sec/insider, /sec/filings/search), and get_filing caches the whole FilingDetail under sec:filing:{accession} for 24h, so a repeat call is a cache hit, not two upstream MCP calls. Residual: a dead route with a misleading comment — low."
+  }
+ },
+ {
+  "raw_id": "COD-market-data-providers-3-4",
+  "title": "SEC store's `select*` are not selectors — they call getState(), so panel reactivity is held by a `void x;` no-op statement",
+  "severity": "high",
+  "area": "code",
+  "subsystem": "market-data-providers-3",
+  "repro": "design (latent). Delete `void filingsByIdentifier; // subscribe` from SecFilingsPanel.tsx:75 (or `void byIdentifier;` from InsiderTradingTable.tsx:107): the component stops re-rendering on store updates and freezes at its first render — no error, no type failure, and the existing tests (which mount a fresh component per case) do not catch it.",
+  "evidence": "src/store/sec.ts:274-281, src/store/sec.ts:284-287, src/store/sec.ts:290-297, src/store/sec.ts:17-21, src/modules/sec/SecFilingsPanel.tsx:74-77, src/modules/sec/InsiderTradingTable.tsx:106-115",
+  "notes": "Information hiding + obviousness: selectFilings/selectFilingDetail/selectInsider take an identifier and call useSecStore.getState() instead of taking state, so the store's subscription requirement leaks to every call site as a statement that reads like dead code. The file's own header (:17-21) documents the frozen-empty stable-identity pattern a real selector needs, then the functions sidestep being selectors. A `no-unused-expressions` lint pass or a routine cleanup silently breaks two panels. Smallest fix: delete the three module-level functions and subscribe directly, one line per call site — `useSecStore((s) => s.insiderByIdentifier[insiderKey(id, form)] ?? EMPTY_INSIDER)`; the frozen empties at :52-65 already supply the stable identity.",
+  "source_file": "code-market-data-providers-3.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The smell is real: selectFilings/selectFilingDetail/selectInsider call useSecStore.getState() and are not selectors, so reactivity depends on a separate hook plus a `void x;` statement inside useMemo. The stated failure mode is wrong, though. The subscription is the hook at SecFilingsPanel.tsx:40 (and InsiderTradingTable.tsx:105), and the map stays in the useMemo dependency array (:77, :115). Deleting only the `void` line leaves both in place, so the component still re-renders and recomputes. It only freezes if someone also drops the dependency, for example after react-hooks/exhaustive-deps flags it as unnecessary once it is unreferenced. A latent maintainability trap: low, not high."
+  }
+ },
+ {
+  "raw_id": "COD-market-data-providers-3-9",
+  "title": "EarningsCalendarPanel hand-rolls a table the rest of the slice gets from DataTable, and duplicates its seven column widths",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "market-data-providers-3",
+  "repro": "design. Change any earnings column width: the real table's <colgroup> (:279-287) and the skeleton's <colgroup> (:217-225) are two independent copies of the same seven percentages, so editing one silently misaligns the loading state against the loaded state.",
+  "evidence": "src/modules/earnings/EarningsCalendarPanel.tsx:216-225, src/modules/earnings/EarningsCalendarPanel.tsx:279-287, src/modules/earnings/EarningsCalendarPanel.tsx:453-480, src/modules/earnings/EarningsCalendarPanel.tsx:34-37, src/components/DataTable.tsx:51, src/components/DataTable.tsx:237-253, src/modules/earnings/EpsEstimateGrid.tsx:58, src/modules/sec/FilingsListTable.tsx:123, src/modules/analyst-ratings/RatingsHistoryTable.tsx:128",
+  "notes": "Consistency + repetition: six of the seven tables in this slice (including EpsEstimateGrid, in the same module) use the shared DataTable; this one re-implements the sortable header (:453-480 vs DataTable.tsx:237-253) and the null glyph (:34-37 vs DataTable.tsx:51 NULL_GLYPH), and so misses stickyHeader, rowTestId, the tier tokens and the truncation rules the shared component already solves. Three copies of the same truth in one file. Smallest fix: at minimum hoist the colgroup to one module constant used by both branches; properly, move the rows onto DataTable with an expansion row.",
+  "source_file": "code-market-data-providers-3.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Accurate: the skeleton (:217-225) and loaded table (:279-287) carry two identical seven-width colgroups, and SortableHeader re-implements DataTable's sortable <th>. But the only consequence of drift is a misaligned loading skeleton, a cosmetic loading-state glitch with no data or flow impact. The sortable-header behaviour is the same as DataTable's (both put onClick on a <th>), so nothing functional is lost. Duplication smell: low, not medium."
+  }
+ },
+ {
+  "raw_id": "COD-market-data-providers-3-10",
+  "title": "Unreachable error branch, a dead sort key, triplicated fmtDate and duplicated rating maps in the analyst/earnings modules",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "market-data-providers-3",
+  "repro": "design. (a) AnalystRatingsPanel's `tabError && tabData !== null` banner cannot render: the store only records an error on a cache MISS and clears it on the success that populates the cache, so 'cached data + error' is unproducible. (b) SortKey 'analysts' has a sortValue case but no header wires handleSort('analysts').",
+  "evidence": "src/modules/analyst-ratings/AnalystRatingsPanel.tsx:152-164, src/store/analyst-ratings.ts:55-71, src/modules/earnings/EarningsCalendarPanel.tsx:22, src/modules/earnings/EarningsCalendarPanel.tsx:63-64, src/modules/earnings/EarningsCalendarPanel.tsx:317-322, src/modules/analyst-ratings/IndividualAnalystTable.tsx:11-25, src/modules/analyst-ratings/RatingsHistoryTable.tsx:15-29, src/modules/earnings/EarningsCalendarPanel.tsx:39-43, src/modules/analyst-ratings/IndividualAnalystTable.tsx:27-31, src/modules/analyst-ratings/RatingsHistoryTable.tsx:31-35, src/modules/earnings/EarningsSurpriseChart.tsx:102",
+  "notes": "Duplicated truth that will drift + code the next reader will believe runs. RATING_LABEL and RATING_COLOR are byte-identical in two files, so a colour or label change to the rating scale must be made twice or the two analyst tables disagree; fmtDate is triplicated verbatim across three files. The unreachable banner (with a comment explaining behaviour that cannot occur) and the unwired 'analysts' sort key will be maintained as if live. Also EarningsSurpriseChart.tsx:102 comments 'Sort newest-first -> reverse for chart' above a plain ascending sort with no reverse — the output is right, the comment is not. Smallest fix: one shared rating-label/colour map and one shared fmtDate in the analyst module; delete the unreachable branch and the dead sort key; correct the comment.",
+  "source_file": "code-market-data-providers-3.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "All parts hold. (a) The 'error + cached data' banner is unreachable in production: once a slice is cached, getX never refetches or sets an error, and a success clears the error to ''. Only a dev StrictMode double-fetch race could produce it. (b) SortKey 'analysts' has a sortValue case but handleSort is wired only for symbol/scheduled_date/time_of_day/consensus/dispersion. (c) RATING_LABEL/RATING_COLOR/fmtDate are byte-identical across IndividualAnalystTable and RatingsHistoryTable (diff empty), and fmtDate is a third copy in EarningsCalendarPanel. (d) The EarningsSurpriseChart comment contradicts the ascending sort. Side note on the shared fmtDate: `new Date('YYYY-MM-DD')` parses as UTC midnight, so a viewer west of UTC sees the previous day."
+  }
+ },
+ {
+  "raw_id": "COD-resolver-4",
+  "title": "resolve() re-scans 17,913 master names with SequenceMatcher on every call and has no result memo, while the live rung has an elaborate LRU",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "resolver",
+  "repro": "sidecar/.venv/bin/python with _live_lookup stubbed to []: repeated symbol_resolver.resolve('infosys','IN') costs 313 ms EVERY call (masters are lru_cached, results are not). 'hdfc bank limited results' 897 ms; exact ticker 'TATASTEEL' 0.1 ms; autocomplete (same masters, no SequenceMatcher) 3 ms.",
+  "evidence": "sidecar/services/symbol_resolver.py:747, sidecar/services/symbol_resolver.py:750, sidecar/services/symbol_resolver.py:754, sidecar/services/symbol_resolver.py:592, sidecar/services/symbol_resolver.py:117, sidecar/services/symbol_resolver.py:1033",
+  "notes": "Performance as design: ~20 lines of LRU + cooldown budget machinery protect the NETWORK rung, and zero lines protect the 300-900 ms CPU rung that runs on every query. An agent iterating disambiguation candidates re-pays the full scan per attempt. Smallest fix: @lru_cache(maxsize=2048) on _resolve_masters(query, region) -- pure over immutable masters, with rename + enrichment staying outside it -- plus a cache_clear() in reset_caches_for_tests.",
+  "source_file": "code-resolver.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Holds: masters are lru_cached but resolve()/_resolve_masters has no result memo, so each non-ticker query re-runs the banded scan with SequenceMatcher over every master row, while only the network rung has an LRU. A repeated 'infosys' costs the same both times."
+  }
+ },
+ {
+  "raw_id": "COD-resolver-5",
+  "title": "band defaults to BAND_FUZZY in the three instrument builders, so autocomplete ships exact-ticker rows as score=1.0 / band=0",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "resolver",
+  "repro": "rows = symbol_resolver.autocomplete('TATASTEEL','IN'); rows[0] is (symbol=TATASTEEL, score=1.0, band=0). resolution_policy.decide(Resolution(query='TATASTEEL', best=rows[0], candidates=rows)).outcome == 'disambiguate' -- the policy refuses to bind a perfect ticker match because the band field lies.",
+  "evidence": "sidecar/services/symbol_resolver.py:468, sidecar/services/symbol_resolver.py:483, sidecar/services/symbol_resolver.py:497, sidecar/services/symbol_resolver.py:952, sidecar/services/symbol_resolver.py:961, sidecar/services/symbol_resolver.py:965, sidecar/services/resolution_policy.py:124",
+  "notes": "Obviousness: the band field exists to make 'how did this match' structural rather than advisory, and the default makes the WRONG value the easy one. Today only autocomplete takes the default and nothing feeds its rows to decide(), so this is a loaded gun rather than a live wound -- an Instrument's band is only meaningful if it came from resolve(), and nothing in the type says so. Smallest fix: delete the '= BAND_FUZZY' defaults at :468/:483/:497 and make autocomplete state the band it means.",
+  "source_file": "code-resolver.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Mechanism confirmed: the three builders default band=BAND_FUZZY, autocomplete takes the default, and an exact-ticker autocomplete row is score 1.0 / band 0, which decide() maps to 'disambiguate'. Downgraded because, as the finding itself concedes, no production path feeds autocomplete rows to decide() and the band is not on the autocomplete wire, so this is a latent trap with no present consequence."
+  }
+ },
+ {
+  "raw_id": "COD-resolver-6",
+  "title": "The Instrument-to-wire projection is hand-maintained in two places and has already drifted",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "resolver",
+  "repro": "Compare routers/resolve.py _instrument_payload with agent_tools/resolve_symbol.py _instrument_dict: same 10 identity keys, but confidence is round(score,4) in one and round(score,3) in the other, and the 'rename' provenance block exists only in the router version -- so the agent (the consumer the R12 lane was built for) never receives the rename note, only former_name. No test binds the pair.",
+  "evidence": "sidecar/routers/resolve.py:27, sidecar/routers/resolve.py:36, sidecar/routers/resolve.py:46, sidecar/services/agent_tools/resolve_symbol.py:25, sidecar/services/agent_tools/resolve_symbol.py:33",
+  "notes": "Information leakage: the Instrument wire shape is knowledge held in two files. Adding a field to Instrument requires remembering both, and the drift already present proves the mechanism failed once. Smallest fix: one instrument_payload() in the resolver package imported by both call sites (the agent tool can drop the keys it does not want by name, not by re-implementation).",
+  "source_file": "code-resolver.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Holds: the two projections are hand-copied with the same 10 keys, confidence is rounded to 4 places in the router and 3 in the agent tool, and only the router emits the 'rename' provenance block, so the agent receives former_name but never the effective date or the note."
+  }
+ },
+ {
+  "raw_id": "COD-resolver-8",
+  "title": "Three contradictory definitions of instrument identity; the ISIN that would settle it is carried and never read",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "resolver",
+  "repro": "design",
+  "evidence": "sidecar/services/resolution_policy.py:92, sidecar/services/resolution_policy.py:33, sidecar/services/symbol_resolver.py:869, sidecar/services/symbol_resolver.py:236, sidecar/services/symbol_resolver.py:840",
+  "notes": "Information hiding: _residual_tie skips any candidate whose bare ticker equals best's as 'the same instrument' (documented at resolution_policy.py:33-35), while symbol_resolver.py:869-879 states the exact opposite for the enrichment join, naming NSE TCI vs US TCI as distinct companies sharing a ticker string; _annotate_renamed_symbols dedups on (symbol, exchange); and isin -- the real global identity key, present on every Indian instrument since R13 -- is read by no identity decision at all. Today the cross-region residual-tie rule masks the consequence, so this is latent rather than live; it goes live the moment that rule is relaxed or a third exchange lands. Smallest fix: one same_instrument(a,b) predicate (ISIN when both carry one, else (symbol, exchange)) called by the rename gate, _residual_tie and the dedup -- which also requires swapping the order at symbol_resolver.py:673 so enrichment runs before the rename lane.",
+  "source_file": "code-resolver.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The design contradiction holds: _residual_tie treats equal bare symbols as one instrument, the enrichment guard says the opposite across exchanges, dedup uses (symbol, exchange), and ISIN drives no identity decision. Correction: this is not purely latent. Same-region ticker collisions exist, and /resolve?q=FOCUS returns NSE 'Focus Lighting and Fixtures' AND BSE 'Focus Business Solution' both carrying the identical ISIN INE0DXR01010 and bse_code 543312. Two distinct companies cannot share an ISIN, so the ticker-string join is already stamping one company's identity on the other. The same root cause also drives COD-resolver-1."
+  }
+ },
+ {
+  "raw_id": "COD-resolver-11",
+  "title": "Two dead second-decision surfaces kept alive by tests: Resolution.needs_disambiguation and the DISAMBIGUATION_THRESHOLD re-export",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "resolver",
+  "repro": "design",
+  "evidence": "sidecar/services/symbol_resolver.py:250, sidecar/services/symbol_resolver.py:258, sidecar/services/symbol_resolver.py:86, sidecar/services/symbol_resolver.py:1042, sidecar/tests/test_symbol_resolver.py:96, sidecar/tests/test_resolver_rename.py:93",
+  "notes": "Consistency / obviousness: needs_disambiguation re-runs the entire decide() (including _residual_tie) on every property access and has ZERO production callers -- only tests read it, and the routers build a same-named wire key from decide() directly. DISAMBIGUATION_THRESHOLD is re-exported into __all__ with no consumer anywhere in the tree, re-advertising the very 'second threshold' resolution_policy exists to abolish (its own grep test at tests/test_resolution_policy.py:135 forbids assigning that name a literal). Both are API surface maintained for tests, so a reader must check whether they are authoritative. Smallest fix: delete both and update the four test call sites to resolution_policy.decide(...).outcome.",
+  "source_file": "code-resolver.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Holds: Resolution.needs_disambiguation has no non-test caller (the only other hit is a docstring in agent_runtime.py:812, and the routers/tools build the wire key from decide()), and DISAMBIGUATION_THRESHOLD is imported and exported in __all__ with no consumer outside tests."
+  }
+ },
+ {
+  "raw_id": "COD-screener-4",
+  "title": "default_universe_for_region is dead code - the India-first screener default (FR-060) was never wired to anything",
+  "severity": "high",
+  "area": "code",
+  "subsystem": "screener",
+  "repro": "design - grep over *.py/*.ts/*.tsx and sidecar/tests/ finds no call site for default_universe_for_region; the store hardcodes universe: 'sp500' at both init and reset, so an IN-region user opens the screener on the S&P 500.",
+  "evidence": "sidecar/services/screener.py:114, sidecar/services/screener.py:1323, sidecar/routers/screener.py:74, src/store/screener.ts:267, src/store/screener.ts:654",
+  "notes": "A general-purpose mechanism with zero clients (APOSD 5/17 - designing for a future that never arrived), plus a doc that asserts the feature exists: routers/screener.py:74-77 describes FR-060 region-aware default selection as living 'in services.screener.default_universe_for_region for the callers that must choose a default' - there are no such callers, so the only consumer of FR-060 is prose. Consequence: the flagship India positioning is contradicted by the panel's first frame, and the next maintainer reading the router docstring believes the behaviour is shipped. Smallest fix: initialise the store's universe from get_region() (via the existing /system region surface) on first mount, or delete the function and the docstring claim.",
+  "source_file": "code-screener.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "Real: default_universe_for_region (screener.py:114-117) has no caller anywhere in sidecar/src/types/plugins (grep: only its def, __all__ and the router docstring routers/screener.py:74-77 that claims it serves callers), and the store initialises universe: 'sp500' (store.ts:267). Corrections: store.ts:654 is __resetForTests, not a user-facing reset; and severity high->medium - it is a first-frame default on a dropdown the user changes in one click, not a broken flow, though the router docstring does falsely assert FR-060 is shipped."
+  }
+ },
+ {
+  "raw_id": "COD-screener-7",
+  "title": "matched_criteria is computed, shipped on the wire, read by nothing, and is always empty under a group",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "screener",
+  "repro": "Any run with group present (i.e. the builder's 'match ANY' mode, src/store/screener.ts:362-364) returns every row with matched_criteria: [] because apply_criteria only fills passed_indices on the flat branch. No frontend file reads the field, so the defect is latent rather than visible.",
+  "evidence": "sidecar/services/screener.py:363, sidecar/services/screener.py:394, types/screener.ts:176, src/lib/host-actions.ts:1155",
+  "notes": "Dead weight plus a trap (APOSD 1/17). The engine carries index-tracking machinery through its hottest loop for a consumer that does not exist, and host-actions.ts:1155-1156 flattens an agent's nested group into the flat criteria list specifically 'so older readers + the match-index column resolve' - preserving a behaviour for a column no file renders. Consequence: two subsystems pay upkeep for a phantom, and the first person to build the match-index column will ship it silently blank in ANY mode. Smallest fix: delete matched_criteria from ScreenerResultRow, types/screener.ts and apply_criteria, and drop the flattenLeaves mirroring in host-actions.ts; if the column is genuinely wanted, populate it on the group path first.",
+  "source_file": "code-screener.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Real: matched_criteria is filled only on the flat branch (screener.py:363-374) and has no production reader (grep: only types/screener.ts:176 and tests). Corrections: severity medium->low - on the flat branch it is by construction always [0..n-1] for any served row (break on first fail), so it carries no information and nothing user-visible depends on it; and the proposed 'drop the flattenLeaves mirroring' is wrong - the flat criteria mirror also drives the simple builder view via applyFilters (store.ts:302-309), not only the phantom column."
+  }
+ },
+ {
+  "raw_id": "COD-screener-14",
+  "title": "runScreener duplicates the unary-fallback and run-completion protocol three times across 250 lines",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "screener",
+  "repro": "design - the 'POST /screener/run, set lastResult/status/error, null the abort slot, return' sequence appears at 402-420, at 424-442, and again in the stream tail at 551-564, each with its own isCurrent()/aborted ordering.",
+  "evidence": "src/store/screener.ts:403, src/store/screener.ts:425, src/store/screener.ts:562, src/store/screener.ts:30",
+  "notes": "Repetition where the duplicated thing is a protocol, not a value (APOSD 1/15). The superseded-run invariant is held by a seven-line comment at the top of the file (lines 30-36: 'every async path that reads this must capture it into a local controller ... guard every state write') - the structure could hold it instead, and a comment-held invariant spread over three copies is one careless edit from run B's state being clobbered by run A's cleanup. Smallest fix: one local `function finish(patch) { if (!isCurrent()) return; set(patch); _runAbortController = null; }` plus one `runUnary()` helper; the three blocks collapse to one line each and the invariant becomes structural.",
+  "source_file": "code-screener.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Holds: the 'unary POST /screener/run -> guarded set(lastResult/status) -> null controller -> return' sequence is duplicated in the network-error fallback (store.ts:401-420) and the 404 fallback (423-442), and the completion protocol again at the stream tail (551-564), each with its own aborted/isCurrent ordering, while the superseded-run invariant lives only in a comment (30-36)."
+  }
+ },
+ {
+  "raw_id": "COD-screener-15",
+  "title": "Unreachable 400 handler on POST /screener/run whose comment teaches a false fact about the engine",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "screener",
+  "repro": "design - the route catches ValueError 'e.g. an unknown universe id is a ValueError in the engine'; resolve_universe raises ProviderError for both the unknown-id and custom-without-symbols cases, and universe is a Literal so FastAPI returns 422 before the engine is reached. Nothing can produce that 400.",
+  "evidence": "sidecar/routers/screener.py:84, sidecar/services/screener.py:260, sidecar/services/screener.py:214, sidecar/models/screener.py:207",
+  "notes": "Comments describe non-obvious things correctly or not at all (APOSD 11/16). The handler is harmless; the comment is not - it tells the next maintainer that the engine signals bad input with ValueError, which will shape how they add the next error path. Smallest fix: delete the except branch and the comment, or make it honest about ProviderError -> 502.",
+  "source_file": "code-screener.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The comment is false as claimed (unknown universe is a Literal -> 422 at models/screener.py:205; resolve_universe raises ProviderError at screener.py:214/260; an invalid formula is rejected at the request boundary, models/screener.py:224-238). Correction: the handler is not strictly unreachable - pydantic ValidationError subclasses ValueError (verified) and FormulaError(ValueError) exists (screener_formula.py:78), so an internal model-construction bug inside run_screener would be misreported as a client 400 instead of a 500. Same fix (delete or narrow the except)."
+  }
+ }
+]

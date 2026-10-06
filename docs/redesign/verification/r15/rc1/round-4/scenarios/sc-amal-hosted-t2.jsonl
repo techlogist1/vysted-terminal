@@ -1,0 +1,52 @@
+{"kind": "tool_use", "tool_call_id": "call_f2bcbbde7d0b4f43884b55400c548d91", "name": "resolve_symbol", "input": {"query": "AMAL"}}
+{"kind": "tool_result", "tool_call_id": "call_f2bcbbde7d0b4f43884b55400c548d91", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_3ab1d9790e3d4d3a85ea59125d267afe", "name": "price_data", "input": {"symbol": "AMAL", "timeframe": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_3ab1d9790e3d4d3a85ea59125d267afe", "name": "price_data", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Amal"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "AM"}
+{"kind": "delta", "text": "AL"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "674"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "40"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " experienced"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " decrease"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " drop"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " approximately"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "93"}
+{"kind": "delta", "text": "%."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " currently"}
+{"kind": "delta", "text": " closed"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 11144, "output_tokens": 46, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.017395}

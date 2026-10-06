@@ -1,0 +1,13 @@
+# HYG-2 repro + fix check at ace7dd76
+cp1252 decode raises (fixture still needs utf-8): 'charmap' codec can't decode byte 0x9d in position 871: character maps to <undefined>
+--- test_search_extract.py fixture reads:
+467:    payload = json.loads(fixture.read_text(encoding="utf-8"))
+--- bare read_text()/open( without encoding across sidecar/tests (guard class):
+sidecar/tests/test_tests_encoding.py:4:``open()``/``Path.read_text()``/``Path.write_text()`` with no ``encoding``
+sidecar/tests/test_tests_encoding.py:72:        "text-mode open()/read_text()/write_text() without encoding= "
+sidecar/tests/test_tests_encoding.py:81:    offender.write_text('from pathlib import Path\n\nPath("x").read_text()\n', encoding="utf-8")
+read/write_text w/o encoding: 0 []
+--- guard test present:
+66:def test_every_test_file_names_its_text_encoding() -> None:
+77:def test_scanner_itself_catches_a_missing_encoding(tmp_path) -> None:
+85:def test_scanner_ignores_a_binary_open_and_an_encoded_call(tmp_path) -> None:

@@ -1,0 +1,33 @@
+# R15-CODE-DATA-007 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:09+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- test_lane_keyerror_degrades_to_partial_merge sidecar/tests/test_corporate_disclosures.py | head -3; test -f sidecar/tests/test_corporate_disclosures.py || echo 'MISSING sidecar/tests/test_corporate_disclosures.py'
+[exit 0] [0.01s]
+479:def test_lane_keyerror_degrades_to_partial_merge(monkeypatch: pytest.MonkeyPatch) -> None:
+
+
+$ grep -n -F -- test_shareholding_lane_keyerror_falls_through_to sidecar/tests/test_corporate_disclosures.py | head -3; test -f sidecar/tests/test_corporate_disclosures.py || echo 'MISSING sidecar/tests/test_corporate_disclosures.py'
+[exit 0] [0.00s]
+1030:def test_shareholding_lane_keyerror_falls_through_to_next_lane(
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-DATA-007\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+sidecar/tests/test_corporate_disclosures.py:480:    """R15-CODE-DATA-007: a lane raising a NON-ProviderError (e.g. a KeyError
+sidecar/tests/test_corporate_disclosures.py:1033:    """R15-CODE-DATA-007: a NON-ProviderError from a shareholding lane (e.g. a
+Binary file sidecar/tests/__pycache__/test_corporate_disclosures.cpython-313-pytest-9.0.3.pyc matches
+
+
+$ grep -n 'except Exception\|BLE001' sidecar/services/corporate_disclosures.py | head -6
+[exit 0] [0.01s]
+193:        except Exception as exc:
+199:        except Exception as exc:
+204:        except Exception:  # noqa: BLE001 - best-effort close
+611:        except Exception as exc:  # noqa: BLE001 - a lane failure degrades to a partial merge
+666:        except Exception:  # noqa: BLE001
+1188:        except Exception as exc:  # noqa: BLE001 - a lane failure falls through to the next
+

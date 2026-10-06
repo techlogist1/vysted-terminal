@@ -1,0 +1,3 @@
+WEB {'url': 'https://www.livemint.com/market/dixon-q1.html', 'title': 'Dixon Technologies Q1 results beat', 'excerpt': 'Dixon Technologies profit rose', 'domain': 'livemint.com', 'source_type': None, 'published_at': '2026-07-24T10:00:00', 'provider': None}
+WEB {'url': 'https://economictimes.indiatimes.com/dixon', 'title': 'Dixon Technologies shares', 'excerpt': 'Dixon Technologies', 'domain': 'economictimes.indiatimes.com', 'source_type': None, 'published_at': None, 'provider': None}
+NEWS {'url': 'https://finance.yahoo.com/x.html', 'title': 'Dixon Technologies surges', 'excerpt': 'Dixon Technologies', 'domain': 'Yahoo! Finance: DIXON News', 'source_type': 'news', 'published_at': None, 'provider': None}

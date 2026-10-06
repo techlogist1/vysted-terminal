@@ -1,0 +1,866 @@
+[
+{
+"cmd": "key",
+"combo": "cmd+,"
+},
+{
+"cmd": "wait",
+"seconds": 3
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/R15-LIFECYCLE-008/1fddb2b-10-settings-refocused.png"
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.35
+},
+{
+"cmd": "wait",
+"seconds": 1.5
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/R15-LIFECYCLE-008/1fddb2b-11-settings-end.png"
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 180
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 186
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 192
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 198
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 204
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 210
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 216
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 222
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 228
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "wait",
+"seconds": 1
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/R15-LIFECYCLE-008/1fddb2b-12-after-copy-to-clipboard.png"
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "wait",
+"seconds": 1
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/R15-LIFECYCLE-008/1fddb2b-13-status-line.png"
+}
+]

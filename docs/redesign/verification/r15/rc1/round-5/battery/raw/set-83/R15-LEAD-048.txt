@@ -1,0 +1,132 @@
+CMD: sed -n '1825,1920p' /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/host-actions.test.ts
+});
+
+describe("arrange_layout's default is a layout-only reset (R15-AGENT-056)", () => {
+  afterEach(() => {
+    useWorkspaceStore.setState({ dockviewApi: null } as never);
+    useModulesStore.getState().setEnabledMap({});
+    useChartDrawingsStore.getState().replaceAll({ byPanel: {} });
+  });
+
+  // Was `[{}, { pattern: "bogus" }]`: an unrecognised pattern like "bogus" used
+  // to silently reset (the R15-LEAD-048 defect). It now fails instead — see
+  // "arrange_layout routes Layout-menu mode ids instead of resetting" below —
+  // so only the missing-pattern and explicit-"default" cases still reset here.
+  it.each([{}, { pattern: "default" }])("keeps drawings and module choices for %o", (input) => {
+    const clear = vi.fn();
+    const addPanel = vi.fn(() => ({ api: { setSize: vi.fn() } }));
+    useWorkspaceStore.setState({
+      resetLayout: realResetLayout,
+      dockviewApi: { clear, addPanel, width: 0, height: 0 },
+    } as never);
+    useModulesStore.getState().setEnabledMap({ news: false });
+    useChartDrawingsStore
+      .getState()
+      .replaceAll({ byPanel: { chart: [{ id: "d1", kind: "hline" }] } } as never);
+
+    expect(describeHostAction("arrange_layout", input).after).toMatch(/drawings and modules kept/);
+    expect(applyHostAction("arrange_layout", input)).toMatch(/drawings and modules kept/);
+    expect(clear).toHaveBeenCalledTimes(1);
+    expect(useModulesStore.getState().enabled).toEqual({ news: false });
+    expect(useChartDrawingsStore.getState().byPanel.chart).toHaveLength(1);
+  });
+});
+
+describe("arrange_layout routes Layout-menu mode ids instead of resetting (R15-LEAD-048)", () => {
+  // A fake dockview api that satisfies applyLayoutMode's applyPlan (clear +
+  // addPanel + the empty-grid checks it makes along the way).
+  function fakeDockviewApi() {
+    return {
+      panels: [],
+      getPanel: () => undefined,
+      addPanel: vi.fn(() => ({ api: { setSize: vi.fn(), setActive: vi.fn() } })),
+      clear: vi.fn(),
+      width: 0,
+      height: 0,
+      hasMaximizedGroup: () => false,
+      exitMaximizedGroup: vi.fn(),
+      maximizeGroup: vi.fn(),
+    };
+  }
+
+  afterEach(() => {
+    useWorkspaceStore.setState({ dockviewApi: null, resetLayout: realResetLayout } as never);
+  });
+
+  it("a recognised Layout-menu mode id (e.g. 'fundamental') applies that mode, never resetLayout", () => {
+    const resetLayout = vi.fn();
+    const api = fakeDockviewApi();
+    useWorkspaceStore.setState({ dockviewApi: api, resetLayout } as never);
+
+    const label = applyHostAction("arrange_layout", { pattern: "fundamental" });
+
+    expect(label).toMatch(/fundamental/i);
+    expect(resetLayout).not.toHaveBeenCalled();
+    expect(api.clear).toHaveBeenCalledTimes(1);
+    expect(api.addPanel).toHaveBeenCalledWith(expect.objectContaining({ id: "chart" }));
+  });
+
+  // "constructor" is an inherited Object key, not an own mode id.
+  it.each(["banana", "constructor"])(
+    "an unrecognised pattern (%s) fails, names it, and does not reset",
+    (pattern) => {
+      const resetLayout = vi.fn();
+      useWorkspaceStore.setState({ dockviewApi: null, resetLayout } as never);
+
+      const result = applyIntent(parseHostAction("arrange_layout", { pattern }));
+      expect(result.label).toBeNull();
+      expect(result.reason).toContain(`unrecognised layout "${pattern}"`);
+      expect(resetLayout).not.toHaveBeenCalled();
+
+      const preview = describeHostAction("arrange_layout", { pattern });
+      expect(preview.title).not.toMatch(/^Reset/);
+      expect(preview.after).toMatch(/can't apply/);
+    },
+  );
+
+  it("'default' still resets", () => {
+    const resetLayout = vi.fn();
+    useWorkspaceStore.setState({ dockviewApi: null, resetLayout } as never);
+
+    expect(applyHostAction("arrange_layout", { pattern: "default" })).toMatch(/default/i);
+    expect(resetLayout).toHaveBeenCalledTimes(1);
+  });
+
+  it("class case: 'compare-desk' routes to the mode, 'compare' still takes the template path", () => {
+    const resetLayout = vi.fn();
+    const api = fakeDockviewApi();
+
+--- source: host-actions.ts arrange_layout case, LEAD-048 branch ---
+          pattern === "research-cockpit" ? "research cockpit" : pattern.replace("-", " ");
+        return done(`Arranged the ${label} layout`);
+      }
+      // Layout-MENU mode ids (fundamental/technical/macro/compare-desk) reaching
+      // arrange_layout through chat get the SAME layout the native menu produces
+      // (R15-LEAD-048) — never the silent factory reset below.
+      const mode = Object.hasOwn(MENU_PAYLOAD_TO_MODE, pattern)
+        ? MENU_PAYLOAD_TO_MODE[pattern]
+        : undefined;
+      if (mode) {
+        const api = ws.dockviewApi;
+        if (!api) {
+          return fail("the layout has not mounted");
+        }
+        applyLayoutMode(api, mode);
+        if (symbol) {
+          useChartCommandStore.getState().loadSymbol(symbol);
+        } else if (symbols[0]) {
+          useChartCommandStore.getState().loadSymbol(symbols[0]);
+        }
+        return done(`Arranged the ${mode.replace("-", " ")} layout`);
+      }
+      // The agent's default/unknown arrange is layout-only: a cosmetic tool must
+      // never delete drawings or re-enable modules (R15-AGENT-056); the factory
+      // reset stays the explicit Settings/menu action. Anything else is a
+      // genuinely unrecognised pattern — fail loudly instead of resetting.
+      if (pattern !== "default") {
+        return fail(`unrecognised layout "${pattern}"`);
+      }
+      ws.resetLayout();
+      return done("Reset the panel arrangement to the default (drawings and modules kept)");
+    }
+    case "open_company_overview": {

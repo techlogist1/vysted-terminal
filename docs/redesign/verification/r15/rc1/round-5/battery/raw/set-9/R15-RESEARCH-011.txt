@@ -1,0 +1,51 @@
+=== R15-RESEARCH-011: ownership_check.py _fetch_latest (source read) ===
+def _fetch_latest(symbol: str) -> ExchangeOwnership | None:
+    """The latest exchange shareholding pattern (BLOCKING; runs under to_thread)."""
+    from services import corporate_disclosures
+
+    response = corporate_disclosures.get_shareholding(symbol)
+    if not response.patterns:
+        return None
+    latest = response.patterns[0]  # newest quarter first
+    source = latest.source or "exchange"
+    return ExchangeOwnership(
+        promoter_percent=latest.promoter_percent,
+        institutions_percent=latest.institutions_percent,
+        public_percent=latest.public_percent,
+        as_of_quarter=latest.quarter_end.isoformat(),
+        source=source,
+        # A merged split names its own lane and quarter, not the NSE master's.
+        institutions_source=latest.split_source or source,
+        institutions_as_of=(latest.split_as_of or latest.quarter_end).isoformat(),
+    )
+
+=== semantics.py _ownership_leg institutions provenance (source read) ===
+
+def _ownership_leg(
+    fund: dict[str, Any], provider: str
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Cross-check yfinance insider/institution % against the exchange SHP
+    (R13 / D68).
+
+    Returns ``(facts, conflicts)``. The exchange promoter (and institutions,
+    where the filing carried them) are surfaced as SEPARATELY-LABELED facts;
+    a divergence past tolerance flags a conflict carrying BOTH values, BOTH
+    definitions, and BOTH as-of dates. The provider ownership scalars are NEVER
+    replaced — disclosure, not substitution. The exchange pattern rides
+    ``fund[ownership_check.OWNERSHIP_KEY]`` (attached upstream by the snapshot
+    builder, mirroring D66); an absent leg emits nothing (absence is honest).
+    """
+    exchange = fund.get(ownership_check.OWNERSHIP_KEY)
+    if not isinstance(exchange, dict):
+        return {}, []
+    source = exchange.get("source") if isinstance(exchange.get("source"), str) else "exchange"
+    raw_as_of = exchange.get("as_of_quarter")
+    as_of = raw_as_of if isinstance(raw_as_of, str) and raw_as_of else None
+    promoter_pct = _num(exchange, "promoter_percent")
+    institutions_pct = _num(exchange, "institutions_percent")
+    basis = f"{source} shareholding filing" + (f", {as_of}" if as_of else "")
+
+=== pinned test ===
+def test_merged_bse_split_keeps_its_own_provenance_in_the_brief(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:

@@ -1,0 +1,17 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  23.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_d70a8b85f44e47c5a6dddda4599ca17f", "name": "get_terminal_state", "input": {}}
+[  25.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_6aeb570fb80642399694e3d49f77c018", "name": "market_overview", "input": {"region": "IN"}}
+[  36.3s] heartbeat: {"kind": "heartbeat"}
+[  45.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_1d4a7b486bc043599a4fd588fab6d89a", "name": "price_data", "input": {"symbol": "ZOMATO.NS"}}
+[  49.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_8b15a25b9ce0433a9a69af685c039ee7", "name": "price_data", "input": {"symbol": "ZOMATO.NS"}}
+[  53.1s] done: {"kind": "done", "usage": {"input_tokens": 5281, "output_tokens": 24, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Zomato's stock price is not explicitly mentioned in the market overview. Let me check the latest information on Zomato's stock price.
+
+{"name": "price_data", "parameters": {"symbol": "ZOMATO.NS"}}We couldn't retrieve the latest price of Zomato (ZOMATO.NS) due to a provider error. Let me try again.
+
+{"name": "price_data", "parameters": {"symbol":"ZOMATO.NS"}}We couldn't retrieve the current price of Zomato. Our provider is missing the latest data for this name.
+
+=== ok · 53.1s · events {'heartbeat': 3, 'tool_use': 4, 'delta': 120, 'done': 1} · usage in=5281 out=24 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,18 @@
+import sys, jsonschema; sys.path.insert(0,'.')
+from services import agent_runtime as ar
+from services.agent_tools import catalog
+cases=[
+ ("fresh price_option numbers", "price_option", {"spot":"185.5","strike":"190","risk_free_rate":"0.05","dividend_yield":"0","volatility":"0.25","monte_carlo_paths":"10000"}),
+ ("fresh price_bond enum int", "price_bond", {"face_value":"1000","coupon_rate":"0.07","coupons_per_year":"2","yield_to_maturity":"0.065"}),
+ ("fresh walk_forward '3.0'", "run_custom_backtest", {"walk_forward_slices":"3.0","initial_capital":"100000"}),
+ ("fresh boolean publish_brief", "publish_brief", {"web_available":"true"}),
+ ("fresh negative number", "compute_greeks", {"spot":"100","strike":"95","risk_free_rate":"-0.005","volatility":"0.3"}),
+ ("fresh exp form '1e2'", "screener_run", {"limit":"1e2"}),
+ ("fresh stringified instruments", "yield_curve_value", {"instruments":"[{\"tenor\": \"2\", \"rate\": \"0.041\"}, {\"tenor\": \"10\", \"rate\": \"0.045\"}]","sample_count":"50"}),
+ ("neg control 'NaN'", "price_option", {"spot":"NaN"}),
+]
+for label,tool,args in cases:
+    schema=catalog.CAPABILITY_CATALOG[tool].input_schema
+    a=ar._coerce(dict(args),schema)
+    errs=[e.message for e in jsonschema.validators.validator_for(schema)(schema).iter_errors(a) if e.validator!="required"]
+    print(label,"|",{k:(v,type(v).__name__) for k,v in a.items()},"| non-required errors:",errs)

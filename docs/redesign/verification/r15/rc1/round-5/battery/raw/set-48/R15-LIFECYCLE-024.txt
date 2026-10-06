@@ -1,0 +1,12 @@
+Commands:
+1) sqlite3 <mydata>/<db>.db "PRAGMA user_version" for all 7 stores right after sidecar boot.
+   Result: data_cache=1, fundamentals_cache=1, workflows=1 (migrated at boot); custom_agents=0,
+   delegate_runs=0, plugins=0, portfolio=0 (not yet touched).
+2) curl http://127.0.0.1:52352/custom-agents ; curl http://127.0.0.1:52352/portfolio/positions -> HTTP 200 each
+   then re-check PRAGMA user_version: custom_agents=1, portfolio=1 (migrated on first route touch).
+3) grep confirms services/schema_version.py exists and is imported+called (schema_version.migrate(conn, _STEPS))
+   from portfolio_db.py, agents_store.py (custom_agents), data_cache.py, and the other stores, each with a
+   comment "Forward-only migrations, one per user_version (R15-LIFECYCLE-024)".
+Verdict: HOLDS. Every store now carries PRAGMA user_version and migrates 0->1 exactly when the batch-11
+certification described (some at boot, some on first route touch); matches the register's own certified
+behaviour live on the candidate.

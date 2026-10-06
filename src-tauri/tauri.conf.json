@@ -1,11 +1,11 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Vysted Terminal",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "identifier": "com.vysted.terminal",
   "build": {
     "frontendDist": "../out",
-    "devUrl": "http://localhost:3000",
+    "devUrl": "http://localhost:5173",
     "beforeDevCommand": "node scripts/ensure-all-sidecars.mjs && pnpm dev",
     "beforeBuildCommand": "node scripts/ensure-all-sidecars.mjs && pnpm build"
   },

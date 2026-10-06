@@ -1,0 +1,12 @@
+## grep -n 'actions/cache' .github/workflows/*.yml
+rc=1
+## grep -n -E 'cache|ensure-all-sidecars|rust-cache' workflows
+.github/workflows/build.yml:41:          cache: pnpm
+.github/workflows/build.yml:63:      - uses: Swatinem/rust-cache@v2
+.github/workflows/build.yml:71:        run: node scripts/ensure-all-sidecars.mjs
+.github/workflows/lint.yml:37:          cache: pnpm
+.github/workflows/lint.yml:60:      - uses: Swatinem/rust-cache@v2
+.github/workflows/lint.yml:68:        run: node scripts/ensure-all-sidecars.mjs
+.github/workflows/test.yml:37:          cache: pnpm
+.github/workflows/test.yml:58:      - uses: Swatinem/rust-cache@v2
+.github/workflows/test.yml:66:        run: node scripts/ensure-all-sidecars.mjs

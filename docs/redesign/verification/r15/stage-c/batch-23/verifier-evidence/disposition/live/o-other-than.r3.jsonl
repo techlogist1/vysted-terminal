@@ -1,0 +1,39 @@
+{"kind": "delta", "text": "Let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " look"}
+{"kind": "delta", "text": " up"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " closing"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " using"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " closed"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "244"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "80"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "09"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "22"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2737, "output_tokens": 39, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

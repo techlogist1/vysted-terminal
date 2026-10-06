@@ -1,0 +1,2 @@
+keys ['durationMs', 'equityCurve', 'metrics', 'request', 'runId', 'startedAt', 'strategyId', 'trades', 'walkForwardSlices', 'warnings']
+trades 53 equity pts 752 startedAt 1790307560870 durationMs 259.25725 request.symbols ['SPY']

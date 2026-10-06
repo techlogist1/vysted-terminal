@@ -1,0 +1,15 @@
+# R15-UI-003 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:40+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" -c 'from services.agent_tools import catalog; print("catalog agent-selectable", len(catalog.agent_selectable_tool_ids()))' 2>&1 | grep -v Warning
+curl -s -m 20 "$H/custom-agents/tool-ids" | python3 -c "import sys,json;d=json.load(sys.stdin);ids=d.get('tool_ids',d) if isinstance(d,dict) else d;print('tool-ids',len(ids),[t for t in ('research','web_search','publish_brief') if t in ids])"
+curl -s -m 20 -X DELETE "$H/custom-agents/custom:fb2-ui003" -o /dev/null; echo -n "POST: "; curl -s -m 20 -X POST "$H/custom-agents" -H 'content-type: application/json' -d '{"id":"custom:fb2-ui003","name":"FB2 UI003","philosophy":"p","system_prompt":"s","tools":["research","web_search","price_data"],"default_provider":"openrouter"}' -w ' HTTP=%{http_code}\n' | cut -c1-260
+echo -n "PUT: "; curl -s -m 20 -X PUT "$H/custom-agents/custom:fb2-ui003" -H 'content-type: application/json' -d '{"id":"custom:fb2-ui003","name":"FB2 UI003","philosophy":"p2","system_prompt":"s","tools":["research","web_search","price_data"],"default_provider":"openrouter"}' -w ' HTTP=%{http_code}\n' | cut -c1-300
+curl -s -m 20 -X DELETE "$H/custom-agents/custom:fb2-ui003" -w 'DELETE %{http_code}\n'
+--- output ---
+catalog agent-selectable 56
+tool-ids 56 ['research', 'web_search', 'publish_brief']
+POST: {"id":"custom:fb2-ui003","name":"FB2 UI003","philosophy":"p","system_prompt":"s","tools":["research","web_search","price_data"],"default_provider":"openrouter","default_model":null,"icon":null,"created_at":1791029080,"updated_at":1791029080} HTTP=201
+PUT: {"id":"custom:fb2-ui003","name":"FB2 UI003","philosophy":"p2","system_prompt":"s","tools":["research","web_search","price_data"],"default_provider":"openrouter","default_model":null,"icon":null,"created_at":1791029080,"updated_at":1791029080} HTTP=200
+DELETE 204
+
+EXIT=0 (0.5s)

@@ -1,0 +1,5 @@
+=== UI-015: earnings + screener error flattening (known partial residual) ===
+{"detail":"Not Found"}
+HTTP:404
+{"detail":[{"type":"literal_error","loc":["body","universe"],"msg":"Input should be 'sp500', 'nifty50', 'crypto-top50', 'custom', 'nse-all', 'bse-all' or 'india-all'","input":"not-a-real-universe","ctx":{"expected":"'sp500', 'nifty50', 'crypto-top50', 'custom', 'nse-all', 'bse-all' or 'india-all'"}}]}
+HTTP:422

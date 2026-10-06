@@ -1,0 +1,7 @@
+import asyncio, sys
+from fastmcp import Client
+async def main():
+    async with Client("http://127.0.0.1:52310/mcp/") as c:
+        tools = await c.list_tools()
+        print("\n".join(sorted(t.name for t in tools)))
+asyncio.run(main())

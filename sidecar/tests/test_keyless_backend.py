@@ -1,0 +1,431 @@
+"""Tests for the T1 keyless multi-engine rotation (``services.search.keyless``)."""
+
+from __future__ import annotations
+
+import asyncio
+
+import pytest
+
+from services.search.base import (
+    SEARCH_REASON_RATE_LIMITED,
+    SEARCH_REASON_UNREACHABLE,
+    Citation,
+    SearchError,
+    SearchResponse,
+    SearchResult,
+)
+from services.search.breaker import breaker_for, reset_breakers
+from services.search.keyless import (
+    BACKEND_ID,
+    ENGINE_CHAIN,
+    KeylessSearchBackend,
+    is_low_quality,
+    tier_status,
+)
+from services.search.pacing import reset_queue
+
+
+@pytest.fixture(autouse=True)
+def _isolate_globals():
+    """Each test gets fresh process-global breakers + queue."""
+    reset_breakers()
+    reset_queue()
+    yield
+    reset_breakers()
+    reset_queue()
+
+
+def _result(url: str, *, title: str = "T", snippet: str = "S") -> SearchResult:
+    return SearchResult(url=url, title=title, snippet=snippet)
+
+
+def _response(engine: str, results: list[SearchResult]) -> SearchResponse:
+    return SearchResponse(
+        results=results,
+        citations=[Citation(url=r.url, title=r.title, excerpt=r.snippet) for r in results],
+        backend=engine,
+        query="q",
+    )
+
+
+class _Engine:
+    """A scripted fake engine: each search() pops the next outcome."""
+
+    def __init__(self, outcomes: list) -> None:
+        self.outcomes = list(outcomes)
+        self.calls = 0
+
+    async def search(self, query, *, options=None):  # noqa: ANN001, ANN201
+        self.calls += 1
+        outcome = self.outcomes.pop(0) if self.outcomes else SearchError("exhausted")
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+
+async def _no_sleep(_secs: float) -> None:
+    return None
+
+
+def _backend(engines: dict) -> KeylessSearchBackend:
+    return KeylessSearchBackend(engines=engines, sleeper=_no_sleep)
+
+
+def _run(coro):
+    return asyncio.run(coro)
+
+
+# --- happy path + rotation ----------------------------------------------------
+
+
+def test_primary_engine_serves_and_backend_names_it() -> None:
+    ddg = _Engine([_response("ddg", [_result("https://a.com/1")])])
+    backend = _backend({"ddg": ddg, "brave": _Engine([]), "mojeek": _Engine([])})
+    resp = _run(backend.search("q"))
+    assert resp.backend == "keyless:ddg"
+    assert [r.url for r in resp.results] == ["https://a.com/1"]
+    assert resp.citations[0].url == "https://a.com/1"
+
+
+def test_rotation_skips_failed_primary_to_fallback() -> None:
+    ddg = _Engine([SearchError("down"), SearchError("down")])  # both attempts fail
+    brave = _Engine([_response("brave", [_result("https://b.com/1")])])
+    backend = _backend({"ddg": ddg, "brave": brave, "mojeek": _Engine([])})
+    resp = _run(backend.search("q"))
+    assert resp.backend == "keyless:brave"
+    assert ddg.calls == 2  # the bounded per-engine retry budget was spent
+    assert brave.calls == 1
+
+
+def test_retry_then_success_within_same_engine() -> None:
+    ddg = _Engine([SearchError("blip"), _response("ddg", [_result("https://a.com/1")])])
+    backend = _backend({"ddg": ddg, "brave": _Engine([]), "mojeek": _Engine([])})
+    resp = _run(backend.search("q"))
+    assert resp.backend == "keyless:ddg"
+    assert ddg.calls == 2
+
+
+def test_empty_engine_rotates_to_cross_check_then_returns_empty_success() -> None:
+    ddg = _Engine([_response("ddg", [])])
+    brave = _Engine([_response("brave", [])])
+    mojeek = _Engine([_response("mojeek", [])])
+    backend = _backend({"ddg": ddg, "brave": brave, "mojeek": mojeek})
+    resp = _run(backend.search("q"))
+    # All engines genuinely found nothing → an empty SUCCESS, not an error.
+    assert resp.backend == BACKEND_ID
+    assert resp.results == []
+    assert ddg.calls == 1 and brave.calls == 1 and mojeek.calls == 1
+
+
+def test_empty_primary_but_fallback_results_serve() -> None:
+    ddg = _Engine([_response("ddg", [])])
+    brave = _Engine([_response("brave", [_result("https://b.com/1")])])
+    backend = _backend({"ddg": ddg, "brave": brave, "mojeek": _Engine([])})
+    resp = _run(backend.search("q"))
+    assert resp.backend == "keyless:brave"
+
+
+# --- breaker integration --------------------------------------------------------
+
+
+def test_two_failed_searches_trip_breaker_and_next_run_skips_engine() -> None:
+    down = SearchError("down")
+    ddg = _Engine([down, down, down, down])
+    brave = _Engine([_response("brave", [_result(f"https://b.com/{i}")]) for i in range(3)])
+    backend = _backend({"ddg": ddg, "brave": brave, "mojeek": _Engine([])})
+
+    _run(backend.search("q1"))  # one failed search = one strike, still closed
+    assert breaker_for("ddg").state == "closed"
+    reset_queue()  # keep the pacing wait from eating q2's engine deadline
+    _run(backend.search("q2"))  # the second failed search → breaker OPEN
+    assert breaker_for("ddg").state == "open"
+
+    _run(backend.search("q3"))  # OPEN breaker → ddg skipped without a call
+    assert ddg.calls == 4  # unchanged — no fifth network attempt
+
+
+def test_one_search_failing_every_attempt_leaves_the_breaker_closed() -> None:
+    """R15-RESEARCH-038: the retries of ONE search count one failure, so a single
+    bad search no longer benches DuckDuckGo for the 45 s cooldown."""
+    ddg = _Engine([SearchError("down"), SearchError("down")])
+    brave = _Engine([_response("brave", [_result("https://b.com/1")])])
+    _run(_backend({"ddg": ddg, "brave": brave, "mojeek": _Engine([])}).search("q"))
+    assert ddg.calls == 2
+    assert breaker_for("ddg").state == "closed"
+
+
+def test_open_breaker_engine_is_skipped_without_network_call() -> None:
+    breaker_for("ddg").record_failure()
+    breaker_for("ddg").record_failure()
+    ddg = _Engine([_response("ddg", [_result("https://a.com/1")])])
+    brave = _Engine([_response("brave", [_result("https://b.com/1")])])
+    backend = _backend({"ddg": ddg, "brave": brave, "mojeek": _Engine([])})
+    resp = _run(backend.search("q"))
+    assert ddg.calls == 0
+    assert resp.backend == "keyless:brave"
+
+
+def test_success_closes_breaker() -> None:
+    breaker_for("ddg").record_failure()  # one strike, still closed
+    ddg = _Engine([_response("ddg", [_result("https://a.com/1")])])
+    backend = _backend({"ddg": ddg, "brave": _Engine([]), "mojeek": _Engine([])})
+    _run(backend.search("q"))
+    assert breaker_for("ddg").state == "closed"
+
+
+# --- all-engines-down honesty ---------------------------------------------------
+
+
+def test_all_engines_rate_limited_raises_typed_rate_limit_with_detail() -> None:
+    throttle = SearchError("throttled", reason=SEARCH_REASON_RATE_LIMITED)
+    engines = {
+        eid: _Engine([throttle, throttle])  # 2 attempts each
+        for eid in ENGINE_CHAIN
+    }
+    backend = _backend(engines)
+    with pytest.raises(SearchError) as err:
+        _run(backend.search("q"))
+    assert err.value.reason == SEARCH_REASON_RATE_LIMITED
+    msg = str(err.value)
+    assert "DuckDuckGo" in msg and "Brave" in msg and "Mojeek" in msg
+    assert "rate-limiting" in msg
+
+
+def test_all_engines_unreachable_raises_unreachable() -> None:
+    down = SearchError("down")
+    engines = {eid: _Engine([down, down]) for eid in ENGINE_CHAIN}
+    backend = _backend(engines)
+    with pytest.raises(SearchError) as err:
+        _run(backend.search("q"))
+    assert err.value.reason == SEARCH_REASON_UNREACHABLE
+
+
+def test_benched_engines_named_with_cooldown_in_error() -> None:
+    for eid in ENGINE_CHAIN:
+        breaker_for(eid).record_failure()
+        breaker_for(eid).record_failure()
+    backend = _backend({eid: _Engine([]) for eid in ENGINE_CHAIN})
+    with pytest.raises(SearchError) as err:
+        _run(backend.search("q"))
+    assert "cooling down" in str(err.value)
+
+
+# --- dedup + quality filter -----------------------------------------------------
+
+
+def test_urls_deduped_within_a_run() -> None:
+    ddg = _Engine(
+        [
+            _response(
+                "ddg",
+                [
+                    _result("https://a.com/1"),
+                    _result("https://a.com/1", title="dupe"),
+                    _result("https://a.com/2"),
+                ],
+            )
+        ]
+    )
+    backend = _backend({"ddg": ddg, "brave": _Engine([]), "mojeek": _Engine([])})
+    resp = _run(backend.search("q"))
+    assert [r.url for r in resp.results] == ["https://a.com/1", "https://a.com/2"]
+
+
+def test_interstitial_rows_filtered_but_consent_snippets_kept() -> None:
+    """Only block-page markers act on SERP rows; consent/footer text is a
+    paragraph-level filter for extracted pages (R15-RESEARCH-023)."""
+    ddg = _Engine(
+        [
+            _response(
+                "ddg",
+                [
+                    _result("https://a.com/wall", snippet="Verify you are a human to continue"),
+                    _result("https://a.com/cookie", snippet="We use cookies — accept all cookies"),
+                    _result("https://a.com/real", snippet="NVDA datacenter revenue grew 94%"),
+                ],
+            )
+        ]
+    )
+    backend = _backend({"ddg": ddg, "brave": _Engine([]), "mojeek": _Engine([])})
+    resp = _run(backend.search("q"))
+    assert [r.url for r in resp.results] == ["https://a.com/cookie", "https://a.com/real"]
+
+
+def test_investor_relations_row_with_rights_footer_is_kept() -> None:
+    """R15-RESEARCH-023: an IR result whose snippet ends in the copyright footer
+    survives the SERP filter (it used to be dropped before relevance saw it)."""
+    row = _result(
+        "https://www.routemobile.com/investors",
+        title="Route Mobile Q2 FY25 results",
+        snippet="Consolidated revenue rose 9%. (c) 2025 Route Mobile Limited. All rights reserved.",
+    )
+    ddg = _Engine([_response("ddg", [row])])
+    resp = _run(_backend({"ddg": ddg, "brave": _Engine([]), "mojeek": _Engine([])}).search("q"))
+    assert [r.url for r in resp.results] == ["https://www.routemobile.com/investors"]
+
+
+def test_is_low_quality_markers() -> None:
+    assert is_low_quality("Please enable JavaScript to continue") is True
+    assert is_low_quality("Verify you are a human to proceed") is True
+    assert is_low_quality("NVIDIA reports record Q4 results") is False
+    assert is_low_quality("") is False  # thin, not boilerplate
+
+
+def test_all_results_blocked_rotates_onward() -> None:
+    ddg = _Engine(
+        [_response("ddg", [_result("https://a.com/x", snippet="Are you a robot? Solve this")])]
+    )
+    brave = _Engine([_response("brave", [_result("https://b.com/1")])])
+    backend = _backend({"ddg": ddg, "brave": brave, "mojeek": _Engine([])})
+    resp = _run(backend.search("q"))
+    assert resp.backend == "keyless:brave"
+
+
+def test_mojeek_200_challenge_page_strikes_its_breaker_through_the_real_adapter() -> None:
+    """R15-RESEARCH-022, through the real Mojeek adapter (not the scripted
+    fake): a 200 CAPTCHA body makes ``MojeekSearchBackend.search`` itself
+    raise, and the keyless rotation counts that as a failure against the
+    mojeek breaker rather than a healthy empty answer."""
+    from services.search.mojeek import MojeekSearchBackend
+    from services.search.transport import FetchResult
+
+    async def _challenge_fetch(url, *, params=None, **kw):  # noqa: ANN001, ANN202
+        return FetchResult(
+            status_code=200,
+            text="<html><body>Please complete this CAPTCHA to continue</body></html>",
+            url=url,
+        )
+
+    mojeek = MojeekSearchBackend(fetch=_challenge_fetch)
+    backend = _backend({"ddg": _Engine([]), "brave": _Engine([]), "mojeek": mojeek})
+
+    with pytest.raises(SearchError) as err:
+        _run(backend.search("q"))
+    assert err.value.reason == SEARCH_REASON_RATE_LIMITED
+    assert "Mojeek" in str(err.value)
+    assert breaker_for("mojeek")._failures == 1
+    assert breaker_for("mojeek").state == "closed"
+
+
+def test_a_200_challenge_page_counts_as_a_failure_not_an_answer() -> None:
+    """R15-RESEARCH-022: a block page is not a healthy empty answer — it strikes
+    the breaker once, and an all-blocked chain raises rate-limited."""
+    wall = _result(
+        "https://duckduckgo.com/",
+        title="Unusual traffic from your computer network",
+        snippet="Please verify you are a human",
+    )
+    engines = {eid: _Engine([_response(eid, [wall])]) for eid in ENGINE_CHAIN}
+    with pytest.raises(SearchError) as err:
+        _run(_backend(engines).search("q"))
+    assert err.value.reason == SEARCH_REASON_RATE_LIMITED
+    assert "blocked (challenge page)" in str(err.value)
+    assert breaker_for("ddg")._failures == 1
+    assert breaker_for("ddg").state == "closed"
+
+
+# --- tier status surface ---------------------------------------------------------
+
+
+def test_tier_status_reports_every_engine_closed_by_default() -> None:
+    status = tier_status()
+    assert status["tier"] == "t1_keyless"
+    assert status["available"] is True
+    assert [e["id"] for e in status["engines"]] == list(ENGINE_CHAIN)
+    for engine in status["engines"]:
+        assert engine["state"] == "closed"
+        assert engine["cooldown_remaining_s"] == 0.0
+        assert "available" in engine["detail"]
+
+
+def test_tier_status_names_a_cooling_engine_honestly() -> None:
+    breaker_for("ddg").record_failure()
+    breaker_for("ddg").record_failure()
+    status = tier_status()
+    ddg_row = next(e for e in status["engines"] if e["id"] == "ddg")
+    assert ddg_row["state"] == "open"
+    assert ddg_row["cooldown_remaining_s"] > 0
+    assert "DuckDuckGo cooling down (" in ddg_row["detail"]
+    # One benched engine is NOT a global outage — the tier stays available.
+    assert status["available"] is True
+
+
+def test_tier_status_unavailable_only_when_every_engine_open() -> None:
+    for eid in ENGINE_CHAIN:
+        breaker_for(eid).record_failure()
+        breaker_for(eid).record_failure()
+    assert tier_status()["available"] is False
+
+
+# --- R15-RESEARCH-008: per-engine deadline --------------------------------------
+
+
+class _HangingEngine:
+    """An engine whose request never answers (the live DDG ~20 s failure)."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def search(self, query, *, options=None):  # noqa: ANN001, ANN201
+        self.calls += 1
+        await asyncio.sleep(3600)
+
+
+def test_hanging_engine_gets_no_second_attempt_and_the_chain_rotates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services.search import keyless
+
+    monkeypatch.setattr(keyless, "ENGINE_DEADLINE_SECS", 0.1)
+    ddg = _HangingEngine()
+    brave = _Engine([_response("brave", [_result("https://b.com/1")])])
+    resp = _run(_backend({"ddg": ddg, "brave": brave, "mojeek": _Engine([])}).search("q"))
+    assert resp.backend == "keyless:brave"
+    assert ddg.calls == 1  # abandoned at the deadline, never re-attempted
+
+
+def test_three_engine_deadlines_fit_inside_the_web_search_tool_cap() -> None:
+    from services.agent_tools import catalog
+    from services.search.keyless import ENGINE_DEADLINE_SECS
+
+    cap = catalog.timeout_for("web_search")
+    assert cap is not None
+    assert len(ENGINE_CHAIN) * ENGINE_DEADLINE_SECS < cap
+
+
+# --- R15-DATA-111: canary-query parser-drift detection --------------------------
+
+
+def test_nonempty_page_zero_rows_counts_parser_drift_failure() -> None:
+    """A zero-row answer to the CANARY query (guaranteed real results) is
+    unambiguous markup drift, not 'found nothing' — unlike a normal search()
+    zero-row answer, it strikes the breaker and is noted 'parser drift'."""
+    from services.search.keyless import canary_check
+
+    engine = _Engine([_response("ddg", [])])
+    result = _run(canary_check("ddg", engine))
+    assert engine.calls == 1
+    assert result == {"engine": "ddg", "ok": False, "note": "parser drift"}
+    # Exposed via the SAME breaker tier_status() and the rotation both read.
+    assert breaker_for("ddg")._failures == 1
+    assert breaker_for("ddg").state == "closed"
+
+
+def test_canary_real_results_record_success() -> None:
+    from services.search.keyless import canary_check
+
+    breaker_for("ddg").record_failure()  # one strike, still closed
+    engine = _Engine([_response("ddg", [_result("https://apple.com")])])
+    result = _run(canary_check("ddg", engine))
+    assert result["ok"] is True
+    assert breaker_for("ddg").state == "closed"
+    assert breaker_for("ddg")._failures == 0  # success clears the prior strike
+
+
+def test_canary_engine_error_counts_a_failure_with_its_own_note() -> None:
+    from services.search.keyless import canary_check
+
+    engine = _Engine([SearchError("down")])
+    result = _run(canary_check("ddg", engine))
+    assert result == {"engine": "ddg", "ok": False, "note": "down"}
+    assert breaker_for("ddg")._failures == 1

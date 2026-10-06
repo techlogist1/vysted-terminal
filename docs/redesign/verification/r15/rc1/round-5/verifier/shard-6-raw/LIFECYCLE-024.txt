@@ -1,0 +1,20 @@
+# LIFECYCLE-024 backup probe (rc1-vshard-6, round 5)
+checkout: 633f844071d972b337f4c3526d86555c80df0568
+19-Sep build 7969d087 data_cache meta mentions: 0
+v0.8.0 data_cache meta mentions: 0
+marker introduced: ca25a5ca 2026-09-24 01:05:09 +0530 fix(cache): clear the persisted data cache when the sidecar build changes (R15-LEAD-003)
+data dir: seed copy, meta table dropped, every db user_version=0 (the pre-marker shape)
+cache rows before: 38
+$ cd <worktree>/sidecar && VYSTED_DATA_DIR=<dir> ./.venv/bin/python3 -c "import asyncio; from services import data_cache; print(asyncio.run(data_cache.ensure_build(\"0.9.0\")))"
+INFO services.data_cache: data_cache: build 0.9.0 (cache written by an unversioned build) - cleared
+ensure_build returned True
+backups dir: "<scratch>/rc1-round-5-data-rc1-vshard-6-lc024b/backups": No such file or directory (os error 2)
+meta: build|0.9.0
+cache rows after: 0
+control: same dir with meta.build='0.7.9-prior' would back up (data_cache.py:128-132 only calls _backup_data_dir when a build row exists)
+
+## control (meta.build = 0.7.9-prior, same seed)
+INFO services.data_cache: data_cache: data dir backed up to <scratch>/rc1-round-5-data-rc1-vshard-6-lc024c/backups/0.7.9-prior before the upgrade
+INFO services.data_cache: data_cache: build 0.9.0 (cache written by 0.7.9-prior) - cleared
+ensure_build returned True
+backups: 0.7.9-prior

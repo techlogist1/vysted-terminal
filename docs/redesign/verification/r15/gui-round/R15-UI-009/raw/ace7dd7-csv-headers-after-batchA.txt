@@ -1,0 +1,4 @@
+== vysted-portfolio-portfolio.csv
+Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note
+== vysted-watchlist.csv
+Symbol,Asset class,Price,Change %,Provider

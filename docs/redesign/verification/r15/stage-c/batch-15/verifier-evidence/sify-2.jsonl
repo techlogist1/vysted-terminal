@@ -1,0 +1,37 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_2d3c09ed3fcc4d2c8a75da3274e22db7", "name": "fundamentals", "input": {"symbol": "SIFY", "asset_class": "equity"}}
+{"kind": "tool_result", "tool_call_id": "call_2d3c09ed3fcc4d2c8a75da3274e22db7", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "651"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "As"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " A"}
+{"kind": "delta", "text": "DR"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " one"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": " A"}
+{"kind": "delta", "text": "DR"}
+{"kind": "delta", "text": " represents"}
+{"kind": "delta", "text": " Six"}
+{"kind": "delta", "text": " Equity"}
+{"kind": "delta", "text": " Shares"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5765, "output_tokens": 31, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

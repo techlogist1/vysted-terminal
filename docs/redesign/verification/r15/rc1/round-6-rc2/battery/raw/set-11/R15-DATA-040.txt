@@ -1,0 +1,4 @@
+POST /backtest/run symbols AAPL,MSFT,ZZZZNOTREAL -> HTTP 200; kinds=['run-start', 'run-complete']
+warnings=['No price history loaded for ZZZZNOTREAL in 2025-01-01..2026-09-01 (provider error or empty series); metrics cover 2 of 3 symbols.']
+request.symbols=['AAPL', 'MSFT', 'ZZZZNOTREAL']
+last keys=['kind', 'runId', 'result']

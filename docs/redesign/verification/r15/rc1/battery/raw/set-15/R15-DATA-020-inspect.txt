@@ -1,0 +1,2 @@
+NSE row keys: ['an_dt', 'attFileSize', 'attchmntFile', 'attchmntText', 'bflag', 'csvName', 'desc', 'difference']
+BSE row keys: ['NEWSID', 'SCRIP_CD', 'XML_NAME', 'NEWSSUB', 'DT_TM', 'NEWS_DT', 'CRITICALNEWS', 'ANNOUNCEMENT_TYPE']

@@ -1,0 +1,11 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  38.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_870881f9ea284c9dbba5185822c5198c", "name": "portfolio_add_position", "input": {"symbol": "INFY", "quantity": 7, "cost_basis": 1500}}
+[  38.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_870881f9ea284c9dbba5185822c5198c", "name": "portfolio_add_position", "ok": true, "error": null}
+[  43.4s] done: {"kind": "done", "usage": {"input_tokens": 2886, "output_tokens": 24, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The action has been dispatched to your portfolio. I recommend verifying its status in the terminal state to confirm its execution.
+
+=== ok · 43.4s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 24, 'done': 1} · usage in=2886 out=24 · est $0.00000 · llama3.1:8b

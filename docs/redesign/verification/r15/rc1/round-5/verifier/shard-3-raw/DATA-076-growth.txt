@@ -1,0 +1,8 @@
+# in-process growth_check.get_quarterly_yoy, worktree venv, HEAD 633f8440
+TCS.NS QuarterlyYoY(revenue_growth=0.13931932468433247, earnings_growth=0.04615987460815047, mrq='2026-06-30', prior='2025-06-30', source='nse') | yahoo revenueGrowth 0.139 earningsGrowth 0.046
+ICICIBANK.NS QuarterlyYoY(revenue_growth=0.06856345128588905, earnings_growth=0.12616126387750282, mrq='2026-06-30', prior='2025-06-30', source='nse') | yahoo revenueGrowth 0.114 earningsGrowth 0.138
+SBIN.NS QuarterlyYoY(revenue_growth=0.07826754627861413, earnings_growth=0.13651681444736677, mrq='2026-06-30', prior='2025-06-30', source='nse') | yahoo revenueGrowth 0.103 earningsGrowth 0.099
+DALBHARAT.NS QuarterlyYoY(revenue_growth=0.06985698569856985, earnings_growth=-0.5216284987277354, mrq='2026-06-30', prior='2025-06-30', source='nse') | yahoo revenueGrowth 0.07 earningsGrowth -0.521
+AAPL QuarterlyYoY(revenue_growth=0.1635650176528138, earnings_growth=0.2711871639498165, mrq='2026-06-30', prior='2025-06-30', source='yfinance') | yahoo revenueGrowth 0.164 earningsGrowth 0.287
+
+# screener.in TCS consolidated quarters: Sales Jun2026 72,275 vs Jun2025 63,437 -> +13.93%; Net profit 13,420 vs 12,819 -> +4.69%

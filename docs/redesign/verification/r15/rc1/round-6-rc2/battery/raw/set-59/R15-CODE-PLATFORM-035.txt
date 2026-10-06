@@ -1,0 +1,10 @@
+candidate ace7dd76; cmd: grep -c banned phrases in sidecar/services/backtest_engine.py routers/backtest.py services/backtest_strategies.py
+_default_bar_loader: sidecar/services/backtest_engine.py:0 sidecar/routers/backtest.py:0 sidecar/services/backtest_strategies.py:0 
+_encode_event_dict: sidecar/services/backtest_engine.py:0 sidecar/routers/backtest.py:0 sidecar/services/backtest_strategies.py:0 
+Teammate K: sidecar/services/backtest_strategies.py:0 sidecar/services/backtest_engine.py:0 sidecar/routers/backtest.py:0 
+kept for parity: sidecar/services/backtest_engine.py:0 sidecar/services/backtest_strategies.py:0 sidecar/routers/backtest.py:0 
+no longer reachable: sidecar/routers/backtest.py:0 sidecar/services/backtest_strategies.py:0 sidecar/services/backtest_engine.py:0 
+or _default: sidecar/services/backtest_engine.py:0 sidecar/services/backtest_strategies.py:0 sidecar/routers/backtest.py:0 
+445:    bar_loader: BarLoader,
+448:    """Run a backtest end-to-end. ``bar_loader`` supplies the historical bars."""
+460:    bars = await bar_loader(request.symbols, request.start_date, request.end_date)

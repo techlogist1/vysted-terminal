@@ -1,46 +1,22 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { Star, Users } from "lucide-react";
+
+import { DataTable, type DataColumn } from "@/components/DataTable";
+import { EmptyState } from "@/components/EmptyState";
+import { currencyAffix, formatPercent, formatPrice } from "@/lib/format";
 
 import type { IndividualAnalystForecast } from "../../../types/analyst";
 
-const RATING_LABEL: Record<string, string> = {
-  "strong-buy": "Strong Buy",
-  buy: "Buy",
-  hold: "Hold",
-  sell: "Sell",
-  "strong-sell": "Strong Sell",
-};
-
-const RATING_COLOR: Record<string, string> = {
-  "strong-buy": "text-positive",
-  buy: "text-positive",
-  hold: "text-charcoal-200",
-  sell: "text-negative",
-  "strong-sell": "text-negative",
-};
-
-function fmtDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
-function fmt(value: number | null, digits = 2): string {
-  if (value === null) return "—";
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
-}
+import { fmtDate, RATING_COLOR, RATING_LABEL } from "./format";
 
 function StarRow({ rating }: { rating: number | null }) {
   if (rating === null) {
-    return <span className="text-charcoal-500 font-mono text-[0.65rem]">—</span>;
+    return <span className="text-charcoal-500 text-caption">—</span>;
   }
   const stars = Math.round(rating);
   return (
-    <span aria-label={`${stars} stars`} className="inline-flex items-center text-amber-400">
+    <span aria-label={`${stars} stars`} className="text-charcoal-300 inline-flex items-center">
       {Array.from({ length: 5 }).map((_, idx) => (
         <Star
           key={idx}
@@ -53,6 +29,57 @@ function StarRow({ rating }: { rating: number | null }) {
   );
 }
 
+const COLUMNS: DataColumn<IndividualAnalystForecast>[] = [
+  { key: "firm", header: "Firm", truncate: true, width: "26%", format: (e) => e.firm },
+  {
+    key: "current_rating",
+    header: "Rating",
+    width: "16%",
+    cell: (e) => (
+      <span className={RATING_COLOR[e.current_rating] ?? "text-charcoal-100"}>
+        {RATING_LABEL[e.current_rating] ?? e.current_rating}
+      </span>
+    ),
+  },
+  {
+    key: "current_price_target",
+    header: "Target",
+    numeric: true,
+    width: "14%",
+    // R15-DATA-031: the Target column rendered a bare number with no
+    // currency, so a USD and an INR target read as the same magnitude.
+    format: (e) => {
+      if (e.current_price_target === null) return null;
+      const { prefix, suffix } = currencyAffix(e.currency);
+      return `${prefix}${formatPrice(e.current_price_target)}${suffix}`;
+    },
+  },
+  {
+    key: "rating_issued_date",
+    header: "Issued",
+    tier: "secondary",
+    width: "14%",
+    format: (e) => fmtDate(e.rating_issued_date),
+  },
+  {
+    key: "one_year_accuracy",
+    header: "1y accuracy",
+    numeric: true,
+    tier: "secondary",
+    width: "14%",
+    format: (e) =>
+      e.one_year_accuracy === null
+        ? null
+        : formatPercent(e.one_year_accuracy * 100).replace("+", ""),
+  },
+  {
+    key: "star_rating",
+    header: "Stars",
+    width: "16%",
+    cell: (e) => <StarRow rating={e.star_rating} />,
+  },
+];
+
 interface Props {
   analysts: IndividualAnalystForecast[];
 }
@@ -60,60 +87,21 @@ interface Props {
 export function IndividualAnalystTable({ analysts }: Props) {
   if (analysts.length === 0) {
     return (
-      <p className="text-charcoal-400 font-mono text-xs" data-testid="individual-analyst-empty">
-        No per-firm forecasts available.
-      </p>
+      <div data-testid="individual-analyst-empty">
+        <EmptyState
+          icon={Users}
+          headline="No per-firm forecasts"
+          hint="Individual analyst targets and ratings will appear here once a covering firm publishes."
+        />
+      </div>
     );
   }
   return (
-    <table className="w-full table-fixed border-collapse" data-testid="individual-analyst-table">
-      <colgroup>
-        <col style={{ width: "26%" }} />
-        <col style={{ width: "16%" }} />
-        <col style={{ width: "14%" }} />
-        <col style={{ width: "14%" }} />
-        <col style={{ width: "14%" }} />
-        <col style={{ width: "16%" }} />
-      </colgroup>
-      <thead>
-        <tr className="text-charcoal-400 border-charcoal-800 border-b text-left font-mono text-[0.6rem] uppercase">
-          <th className="px-3 py-1.5 font-medium">Firm</th>
-          <th className="px-3 py-1.5 font-medium">Rating</th>
-          <th className="px-3 py-1.5 text-right font-medium">Target</th>
-          <th className="px-3 py-1.5 font-medium">Issued</th>
-          <th className="px-3 py-1.5 text-right font-medium">1y accuracy</th>
-          <th className="px-3 py-1.5 font-medium">Stars</th>
-        </tr>
-      </thead>
-      <tbody>
-        {analysts.map((entry, index) => (
-          <tr
-            key={`${entry.symbol}-${entry.firm}-${index}`}
-            className="border-charcoal-800 border-b font-mono text-xs"
-          >
-            <td className="text-charcoal-100 truncate px-3 py-1.5" title={entry.firm}>
-              {entry.firm}
-            </td>
-            <td
-              className={`px-3 py-1.5 ${RATING_COLOR[entry.current_rating] ?? "text-charcoal-100"}`}
-            >
-              {RATING_LABEL[entry.current_rating] ?? entry.current_rating}
-            </td>
-            <td className="text-charcoal-100 px-3 py-1.5 text-right">
-              {fmt(entry.current_price_target)}
-            </td>
-            <td className="text-charcoal-200 px-3 py-1.5">{fmtDate(entry.rating_issued_date)}</td>
-            <td className="text-charcoal-200 px-3 py-1.5 text-right">
-              {entry.one_year_accuracy === null
-                ? "—"
-                : `${(entry.one_year_accuracy * 100).toFixed(1)}%`}
-            </td>
-            <td className="px-3 py-1.5">
-              <StarRow rating={entry.star_rating} />
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <DataTable
+      columns={COLUMNS}
+      rows={analysts}
+      rowKey={(entry, i) => `${entry.symbol}-${entry.firm}-${i}`}
+      data-testid="individual-analyst-table"
+    />
   );
 }

@@ -1,0 +1,30 @@
+CMD: grep -n 'R15-LIFECYCLE-028: pagehide with a pending autosave' src/lib/workspace.test.ts; sed -n 1175,1195p src/lib/workspace.ts; grep -rn 'beforeunload\|visibilitychange\|pagehide\|CloseRequested' src src-tauri/src | grep -v test | head
+1452:  it("R15-LIFECYCLE-028: pagehide with a pending autosave issues the POST immediately", async () => {
+      autosaveQueued = false;
+      void flushAutosave();
+    }
+  }
+}
+
+/**
+ * Wire every {@link PERSISTED_SLICES} trigger to {@link autosaveLayout} (the
+ * dockview layout's own trigger is wired by PanelHost), and flush a pending
+ * autosave when the page is hidden for good. Returns the teardown.
+ */
+export function wireAutosaveTriggers(): () => void {
+  const unsubscribes = PERSISTED_SLICES.map((slice) => slice.subscribe(autosaveLayout));
+  window.addEventListener("pagehide", flushPendingAutosave);
+  return () => {
+    unsubscribes.forEach((unsubscribe) => unsubscribe());
+    window.removeEventListener("pagehide", flushPendingAutosave);
+  };
+}
+
+/** Test helper: back to the pre-restore state (autosave gated, nothing pending). */
+src/components/SettingsPanel.tsx:823:    document.addEventListener("visibilitychange", onVisible);
+src/components/SettingsPanel.tsx:828:      document.removeEventListener("visibilitychange", onVisible);
+src/lib/workspace.ts:1188:  window.addEventListener("pagehide", flushPendingAutosave);
+src/lib/workspace.ts:1191:    window.removeEventListener("pagehide", flushPendingAutosave);
+src/modules/watchlist/WatchlistPanel.tsx:284:    document.addEventListener("visibilitychange", onVisibility);
+src/modules/watchlist/WatchlistPanel.tsx:288:      document.removeEventListener("visibilitychange", onVisibility);
+EXIT=0

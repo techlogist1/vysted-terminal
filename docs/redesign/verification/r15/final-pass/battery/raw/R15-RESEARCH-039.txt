@@ -1,0 +1,9 @@
+# R15-RESEARCH-039 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:50+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+rm -f $B/out/R15-RESEARCH-039.txt $B/out/R15-CODE-RESEARCH-012.txt; "$IP" $B/sc/b16_r.py > $B/out/b16_r.log 2>&1; echo "script exit $?"; cat $B/out/R15-RESEARCH-039.txt 2>/dev/null || tail -30 $B/out/b16_r.log
+--- output ---
+script exit 0
+# candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611, in-process python (cand sidecar/.venv), scratch b16_r.py
+403 then impersonated 429 -> SearchError reason='rate_limited' (rate_limited const='rate_limited') msg=keyless web search (DuckDuckGo) is rate-limiting right now — wait a moment and retry, or add an Exa key / local SearXNG for a dedicated route
+
+EXIT=0 (2.7s)

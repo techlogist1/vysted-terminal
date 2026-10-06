@@ -1,0 +1,4 @@
+candidate ace7dd76; command: grep -n -E 'R15-UI-034' src/modules/portfolio/PortfolioPanel.test.tsx; heavy lane runs the vitest
+394:  it("an edit ends when the portfolio switches; Save then writes nothing silently (R15-UI-034)", async () => {
+454:  it("Save on a holding removed mid-edit says nothing was saved (R15-UI-034)", async () => {
+exit=0

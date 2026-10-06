@@ -1,0 +1,12 @@
+Source confirmation: ChartPanel.tsx indicator-load effect (lines 644-684):
+  - clearIndicatorSeries() called both at the START of every load (line 650, before the fetch) and in
+    the catch block (line 673) - the indicator catch no longer leaves stale series on screen.
+  - setIndicatorResult({ key: `${symbol}|${timeframe}`, response }) (line 668) keys the result by the
+    committed symbol/timeframe pair.
+  - A separate render effect (lines 692-697) only calls renderIndicators() when
+    `indicatorResult.key === candlesKey` - candlesKey is set only after the candle-history load commits
+    (line 484 `setCandlesKey(\`${symbol}|${timeframe}\`)`), so an indicator response for a stale
+    symbol/timeframe pair is never drawn against the wrong candle set (Parabolic SAR case from the
+    register). This is the load-generation-key mechanism PLAN.md calls for.
+Verdict: holds (source-confirmed); ci_pinned for the "/indicators rejects after a symbol change: no
+overlay series remain" vitest case.

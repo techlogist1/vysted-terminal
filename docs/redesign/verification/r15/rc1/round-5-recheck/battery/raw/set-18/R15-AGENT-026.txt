@@ -1,0 +1,32 @@
+CMD: in-process OllamaProvider.stream_chat(model=llama3.1:8b, options={num_predict:8}) forcing a length finish on a real local generation, under the Ollama lock; plus source read of agent_runtime._finish_turn/is_length_finish
+finish_reason: length
+is_length_finish: True
+text_len: 36
+text: 'The history of finance is a rich and'
+
+--- agent_runtime._finish_turn source (candidate) ---
+
+async def _finish_turn(
+    done: LLMDoneEvent,
+    run: _RunSetup,
+    turn: _TurnState,
+    rnd: _Round,
+    autonomy: str | None,
+) -> AsyncIterator[LLMStreamEvent]:
+    """The end-of-turn notices, errors and terminator after a final ``done``."""
+    rnd.ended = True
+    if rnd.capped and not rnd.streamed_text:
+        yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
+        turn.turn_text = True
+    if is_length_finish(done.finish_reason):
+        yield LLMResearchStepEvent(
+            tool_call_id="",
+            tool="runtime",
+            step_kind=NOTICE_STEP_KIND,
+            detail=_LENGTH_NOTICE,
+            status="error",
+        )
+    for notice in await _end_of_turn_notices(
+        autonomy, turn.publish_brief_calls, turn.staged_actions
+    ):
+        yield notice

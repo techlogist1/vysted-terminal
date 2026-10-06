@@ -1,0 +1,1 @@
+{"symbol":"SMR","price":96.0,"change":0.0,"change_percent":0.0,"volume":2000.0,"open":96.0,"high":96.0,"low":96.0,"prev_close":95.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-24T00:00:00Z","provider":"bse","freshness":"eod"}

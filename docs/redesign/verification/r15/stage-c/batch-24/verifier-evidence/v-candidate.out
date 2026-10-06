@@ -1,0 +1,4 @@
+changed vs int: want=False int=True cand=False | He says don't use tools, but please fetch the TCS.NS price.
+changed vs int: want=False int=True cand=False | Don't use any tools, except price_data for the TCS.NS price.
+changed vs int: want=False int=True cand=False | No tools, other than the price lookup: what's SBIN.NS at?
+lost correct strips vs int: 0

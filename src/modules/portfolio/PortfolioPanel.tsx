@@ -1,113 +1,494 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Pencil, Plus, Trash2, X } from "lucide-react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Briefcase, Check, Download, FolderPlus, Pencil, Plus, Trash2, X } from "lucide-react";
 
+import { DataTable, type DataColumn } from "@/components/DataTable";
+import { StalenessBadge } from "@/components/DataBadges";
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
-import { formatCompactMoney, formatMoney, formatPercent, formatSignedMoney } from "@/lib/format";
-import { SidecarError } from "@/lib/sidecar-client";
-import { cn } from "@/lib/utils";
-import { usePanelContextBus } from "@/store/panel-context";
-import type { Position, PositionInput } from "../../../types/data";
+import { ConfirmButton } from "@/components/ConfirmButton";
+import { buildCsv, downloadCsv } from "@/lib/csv";
 import {
-  createPosition,
-  deletePosition,
-  fetchPositionQuotes,
-  fetchPositions,
-  updatePosition,
-} from "./api";
-import { buildPortfolioSummary, type PortfolioSummary } from "./metrics";
+  formatCompactMoney,
+  formatCompactNumber,
+  formatMoney,
+  formatPercent,
+  formatPrice,
+  formatSignedMoney,
+  formatUnit,
+  instrumentCurrency,
+} from "@/lib/format";
+import { useMarketSession } from "@/lib/market-session";
+import { useContainerWidth } from "@/lib/use-container-width";
+import { usePanelContextBus } from "@/store/panel-context";
+import { assetClassOf } from "@/store/symbols";
+import {
+  type AssetClass,
+  type Holding,
+  type HoldingInput,
+  IMPORT_TARGET_PORTFOLIO_ID,
+  listingCurrency,
+  usePortfoliosStore,
+  validateHolding,
+} from "@/store/portfolios";
+import type { Quote } from "../../../types/data";
+import { benchmarkSymbolForCurrency, fetchDailyCloses, fetchPositionQuotes } from "./api";
+import {
+  buildPortfolioSummary,
+  computeCurrencyRisk,
+  MIN_RISK_HISTORY_DAYS,
+  type CurrencyRiskMetrics,
+  type HoldingPriceHistory,
+  type PositionRow,
+} from "./metrics";
+
+/** A holdings-table row — the computed position metrics joined to its source
+ *  {@link Holding} (for edit/delete) by order. */
+interface PortfolioTableRow extends PositionRow {
+  holding: Holding | undefined;
+}
+
+/**
+ * Money in a lot's own currency. The shared formatters take ISO-4217 codes only
+ * and render anything else in the region currency, so a crypto pair's quote
+ * currency (USDT) is written after a bare amount instead — never as `₹`
+ * (R15-DATA-081).
+ */
+function lotMoney(
+  value: number,
+  currency: string | null | undefined,
+  style: "full" | "compact" | "signed" = "full",
+): string {
+  if (currency && instrumentCurrency(currency) === null && Number.isFinite(value)) {
+    const amount = style === "full" ? formatPrice(value) : formatCompactNumber(value);
+    return `${style === "signed" && value > 0 ? "+" : ""}${amount} ${currency.toUpperCase()}`;
+  }
+  if (style === "compact") return formatCompactMoney(value, currency);
+  if (style === "signed") return formatSignedMoney(value, true, currency);
+  return formatMoney(value, currency);
+}
+
+/** The currency a lot is priced in before any quote resolves: a crypto pair's
+ *  quote side (`BTC/USDT` → `USDT`); none for an equity (the region default). */
+function pairCurrency(symbol: string): string | undefined {
+  return assetClassOf(symbol) === "crypto" ? symbol.split("/")[1] : undefined;
+}
+
+/** Format a holding quantity — a precise count that still reads with a unit at
+ *  scale (so a 12,000,000-share lot isn't a bare integer), full precision below. */
+function fmtQuantity(quantity: number): string {
+  if (Math.abs(quantity) >= 1000) return formatUnit(quantity);
+  return quantity.toLocaleString("en-US", { maximumFractionDigits: 8 });
+}
+
+/** A legacy ledger value exactly as recorded — no compaction, so 1e15 and 1e-8 read as typed. */
+function fmtLedgerValue(value: number | null): string {
+  return value === null ? "—" : value.toLocaleString("en-US", { maximumFractionDigits: 12 });
+}
+
+/** The P&L signal tone — green/red by direction, quiet neutral at zero. */
+function pnlTone(pnl: number): string {
+  return pnl > 0 ? "text-positive" : pnl < 0 ? "text-negative" : "text-charcoal-200";
+}
+
+/**
+ * R15-UI-090: the Symbol cell — plain symbol text plus a staleness cue when a
+ * live quote resolved, so an `eod`/`stale` holding value never reads as if it
+ * just ticked (same FR-118 guard as the Watchlist's `SymbolCell`; mirrors its
+ * `StalenessBadge` + `useMarketSession` usage — no wire change, the quote
+ * already carries `freshness`/`market_state`).
+ */
+function PortfolioSymbolCell({ row }: { row: PortfolioTableRow }) {
+  const { position, quote } = row;
+  const session = useMarketSession(quote?.market_state ?? null, quote?.freshness ?? null);
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <span className="truncate">{position.symbol}</span>
+      {quote?.freshness != null && (
+        <span className="flex items-center gap-1">
+          <StalenessBadge freshness={quote.freshness} />
+        </span>
+      )}
+      {session.label !== null && session.tone === "muted" && (
+        <span className="text-charcoal-500 text-micro truncate" title={`Session: ${session.label}`}>
+          {session.label}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * R8 overflow law §3.2 — the holdings table's explicit column tracks (px, sized
+ * to the widest sane content at the caption step; cell px-3 padding supplies
+ * the ≥8px gutter) plus its width-keyed drop ladder. When the measured panel is
+ * narrower than the tracks' minimum, columns drop WHOLE by priority — weight,
+ * then cost, then price, then quantity — so numeric cells can never collide.
+ * Symbol, market value, P&L, and the action column always survive.
+ */
+const HOLDING_TRACKS = {
+  qty: "4.5rem",
+  cost: "5.5rem",
+  price: "5.5rem",
+  marketValue: "6rem",
+  pnl: "10rem",
+  weight: "3.5rem",
+  actions: "4.75rem",
+} as const;
+const DROP_WEIGHT_BELOW = 680;
+const DROP_COST_BELOW = 620;
+const DROP_PRICE_BELOW = 540;
+const DROP_QTY_BELOW = 460;
+/** Live-quote refresh cadence — the Watchlist's poll interval (5 s). */
+const QUOTE_REFRESH_MS = 5_000;
 
 interface FormState {
   symbol: string;
   quantity: string;
   costBasis: string;
-  assetClass: "equity" | "crypto";
+  assetClass: AssetClass;
   note: string;
 }
 
-function toFormState(position?: Position): FormState {
-  return {
-    symbol: position?.symbol ?? "",
-    quantity: position ? String(position.quantity) : "",
-    costBasis: position ? String(position.cost_basis) : "",
-    assetClass: position?.asset_class === "crypto" ? "crypto" : "equity",
-    note: position?.note ?? "",
-  };
+function emptyForm(): FormState {
+  return { symbol: "", quantity: "", costBasis: "", assetClass: "equity", note: "" };
 }
 
 /**
- * Portfolio panel — manual positions backed by the sidecar SQLite store, with
- * P&L, weight, and basic risk metrics computed client-side by joining each
- * position to a live quote. Add / edit / delete are all manual entry (broker
- * connection is Phase 5).
+ * Portfolio panel — manually tracked holdings across one or more NAMED
+ * portfolios the user can create, rename, switch between, and delete. Holdings
+ * are hand-entered (symbol / quantity / cost basis / asset class) and persist in
+ * the workspace blob; there is no broker sync. P&L, weight, and concentration
+ * are computed client-side by joining each holding to a live quote.
  */
 export function PortfolioPanel() {
-  // `summary` is `null` until the first load resolves — that drives the loading
-  // view without a synchronous setState inside the effect.
-  const [summary, setSummary] = useState<PortfolioSummary | null>(null);
+  const portfolios = usePortfoliosStore((s) => s.portfolios);
+  const activeId = usePortfoliosStore((s) => s.activeId);
+  const createPortfolio = usePortfoliosStore((s) => s.createPortfolio);
+  const renamePortfolio = usePortfoliosStore((s) => s.renamePortfolio);
+  const deletePortfolio = usePortfoliosStore((s) => s.deletePortfolio);
+  const setActive = usePortfoliosStore((s) => s.setActive);
+  const addHolding = usePortfoliosStore((s) => s.addHolding);
+  const updateHolding = usePortfoliosStore((s) => s.updateHolding);
+  const removeHolding = usePortfoliosStore((s) => s.removeHolding);
+
+  const active = useMemo(
+    () => portfolios.find((p) => p.id === activeId) ?? portfolios[0],
+    [portfolios, activeId],
+  );
+  const holdings = useMemo(() => active?.holdings ?? [], [active]);
+  const importSkipped = usePortfoliosStore((s) => s.importSkipped);
+  const importNoticeDismissed = usePortfoliosStore((s) => s.importNoticeDismissed);
+  const dismissImportNotice = usePortfoliosStore((s) => s.dismissImportNotice);
+  // The legacy import's skipped rows belong to the portfolio it seeded; its
+  // figures carry a caveat for as long as they exist, dismissed or not.
+  const skippedCount = importSkipped.length;
+  const activeExcludes = active.id === IMPORT_TARGET_PORTFOLIO_ID ? skippedCount : 0;
+
+  const [form, setForm] = useState<FormState>(emptyForm());
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState<FormState>(toFormState());
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [busy, setBusy] = useState(false);
+  // An edit targets a holding of the portfolio it started in: switching (or
+  // deleting) the active portfolio ends it and clears the form, so Save can
+  // never aim one portfolio's holding id at another (R15-UI-034).
+  const [formPortfolioId, setFormPortfolioId] = useState(active.id);
+  if (formPortfolioId !== active.id) {
+    setFormPortfolioId(active.id);
+    setForm(emptyForm());
+    setEditingId(null);
+  }
+  const [quotes, setQuotes] = useState<Map<string, Quote>>(new Map());
+  // Distinct from the form-validation `error`: a failed live-quote fetch must not
+  // silently leave every Price/Mkt-val/P&L cell at "—" forever (A6 — failure is
+  // designed for). `quotesNonce` lets the banner's Retry re-run the fetch.
+  const [quotesError, setQuotesError] = useState(false);
+  const [quotesNonce, setQuotesNonce] = useState(0);
+  // Guards the interval tick below against piling a new fan-out on top of one
+  // still in flight (mirrors WatchlistPanel's inFlightRef, WatchlistPanel.tsx:182-251).
+  const quoteFetchInFlightRef = useRef(false);
+  // After a failed refresh the interval backs off (10 s, 20 s, ... 60 s) instead
+  // of re-sending the whole portfolio every 5 s (R15-FINAL-006).
+  const quoteBackoffRef = useRef({ failures: 0, until: 0 });
+  // Symbols a completed batch had no quote for (R15-FINAL-017): shown as "no
+  // quote" on their row and left out of the 5 s ticks, re-asked once a minute
+  // or when the holding set changes.
+  const [missingQuotes, setMissingQuotes] = useState<ReadonlySet<string>>(new Set());
+  const missingRef = useRef({ key: "", symbols: new Set<string>(), retryAt: 0 });
+  // R15-UI-009: the CSV export now writes a real file via the Rust
+  // atomic-write path — surface the saved path (or a write failure) since
+  // there is no browser download UI to confirm it landed.
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
+  const symbolInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Pending auto-retry timer for the cold-boot bind race — cleared on unmount.
-  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Holds the current `load` so the retry timer can re-invoke it without `load`
-  // referencing itself inside its own useCallback (rules-of-hooks immutability).
-  const loadRef = useRef<(attempt?: number) => void>(() => {});
+  // Portfolio header inline-edit state (create / rename).
+  const [pfAction, setPfAction] = useState<null | "create" | "rename">(null);
+  const [pfName, setPfName] = useState("");
+  const pfInputRef = useRef<HTMLInputElement | null>(null);
 
-  const load = useCallback(async (attempt = 0) => {
-    try {
-      const stored = await fetchPositions();
-      const quotes = await fetchPositionQuotes(stored);
-      setSummary(buildPortfolioSummary(stored, quotes));
-      setError(null);
-    } catch (err) {
-      // Auto-retry with backoff (1s, 2s, 4s, then capped at 5s for ~12 attempts
-      // ≈ 50s) so a cold-boot sidecar bind (PyInstaller `_MEI` re-exec, ~30s)
-      // self-heals instead of latching a permanent error block.
-      if (attempt < 12) {
-        retryTimer.current = setTimeout(
-          () => loadRef.current(attempt + 1),
-          Math.min(1000 * 2 ** attempt, 5000),
-        );
-        return;
-      }
-      const message = err instanceof SidecarError ? err.message : "Failed to load portfolio";
-      setSummary(null);
-      setError(message);
+  // Live quotes — refetched whenever the holding SET changes (symbols/classes).
+  // Holdings render synchronously from the store; only the price / market-value
+  // / P&L columns wait on the quote (they show "—" until it resolves).
+  const quotesKey = holdings.map((h) => `${h.symbol}:${h.assetClass}:${h.region}`).join(",");
+  const noteQuoteOutcome = (failed: boolean) => {
+    const backoff = quoteBackoffRef.current;
+    backoff.failures = failed ? backoff.failures + 1 : 0;
+    backoff.until = failed
+      ? Date.now() + Math.min(QUOTE_REFRESH_MS * 2 ** backoff.failures, 60_000)
+      : 0;
+  };
+  useEffect(() => {
+    let cancelled = false;
+    quoteFetchInFlightRef.current = true;
+    const known = missingRef.current;
+    if (known.key !== quotesKey) {
+      missingRef.current = { key: quotesKey, symbols: new Set(), retryAt: 0 };
     }
-  }, []);
-  // Keep the retry-callback ref pointed at the latest `load` (assigned in an
-  // effect, never during render).
-  useEffect(() => {
-    loadRef.current = load;
-  }, [load]);
-
-  useEffect(() => {
-    // `load` only sets state after an awaited fetch resolves (never
-    // synchronously), so the cascading-render concern does not apply.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void load();
+    const skipMissing = Date.now() < missingRef.current.retryAt;
+    const skipped = skipMissing ? missingRef.current.symbols : new Set<string>();
+    // fetchPositionQuotes([]) resolves to an empty map, so an emptied portfolio
+    // clears its quotes via the async path — no synchronous setState in-effect.
+    void fetchPositionQuotes(
+      holdings
+        .filter((h) => !skipped.has(h.symbol.toUpperCase()))
+        .map((h) => ({ symbol: h.symbol, assetClass: h.assetClass, region: h.region })),
+    )
+      .then(({ quotes: resolved, failed, missing }) => {
+        if (!cancelled) {
+          if (!skipMissing) {
+            missingRef.current = {
+              key: quotesKey,
+              symbols: new Set(missing),
+              retryAt: Date.now() + 60_000,
+            };
+            setMissingQuotes(new Set(missing));
+          }
+          setQuotes(resolved);
+          // R15-UI-004: `failed` counts real fetch failures (never a swallowed
+          // null), so the banner + Retry now actually reach the DOM.
+          setQuotesError(failed > 0);
+          noteQuoteOutcome(failed > 0);
+        }
+      })
+      .catch(() => {
+        // A rejected quote fetch must not vanish — badge it so the user knows the
+        // values are stale/absent rather than reading "—" as "no data".
+        if (!cancelled) {
+          setQuotesError(true);
+          noteQuoteOutcome(true);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          quoteFetchInFlightRef.current = false;
+        }
+      });
     return () => {
-      if (retryTimer.current) {
-        clearTimeout(retryTimer.current);
-        retryTimer.current = null;
-      }
+      cancelled = true;
     };
-  }, [load]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quotesKey, quotesNonce]);
 
-  // --- panel-context bus: publish snapshot on positions change ------------
+  // Prices refresh on the Watchlist's cadence (R15-UI-036) — a portfolio left
+  // open no longer shows its first-resolved values forever.
+  const hasHoldings = holdings.length > 0;
+  useEffect(() => {
+    if (!hasHoldings) {
+      return;
+    }
+    const timer = setInterval(() => {
+      // Skip this tick while the previous fan-out hasn't settled, so a slow
+      // symbol can't pile up overlapping full-portfolio fetches.
+      if (quoteFetchInFlightRef.current || Date.now() < quoteBackoffRef.current.until) return;
+      setQuotesNonce((n) => n + 1);
+    }, QUOTE_REFRESH_MS);
+    return () => clearInterval(timer);
+  }, [hasHoldings]);
+
+  const summary = useMemo(() => buildPortfolioSummary(holdings, quotes), [holdings, quotes]);
+  const mixedCurrencies = summary.mixedCurrencies;
+  // The totals are only as fresh as their OLDEST quote.
+  const quotesAsOf = summary.rows.reduce<string | null>((oldest, { quote }) => {
+    const at = quote?.timestamp;
+    return at && (oldest === null || Date.parse(at) < Date.parse(oldest)) ? at : oldest;
+  }, null);
+
+  // --- risk analytics (R15-CODE-PLATFORM-023) -------------------------------
+  // Sharpe/Sortino/Calmar/VaR/beta/correlation per currency bucket, from 1y of
+  // daily closes (D57: never cross-currency, same as the totals above).
+  interface RiskEntry {
+    status: "loading" | "ready" | "insufficient";
+    metrics: CurrencyRiskMetrics | null;
+  }
+  const riskBuckets = useMemo(() => {
+    const buckets = new Map<
+      string,
+      { symbol: string; assetClass: AssetClass; marketValue: number }[]
+    >();
+    for (const row of summary.rows) {
+      if (row.quote === null || row.marketValue === null) continue;
+      const currency = (row.quote.currency ?? "").trim().toUpperCase();
+      const list = buckets.get(currency) ?? [];
+      list.push({
+        symbol: row.position.symbol,
+        assetClass: row.position.assetClass,
+        marketValue: row.marketValue,
+      });
+      buckets.set(currency, list);
+    }
+    return buckets;
+  }, [summary.rows]);
+  // Keyed on the RESOLVED symbol/currency set, never on the market values
+  // themselves — a quote-refresh tick must not re-fetch a year of history.
+  const riskBucketsKey = [...riskBuckets.entries()]
+    .map(
+      ([currency, list]) =>
+        `${currency}:${list
+          .map((h) => `${h.symbol}|${h.assetClass}`)
+          .sort()
+          .join(",")}`,
+    )
+    .sort()
+    .join(";");
+  const [riskByCurrency, setRiskByCurrency] = useState<Map<string, RiskEntry>>(new Map());
+  useEffect(() => {
+    if (riskBuckets.size === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRiskByCurrency(new Map());
+      return;
+    }
+    let cancelled = false;
+    setRiskByCurrency((prev) => {
+      const next = new Map(prev);
+      for (const currency of riskBuckets.keys()) {
+        next.set(currency, { status: "loading", metrics: null });
+      }
+      return next;
+    });
+    void Promise.all(
+      [...riskBuckets.entries()].map(async ([currency, bucketHoldings]) => {
+        const closes = await Promise.all(
+          bucketHoldings.map((h) => fetchDailyCloses(h.symbol, h.assetClass)),
+        );
+        // Renormalize weight over only the holdings whose history resolved —
+        // a holding with no fetchable history is excluded, never fabricated.
+        let survivorTotal = 0;
+        bucketHoldings.forEach((h, i) => {
+          if (closes[i] !== null) survivorTotal += h.marketValue;
+        });
+        const withHistory: HoldingPriceHistory[] = [];
+        bucketHoldings.forEach((h, i) => {
+          const closesByDate = closes[i];
+          if (closesByDate === null || survivorTotal === 0) return;
+          withHistory.push({
+            symbol: h.symbol,
+            closesByDate,
+            weight: h.marketValue / survivorTotal,
+          });
+        });
+        const benchmarkSymbol = benchmarkSymbolForCurrency(currency);
+        const benchmarkCloses = benchmarkSymbol
+          ? await fetchDailyCloses(benchmarkSymbol, "equity")
+          : null;
+        return [currency, computeCurrencyRisk(currency, withHistory, benchmarkCloses)] as const;
+      }),
+    ).then((results) => {
+      if (cancelled) return;
+      setRiskByCurrency((prev) => {
+        const next = new Map(prev);
+        for (const [currency, metrics] of results) {
+          next.set(currency, { status: metrics ? "ready" : "insufficient", metrics });
+        }
+        return next;
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [riskBucketsKey]);
+
+  // Clear a save/validation error as soon as the user edits any field.
+  const formKey = `${form.symbol}|${form.quantity}|${form.costBasis}|${form.assetClass}|${form.note}`;
+  useEffect(() => {
+    if (error !== null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setError(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formKey]);
+
+  // Focus the inline portfolio name input when create/rename opens.
+  useEffect(() => {
+    if (pfAction !== null) {
+      pfInputRef.current?.focus();
+      pfInputRef.current?.select();
+    }
+  }, [pfAction]);
+
+  // --- panel-context bus: publish the ACTIVE portfolio's snapshot ----------
+  // Multi-portfolio truth (FR-110/111, SC-024): publish the ACTIVE portfolio's
+  // full holdings — symbol/quantity/costBasis/assetClass, plus the computed
+  // marketValue/pnl per row where a live quote resolved (null otherwise, so the
+  // payload stays provenance-honest) — alongside the active id/name. The chat
+  // context-provider extracts these so the agent's get_portfolio reads the real
+  // store with zero divergence.
   const publishPanelContext = usePanelContextBus((s) => s.publish);
   const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
-
-  // Depend on primitive snapshot fields, not the `summary` object itself —
-  // a re-build of summary that yields the same count/value should NOT trigger
-  // a publish (Phase-2 chart-sync infinite-loop avoidance).
-  const positionCount = summary?.rows.length ?? 0;
-  const totalValue = summary?.totalMarketValue ?? 0;
-
+  const positionCount = summary.rows.length;
+  // D57: a cross-currency sum is a fabricated number — when the resolved
+  // holdings span more than one quote currency the published total is null
+  // with a stated reason, never a made-up aggregate (the D50 `totalValue: 0`
+  // class). Per-holding marketValue/pnl stay honest (each is in its own
+  // listing currency).
+  // R15-UI-005: an empty `byCurrency` means NOTHING resolved — the sum then
+  // starts and stays at 0, which is a fabricated value, not a real zero
+  // total. Publish null with a reason instead, same as the mixed-currency case.
+  // An empty portfolio has nothing unresolved: its 0 is a real total.
+  const hasLiveQuotes = summary.byCurrency.length > 0;
+  const totalValue =
+    summary.mixedCurrencies || (!hasLiveQuotes && positionCount > 0)
+      ? null
+      : summary.totalMarketValue;
+  const unresolvedSymbols = summary.rows
+    .filter((row) => row.quote === null)
+    .map((row) => row.position.symbol);
+  const totalValueNote = summary.mixedCurrencies
+    ? `holdings span multiple currencies (${summary.byCurrency
+        .map((b) => b.currency || "unknown")
+        .join(", ")}) — no cross-currency total; read per-holding values`
+    : !hasLiveQuotes
+      ? positionCount > 0
+        ? "no live quotes resolved"
+        : null
+      : unresolvedSymbols.length > 0
+        ? `excludes ${unresolvedSymbols.join(", ")} (no live quote)`
+        : null;
+  const activePortfolioId = active?.id ?? null;
+  const activePortfolioName = active?.name ?? null;
+  // Serialise the published holdings as a stable string so the publish effect
+  // only fires when the holdings (or their resolved P&L) actually change.
+  const publishedHoldings = useMemo(
+    () =>
+      // `id` is the real holding id — the agent's portfolio update/delete
+      // names it as `position_id`; without it an edit of one of several
+      // same-symbol lots could not say which (R15-AGENT-042).
+      summary.rows.map(({ position, quote, marketValue, pnl }) => ({
+        id: position.id,
+        symbol: position.symbol,
+        quantity: position.quantity,
+        costBasis: position.costBasis,
+        assetClass: position.assetClass,
+        // R15-AGENT-091: the tracked position's currency, so the agent never
+        // guesses one — a resolved quote's currency, else the listing's own,
+        // else null (unknown), never the session region's (R15-FINAL-007).
+        currency: quote?.currency ?? listingCurrency(position.symbol, position.assetClass),
+        marketValue: marketValue ?? null,
+        pnl: pnl ?? null,
+      })),
+    [summary.rows],
+  );
+  const holdingsKey = JSON.stringify(publishedHoldings);
   useEffect(() => {
     publishPanelContext({
       source: "portfolio",
@@ -115,11 +496,25 @@ export function PortfolioPanel() {
       payload: {
         positionCount,
         totalValue,
+        totalValueNote,
+        activePortfolioId,
+        activePortfolioName,
+        holdings: publishedHoldings,
       },
       emittedAt: Date.now(),
     });
-  }, [publishPanelContext, positionCount, totalValue]);
-
+    // `publishedHoldings` is captured fresh whenever `holdingsKey` changes; the
+    // key is the exhaustive dep so we don't re-publish on referential churn.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    publishPanelContext,
+    positionCount,
+    totalValue,
+    totalValueNote,
+    activePortfolioId,
+    activePortfolioName,
+    holdingsKey,
+  ]);
   useEffect(() => {
     return () => {
       unregisterPanelContext("portfolio");
@@ -127,112 +522,436 @@ export function PortfolioPanel() {
   }, [unregisterPanelContext]);
 
   const resetForm = () => {
-    setForm(toFormState());
+    setForm(emptyForm());
     setEditingId(null);
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    const quantity = Number(form.quantity);
-    const costBasis = Number(form.costBasis);
-    if (form.symbol.trim() === "" || !Number.isFinite(quantity) || !Number.isFinite(costBasis)) {
-      setError("Symbol, quantity, and cost basis are required");
+    // Raw (still-string) form values — validateHolding tells a blank cost
+    // (Number("") === 0) apart from an actually-entered 0.
+    const result = validateHolding({
+      symbol: form.symbol,
+      quantity: form.quantity,
+      costBasis: form.costBasis,
+    });
+    if (!result.valid) {
+      setError(result.message ?? "Invalid holding");
       return;
     }
-    if (quantity <= 0) {
-      setError("Quantity must be greater than 0");
-      return;
-    }
-    if (costBasis < 0) {
-      setError("Cost basis cannot be negative");
-      return;
-    }
-    const payload: PositionInput = {
+    const input: HoldingInput = {
       symbol: form.symbol.trim().toUpperCase(),
-      quantity,
-      cost_basis: costBasis,
-      asset_class: form.assetClass,
-      opened_at: null,
-      note: form.note.trim() === "" ? null : form.note.trim(),
+      quantity: Number(form.quantity),
+      costBasis: Number(form.costBasis),
+      assetClass: form.assetClass,
+      note: form.note.trim() === "" ? undefined : form.note.trim(),
     };
-    setBusy(true);
-    try {
-      if (editingId !== null) {
-        await updatePosition(editingId, payload);
-      } else {
-        await createPosition(payload);
+    if (editingId !== null) {
+      if (!updateHolding(active.id, editingId, input)) {
+        // The holding left this portfolio mid-edit (e.g. an agent removed it):
+        // say so and keep the form, never reset as if it saved.
+        setError("That holding is no longer in this portfolio — nothing was saved");
+        return;
       }
-      resetForm();
-      await load();
-    } catch (err) {
-      const message = err instanceof SidecarError ? err.message : "Failed to save position";
-      setError(message);
-    } finally {
-      setBusy(false);
+    } else {
+      addHolding(active.id, input);
     }
+    setError(null);
+    resetForm();
   };
 
-  const handleEdit = (position: Position) => {
-    setForm(toFormState(position));
-    setEditingId(position.id);
-  };
+  const handleEdit = useCallback((holding: Holding) => {
+    setForm({
+      symbol: holding.symbol,
+      quantity: String(holding.quantity),
+      costBasis: String(holding.costBasis),
+      assetClass: holding.assetClass,
+      note: holding.note ?? "",
+    });
+    setEditingId(holding.id);
+  }, []);
 
-  const handleDelete = async (id: number | null) => {
-    if (id === null) {
+  // A real dependency of the memoised columns below (R15-UI-035): the row's
+  // Delete must remove from the portfolio active NOW, not the one at mount.
+  const handleDelete = useCallback(
+    (id: string) => {
+      if (editingId === id) {
+        setForm(emptyForm());
+        setEditingId(null);
+      }
+      removeHolding(active.id, id);
+    },
+    [editingId, removeHolding, active.id],
+  );
+
+  // Each metrics row's `position` IS the source Holding (real id, no index
+  // join) — carry it through as `holding` for the action column's edit/delete.
+  const tableRows = useMemo<PortfolioTableRow[]>(
+    () => summary.rows.map((row) => ({ ...row, holding: row.position })),
+    [summary.rows],
+  );
+
+  // Measured table-area width drives the §3.2 drop ladder (null = first paint
+  // renders everything; the observer corrects on the next frame).
+  const { ref: tableAreaRef, width: tableWidth } = useContainerWidth<HTMLDivElement>();
+  const showWeight = tableWidth === null || tableWidth >= DROP_WEIGHT_BELOW;
+  const showCost = tableWidth === null || tableWidth >= DROP_COST_BELOW;
+  const showPrice = tableWidth === null || tableWidth >= DROP_PRICE_BELOW;
+  const showQty = tableWidth === null || tableWidth >= DROP_QTY_BELOW;
+
+  // The holdings table on the shared DataTable: one flexible symbol track +
+  // fixed px tracks (HOLDING_TRACKS) so numeric columns can never collide. The
+  // P&L column is the one signed/coloured value (green/red, never the accent);
+  // the trailing column is a DataTable action column (edit/delete, outside
+  // truncation). All money runs through format.ts.
+  const holdingColumns = useMemo<DataColumn<PortfolioTableRow>[]>(() => {
+    const cols: DataColumn<PortfolioTableRow>[] = [
+      {
+        key: "symbol",
+        header: "Symbol",
+        cell: (r) => <PortfolioSymbolCell row={r} />,
+      },
+    ];
+    if (showQty) {
+      cols.push({
+        key: "quantity",
+        header: "Qty",
+        numeric: true,
+        tier: "secondary",
+        width: HOLDING_TRACKS.qty,
+        format: (r) => fmtQuantity(r.position.quantity),
+      });
+    }
+    if (showCost) {
+      cols.push({
+        key: "cost",
+        header: "Avg cost",
+        numeric: true,
+        tier: "secondary",
+        width: HOLDING_TRACKS.cost,
+        // D57: cost basis is entered in the instrument's LISTING currency, so
+        // it renders with the quote's currency when one resolved; the region
+        // default applies only while no quote has identified the instrument.
+        format: (r) =>
+          lotMoney(r.position.costBasis, r.quote?.currency ?? pairCurrency(r.position.symbol)),
+      });
+    }
+    if (showPrice) {
+      cols.push({
+        key: "price",
+        header: "Price",
+        numeric: true,
+        tier: "secondary",
+        width: HOLDING_TRACKS.price,
+        format: (r) =>
+          r.quote !== null
+            ? lotMoney(r.quote.price, r.quote.currency)
+            : missingQuotes.has(r.position.symbol.toUpperCase())
+              ? "no quote"
+              : null,
+      });
+    }
+    cols.push(
+      {
+        key: "marketValue",
+        header: "Mkt val",
+        numeric: true,
+        width: HOLDING_TRACKS.marketValue,
+        format: (r) =>
+          r.marketValue !== null ? lotMoney(r.marketValue, r.quote?.currency, "compact") : null,
+      },
+      {
+        key: "pnl",
+        header: "P&L",
+        numeric: true,
+        width: HOLDING_TRACKS.pnl,
+        cell: (r) =>
+          r.pnl === null ? null : (
+            <span className={pnlTone(r.pnl)}>
+              {`${lotMoney(r.pnl, r.quote?.currency, "signed")} (${r.pnlPercent !== null ? formatPercent(r.pnlPercent) : "—"})`}
+            </span>
+          ),
+      },
+    );
+    // D57: weight is a share of the SUMMED market value — a corrupted ratio
+    // when holdings span currencies, so the column drops with the total.
+    if (showWeight && !mixedCurrencies) {
+      cols.push({
+        key: "weight",
+        header: "Wt",
+        numeric: true,
+        tier: "secondary",
+        width: HOLDING_TRACKS.weight,
+        format: (r) => (r.weight !== null ? `${(r.weight * 100).toFixed(1)}%` : null),
+      });
+    }
+    cols.push({
+      key: "actions",
+      action: true,
+      width: HOLDING_TRACKS.actions,
+      cell: (r) => (
+        <>
+          <Button
+            type="button"
+            size="icon-xs"
+            variant="ghost"
+            aria-label={`Edit ${r.position.symbol}`}
+            onClick={() => r.holding && handleEdit(r.holding)}
+          >
+            <Pencil />
+          </Button>
+          <ConfirmButton
+            size="icon-xs"
+            variant="ghost"
+            aria-label={`Delete ${r.position.symbol}`}
+            onConfirm={() => r.holding && handleDelete(r.holding.id)}
+            armedLabel={<Trash2 />}
+          >
+            <Trash2 />
+          </ConfirmButton>
+        </>
+      ),
+    });
+    return cols;
+  }, [
+    showQty,
+    showCost,
+    showPrice,
+    showWeight,
+    mixedCurrencies,
+    missingQuotes,
+    handleEdit,
+    handleDelete,
+  ]);
+
+  const submitPfName = () => {
+    const name = pfName.trim();
+    if (name === "") {
+      setPfAction(null);
+      setPfName("");
       return;
     }
-    setBusy(true);
+    if (pfAction === "create") {
+      createPortfolio(name);
+    } else if (pfAction === "rename") {
+      renamePortfolio(active.id, name);
+    }
+    setPfAction(null);
+    setPfName("");
+  };
+
+  const cancelPf = () => {
+    setPfAction(null);
+    setPfName("");
+  };
+
+  // Export the active portfolio to CSV — the hand-entered fields plus the
+  // live-quote-derived market value / P&L / weight (blank where no quote
+  // resolved, so the export stays provenance-honest). No-op when empty.
+  const handleExport = async () => {
+    if (summary.rows.length === 0) {
+      return;
+    }
+    // R15-DATA-042: a mixed-currency export must disambiguate a Rs row from
+    // a $ row (the table already drops Wt entirely when currencies mix; the
+    // export gets a Currency column plus a blank Weight % from the
+    // contract's own null, no separate `mixedCurrencies` check needed here).
+    const csv = buildCsv(
+      [
+        "Symbol",
+        "Quantity",
+        "Cost basis",
+        "Asset class",
+        "Currency",
+        "Price",
+        "Market value",
+        "P&L",
+        "P&L %",
+        "Weight %",
+        "Note",
+      ],
+      summary.rows.map(({ position, quote, marketValue, pnl, pnlPercent, weight }) => [
+        position.symbol,
+        position.quantity,
+        position.costBasis,
+        position.assetClass,
+        quote?.currency ?? "",
+        quote?.price ?? "",
+        marketValue ?? "",
+        pnl ?? "",
+        pnlPercent ?? "",
+        weight !== null ? (weight * 100).toFixed(2) : "",
+        position.note ?? "",
+      ]),
+    );
+    const safeName =
+      active.name
+        .trim()
+        .replace(/[^a-z0-9]+/gi, "-")
+        .toLowerCase() || "portfolio";
     try {
-      await deletePosition(id);
-      if (editingId === id) {
-        resetForm();
-      }
-      await load();
-    } catch (err) {
-      const message = err instanceof SidecarError ? err.message : "Failed to delete position";
-      setError(message);
-    } finally {
-      setBusy(false);
+      const r = await downloadCsv(`vysted-portfolio-${safeName}.csv`, csv);
+      setExportStatus(r.path ? `Saved ${r.path}` : "Downloaded .csv");
+    } catch (e) {
+      setExportStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
     }
   };
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
+      {/* Portfolio switcher / create / rename / delete. */}
+      <div className="border-charcoal-700 flex items-center gap-2 border-b px-3 py-2">
+        {pfAction !== null ? (
+          <>
+            <input
+              ref={pfInputRef}
+              value={pfName}
+              onChange={(event) => setPfName(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  submitPfName();
+                } else if (event.key === "Escape") {
+                  event.preventDefault();
+                  cancelPf();
+                }
+              }}
+              placeholder={pfAction === "create" ? "New portfolio name" : "Rename portfolio"}
+              aria-label={pfAction === "create" ? "New portfolio name" : "Rename portfolio"}
+              className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 h-7 min-w-0 flex-1 px-2 outline-none focus:ring-1"
+            />
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              aria-label="Confirm"
+              onClick={submitPfName}
+            >
+              <Check />
+            </Button>
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              aria-label="Cancel"
+              onClick={cancelPf}
+            >
+              <X />
+            </Button>
+          </>
+        ) : (
+          <>
+            <Briefcase
+              className={
+                "text-charcoal-500 size-3.5 shrink-0" /* tokens-ok: 14px icon — R9 §3 rung for the h-7 toolbar row */
+              }
+              aria-hidden="true"
+            />
+            <select
+              aria-label="Active portfolio"
+              value={active.id}
+              onChange={(event) => setActive(event.target.value)}
+              className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 h-7 min-w-0 flex-1 px-2 outline-none focus:ring-1"
+            >
+              {portfolios.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                  {p.holdings.length > 0 ? ` · ${p.holdings.length}` : ""}
+                  {p.id === IMPORT_TARGET_PORTFOLIO_ID && skippedCount > 0
+                    ? ` · ${skippedCount} not imported`
+                    : ""}
+                </option>
+              ))}
+            </select>
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              aria-label="New portfolio"
+              title="New portfolio"
+              onClick={() => {
+                setPfAction("create");
+                setPfName("");
+              }}
+            >
+              <FolderPlus />
+            </Button>
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              aria-label="Rename portfolio"
+              title="Rename portfolio"
+              onClick={() => {
+                setPfAction("rename");
+                setPfName(active.name);
+              }}
+            >
+              <Pencil />
+            </Button>
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              aria-label="Export portfolio to CSV"
+              title="Export portfolio to CSV"
+              onClick={() => void handleExport()}
+              disabled={holdings.length === 0}
+            >
+              <Download />
+            </Button>
+            <ConfirmButton
+              size="icon-sm"
+              variant="ghost"
+              aria-label="Delete portfolio"
+              title="Delete portfolio"
+              onConfirm={() => deletePortfolio(active.id)}
+              armedLabel={<Trash2 />}
+            >
+              <Trash2 />
+            </ConfirmButton>
+          </>
+        )}
+      </div>
+
+      {/* Add / edit a holding. */}
       <form
         onSubmit={handleSubmit}
         className="border-charcoal-700 flex flex-wrap items-end gap-2 border-b p-3"
       >
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[0.6rem] uppercase">Symbol</span>
+          <span className="text-charcoal-400 text-micro">Symbol</span>
           <input
+            ref={symbolInputRef}
             aria-label="Symbol"
             value={form.symbol}
             onChange={(event) => setForm((prev) => ({ ...prev, symbol: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 h-8 w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 h-8 w-24 px-3 outline-none focus:ring-1"
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[0.6rem] uppercase">Quantity</span>
+          <span className="text-charcoal-400 text-micro">Quantity</span>
           <input
             aria-label="Quantity"
             inputMode="decimal"
             value={form.quantity}
             onChange={(event) => setForm((prev) => ({ ...prev, quantity: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 h-8 w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 h-8 w-24 px-3 outline-none focus:ring-1"
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[0.6rem] uppercase">Cost basis</span>
+          <span className="text-charcoal-400 text-micro">Avg cost / share</span>
           <input
-            aria-label="Cost basis"
+            aria-label="Avg cost / share"
+            placeholder="per share"
             inputMode="decimal"
             value={form.costBasis}
             onChange={(event) => setForm((prev) => ({ ...prev, costBasis: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 h-8 w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 h-8 w-24 px-3 outline-none focus:ring-1"
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[0.6rem] uppercase">Class</span>
+          <span className="text-charcoal-400 text-micro">Class</span>
           <select
             aria-label="Asset class"
             value={form.assetClass}
@@ -242,29 +961,31 @@ export function PortfolioPanel() {
                 assetClass: event.target.value === "crypto" ? "crypto" : "equity",
               }))
             }
-            className="bg-charcoal-800 text-charcoal-200 h-8 rounded-md px-2 font-mono text-xs outline-none"
+            className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 h-8 px-3 outline-none focus:ring-1"
           >
             <option value="equity">Equity</option>
             <option value="crypto">Crypto</option>
           </select>
         </label>
         <label className="flex flex-1 flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[0.6rem] uppercase">Note</span>
+          <span className="text-charcoal-400 text-micro">Note</span>
           <input
             aria-label="Note"
             value={form.note}
             onChange={(event) => setForm((prev) => ({ ...prev, note: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 h-8 min-w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 h-8 min-w-24 px-3 outline-none focus:ring-1"
           />
         </label>
-        <Button type="submit" size="sm" variant="outline" disabled={busy}>
+        {/* Form rung (R9 §3): the submit + cancel join their sibling h-8 inputs
+            so the items-end baseline never staggers. */}
+        <Button type="submit" variant="outline">
           <Plus />
           {editingId !== null ? "Save" : "Add"}
         </Button>
         {editingId !== null && (
           <Button
             type="button"
-            size="icon-sm"
+            size="icon"
             variant="ghost"
             aria-label="Cancel edit"
             onClick={resetForm}
@@ -274,131 +995,349 @@ export function PortfolioPanel() {
         )}
       </form>
 
-      {error !== null && summary === null && (
-        <div className="border-charcoal-700 flex items-center gap-3 border-b px-3 py-2">
-          <p className="text-negative font-mono text-xs">{error}</p>
-          <Button type="button" size="sm" variant="outline" onClick={() => void load()}>
-            Retry
+      {error !== null && (
+        <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
+          <p className="text-negative text-caption">{error}</p>
+          <Button
+            type="button"
+            size="icon-xs"
+            variant="ghost"
+            aria-label="Dismiss error"
+            className="ml-auto"
+            onClick={() => setError(null)}
+          >
+            <X />
           </Button>
         </div>
       )}
-      {error !== null && summary !== null && (
-        <p className="text-negative border-charcoal-700 border-b px-3 py-2 font-mono text-xs">
-          {error}
-        </p>
+
+      {skippedCount > 0 && !importNoticeDismissed && (
+        // The one-time legacy import's skipped rows (R15-LEAD-145): each row the
+        // 0.9.0 portfolio cannot hold, named, with the figures it is missing from.
+        <div
+          role="status"
+          data-testid="portfolio-import-skipped"
+          className="border-charcoal-700 bg-charcoal-850 text-caption flex items-start gap-2 border-b px-3 py-2"
+        >
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <p className="text-warning font-medium">
+              {skippedCount} {skippedCount === 1 ? "holding" : "holdings"} from your previous
+              version could not be imported.
+            </p>
+            <p className="text-charcoal-300">
+              Totals, P&amp;L and weights exclude these rows. Short lots (negative quantity) and
+              quantities above 1e12 are not supported in this version; the rows are kept in the old
+              ledger.
+            </p>
+            <ul className="text-charcoal-200 flex flex-col gap-0.5 font-mono tabular-nums">
+              {importSkipped.map((row, i) => (
+                <li key={`${row.symbol}-${i}`} className="break-words">
+                  {row.symbol || "(no symbol)"} {fmtLedgerValue(row.quantity)} @{" "}
+                  {fmtLedgerValue(row.costBasis)}
+                  <span className="text-charcoal-400"> — {row.reason}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <Button
+            type="button"
+            size="xs"
+            variant="ghost"
+            aria-label="Dismiss import notice"
+            onClick={dismissImportNotice}
+          >
+            <X />
+            Dismiss
+          </Button>
+        </div>
       )}
 
-      {summary !== null && summary.rows.length > 0 && (
-        <div className="border-charcoal-700 text-charcoal-200 flex flex-wrap gap-x-6 gap-y-1 border-b px-3 py-2 font-mono text-xs">
-          <span>
+      {summary.rows.length > 0 && (
+        <div className="border-charcoal-700 text-charcoal-200 text-caption flex flex-wrap items-center gap-x-3 gap-y-1 border-b px-3 py-2 tabular-nums">
+          {/* D57: single-currency portfolios sum exactly as before (with the
+              instrument's currency threaded); mixed-currency portfolios render
+              one subtotal PER currency — a cross-currency total is a fabricated
+              number and never appears. */}
+          <span className="whitespace-nowrap">
             Market value:{" "}
             <span className="text-charcoal-100">
-              {formatCompactMoney(summary.totalMarketValue)}
+              {summary.mixedCurrencies
+                ? summary.byCurrency
+                    .map((b) => lotMoney(b.marketValue, b.currency, "compact"))
+                    .join(" + ")
+                : hasLiveQuotes
+                  ? lotMoney(summary.totalMarketValue, summary.byCurrency[0]?.currency, "compact")
+                  : "— (no live quotes)"}
             </span>
+          </span>
+          <span aria-hidden="true" className="text-charcoal-500">
+            ·
           </span>
           <span>
             Total P&amp;L:{" "}
-            <span className={summary.totalPnl >= 0 ? "text-positive" : "text-negative"}>
-              {formatSignedMoney(summary.totalPnl, true)} ({formatPercent(summary.totalPnlPercent)})
-            </span>
+            {summary.mixedCurrencies ? (
+              summary.byCurrency.map((b, i) => (
+                <Fragment key={b.currency || "unknown"}>
+                  {i > 0 && <span className="text-charcoal-400"> + </span>}
+                  <span className={`whitespace-nowrap ${pnlTone(b.pnl)}`}>
+                    {lotMoney(b.pnl, b.currency, "signed")} ({formatPercent(b.pnlPercent)})
+                  </span>
+                </Fragment>
+              ))
+            ) : hasLiveQuotes ? (
+              <span className={`whitespace-nowrap ${pnlTone(summary.totalPnl)}`}>
+                {lotMoney(summary.totalPnl, summary.byCurrency[0]?.currency, "signed")} (
+                {formatPercent(summary.totalPnlPercent)})
+              </span>
+            ) : (
+              <span className="text-charcoal-400 whitespace-nowrap">—</span>
+            )}
           </span>
-          <span>
-            Concentration:{" "}
-            <span className="text-charcoal-100">{(summary.concentration * 100).toFixed(1)}%</span>
-          </span>
+          {/* Concentration is a share of the SUMMED market value — meaningless
+              across mixed currencies, so it yields to an honest note instead. */}
+          {summary.mixedCurrencies ? (
+            <>
+              <span aria-hidden="true" className="text-charcoal-500">
+                ·
+              </span>
+              <span
+                className="text-charcoal-400 whitespace-nowrap"
+                title="Holdings are quoted in different currencies — totals are shown per currency; no cross-currency sum or concentration is computed."
+              >
+                mixed currencies — totals per currency
+              </span>
+            </>
+          ) : (
+            <>
+              <span aria-hidden="true" className="text-charcoal-500">
+                ·
+              </span>
+              <span className="whitespace-nowrap">
+                Concentration:{" "}
+                <span className="text-charcoal-100">
+                  {summary.concentration !== null ? (summary.concentration * 100).toFixed(1) : "—"}%
+                </span>
+              </span>
+            </>
+          )}
           {summary.unresolvedCount > 0 && (
-            <span className="text-charcoal-400">
-              {summary.unresolvedCount} symbol(s) without a live quote
-            </span>
+            <>
+              <span aria-hidden="true" className="text-charcoal-500">
+                ·
+              </span>
+              <span className="text-charcoal-400 whitespace-nowrap">
+                {summary.unresolvedCount} without a live quote
+              </span>
+            </>
+          )}
+          {quotesAsOf !== null && (
+            <>
+              <span aria-hidden="true" className="text-charcoal-500">
+                ·
+              </span>
+              <span
+                className="text-charcoal-400 whitespace-nowrap"
+                title={`Oldest quote in these totals: ${quotesAsOf}`}
+                data-testid="portfolio-totals-as-of"
+              >
+                as of{" "}
+                {new Date(quotesAsOf).toLocaleString(undefined, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </span>
+            </>
+          )}
+          {activeExcludes > 0 && (
+            <>
+              <span aria-hidden="true" className="text-charcoal-500">
+                ·
+              </span>
+              <span
+                className="text-warning whitespace-nowrap"
+                title="Legacy rows the 0.9.0 import could not hold (short lots, negative cost, quantity above 1e12) are not in these totals, P&L or weights; they stay in the old ledger."
+                data-testid="portfolio-import-caveat"
+              >
+                excludes {activeExcludes} {activeExcludes === 1 ? "row" : "rows"} not imported
+              </span>
+            </>
           )}
         </div>
       )}
 
-      <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto">
-        {summary === null ? (
-          <p className="text-charcoal-400 p-4 font-mono text-xs">Loading portfolio…</p>
-        ) : summary.rows.length === 0 ? (
-          <p className="text-charcoal-400 p-4 font-mono text-xs">
-            No positions yet — add one above.
-          </p>
-        ) : (
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="text-charcoal-400 border-charcoal-700 border-b text-left font-mono text-[0.65rem] uppercase">
-                <th className="px-3 py-2 font-medium">Symbol</th>
-                <th className="px-3 py-2 text-right font-medium">Qty</th>
-                <th className="px-3 py-2 text-right font-medium">Cost</th>
-                <th className="px-3 py-2 text-right font-medium">Price</th>
-                <th className="px-3 py-2 text-right font-medium">Mkt value</th>
-                <th className="px-3 py-2 text-right font-medium">P&amp;L</th>
-                <th className="px-3 py-2 text-right font-medium">Weight</th>
-                <th className="px-3 py-2" />
-              </tr>
-            </thead>
-            <tbody>
-              {summary.rows.map(({ position, quote, marketValue, pnl, pnlPercent, weight }) => {
-                const pnlPositive = (pnl ?? 0) >= 0;
-                return (
-                  <tr
-                    key={position.id ?? position.symbol}
-                    className="border-charcoal-800 hover:bg-charcoal-800/50 border-b font-mono text-sm"
+      {riskByCurrency.size > 0 && (
+        <div
+          className="border-charcoal-700 border-b px-3 py-2"
+          data-testid="portfolio-risk-section"
+        >
+          <h3 className="text-charcoal-400 text-caption mb-2 font-medium tracking-wide uppercase">
+            Risk
+          </h3>
+          <div className="flex flex-col gap-2">
+            {[...riskByCurrency.entries()].map(([currency, entry]) => (
+              <div key={currency || "unknown"} className="text-caption">
+                {mixedCurrencies && (
+                  <div className="text-charcoal-400 mb-1 font-mono">{currency || "—"}</div>
+                )}
+                {entry.status === "loading" ? (
+                  <span className="text-charcoal-400">Computing risk metrics…</span>
+                ) : entry.metrics === null ? (
+                  <span
+                    className="text-charcoal-400"
+                    title={`Needs ${MIN_RISK_HISTORY_DAYS}+ overlapping trading days of price history`}
                   >
-                    <td className="text-charcoal-100 max-w-24 truncate px-3 py-2">
-                      {position.symbol}
-                    </td>
-                    <td className="text-charcoal-200 px-3 py-2 text-right">{position.quantity}</td>
-                    <td className="text-charcoal-200 px-3 py-2 text-right">
-                      {formatMoney(position.cost_basis)}
-                    </td>
-                    <td className="text-charcoal-200 px-3 py-2 text-right">
-                      {quote !== null ? formatMoney(quote.price) : "—"}
-                    </td>
-                    <td className="text-charcoal-200 px-3 py-2 text-right">
-                      {marketValue !== null ? formatCompactMoney(marketValue) : "—"}
-                    </td>
-                    <td
-                      className={cn(
-                        "px-3 py-2 text-right",
-                        pnl === null
-                          ? "text-charcoal-400"
-                          : pnlPositive
-                            ? "text-positive"
-                            : "text-negative",
-                      )}
-                    >
-                      {pnl !== null
-                        ? `${formatSignedMoney(pnl, true)} (${pnlPercent !== null ? formatPercent(pnlPercent) : "—"})`
-                        : "—"}
-                    </td>
-                    <td className="text-charcoal-200 px-3 py-2 text-right">
-                      {weight !== null ? `${(weight * 100).toFixed(1)}%` : "—"}
-                    </td>
-                    <td className="px-3 py-2 text-right whitespace-nowrap">
-                      <Button
-                        type="button"
-                        size="icon-xs"
-                        variant="ghost"
-                        aria-label={`Edit ${position.symbol}`}
-                        onClick={() => handleEdit(position)}
-                      >
-                        <Pencil />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon-xs"
-                        variant="ghost"
-                        aria-label={`Delete ${position.symbol}`}
-                        onClick={() => handleDelete(position.id)}
-                        disabled={busy}
-                      >
-                        <Trash2 />
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    Not enough price history yet (needs {MIN_RISK_HISTORY_DAYS}+ overlapping days)
+                  </span>
+                ) : (
+                  (() => {
+                    const metrics = entry.metrics;
+                    return (
+                      <>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 tabular-nums">
+                          <span>
+                            Sharpe:{" "}
+                            <span className="text-charcoal-100">
+                              {metrics.sharpeRatio.toFixed(2)}
+                            </span>
+                          </span>
+                          <span>
+                            Sortino:{" "}
+                            <span className="text-charcoal-100">
+                              {metrics.sortinoRatio.toFixed(2)}
+                            </span>
+                          </span>
+                          <span>
+                            Max DD:{" "}
+                            <span className="text-negative">
+                              {(metrics.maxDrawdown * 100).toFixed(1)}%
+                            </span>
+                          </span>
+                          <span>
+                            Calmar:{" "}
+                            <span className="text-charcoal-100">
+                              {metrics.calmarRatio.toFixed(2)}
+                            </span>
+                          </span>
+                          <span>
+                            VaR 95% (1d):{" "}
+                            <span className="text-charcoal-100">
+                              {(metrics.valueAtRisk95 * 100).toFixed(1)}%
+                            </span>
+                          </span>
+                          <span>
+                            Beta:{" "}
+                            <span className="text-charcoal-100">
+                              {metrics.beta !== null ? metrics.beta.toFixed(2) : "—"}
+                            </span>
+                          </span>
+                          <span
+                            className="text-charcoal-400"
+                            title={`Computed over ${metrics.days} overlapping trading days`}
+                          >
+                            {metrics.days}d history
+                          </span>
+                        </div>
+                        {metrics.correlation.symbols.length > 1 && (
+                          <div className="mt-1 overflow-x-auto">
+                            <table className="border-collapse">
+                              <thead>
+                                <tr>
+                                  <th className="pr-2" />
+                                  {metrics.correlation.symbols.map((s) => (
+                                    <th
+                                      key={s}
+                                      className="text-charcoal-400 px-2 py-0.5 text-right font-mono font-normal"
+                                    >
+                                      {s}
+                                    </th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {metrics.correlation.symbols.map((rowSymbol, i) => (
+                                  <tr key={rowSymbol}>
+                                    <th className="text-charcoal-400 pr-2 text-right font-mono font-normal">
+                                      {rowSymbol}
+                                    </th>
+                                    {metrics.correlation.matrix[i].map((v, j) => (
+                                      <td
+                                        key={j}
+                                        className="text-charcoal-100 px-2 py-0.5 text-right font-mono tabular-nums"
+                                      >
+                                        {v.toFixed(2)}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {quotesError && holdings.length > 0 && (
+        <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
+          <span className="text-warning text-caption">
+            Couldn&apos;t refresh live quotes — values shown without market data.
+          </span>
+          <Button
+            type="button"
+            size="xs"
+            variant="ghost"
+            onClick={() => setQuotesNonce((n) => n + 1)}
+          >
+            Retry
+          </Button>
+        </div>
+      )}
+
+      {exportStatus !== null && (
+        <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
+          <span className="text-charcoal-200 text-caption">{exportStatus}</span>
+          <Button
+            type="button"
+            size="icon-xs"
+            variant="ghost"
+            aria-label="Dismiss export status"
+            onClick={() => setExportStatus(null)}
+          >
+            <X />
+          </Button>
+        </div>
+      )}
+
+      <div
+        ref={tableAreaRef}
+        className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto"
+      >
+        {holdings.length === 0 ? (
+          <EmptyState
+            icon={Briefcase}
+            headline="This portfolio is empty"
+            hint="Manually add a stock or crypto holding to track P&L, weight, and concentration."
+            cta={{
+              label: "Add your first holding",
+              primary: true,
+              onClick: () => symbolInputRef.current?.focus(),
+            }}
+          />
+        ) : (
+          // No min-width / horizontal clip: the §3.2 drop ladder sheds columns
+          // instead, so the table always fits the panel without overlap.
+          <DataTable
+            columns={holdingColumns}
+            rows={tableRows}
+            rowKey={(row) => row.holding?.id ?? row.position.symbol}
+            data-testid="portfolio-holdings-table"
+          />
         )}
       </div>
     </div>

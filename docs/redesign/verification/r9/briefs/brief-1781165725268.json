@@ -1,0 +1,59 @@
+{
+ "query": "Infosys Limited",
+ "symbol": "INFY.NS",
+ "mode": "FAST",
+ "depth": "quick",
+ "markdown": "## Infosys (INFY) \u2014 Quick Brief\n\n### Price & Action\n**\u20b91,145.30** (\u25bc2.97% yesterday) \u2014 trading near the lower end of its 52-week range (\u20b91,089\u2013\u20b91,728). The stock is down ~29% from its 52-week high and has been under pressure alongside the broader IT pack.\n\n### Valuation & Quality\n| Metric | Value |\n|--------|-------|\n| Market Cap | \u20b94.5 lakh Cr |\n| P/E (TTM) | **14.7\u00d7** |\n| Forward P/E | **13.6\u00d7** |\n| PEG Ratio | 2.14 |\n| P/B | 4.84\u00d7 |\n| Dividend Yield | **4.37%** (\u20b950/sh) |\n| ROE | **31.4%** |\n| Debt/Equity | 0.10 (near debt-free) |\n| Current Ratio | 1.98 |\n\nAt ~14.7\u00d7 trailing earnings, Infosys trades well below its 5-year average P/E of ~22\u00d7 \u2014 the stock is pricing in headwinds. Quality remains strong: **31% ROE**, near-zero leverage, and a healthy dividend yield of 4.4% [1].\n\n### Fundamentals Snapshot\n- **Revenue growth**: 6.6% YoY | **Earnings growth**: 11.8% YoY\n- **Operating margin**: 20.9% | **Profit margin**: 16.4%\n- **Free cash flow**: \u20b93,170 Cr\n- **Beta**: 0.11 (very low correlation to broader market)\n\n### Recent Context\nIndian IT stocks fell sharply yesterday after **hotter-than-expected US inflation** stoked fears of prolonged higher rates, compounded by AI-disruption concerns [2]. Infosys declared a **final dividend of \u20b925/sh** with a June 10 record date [3].\n\n### Key Levels\n- **Support**: \u20b91,089 (52-week low)\n- **Resistance**: ~\u20b91,280 / \u20b91,400\n\n*A value play with a strong balance sheet, trading at a decade-low multiple \u2014 but near-term sentiment is weighed by macro (US rates, oil shock from Iran tensions) and AI-disruption narrative.* \u2014 Want a deeper value workup?\n",
+ "sources": [
+  {
+   "url": "https://finance.yahoo.com/quote/INFY.NS",
+   "title": "Infosys Fundamentals (Yahoo Finance)",
+   "excerpt": "P/E 14.7, ROE 31.4%, market cap \u20b94.5 lakh Cr",
+   "domain": "finance.yahoo.com"
+  },
+  {
+   "url": "https://economictimes.indiatimes.com/markets/stocks/news/infosys-hcl-tech-other-it-stocks-tumble-up-to-3-whats-spooking-investors/articleshow/131652754.cms",
+   "title": "Infosys, HCL Tech, other IT stocks tumble up to 3%",
+   "excerpt": "IT stocks fell on hot US inflation data and AI disruption fears",
+   "domain": "economictimes.indiatimes.com"
+  },
+  {
+   "url": "https://economictimes.indiatimes.com/infosys-ltd/stocksupdate/companyid-10960.cms",
+   "title": "Infosys dividend record date June 10",
+   "excerpt": "June 10 record date for \u20b925 final dividend",
+   "domain": "economictimes.indiatimes.com"
+  }
+ ],
+ "sourceCount": 3,
+ "webAvailable": true,
+ "structured": {
+  "price": {
+   "symbol": "INFY",
+   "price": 1145.3,
+   "change": -35,
+   "change_percent": -2.9653477929339997,
+   "volume": 8887626,
+   "currency": "INR"
+  },
+  "fundamentals": {
+   "symbol": "INFY.NS",
+   "market_cap": 4518243205120,
+   "pe_ratio": 14.697748,
+   "forward_pe": 13.59422,
+   "peg_ratio": 2.1446,
+   "price_to_book": 4.844308,
+   "dividend_yield": 0.0437,
+   "roe": 0.31439,
+   "debt_to_equity": 0.09827,
+   "current_ratio": 1.978,
+   "revenue_growth": 0.066,
+   "earnings_growth": 0.118,
+   "operating_margin": 0.20928,
+   "profit_margin": 0.16434999,
+   "free_cash_flow": 3170249984,
+   "eps": 75.93,
+   "beta": 0.109
+  }
+ },
+ "createdAt": 1781165725268
+}

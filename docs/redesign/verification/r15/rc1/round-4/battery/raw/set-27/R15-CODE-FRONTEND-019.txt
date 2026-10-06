@@ -1,0 +1,9 @@
+=== R15-CODE-FRONTEND-019: read-only workspaces dir -> 507 with named cause ===
+-- save with dir read-only --
+{"detail":"Could not write the workspace: Permission denied"}
+HTTP:507
+
+-- restored perms, confirm save now works --
+{"status":"saved","name":"b5-perm"}
+HTTP:200
+

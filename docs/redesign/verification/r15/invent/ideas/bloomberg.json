@@ -1,0 +1,198 @@
+[
+  {
+    "idea_id": "bloomberg-1",
+    "name": "TAPE - the wake sweep",
+    "one_liner": "On launch / wake / refocus, a watermark-cursor sweep over every holding and watchlist name turns exchange feeds into one ranked 'since you were last here' tape, each line weighted by its share of the book and carrying its filing receipt.",
+    "rides_on": [
+      "sidecar/services/corporate_disclosures.py:265 get_announcements (BSE+NSE merged, attachment_url)",
+      "sidecar/services/corporate_disclosures.py:335 get_results_calendar",
+      "sidecar/services/corporate_disclosures.py:366 get_shareholding",
+      "sidecar/services/nse_provider.py:617 get_corporate_actions",
+      "sidecar/services/fundamentals_warm.py:191 _sweep_loop (background-loop precedent, lifespan-managed at sidecar/app.py:127-134)",
+      "src/lib/desktop-notification.ts:72 useDesktopNotificationBridge (mounted at src/app/page.tsx:43)",
+      "src/modules/chat/context-provider.ts:217 captureTerminalState (book + watchlist travel in the request)"
+    ],
+    "new_parts": [
+      "sidecar/services/tape_store.py - append-only SQLite events + per-(symbol,feed) cursor, row cap + age vacuum",
+      "POST /tape/sweep {symbols, weights, since?} + GET /tape",
+      "deterministic event classifier (category/headline keyword table, no LLM)",
+      "Tape panel (PanelSpec) + tape_since read_handler capability in catalog.py",
+      "frontend trigger on boot + visibilitychange + >N min since last sweep"
+    ],
+    "jarvis_axis": ["initiative", "watching", "receipts"],
+    "size": "M",
+    "risk": "Exchange feed shape drift or IP throttling makes the sweep silently thin; must show per-feed coverage ('NSE ok, BSE failed') on every tape, never an empty tape that reads as 'nothing happened'.",
+    "on_floor_list": true
+  },
+  {
+    "idea_id": "bloomberg-2",
+    "name": "EXIT DOOR - can I actually get out",
+    "one_liner": "Per-holding days-to-exit at a stated participation rate from delivery volume, plus an alert the day a holding flips EQ to BE/BZ (trade-for-trade) or starts locking at circuit - the small-cap risk Bloomberg LQA does not model.",
+    "rides_on": [
+      "sidecar/services/nse_bhavcopy.py:124-133 BhavRow already carries series + volume",
+      "sidecar/services/nse_bhavcopy.py:98 EQUITY_SERIES = EQ/BE/BZ",
+      "sidecar/services/nse_bhavcopy.py:22 fallback sec_bhavdata_full file carries DELIV columns (documented, not yet parsed)",
+      "sidecar/services/fundamentals_warm.py:298 _bhavcopy_loop (6h refresh already running)",
+      "src/modules/portfolio/metrics.ts (book metrics seam)"
+    ],
+    "new_parts": [
+      "rolling 20-session per-symbol rollup table (volume, deliv_qty, series, hi==lo/limit-lock flag)",
+      "liquidity_profile read_handler capability + portfolio column/badge",
+      "series-flip and circuit-lock tape events",
+      "ASM/GSM list ingestion ONLY if a stable public file is confirmed in build (unverified this session)"
+    ],
+    "jarvis_axis": ["watching", "initiative"],
+    "size": "M",
+    "risk": "Delivery data lives only in the fallback host; if archives.nseindia.com blocks, days-to-exit must degrade to total-volume basis and SAY so. BSE-only names have no NSE bhavcopy row at all.",
+    "on_floor_list": false
+  },
+  {
+    "idea_id": "bloomberg-3",
+    "name": "THE NUMBER CHANGED - revision witness",
+    "one_liner": "An append-only history of every filing-anchored figure the app has served; when a value moves with no filing in the disclosure feed to explain it, Jarvis says which source drifted, shows what you were shown then, and links the filing that should have governed.",
+    "rides_on": [
+      "sidecar/services/fundamentals_store.py:473-497 _upsert_sql/_upsert - the single write choke point (today ON CONFLICT DO UPDATE overwrites; schema is one row per symbol, :123)",
+      "sidecar/models/fundamentals.py:19 FieldMeta (provider + as_of per field)",
+      "sidecar/services/corporate_disclosures.py:265/:335 (was there a filing between the two observations?)",
+      "sidecar/services/nse_provider.py:617 get_corporate_actions (split/bonus explains a share-count step)",
+      "sidecar/services/earnings_quality.py, market_cap_witness.py, ownership_check.py (the existing flag-never-silently-pick discipline, D56/D66/D68/D70/D72)",
+      "src/lib/brief-claims.ts + sidecar/services/agent_runtime.py:344 _render_prior_stated_values (what the agent told you)"
+    ],
+    "new_parts": [
+      "facts_history table (symbol, field, value, provider, as_of, observed_at) written only on material change, capped per symbol",
+      "change classifier: filing-explained / corporate-action / basis-flip / unexplained provider drift",
+      "statement period-hash (symbol, statement, period) to catch restated past periods",
+      "'as you saw it on <date>' chip in BriefBody + tape event + agent preamble line"
+    ],
+    "jarvis_axis": ["memory", "watching", "receipts"],
+    "size": "M",
+    "risk": "False alarms destroy the trust it sells: provider values flap on rounding/currency. v1 must whitelist filing-anchored fields only and require two consecutive confirming observations before it speaks.",
+    "on_floor_list": false
+  },
+  {
+    "idea_id": "bloomberg-4",
+    "name": "PRE-PRINT CARD and PRINT GRADE",
+    "one_liner": "The evening before a holding reports, Jarvis lays out what management guided (verbatim quotes with page receipts) and makes you write your three numbers; when the results PDF lands it grades print vs guidance vs you, and keeps your forecasting record.",
+    "rides_on": [
+      "sidecar/services/corporate_disclosures.py:335 get_results_calendar (the trigger)",
+      "sidecar/services/research/disclosures.py (announcements -> visitable PDF citations inside research)",
+      "sidecar/services/search/extract.py:436 extract_pdf_text, :506 pages_used, :398 scanned_pages_note (honest on image-only tables)",
+      "sidecar/services/agent_tools/catalog.py:1177 publish_brief + src/modules/research/brief-blocks.tsx typed blocks",
+      "sidecar/services/agent_tools/catalog.py:1115 arrange_layout + src/lib/layout-templates.ts:402 fitLayoutTemplate (results-day desk)",
+      "sidecar/services/run_manager.py:237 launch_run + sidecar/services/budget_guard.py:87 BudgetGuard (bounded guidance extraction)"
+    ],
+    "new_parts": [
+      "expectations store (append-only; frozen once the results announcement timestamp exists)",
+      "guidance extractor whose every quote must be a verbatim substring of a cited page (deterministic check, else dropped)",
+      "grade block type in brief-blocks (print / guided / yours / delta)",
+      "calibration view across quarters"
+    ],
+    "jarvis_axis": ["initiative", "memory", "receipts"],
+    "size": "L",
+    "risk": "Small-cap results PDFs are often scanned images; the print column will frequently be 'unparsed - enter manually, see p.N'. That has to be a designed state, not a failure.",
+    "on_floor_list": "partly (guidance-vs-delivery is floor; the pre-commit and the calibration record are not)"
+  },
+  {
+    "idea_id": "bloomberg-5",
+    "name": "MANDATE - your own compliance officer",
+    "one_liner": "A plain-text investment policy you own (max position, sector cap, minimum exit-ability, pledge ceiling, no averaging down without re-underwriting) compiled to rules and checked against every portfolio change, every drift and every suggestion the agent itself makes - it annotates, never blocks, never touches orders.",
+    "rides_on": [
+      "src/store/notes.ts:8-33 scoped notes in the workspace blob (a MANDATE scope is a note like any other)",
+      "sidecar/services/agent_tools/catalog.py:1374 write_note",
+      "sidecar/services/screener_formula.py:441 compile_formula / :563 evaluate_formula (safe no-eval expression grammar, TS twin in src/lib/screener-expr.ts)",
+      "src/store/proposed-changes.ts:64 EnqueueInput (the diff/accept gate every mutation already passes)",
+      "src/modules/chat/context-provider.ts:217 captureTerminalState (portfolio snapshot)",
+      "sidecar/services/agent_runtime.py:376 _render_terminal_preamble (inject the mandate so the agent self-checks)"
+    ],
+    "new_parts": [
+      "book-level field resolver for the formula engine (position_weight, sector_weight, days_to_exit, promoter_pct, ...)",
+      "mandate compile step: prose -> rules, shown as a diff the user accepts",
+      "breach annotations on proposed-changes cards + tape events for drift breaches"
+    ],
+    "jarvis_axis": ["memory", "initiative"],
+    "size": "S-M",
+    "risk": "LLM mis-compiles prose into a rule the user never meant; the compiled rules must be shown verbatim and user-accepted, and the prose stays the source of truth.",
+    "on_floor_list": false
+  },
+  {
+    "idea_id": "bloomberg-6",
+    "name": "RED PEN - fact-check what people send you",
+    "one_liner": "Paste or drop a broker note, a WhatsApp forward or a forum post: every numeric claim is pinned to its verbatim span, checked against the app's sourced data and the filings, and returned marked verified / contradicted / stale / unverifiable with receipts - including the lakh-vs-crore trap.",
+    "rides_on": [
+      "sidecar/services/company_narrative.py:209 _verify_text + :49-50 tolerances + sidecar/models/fundamentals.py:185 UnverifiedClaim (a numeric verifier already exists for the app's own narrative)",
+      "sidecar/services/research/citecheck.py (claim-vs-cited-source audit against full page text)",
+      "sidecar/services/research/verify.py (independent-domain cross-check)",
+      "sidecar/services/agent_tools/catalog.py:170 resolve_symbol",
+      "sidecar/services/search/extract.py:436 extract_pdf_text (dropped PDFs)"
+    ],
+    "new_parts": [
+      "composer paste/drop intake (none exists today) -> POST /redpen/check (text or PDF bytes, size-capped)",
+      "claim extraction with a mandatory verbatim-span check",
+      "verdict table block + file the result under the symbol's note scope"
+    ],
+    "jarvis_axis": ["receipts", "memory"],
+    "size": "M",
+    "risk": "A confident 'contradicted' on a basis mismatch (consolidated vs standalone, TTM vs FY) is worse than silence; every verdict must name the basis it compared on, and mismatched basis is 'not comparable', not 'wrong'.",
+    "on_floor_list": false
+  },
+  {
+    "idea_id": "bloomberg-7",
+    "name": "ALRT WITH A TRACK RECORD",
+    "one_liner": "Alerts written in plain English, compiled to a visible rule, and dry-run against the stored tape before arming: 'this would have fired 3 times on your book - here they are' - the noise rate Bloomberg ALRT never shows you.",
+    "rides_on": [
+      "bloomberg-1 tape_store (the event history the dry-run replays)",
+      "sidecar/services/screener_formula.py:441/:563 (same rule engine as MANDATE)",
+      "sidecar/services/agent_tools/catalog.py:1416 save_screen (precedent for persisting a user-authored rule through the gate)",
+      "sidecar/services/workflow_nodes/builtin.py:325 action_notify_desktop -> src/store/workflow.ts:180 -> src/lib/desktop-notification.ts:72 (OS notification path is already wired)"
+    ],
+    "new_parts": [
+      "alert rule store + create_alert host_action (through proposed-changes)",
+      "dry-run evaluator over tape history with honest depth ('history covers 41 days')",
+      "evaluation at sweep time only (no cron; a sleeping laptop misses nothing because cursors catch up)"
+    ],
+    "jarvis_axis": ["watching", "receipts", "initiative"],
+    "size": "M (S once bloomberg-1 exists)",
+    "risk": "Dry-run depth is shallow on day one (BSE window is 30 days, corporate_disclosures.py:88); must state its depth or the 'track record' is itself a false comfort.",
+    "on_floor_list": "partly (signals are floor; the pre-arm dry-run is not)"
+  },
+  {
+    "idea_id": "bloomberg-8",
+    "name": "GO BAR and learned routines",
+    "one_liner": "Bloomberg muscle memory - '<TICKER> <FN>' parsed deterministically in under 100 ms with no model - plus an agent that prints the mnemonic for what it just did and notices your repeated morning sequence and offers to run it for you.",
+    "rides_on": [
+      "src/store/command-palette.ts:209 buildPaletteCorpus / :321 paletteFilter",
+      "sidecar/services/planner.py:167 classify_intent (deterministic, offline)",
+      "src/lib/host-actions.ts:880 applyHostAction (every function maps to an existing host action)",
+      "src/lib/workspace.ts:541 autosaveLayout + workflow_store (persist a routine)"
+    ],
+    "new_parts": [
+      "function table (SHP, ANN, FA, RES, EXIT, TAPE, RP ...) + a 40-line parser ahead of fuzzy match",
+      "'next time: TANLA SHP' hint line after agent turns that reduce to one function",
+      "bounded host-action history ring in the workspace blob + repeated-opener detector -> 'make this your morning routine?'"
+    ],
+    "jarvis_axis": ["memory", "initiative"],
+    "size": "S-M",
+    "risk": "Mnemonic collisions with real tickers (an NSE symbol named like a function); ticker-first grammar with the function in second position and a visible parse preview avoids silent misroutes.",
+    "on_floor_list": false
+  },
+  {
+    "idea_id": "bloomberg-9",
+    "name": "KILL CRITERIA - the thesis that can be falsified",
+    "one_liner": "Every position carries a thesis, the three KPIs that prove it and the explicit conditions under which you sell; the view you held is frozen at write time, and each sweep tests the conditions against new filings - tripping one produces the page that tripped it.",
+    "rides_on": [
+      "src/store/notes.ts per-symbol scope + types/research-space.ts:34 ResearchSpaceClaim ledger (cap 50, :86)",
+      "src/lib/brief-claims.ts (deterministic claim capture) + sidecar/services/agent_runtime.py:344",
+      "bloomberg-1 sweep + bloomberg-5 rule engine",
+      "sidecar/services/corporate_disclosures.py:366 get_shareholding (promoter-trend criteria), results PDFs via extract.py:436"
+    ],
+    "new_parts": [
+      "thesis card (thesis / KPIs / kill criteria) as a structured block inside the symbol note",
+      "freeze-at-write snapshot (price, claims, sources) - Holding has no opened date today (src/store/portfolios.ts:23)",
+      "criteria evaluation at sweep; 'tripped' event with receipt; post-mortem on exit"
+    ],
+    "jarvis_axis": ["memory", "watching", "receipts"],
+    "size": "M",
+    "risk": "Qualitative criteria ('management credibility breaks') cannot be evaluated deterministically; those stay as prompts Jarvis raises for human judgement with the evidence attached, never auto-tripped.",
+    "on_floor_list": true
+  }
+]

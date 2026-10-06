@@ -1,0 +1,12 @@
+# R15-CODE-PLATFORM-012 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:14+0530
+
+$ git merge-base --is-ancestor f407107 HEAD && echo 'closure f407107 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure f407107 NOT an ancestor'
+[exit 0] [0.02s]
+closure f407107 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-PLATFORM-012\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.31s]
+src/components/PluginManagerPanel.test.tsx:118:  it("toggling an active plugin off persists enabled:false and detaches it (R15-CODE-PLATFORM-012)", async () => {
+src/lib/plugin-runtime.test.ts:620:// Lifecycle owner (R15-CODE-PLATFORM-012): enable/disable persist AND bridge
+

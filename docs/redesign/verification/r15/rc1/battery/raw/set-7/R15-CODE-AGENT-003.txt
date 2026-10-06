@@ -1,0 +1,6 @@
+$ POST /llm/keys/validate fake OpenRouter key
+{"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}
+$ POST /llm/keys/validate fake Gemini key
+{"ok":false,"reason":"invalid","detail":"Google Gemini rejected this key."}
+$ POST /llm/keys/validate fake xAI key
+{"ok":false,"reason":"invalid","detail":"xAI rejected this key."}

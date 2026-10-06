@@ -7,6 +7,9 @@ per call so each test gets its own isolated SQLite file.
 
 from __future__ import annotations
 
+import logging
+import sqlite3
+
 import pytest
 
 from config import DATA_DIR_ENV
@@ -27,9 +30,9 @@ def _sample_create(agent_id: str = "custom:macro-quant") -> CustomAgentCreate:
         name="Macro Quant",
         philosophy="Mean reversion across macro asset classes.",
         system_prompt="You are a macro quant analyst. Reason from regime first.",
-        tools=["price_data", "macro"],
+        tools=["price_data", "macro_series"],
         default_provider="anthropic",
-        default_model="claude-opus-4-7",
+        default_model="claude-opus-4-8",
         icon="brain",
     )
 
@@ -39,16 +42,18 @@ def _sample_update() -> CustomAgentUpdate:
         name="Macro Quant v2",
         philosophy="Regime-aware allocation.",
         system_prompt="You are a regime-aware macro allocator. Quote drawdowns.",
-        tools=["price_data", "macro", "news"],
+        tools=["price_data", "macro_series", "news"],
         default_provider="openai",
         default_model="gpt-4.1",
         icon="line-chart",
     )
 
 
-def test_ensure_schema_is_idempotent(temp_data_dir: object) -> None:
-    agents_store._ensure_schema()
-    agents_store._ensure_schema()
+def test_connect_is_idempotent(temp_data_dir: object) -> None:
+    with agents_store._connect():
+        pass
+    with agents_store._connect():
+        pass
     assert agents_store.list_agents() == []
 
 
@@ -56,7 +61,7 @@ def test_create_and_list_agent(temp_data_dir: object) -> None:
     stored = agents_store.create_agent(_sample_create(), now=1_700_000_000)
     assert stored.id == "custom:macro-quant"
     assert stored.name == "Macro Quant"
-    assert stored.tools == ["price_data", "macro"]
+    assert stored.tools == ["price_data", "macro_series"]
     assert stored.default_provider == "anthropic"
     assert stored.created_at == 1_700_000_000
     assert stored.updated_at == 1_700_000_000
@@ -72,6 +77,23 @@ def test_list_agents_is_ordered_by_id(temp_data_dir: object) -> None:
     agents_store.create_agent(_sample_create("custom:mu"))
     ids = [agent.id for agent in agents_store.list_agents()]
     assert ids == ["custom:alpha", "custom:mu", "custom:zeta"]
+
+
+def test_unparseable_row_is_skipped_and_logged(
+    temp_data_dir: object, caplog: pytest.LogCaptureFixture
+) -> None:
+    agents_store.create_agent(_sample_create("custom:bad"))
+    agents_store.create_agent(_sample_create("custom:good"))
+    conn = sqlite3.connect(agents_store._db_path())
+    conn.execute("UPDATE custom_agents SET tools_json = '{' WHERE id = 'custom:bad'")
+    conn.commit()
+    conn.close()
+
+    with caplog.at_level(logging.WARNING, logger="services.agents_store"):
+        agents = agents_store.list_agents()
+
+    assert [agent.id for agent in agents] == ["custom:good"]
+    assert "custom:bad" in caplog.text
 
 
 def test_get_agent_roundtrip(temp_data_dir: object) -> None:
@@ -99,7 +121,7 @@ def test_update_agent_replaces_mutable_fields(temp_data_dir: object) -> None:
     assert updated is not None
     assert updated.name == "Macro Quant v2"
     assert updated.default_provider == "openai"
-    assert updated.tools == ["price_data", "macro", "news"]
+    assert updated.tools == ["price_data", "macro_series", "news"]
     # created_at MUST be immutable; updated_at MUST advance.
     assert updated.created_at == 1_700_000_000
     assert updated.updated_at == 1_700_000_500

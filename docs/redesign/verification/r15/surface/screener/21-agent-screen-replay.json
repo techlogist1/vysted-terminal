@@ -1,0 +1,88 @@
+{
+ "captured": {
+  "input": {
+   "criteria": "[{\"field\":\"pe_ratio\",\"operator\":\"lt\",\"value\":20},{\"field\":\"roe\",\"operator\":\"gt\",\"value\":{\"min\":15,\"max\":15}}, {\"field\":\"debt_to_equity\",\"operator\":\"lt\",\"value\":0.5}]",
+   "universe": "nse-all"
+  },
+  "applyLabel": null,
+  "threw": null,
+  "store_after": {
+   "universe": "sp500",
+   "criteria": [
+    {
+     "field": "pe_ratio",
+     "operator": "lt",
+     "value": 20
+    },
+    {
+     "field": "market_cap",
+     "operator": "gt",
+     "value": 100000000000
+    },
+    {
+     "field": "sector",
+     "operator": "eq",
+     "value": "Technology"
+    }
+   ],
+   "formula": ""
+  }
+ },
+ "array_variant": {
+  "applyLabel": "Wrote 2 screener criteria — review and Run",
+  "threw": null,
+  "store_after": {
+   "universe": "nse-all",
+   "criteria": [
+    {
+     "field": "pe_ratio",
+     "operator": "lt",
+     "value": 20
+    },
+    {
+     "field": "debt_to_equity",
+     "operator": "lt",
+     "value": 0.5
+    }
+   ]
+  }
+ },
+ "array_variant_run": {
+  "status": "ready",
+  "error": null,
+  "result_count": 200,
+  "evaluated": 2087,
+  "top": [
+   [
+    "TCS.NS",
+    15.456347,
+    0.47743,
+    0.10211
+   ],
+   [
+    "LICI.NS",
+    8.417603,
+    0.42356,
+    0.00431
+   ],
+   [
+    "INFY.NS",
+    13.351492,
+    0.32,
+    0.09541000000000001
+   ],
+   [
+    "HCLTECH.NS",
+    19.921593,
+    0.24067,
+    0.07058
+   ],
+   [
+    "ITC.NS",
+    16.86548,
+    0.2934,
+    0.03293
+   ]
+  ]
+ }
+}

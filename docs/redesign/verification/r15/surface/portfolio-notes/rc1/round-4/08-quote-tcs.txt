@@ -1,0 +1,2 @@
+{"symbol":"TCS","price":2082.0,"change":-5.0,"change_percent":-0.23957834211787254,"volume":3342195.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+HTTP 200

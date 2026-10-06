@@ -1,0 +1,9 @@
+# at 5ff9be041180c1c316ad48ceb120a23549a7575a
+src-tauri/src/kill_switch.rs: absent
+sidecar/services/kill_switch.py: absent
+sidecar/models/audit_log.py: absent
+## git grep -il 'AuditLog\|audit-log\|auditlog' src/
+src/lib/workspace.test.ts
+## git grep -n 'audit-log' src/ (lines)
+src/lib/workspace.test.ts:1071:      layout: { grid: { root: "a" }, panels: { p1: { contentComponent: "audit-log-viewer" } } },
+## globalShortcut count in tauri.conf.json at candidate: 0

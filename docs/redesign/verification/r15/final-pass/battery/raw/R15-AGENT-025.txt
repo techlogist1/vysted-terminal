@@ -1,0 +1,13 @@
+# R15-AGENT-025 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:09:26+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+rm -f $B/out/R15-AGENT-025.txt; "$IP" $B/sc/p17.py >/dev/null 2>&1; echo "script exit $?"; cat $B/out/R15-AGENT-025.txt
+--- output ---
+script exit 0
+COMMAND: hanging provider (sleep 3600) with heartbeat 0.01s / idle 0.05s (production IDLE_TIMEOUT_S=see base, LOCAL=)
+EXIT: 0
+OUTPUT:
+elapsed 0.06s; event counts {'LLMHeartbeatEvent:': 4, 'LLMErrorEvent:provider_idle': 1, 'LLMDoneEvent:': 1}
+last event: LLMDoneEvent {"kind": "done"}
+planner timeout lines: ['_PLANNER_TIMEOUT_SECONDS = 20.0', 'timeout=_PLANNER_TIMEOUT_SECONDS,']
+
+EXIT=0 (1.4s)

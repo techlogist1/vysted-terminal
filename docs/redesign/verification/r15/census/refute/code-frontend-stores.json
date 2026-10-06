@@ -1,0 +1,101 @@
+[
+  {
+    "raw_id": "COD-frontend-stores-1",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds as stated. agent-spaces.switchTo/newSpace archive the live messages and call chat-history.loadMessages/clear, both of which unconditionally set streamingMessageId=null; the space-strip buttons carry no streaming guard; appendAssistantDelta maps over messages so deltas for the archived id are silent no-ops; with streaming=false the composer sends directly instead of queueing and the queue drain restarts, so a second run can start while run 1 is live. Part (b) also holds: research-spaces.switchSpace(null, next) restores/clears the live transcript without saving it, while agent-spaces.activeId still points at the old tab.",
+    "evidence": "src/store/agent-spaces.ts:43-64, src/store/chat-history.ts:161-164, src/store/chat-history.ts:236-237, src/modules/chat/ChatSidebar.tsx:382, src/modules/chat/ChatSidebar.tsx:1101-1127, src/modules/chat/ChatSidebar.tsx:1146-1175, src/modules/chat/ChatSidebar.tsx:1285-1296, src/store/research-spaces.ts:178-198, src/lib/workspace.ts:360-369, src/lib/workspace.ts:620-627, src/store/brief.ts:198-205",
+    "evidence_checked": "code-only: read both space stores, chat-history streaming reducers, the ChatSidebar space strip, composer onSend and queue drain, and both research-space entry points in workspace.ts; read the critic's proof output (P2).",
+    "repro_check": "critic's vitest proof P2 (docs/redesign/verification/r15/census/code/evidence/frontend-stores-proof-output.txt) shows streamingMessageId null after switch and restored message {content:'Partial ', pending:true}; code trace confirms no guard on the tab buttons."
+  },
+  {
+    "raw_id": "COD-frontend-stores-2",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds. grep finds no production caller of useWorkflowStore.appendEvent/runWorkflow/selectRunLog (only the store itself at workflow.ts:270); NodeEditorPanel POSTs /workflow/run and parses SSE into local state only; action.notify_desktop is a server-side node (partitioned to the sidecar) whose handler only logs and returns notified:true, so the mounted notification bridge never sees an intent. With no separate alert store in src/store, this node is the product's only desktop-alert path, so high stands.",
+    "evidence": "src/store/workflow.ts:198-240, src/store/workflow.ts:270, src/modules/node-editor/NodeEditorPanel.tsx:383-431, src/modules/node-editor/node-registry.ts:142-146, src/lib/desktop-notification.ts:88-115, src/app/page.tsx:43, sidecar/services/workflow_nodes/builtin.py:325-344",
+    "evidence_checked": "code-only: grep of src for appendEvent/runWorkflow/selectRunLog/pendingNotifications/useWorkflowStore; read the node-editor run loop, the bridge, the sidecar handler, and listed src/store for any other alert path.",
+    "repro_check": "grep -rn 'appendEvent\\|runWorkflow' src --include=*.ts --include=*.tsx | grep -v test -> only store-internal hits; live Run of fetch_quote->notify_desktop would show notified:true and no OS notification."
+  },
+  {
+    "raw_id": "COD-frontend-stores-3",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds and is latent as stated. The bridge snapshots intents, awaits _sendOne for each, then calls drainNotifications(), which empties the whole slice including an intent appended mid-await; the subscriber's re-flush only sets rerun=true, and the rerun iteration then reads an empty slice.",
+    "evidence": "src/store/workflow.ts:234-238, src/lib/desktop-notification.ts:80-115",
+    "evidence_checked": "code-only: read drainNotifications and the full flush loop; read critic proof output P3.",
+    "repro_check": "critic's vitest proof P3 shows sent ['a'], 0 left pending after B appended mid-send; code trace agrees."
+  },
+  {
+    "raw_id": "COD-frontend-stores-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. Only AgentDock reads bindingFor(); the palette hard-codes mod+k, ChatSidebar hard-codes alt+Digit and mod+Enter/Backspace; no keydown handler anywhere in src handles mod+s, mod+o, mod+, or mod+1..4, and the Tauri menu is Menu::default (no such accelerators). matchesEvent only enforces Shift when requested, so mod+b also fires on mod+shift+b.",
+    "evidence": "src/store/keybindings.ts:58-151, src/store/keybindings.ts:380-396, src/components/AgentDock.tsx:69-77, src/components/CommandPalette.tsx:72-83, src/modules/chat/ChatSidebar.tsx:536-566, src-tauri/src/lib.rs:378",
+    "evidence_checked": "code-only: grep of every keydown listener/onKeyDown in src and of accelerators in src-tauri/src; read each global handler.",
+    "repro_check": "grep -rn 'addEventListener(\"keydown\"' src -> palette, AgentDock, ChatSidebar, node-editor Escape, chart Escape/Delete only; none dispatch the six defaults."
+  },
+  {
+    "raw_id": "COD-frontend-stores-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. sec.loadFilings commits any late response and writes activeIdentifier back to its own identifier, with single scalar filingsStatus/filingsError; the panel's userInteractedRef only stops re-fires, not the in-flight default AAPL request. earnings.loadUpcoming sets lastDays eagerly and commits whichever payload lands last. The race needs a slow default load (cold sidecar / EDGAR), which is the normal first-mount situation.",
+    "evidence": "src/store/sec.ts:147-175, src/modules/sec/SecFilingsPanel.tsx:55-93, src/store/earnings.ts:81-98, src/modules/earnings/EarningsCalendarPanel.tsx:109-118, src/modules/earnings/EarningsCalendarPanel.tsx:145-153",
+    "evidence_checked": "code-only: read both store actions and both panels' default-load and submit paths; read critic proof output P1.",
+    "repro_check": "critic's vitest proof P1 shows activeIdentifier 'AAPL' after the stale AAPL response lands behind MSFT."
+  },
+  {
+    "raw_id": "COD-frontend-stores-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The soft-fail branch is real (non-2xx -> ready + empty list), but the stated repro is wrong: an unhandled 500 (e.g. a corrupt store raising in agents_store.list_agents) leaves the sidecar via ServerErrorMiddleware with no CORS headers, so the cross-origin webview fetch rejects with a TypeError and the catch DOES set customStatus:'error' and show Retry. The soft-fail only triggers on CORS-headered non-2xx (a 404 on a stale sidecar, an HTTPException), which the list route never raises. So it is a latent inconsistency with refreshFirstParty, not a live 'agents appear deleted' path; downgraded to low.",
+    "evidence": "src/store/agents.ts:218-240, sidecar/routers/custom_agents.py:51-54, sidecar/app.py:301-316, src/modules/agent-builder/AgentBuilderPanel.tsx:436-457",
+    "evidence_checked": "read the store, the list route and the sidecar middleware/handler stack; ran a FastAPI TestClient check of CORS headers on an unhandled 500 vs a 404; GET :52152/custom-agents returns 200.",
+    "repro_check": "sidecar/.venv python TestClient with CORSMiddleware: route raising RuntimeError -> 500 with access-control-allow-origin None; unknown route -> 404 with '*'."
+  },
+  {
+    "raw_id": "COD-frontend-stores-7",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The premise that the chart is non-singleton is stale (it comes from chart-sync.ts's Phase-2 header). The chart panel is registered singleton:true, every template/default layout addresses the literal 'chart' id, and migrateLegacyLayout removes any legacy duplicate chart-panel on restore, so there is only ever one ChartPanel: no second chart to clobber, and activeSymbol is that one chart's symbol, so the diff gate's 'before' is correct. Replay-on-mount on a reopened/remounted chart restores the last loaded symbol instead of the hard-coded SPY default (the chart persists no symbol of its own), which is the intended behaviour documented at ChartPanel.tsx:775-778. That leaves a code-shape note, not a defect.",
+    "evidence": "src/modules/chart/index.ts:18-32, src/lib/workspace.ts:435-460, src/lib/layout-templates.ts:33, src/config/default-layout.ts:33, src/modules/chart/ChartPanel.tsx:260, src/modules/chart/ChartPanel.tsx:774-799, src/lib/host-actions.ts:583-591",
+    "evidence_checked": "code-only: read the chart module registration, legacy-duplicate migration, layout templates, ChartPanel command/report effects and symbol init, and the set_chart_symbol diff builder.",
+    "repro_check": "grep -rn 'chart-panel' src (non-test) -> only the literal 'chart' id in default-layout/layout-templates/module; migrateLegacyLayout removes any other chart-panel id."
+  },
+  {
+    "raw_id": "COD-frontend-stores-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The inconsistency is real (six hand-rolled fetch paths, no shared POST helper, no timeouts), but the scope needs correcting. The headline example (broker connect/mode detail lost, brokers.ts:78-136) and orders.ts serve the broker/order surface being deleted with trading. The note that kill-switch fire/reset 'gates agent/control-plane halts beyond orders' is wrong: the sidecar bus's only subscribers are BrokerAdapter instances (broker_base.py:103, 251, 345), and fireKillSwitch has no frontend caller (the safety module is dormant, modules/safety/index.ts:12), so it gates order placement only. Surviving live sites: quant (already parses detail), agents (#6) and workflow (#2, dead).",
+    "evidence": "src/store/brokers.ts:78-136, src/store/safety.ts:212-243, src/store/safety.ts:316-332, src/store/quant.ts:53-78, src/store/orders.ts:170-192, src/lib/sidecar-client.ts:154-213, sidecar/services/kill_switch.py:1-18, sidecar/services/broker_base.py:103, sidecar/services/broker_base.py:251, sidecar/services/broker_base.py:345, src/modules/safety/index.ts:12",
+    "evidence_checked": "code-only: read every cited fetch site, sidecarGet, and grepped kill_switch consumers in sidecar/services, routers, src and src-tauri/src.",
+    "repro_check": "grep -rn 'kill_switch' sidecar/services sidecar/routers (non-test) -> broker_base.py and routers/safety.py only; grep fireKillSwitch src -> store only."
+  },
+  {
+    "raw_id": "COD-frontend-stores-9",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds. captureLiveTranscript filters only on role and non-empty content (pending/error/stopped messages are kept), ResearchSpaceTurn has no status field, and turnsToMessages rebuilds clean finalized messages. agent-spaces states that tab persistence is a follow-up. Minor note: the 'rides into next request history' part is not archive-specific, since the live history builder also sends failed partials unfiltered.",
+    "evidence": "src/store/research-spaces.ts:48-67, types/research-space.ts:18-26, src/store/agent-spaces.ts:5-11, src/modules/chat/ChatSidebar.tsx:749-753",
+    "evidence_checked": "code-only: read capture/restore helpers, the persisted turn type and the chat history builder.",
+    "repro_check": "code trace: a message {error:'x', content:'partial'} passes the capture filter and restores with no error/stopped flag."
+  },
+  {
+    "raw_id": "COD-frontend-stores-10",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds. setCommands is a documented no-op still called from four page.tsx sites; the palette keeps its own useState query, so the store's query/setQuery are unread; pushRecent duplicates recordSelection with no callers; buildPaletteCorpus is memoised with [] despite its 'rebuilt on each render' doc; agents.error mirrors firstPartyError only.",
+    "evidence": "src/store/command-palette.ts:151-208, src/app/page.tsx:51, src/app/page.tsx:91-101, src/components/CommandPalette.tsx:115-122, src/store/agents.ts:154-171",
+    "evidence_checked": "code-only: read the palette store and component, grepped setCommands/pushRecent/setQuery/useCommandPalette usages.",
+    "repro_check": "grep -rn 'pushRecent\\|useCommandPalette' src (non-test) -> no pushRecent caller; query only read from the component's local state."
+  },
+  {
+    "raw_id": "COD-frontend-stores-11",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds. defaultAgentApplied flips only on setAll/setDefaultAgentId; restoreLastSessionOrDefault calls deserializeWorkspace (the only boot setAll) only when an autosave exists and references no unknown component, so on a fresh install (or the unknown-component fallback) the first setAll is the SettingsPanel import, which then switches the active persona despite the comment forbidding it.",
+    "evidence": "src/store/settings.ts:131-183, src/lib/workspace.ts:325-327, src/lib/workspace.ts:494-534, src/components/SettingsPanel.tsx:1806",
+    "evidence_checked": "code-only: read setAll and the latch, every setAll caller, and the boot restore path including both fallbacks.",
+    "repro_check": "code trace: no autosave -> restoreLastSessionOrDefault falls through to applyDefaultLayout without setAll -> import calls setAll with latch false -> setActiveAgent(imported default)."
+  }
+]

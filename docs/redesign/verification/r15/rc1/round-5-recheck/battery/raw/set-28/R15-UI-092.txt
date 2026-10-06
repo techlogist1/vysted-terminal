@@ -1,0 +1,38 @@
+=== R15-UI-092: sanitizeCitationMarkers flags an out-of-range [n] marker instead of silently deleting it ===
+cmd: no live/in-process path (TS logic; vitest is the heavy lane's). grep for the pinned test + source.
+266:  it("flags markers exceeding the source count instead of deleting them (R15-UI-092)", () => {
+267-    const md = "Revenue grew 23% [2]. Margin contracted [47]. Both held [1] [9].";
+268-    const out = sanitizeCitationMarkers(md, 3);
+269-    expect(out).toBe("Revenue grew 23% [2]. Margin contracted [?]. Both held [1] [?].");
+270-  });
+271-
+272-  it("flags EVERY marker on a zero-source brief (the fabricated-citation case)", () => {
+273-    const out = sanitizeCitationMarkers("P/E of 12 [1] per Screener.in [2].", 0);
+274-    expect(out).toBe("P/E of 12 [?] per Screener.in [?].");
+275-  });
+276-
+
+source (src/lib/brief-ingest.ts sanitizeCitationMarkers):
+409:export function sanitizeCitationMarkers(markdown: string, sourceCount: number): string {
+410-  return markdown.replace(CITE_MARKER_RE, (whole, digits: string) => {
+411-    const n = Number(digits);
+412-    return n >= 1 && n <= sourceCount ? whole : BROKEN_CITE_MARKER;
+413-  });
+414-}
+415-
+416-/** How many inline `[n]` markers point past the source list. */
+417-export function countBrokenCitations(markdown: string, sourceCount: number): number {
+418-  let broken = 0;
+419-  for (const m of markdown.matchAll(CITE_MARKER_RE)) {
+420-    const n = Number(m[1]);
+421-    if (n < 1 || n > sourceCount) {
+422-      broken += 1;
+423-    }
+424-  }
+425-  return broken;
+426-}
+427-
+428-/** Bare-domain shapes that read as a web citation inside prose. */
+429-const WEB_DOMAIN_RE =
+
+VERDICT: ci_pinned. certified only via src/lib/brief-ingest.test.ts "flags markers exceeding the source count instead of deleting them (R15-UI-092)" -- test present.

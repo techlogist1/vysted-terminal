@@ -1,0 +1,53 @@
+[
+ {
+  "id": "R15-LEAD-033",
+  "title": "The chat history's '[tool steps: …]' trailer lives inside the assistant `content` string, so llama3.1:8b echoes it back as if it were its own prose",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "frontend-stores",
+  "files": [
+   "src/store/chat-history.ts",
+   "src/modules/chat/ChatSidebar.tsx"
+  ],
+  "repro": "Turn 1: POST /copilot (or vy.py invoke copilot) with prompt \"What is AAPL's market cap?\", provider ollama, model llama3.1:8b, autonomy ask — the agent calls `fundamentals` and answers \"The market cap of AAPL is $4.90T.\". Client-side, chat-history.ts's `historyForSend` calls `withTrailer` on that stored assistant turn, producing content \"The market cap of AAPL is $4.90T.\\n\\n[tool steps: Using fundamentals]\" (readToolLabel's default-case label for the fundamentals tool). Turn 2: send that history plus prompt \"Which tool gave you that market cap figure? Show exactly what it returned.\" against the same session/port. The model's turn-2 answer streams the trailer text verbatim back inside its prose.",
+  "evidence": "docs/redesign/verification/r15/stage-c/batch-17/verifier-evidence/followup-aapl-2-t2.txt:11-15 (ASSISTANT TEXT: \"The market cap of AAPL is $4.90T.\\n\\n[tool steps: Using fundamentals]\\n\\nThis result was returned by the fundamentals tool…\"); followup-aapl-2-history.json:8 (turn-1 content sent as history already carries the trailer: \"The market cap of AAPL is $4.90T.\\n\\n[tool steps: Using fundamentals]\"); VERDICTS.md:95-96 (\"llama3.1:8b echoed the client's history trailer … into its own answer text\").",
+  "root_cause": "chat-history.ts `withTrailer` (used by `historyForSend`, ~line 300) appends the bracketed \"[tool steps: …]\" bookkeeping line straight into the assistant turn's `content` string that goes out over the wire as ordinary chat-history prose — there is no separate metadata channel or role for it, and no client-side stripping before the next model call. The label text itself comes from `readToolLabel` in ChatSidebar.tsx (default case: `Using ${name}`). From the model's point of view the trailer is indistinguishable from the rest of its own prior answer, so a model that reads its own history back (llama3.1:8b, asked to \"show exactly what it returned\") can and does reproduce it.",
+  "fix_shape": "src/store/chat-history.ts: stop folding the trailer into the `content` sent as history — either omit it from `historyForSend`'s payload entirely (the tool-call record is already reconstructable from `toolSteps`/the agent runtime's own trace, so the model does not need it echoed back), or carry it as a distinct system-role history line (e.g. a separate `{role:\"system\", content:\"prior turn used tools: …\"}` entry) instead of appending it inside the assistant `content` a chat model treats as quotable prose.",
+  "defect_class": "prompt-leaks-into-answer",
+  "raw_ids": [],
+  "tier4": false,
+  "operator_areas": [
+   "agent-chat"
+  ],
+  "status": "open",
+  "source": "lead-found batch-17 verifier",
+  "note": "batch-18: filed from the batch-17 fresh verifier's 'outside the entries, not acted on' remark (VERDICTS.md:93-96), observed live against a source-booted sidecar during LEAD-030/031 verification — not investigated or fixed by that verifier.",
+  "closure_evidence": null
+ },
+ {
+  "id": "R15-LEAD-034",
+  "title": "Background India fundamentals warming passes bare screener-universe symbols to the correctness gate, which never strips yfinance's Emerge (SME) '-SM' infix, so every NSE Emerge symbol fails as a symbol mismatch",
+  "severity": "medium",
+  "area": "data",
+  "subsystem": "fundamentals-profile",
+  "files": [
+   "sidecar/services/correctness_gate.py",
+   "sidecar/services/yfinance_provider.py",
+   "sidecar/services/fundamentals_warm.py"
+  ],
+  "repro": "With config.get_region() == \"IN\", let the boot-started `fundamentals_warm` deep crawler (services/fundamentals_warm.py `_crawl_batch`/`_one`, started beside `screener.start_warm_precompute`) run a cycle over the india-all universe; or directly call `await provider_registry.get_fundamentals(\"INSPIRE\")` (or IPHL, ISHAN — any NSE Emerge/SME-listed symbol) with region IN. yfinance_provider resolves the bare symbol to Yahoo's `INSPIRE-SM.NS` form and returns `Fundamentals(symbol=\"INSPIRE-SM.NS\", …)`; provider_registry's `_fundamentals_validator` calls `correctness_gate.validate_fundamentals(result, \"INSPIRE\", \"IN\")`, which raises `CorrectnessError: … symbol mismatch`. The crawler's `except Exception` handler (fundamentals_warm.py) logs it at debug level and calls `mark_info_failure`, so the symbol never populates and silently rotates out for `TTL_INFO_RETRY_SECONDS` — deterministically, every cycle, since the mismatch is not transient.",
+  "evidence": "VERDICTS.md:97-99 (\"During the MSFT run, the sidecar log showed a sweep of fundamentals calls for *-SM.NS symbols (INSPIRE-SM.NS, IPHL-SM.NS, ISHAN-SM.NS) that failed the correctness gate. This looks like background warming, not the agent.\"); no raw sidecar-log excerpt for this sweep was saved under verifier-evidence/ (sidecar-guard-lines.log:1 holds only the unrelated SIFY citation-guard line) — the mechanism below was traced by reading the code the remark implicates, per the filing brief's step 2.",
+  "root_cause": "correctness_gate.py's `_SUFFIX_RE` (line 59, `[.\\-](NS|BO|BSE)$`) and `_match_key` (lines 116-128) strip only the exchange suffix (`.NS`/`.BO`/`.BSE`); they do not strip yfinance's Emerge-only `-SM` infix (added by `yfinance_provider._yahoo_symbol`, lines 155-157, for any `symbol_resolver.is_nse_emerge` name). `fundamentals_warm.py`'s deep crawler (line 363, `provider_registry.get_fundamentals(symbol)`) passes the bare india-all universe symbol (e.g. \"INSPIRE\") as `requested_symbol` straight through to `correctness_gate.validate_fundamentals`. `symbols_match(\"INSPIRE\", \"INSPIRE-SM.NS\")` normalises the two sides to \"INSPIRE\" and \"INSPIRESM\" respectively — they do not match — so every SME/Emerge listing's fundamentals is rejected as a wrong-instrument result and never reaches the fundamentals store, regardless of how many times the crawler retries.",
+  "fix_shape": "sidecar/services/correctness_gate.py `_match_key`: also strip a trailing `-SM` (or `[\\s_-]?SM`) infix before the exchange suffix comparison, the same way the sector-lookup already does ad hoc in yfinance_provider.py:772-773 (`bare.endswith(\"-SM\")`) — centralise that stripping in `_match_key` so every caller (quotes, series, fundamentals) benefits, and pin it with a `symbols_match(\"INSPIRE\", \"INSPIRE-SM.NS\") is True` case in test_correctness_gate.py.",
+  "defect_class": "symbol-normalisation-gap",
+  "raw_ids": [],
+  "tier4": false,
+  "operator_areas": [
+   "data-smallcaps"
+  ],
+  "status": "open",
+  "source": "lead-found batch-17 verifier",
+  "note": "batch-18: filed from the batch-17 fresh verifier's 'outside the entries, not acted on' remark (VERDICTS.md:93,97-99), observed in the sidecar log during the live MSFT follow-up run against a source-booted sidecar — not investigated by that verifier; root cause traced to correctness_gate._match_key not stripping yfinance's NSE Emerge '-SM' infix.",
+  "closure_evidence": null
+ }
+]

@@ -1,0 +1,15 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  38.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_13069a6ca0d44e0d8650eaf3e3be7434", "name": "price_data", "input": {"asset_class": "equity", "range": "1y", "symbol": "AAPL", "timeframe": "1d"}}
+[  46.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_13069a6ca0d44e0d8650eaf3e3be7434", "name": "price_data", "ok": true, "error": null}
+[  56.3s] heartbeat: {"kind": "heartbeat"}
+[  66.3s] heartbeat: {"kind": "heartbeat"}
+[  78.3s] done: {"kind": "done", "usage": {"input_tokens": 6528, "output_tokens": 73, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The tool that gave me the market cap figure is `price_data`. The exact response from this tool is:
+
+{"ok": true, "symbol": "AAPL", "timeframe": "1d", "provider": "yfinance", "quote": {"symbol": "AAPL", "market_cap": 4930119000000.0}}
+
+=== ok · 78.3s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 73, 'done': 1} · usage in=6528 out=73 · est $0.00000 · llama3.1:8b

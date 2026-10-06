@@ -1,0 +1,95 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_06e39713d8324b0bac23b8a3ab9ec2bd", "name": "price_data", "input": {"symbol": "AAPL"}}
+{"kind": "tool_result", "tool_call_id": "call_06e39713d8324b0bac23b8a3ab9ec2bd", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " returned"}
+{"kind": "delta", "text": " historical"}
+{"kind": "delta", "text": " bar"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " but"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " did"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " include"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " capital"}
+{"kind": "delta", "text": "ization"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " get"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " capital"}
+{"kind": "delta", "text": "ization"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " should"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " called"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " fundamentals"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " instead"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Here"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " what"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " fundamentals"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " returns"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_f7cb1f2a333847c18dd650605a6e606b", "name": "fundamentals", "input": {"symbol": "AAPL"}}
+{"kind": "tool_result", "tool_call_id": "call_f7cb1f2a333847c18dd650605a6e606b", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " capital"}
+{"kind": "delta", "text": "ization"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "90"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " result"}
+{"kind": "delta", "text": " came"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " fundamentals"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " used"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " provided"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " y"}
+{"kind": "delta", "text": "finance"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 9655, "output_tokens": 32, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

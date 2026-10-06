@@ -1,0 +1,100 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_02320c9977564fc1869086b7f2185fe6", "name": "get_terminal_state", "input": {}}
+{"kind": "tool_use", "tool_call_id": "call_01307408fa8b4606ac15c0899bf2f2ba", "name": "get_terminal_state", "input": {"region": "IN", "query": "Zomato stock"}}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": "'re"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " V"}
+{"kind": "delta", "text": "yst"}
+{"kind": "delta", "text": "ed"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " drive"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " cockpit"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " tools"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " open"}
+{"kind": "delta", "text": " panels"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " load"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": " into"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " chart"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " apply"}
+{"kind": "delta", "text": " chart"}
+{"kind": "delta", "text": " indicators"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " arrange"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " layout"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " add"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " remove"}
+{"kind": "delta", "text": " watch"}
+{"kind": "delta", "text": "list"}
+{"kind": "delta", "text": " symbols"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " publish"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " brief"}
+{"kind": "delta", "text": "s"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " stage"}
+{"kind": "delta", "text": " scre"}
+{"kind": "delta", "text": "ener"}
+{"kind": "delta", "text": " filters"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " run"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " save"}
+{"kind": "delta", "text": " screens"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " layouts"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " maintain"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " local"}
+{"kind": "delta", "text": " tracked"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " write"}
+{"kind": "delta", "text": " notes"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " switch"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " regions"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " run"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "As"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " status"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2787, "output_tokens": 96, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

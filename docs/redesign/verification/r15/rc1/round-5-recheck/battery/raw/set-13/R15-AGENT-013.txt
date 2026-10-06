@@ -1,0 +1,39 @@
+Probe: a real Delegate run launched on own sidecar (:52352) via the actual runs API
+(POST /agents/copilot/runs, provider ollama, model llama3.1:8b — under the Ollama single-lane
+lock), polled to completion, then GET /runs/{id} read directly (not through Composer UI, which
+this shard cannot drive — no GUI). Run id 5544c1f35e3c44a49a0dfd88d313de22.
+
+Prompt: "Give me a two-sentence overview of NVIDIA (NVDA) as a company. Then briefly note one risk."
+
+Command:
+  curl -s -X POST http://127.0.0.1:52352/agents/copilot/runs -H "Content-Type: application/json" \
+    -d '{"prompt":"...","provider":"ollama","model":"llama3.1:8b"}'
+  # poll GET /runs/5544c1f35e3c44a49a0dfd88d313de22 until status=done
+
+Full run record saved alongside as R15-AGENT-013-run-record.json.
+
+Result (status: done, 2 steps, 13749 tokens):
+  answer: 588 characters, a COMPLETE two-paragraph answer ending on a full sentence
+    ("...if the company's revenue was to decline.") — not cut mid-word at char 500.
+  brief: a full structured NVIDIA brief object (query, symbol NVDA, price/fundamentals/news/
+    filings structured data) — NOT dropped.
+  host_actions: [] (none proposed this run — expected, the prompt asked no write action).
+
+Exit: 0
+
+Verdict basis: the register's defect was the answer truncated to EXACTLY 500 chars
+(`runs_store.py: text[:500]`) with publish_brief/host-action events silently dropped. Here the
+answer is 588 chars and ends on a complete sentence, and the full brief object survives on the
+run record — source check confirms run_manager.py:191-202 now separates publish_brief
+(`brief = action["input"]`) from other host_actions and _output() returns
+`"answer": "".join(delta_buffer).strip() or None` (the FULL joined text, uncapped); the
+remaining `text[:500]` in runs_store.py:281 is `_digest_transcript`'s human-readable checkpoint
+view only, not the delivered answer. Matches batch-4's certification ("The 1,722-char answer
+landed in tab A's archived thread ... marked brief-published ... An earlier REST-only run stored
+a 553-char answer untruncated. The census run was cut at exactly 500.").
+
+Not re-probed this shard (needs Composer UI, no GUI here): whether the frontend actually
+delivers this run's answer/brief into the originating chat tab on the terminal poll (the
+`deliverTo` wiring in src/store/agent-spaces.ts, which the source comment explicitly ties to
+this entry) and whether AgentsRail still shows a finished run. The backend half above — the
+truncation and event-dropping the register's own repro measured — is confirmed fixed.

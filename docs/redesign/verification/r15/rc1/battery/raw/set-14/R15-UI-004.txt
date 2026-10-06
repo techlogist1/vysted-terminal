@@ -1,0 +1,3 @@
+429:        ? "no live quotes resolved"
+432:        ? `excludes ${unresolvedSymbols.join(", ")} (no live quote)`
+982:                  : "— (no live quotes)"}

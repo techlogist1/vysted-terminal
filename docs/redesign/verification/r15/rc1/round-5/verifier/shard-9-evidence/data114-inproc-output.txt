@@ -1,0 +1,8 @@
+option_chain: no F&O bhavcopy within 7 days of 2026-09-21
+option_chain: no F&O bhavcopy within 7 days of 2026-09-21
+option_chain: no F&O bhavcopy within 7 days of 2026-09-21
+C acceptance (Tue missing, Mon failed, Fri cached): results=['2026-09-18', '2026-09-18', '2026-09-18'] network_calls=['2026-09-22', '2026-09-21']
+D fresh (Wed failed, Tue cached): results=['2026-09-22', '2026-09-22', '2026-09-22'] network_calls=['2026-09-23']
+E fresh (Thu missing, Wed missing, Tue failed, Mon uncached, Fri cached): results=['2026-09-18', '2026-09-18', '2026-09-18'] network_calls=['2026-09-24', '2026-09-23', '2026-09-22']
+F fresh (Mon failed, nothing cached -> honest None): results=[None, None, None] network_calls=['2026-09-21']
+TRUNCATED-ZIP today, Mon cached -> RAISED BadZipFile File is not a zip file

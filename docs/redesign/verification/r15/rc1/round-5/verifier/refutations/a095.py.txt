@@ -1,0 +1,16 @@
+import json
+from services import agent_runtime as ar
+S={"ok":True,"fundamentals":{"symbol":"SIFY","financial_currency":"INR","shares_outstanding":144869230}}
+D={**S,"ads_ratio":{"ordinary_shares_per_ads":6,"statement":"American Depositary Shares, each represented by Six Equity Shares","provenance":{"source":"SEC 20-F cover page","filed":"2026-06-26","url":"x"}}}
+d,b=json.dumps(D),json.dumps(S)
+own=['2026-06-26: One SIFY ADS represents six equity shares. ','As of June 26, 2026, each SIFY ADS represents 6 equity shares. ','Per the 20-F filed 06/26/2026, each SIFY ADS represents six equity shares. ',
+ "On 26 June 2026 Sify's 20-F stated that each ADS represents 6 equity shares. ",'Per the 20-F filed 26-06-2026, each SIFY ADS represents six equity shares. ']
+for s in own:
+    kept = ar._guard_ratio_claims(s,[d])==s; repl_bare = ar._guard_ratio_claims(s,[b])==ar.RATIO_UNAVAILABLE+' '
+    print('OWN kept_vs_depositary=%s replaced_vs_bare=%s :: %r'%(kept,repl_bare,s))
+fab='As of 2026-06-26 each SIFY ADS represents 5 equity shares. '
+print('OWN fabrication(5) replaced:', ar._guard_ratio_claims(fab,[d])==ar.RATIO_UNAVAILABLE+' ')
+fresh=['Per the 20-F filed 26-Jun-2026, each SIFY ADS represents six equity shares. ','Per the 20-F filed Jun-26-2026, each SIFY ADS represents six equity shares. ',
+ 'Per the 20-F filed 26 Jun 2026, each SIFY ADS represents 6 equity shares. ','Per the 20-F filed 2026/06/26, each SIFY ADS represents 6 equity shares. ','Per the 20-F filed June 2026, each SIFY ADS represents 6 equity shares. ']
+for s in fresh:
+    out=ar._guard_ratio_claims(s,[d]); print('FRESH kept=%s :: %r -> %r'%(out==s,s,out[:80]))

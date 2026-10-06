@@ -1,0 +1,4 @@
+HEAD 633f844071d972b337f4c3526d86555c80df0568
+{"q": "KSE", "wall_s": 0.0, "ok": true, "legs_ok": {"price": null, "fundamentals": null, "news": null, "filings": null}, "web": {"available": null, "reason": null, "note": null}}
+{"q": "Kaveri Seed", "wall_s": 6.4, "ok": true, "legs_ok": {"price": false, "fundamentals": false, "news": true, "filings": true}, "web": {"available": true, "reason": null, "note": null}}
+EXIT=0

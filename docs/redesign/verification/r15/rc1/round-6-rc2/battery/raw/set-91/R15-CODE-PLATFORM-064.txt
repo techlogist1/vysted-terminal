@@ -1,0 +1,9 @@
+CMD: scripts/render_phase_6_e_screenshots.py (orig repro) with venv python
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python: can't open file '/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/scripts/render_phase_6_e_screenshots.py': [Errno 2] No such file or directory
+EXIT=
+0
+CHANGELOG.md:2175:  `scripts/render_phase_6_sc_screenshots.py`, matching the Teammate E + F
+docs/mockups/README.md:26:Their generator scripts (`scripts/render_phase_6_e_screenshots.py`,
+docs/mockups/README.md:27:`scripts/render_phase_6_sc_screenshots.py`) are deleted (R15-CODE-PLATFORM-064):
+docs/redesign/verification/vysted-r15-register.json:15182:   "evidence": "[COD-scripts-build-12] .github/workflows/lint.yml:87-89 (ruff check sidecar; ruff format --check sidecar), package.json:19 (ci-local: same two path-scoped commands), scripts/render_phase_6_sc_screenshots.py:191 (f\"6 rows  (100 evaluated, 320 ms)\" — f-string with no placeholder, ruff F541), scripts/render_phase_6_sc_screenshots.py:151,208,220-221 (lines far past the formatter width) -- refuter admitted_with_correction (low->low): Confirmed that ruff runs only on sidecar/ in lint.yml and ci-local, and that ruff 0.15.12 on scripts/ reports F541 + F841 and would reformat 2 files. Scope correction: 12 tracked .py files sit outside the gate, not just the two screenshot generators. The others are the r15 tooling (vy.py, register.py, ...) and scripts/rig/ including test_rig_guard.py. Those are real tools today, so the blind spot is not only hypothetical. Still low.",
+docs/redesign/verification/vysted-r15-register.json:15201:    "scripts/render_phase_6_e_screenshots.py",

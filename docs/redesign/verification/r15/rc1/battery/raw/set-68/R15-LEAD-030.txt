@@ -1,0 +1,17 @@
+=== R15-LEAD-030 source check (no live model call, per LEAD NOTE no-fix-round) ===
+2321:def _judge_clause(
+2322-    clause: str, inside: list[_Ref], tail: str, ctx: _GuardContext, context: str = ""
+2323-) -> str | None:
+2324-    """The note that replaces ``clause`` (with ``tail``, the block or dump it
+2325-    introduces), or None when it streams. ``inside``: the tool references
+2326-    that apply to it; ``context``: the colon intro binding it, read for
+2327-    subjects only.
+2328-
+2329-    A figure is judged by provenance (:mod:`services.figure_grounding`): a
+2330-    clause whose figures are all grounded streams, whatever it says about a
+2331-    tool (rule 3). Otherwise a clause goes when it names a tool with no ok
+2332-    result and cites it, or carries an ungrounded figure or a dump and names
+2333-    no ok tool; when every call of the turn failed and it carries an
+2334-    ungrounded figure or a dump (rule 1, naming the tools that errored);
+2335-    when its ungrounded figure sits with the symbol of an errored call (rule
+2336-    2b); or, with no tool named, when it credits "the tool" while none has

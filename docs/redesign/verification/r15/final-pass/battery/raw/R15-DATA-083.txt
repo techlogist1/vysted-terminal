@@ -1,0 +1,36 @@
+# R15-DATA-083 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:47:59+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio
+from services import openbb_mcp_provider as ob, sec_filings_provider as sp
+class Stub:
+    def __init__(s): s.n=0
+    async def call_tool(s, name, args):
+        s.n+=1
+        if s.n==1: return {"isError":False,"content":[{"type":"text","text":'{"ok":1}'}]}
+        return {"isError":True,"content":[{"type":"text","text":"upstream 500"}]}
+async def go():
+    for mod,label in ((ob,"openbb-mcp"),(sp,"sec-edgar-mcp")):
+        st=Stub()
+        async def gc(st=st): return st
+        mod._subprocess._get_client=gc
+        mod._subprocess.resolve_endpoint=lambda: "http://127.0.0.1:1/mcp"
+        try: await mod._call_tool("x",{}); print(mod.__name__,"call1 ok")
+        except Exception as e: print(mod.__name__,"call1 raised",type(e).__name__,e)
+        print(mod.__name__,"status after ok:",await mod._subprocess.status(label))
+        try: await mod._call_tool("x",{}); print(mod.__name__,"call2 ok (unexpected)")
+        except Exception as e: print(mod.__name__,"call2 raised",type(e).__name__,str(e)[:120])
+        print(mod.__name__,"status after isError:",await mod._subprocess.status(label))
+asyncio.run(go())
+PY
+--- output ---
+services.openbb_mcp_provider call1 ok
+services.openbb_mcp_provider status after ok: {'available': True, 'provider': 'openbb-mcp', 'endpoint': 'http://127.0.0.1:1/mcp', 'lastToolCallOk': True, 'lastError': None}
+services.openbb_mcp_provider call2 raised ProviderError openbb-mcp tool 'x' reported error: [{'type': 'text', 'text': 'upstream 500'}]
+services.openbb_mcp_provider status after isError: {'available': False, 'provider': 'openbb-mcp', 'endpoint': 'http://127.0.0.1:1/mcp', 'lastToolCallOk': False, 'lastError': "ProviderError: openbb-mcp tool 'x' reported error: [{'type': 'text', 'text': 'upstream 500'}]"}
+services.sec_filings_provider call1 ok
+services.sec_filings_provider status after ok: {'available': True, 'provider': 'sec-edgar-mcp', 'endpoint': 'http://127.0.0.1:1/mcp', 'lastToolCallOk': True, 'lastError': None}
+services.sec_filings_provider call2 raised ProviderError sec-edgar-mcp tool 'x' reported error: [{'type': 'text', 'text': 'upstream 500'}]
+services.sec_filings_provider status after isError: {'available': False, 'provider': 'sec-edgar-mcp', 'endpoint': 'http://127.0.0.1:1/mcp', 'lastToolCallOk': False, 'lastError': "ProviderError: sec-edgar-mcp tool 'x' reported error: [{'type': 'text', 'text': 'upstream 500'}]"}
+
+EXIT=0 (1.0s)

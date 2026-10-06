@@ -1,0 +1,17 @@
+# R15-DOCS-021 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'custom_agents.db\|delegate_runs.db\|Honest gaps\|_ensure_added_columns' docs/CURRENT_STATE.md | head; grep -n '_ensure_added_columns\|CREATE TABLE IF NOT EXISTS' sidecar/services/runs_store.py sidecar/services/agents_store.py | head
+--- output ---
+802:| Custom agents (`/custom-agents` CRUD)                                          | Sidecar    | SQLite                         | `get_data_dir()/custom_agents.db`              |
+804:| Durable Delegate runs (`services/runs_store.py`)                               | Sidecar    | SQLite `runs`                  | `get_data_dir()/delegate_runs.db`              |
+831:**Honest gaps:** **no DB migrations for six of the seven SQLite stores**
+832:(`portfolio.db`, `data_cache.db`, `custom_agents.db`, `plugins.db`,
+835:`delegate_runs.db` is the one exception: `runs_store._ensure_added_columns`
+sidecar/services/runs_store.py:15:hits its own database), ``CREATE TABLE IF NOT EXISTS`` schema, CRUD only — no
+sidecar/services/runs_store.py:114:CREATE TABLE IF NOT EXISTS runs (
+sidecar/services/runs_store.py:158:def _ensure_added_columns(conn: sqlite3.Connection) -> None:
+sidecar/services/runs_store.py:163:    ``CREATE TABLE IF NOT EXISTS`` covers a fresh file; an existing table needs
+sidecar/services/runs_store.py:182:    _ensure_added_columns(conn)
+sidecar/services/agents_store.py:46:CREATE TABLE IF NOT EXISTS custom_agents (
+
+EXIT=0 (0.0s)

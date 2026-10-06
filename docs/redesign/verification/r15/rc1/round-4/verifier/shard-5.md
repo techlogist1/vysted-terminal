@@ -1,0 +1,51 @@
+# RC1 gate round 4 — adversarial sample verifier, shard 5
+
+- Label: `rc1-vshard-5` (Opus, fresh context).
+- Candidate: `68d5573aff9a579af084dcbb124843f2aecff6e8`, from the read-only worktree `scratchpad/rc1-round-4-1006c6d-fix-int`.
+- Live checks ran against my own source-booted sidecar on `:52605`. Its data dir was `scratchpad/rc1-round-4-data-rc1-vshard-5`, a copy of the seed. MCP came from the shared `:52153`/`:52154`, used read-only.
+- The shared `:52152` runs `1006c6da`, not the candidate, so I never used it.
+- Raw evidence is in `verifier/shard-5-evidence/` (scripts, SSE captures, the mathjs parity output and the nemotron captures).
+- Result: 23 checked. 16 hold and 7 are not certified.
+  - The 7 not certified are DATA-053, DATA-061, CODE-PLATFORM-017, UI-018, AGENT-084, DOCS-016 and CODE-PLATFORM-021.
+  - DATA-061 is its **third** certification failure (batch-8, batch-9, now). It is left for the lead per the three-failure rule; there is no fix round here.
+
+## Verdicts
+
+| id | verdict | fresh case / evidence |
+|---|---|---|
+| R15-LEAD-018 | holds | `test_reasoning_split.py` 4 passed (fixture replay + split-tag class pin). Live free-lane nemotron (`nvidia/nemotron-3-super-120b-a12b:free`) through `get_provider("openrouter").stream_chat` at the candidate gave 52 thinking + 53 delta events; the CoT ("We need to answer… Let's craft. Sentence 1: …") was all in thinking and the visible text was answer-only. A second fresh case with tools (`web_search`) gave 35 thinking + 1 tool_use and 0 visible chars. Ledger rows are tagged `rc1-vshard-5`, $0. |
+| R15-CODE-PLATFORM-029 | holds | Repro (flat 4×+10): one trade, qty 40, equity 99996.0, totalReturn -4e-05. Fresh case (2 symbols, pyramid then exit): pnl 592.8 each, which equals the weighted-average expectation. |
+| R15-LIFECYCLE-015 | holds | 34 runs, then an LRU reset: `backtest_summary` on run #1 ok. List is newest-first by started_at. Live: 2 runs persisted, and after a **sidecar restart** `GET /backtest/runs` still returned `["836d3416…","a126f7fe…"]` newest-first. |
+| R15-AGENT-084 | **not certified** | The literal repro holds: llama3.1:8b emitted `add_chart_drawing {"kind":"horizontal-line","panelId":"chart","points":[{"price":1450}]}` and the result was ok. The unfixed claim is the "hand-action inventory" leg. `HAND_ACTION_INVENTORY` (`src/lib/host-actions.ts`) has no row and no exclusion for create/rename/delete portfolio, load/delete workspace, delete saved screen, or chart compare/set-timeframe. SC-022 enumerates compare and timeframe. The parity test cannot catch a missing row. |
+| R15-CODE-PLATFORM-021 | **not certified** (low) | The core fork is fixed. No writers remain (`test_the_ledger_has_no_writers`), the route is GET-only (pinned in `test_no_trading_surface.py:190-192`), and live `POST /portfolio/positions` returns 405. The ledger is read once for import (`workspace.ts:998`), a deliberate change from the fix_shape's delete, driven by LIFECYCLE-009. The unfixed claim is "docstrings make incompatible authority claims". `sidecar/models/portfolio.py:3-6` still says `Position` "is the stored record (… the user's tracked portfolio). The portfolio service … computes P&L by joining positions against live quotes". No portfolio service exists; P&L is client-side per `api.ts`. `types/data.ts:644` says "A single held position, persisted in the local SQLite database". Both contradict "Holdings are owned by the workspace blob" in `routers/portfolio.py`, `services/portfolio_db.py` and `api.ts`. |
+| R15-CODE-AGENT-013 | holds | Every remaining Capability knob has a reader and a non-default instance. The derived `internal`/`mcp` are properties. Live: alias `macro` accepted; `quote` rejected (retired). |
+| R15-DATA-053 | **refuted** | The entry's own raw repro DAT-P13-4: `GET /quotes/ELCIDIN?asset_class=equity` returns open/high/low/prev_close all null (nse_direct); `nse_provider._quote_from_history/_quote_from_payload` never fill OHLC (AMAL is null too). Class residual on volume: `bse_provider._fetch_scrip_header` sets `volume=_num(TTQ)` and ignores `TTQin`. RELIANCE 500325.BO is served volume 5.28, but the raw StockTrading payload has `TTQ 5.28` with `TTQin "(Lakh)"`, so truth ≈ 528,000. TCS.BO 1.26 and INFY.BO 8.12 are wrong the same way; ICON (blank unit) at 1200 is correct. |
+| R15-DATA-096 | holds | Income is cached: 2nd call 0.0014 s, identical body, row in `data_cache`. Unknown symbol → 404 not_found, not cached. MAX_ROWS=5 with 8 sets → size 5, k0 evicted. SQLite runs via `asyncio.to_thread`. |
+| R15-LEAD-024 | holds | WEO IND.NGDP_RPCH.A 2025-2031 `is_projection` True, 2023/24 False. Fresh: JPN.PCPIPCH and USA.NGDPD are flagged the same way. |
+| R15-DATA-095 | holds | Appending `ebitda_margin` and opening the existing seed DB (user_version 1, 6667 rows) adds the column. A trimmed 3-column DB has nothing missing after open. An injection-style field is rejected by `_field_column`. |
+| R15-DOCS-016 | **not certified** (low) | The AUTO/staging prose matches the code. But `docs/CURRENT_STATE.md:753-754` says "every agent-proposed mutation over the 18 surviving host actions". `HOST_ACTION_NAMES` has 19, and other lines of the same doc (78, 448, 582, 682, 717, 869) say 19. So a hand count survives, which the fix_shape forbids; `proposed-change-kinds.test.ts` only checks that the names appear. |
+| R15-DATA-061 | **not certified — 3rd failure** | The entry's repros hold: 429/404/503/502 mapping across 7 routes with no raw text; `/quotes/ZZZZNOTREAL` 404; `/macro/GDP` 422. Fresh class cases (live :52605): `/macro/ZZNOTREAL?provider=ecb` → 502 provider_error "Retry, or try again later.", and the log shows `ECB upstream error … not enough values to unpack`, a library error classified as an upstream failure rather than not_found. `/macro/GDP?provider=world-bank` → 502 retry. `/macro/GDP?provider=worldbank` and `/macro/NY.GDP.MKTP.CD?provider=worldbank` → 502 retry: the unvalidated provider is passed to openbb `economy_fred_series`, which answers 422 literal_error. Batch-9's own fresh case still gives the wrong kind/action; only its raw-text half is fixed. IMF unknown key → 404 (correct). |
+| R15-RESEARCH-028 | holds | Live `/search/searxng/status` → `degraded` with engine reasons (brave/duckduckgo/startpage unresponsive). In-process `web_search` → backend `keyless-fallback`, reason `searxng_degraded`. Settings and BriefPanel render `degraded`. |
+| R15-AGENT-063 | holds | `news symbols=BTC/USDT` → 1 scored, tagged item. ETH/USDT → 1 Ethereum item. Agent news tool BTC/USDT → items tagged `['BTC/USDT']`. |
+| R15-CODE-PLATFORM-017 | **not certified** | The entry cases hold server-side: round(2.5)=3, 2^3=8, ternary=1. Fresh parity run of mathjs 15.2.0 (the inspector preview) against the server `evaluate_code`: round(1.005,2) 1.01 vs 1.0; log(100,10) 2 vs "disallowed syntax: Call"; nested ternary 2 vs parse error; 1/0 Infinity vs error; sqrt(-4) 2i vs error. The inspector still shows a mathjs **value** preview, beyond the fix_shape's "syntax preview at most". There is no shared parity fixture, so the preview still disagrees with what runs. |
+| R15-DOCS-004 | holds | SUPERSEDED banner in `PRODUCT_DESIGN_DECISIONS.md`; D-B10-11 row present; pin `design-doc-citations.test.ts`. |
+| R15-DOCS-005 | holds | BLUEPRINT :20/:238 "20 modules" = `src/modules/index.ts` 20. |
+| R15-DATA-078 | holds | Alpha Vantage appears only in the `format.ts` label map and in research notes; BLUEPRINT :266 drops it. |
+| R15-UI-032 | holds | Live CIKs: Apple 0000320193, NVIDIA 1045810, Palantir 1321655, Berkshire 1067983, Lilly 59478. The panel has debounced suggestions. |
+| R15-UI-028 | holds | Fresh put (S 1450, K 1500, r .065, q .01, σ .22, 2026-09-27→2027-03-26), live raw vega 404.0027 / theta -45.3737 / rho -392.7269 → display vega/100 4.0400, theta/365 -0.12431, rho/100 -3.92727. Independent Black-Scholes matches. Both panels use `greekForDisplay`. |
+| R15-UI-018 | **not certified** | Every named site uses `ConfirmButton` (two-step, 4 s), and key-removal errors are caught. Fresh class case: `src/modules/node-editor/schedule-control.tsx:171` Delete → `deleteSchedule` (`store/workflow.ts:440`, `DELETE /workflow/schedules/{id}`) runs in one click, with no confirm or undo. |
+| R15-CODE-PLATFORM-012 | holds | Code read: the only direct load/unload callers are the runtime itself, boot, and marketplace reload. `PluginManagerPanel.handleToggle` goes through `useMarketplaceStore` enable/disable, and the runtime persists and then detaches. |
+| R15-AGENT-057 | holds | Live: POST 201, duplicate 409, PUT 200 (system_prompt → "v2 prompt"), bad tool 422, missing DELETE 404. `plugin-agents.ts` checks `ok`, retries 409 as PUT, skips 404 on DELETE and throws on collected failures; attach errors → `transitionToError`. |
+
+## Adjacent (not refutations)
+
+- **UI-028 (low):** agent/MCP `compute_greeks` (`quant_tools._compute_greeks`, catalog description) returns raw QuantLib units (vega per 1.00 vol, theta per year, rho per 1.00) with no unit labels. An agent quoting vega=404 contradicts the panel's 4.04.
+- **DOCS-016 (low):** `CURRENT_STATE.md:693` "14 tool ids incl. all host actions" vs `copilot.json` 55. Lines 121 and 507 say "18 modules" vs 20.
+- **DATA-061 (low):** FRED keyless → 502 with detail "needs a free API key" but action "Retry" (overlaps the open CODE-PLATFORM-038).
+- **LEAD-018 (low):** `ReasoningSplitter` routes only balanced `<think>…</think>`. A stray closing `</think>` with no opener (the prompt-injected-opener pattern of R1-distill/qwen3 templates) leaks as literal visible text: `['Let me reason… ','</think>','Answer: sell.']` → visible `'Let me reason about the strike. </think>Answer: sell.'`. Nemotron is not affected.
+
+## Notes
+
+- The OpenRouter nemotron calls were made in-process through the candidate adapter, using `vy.py`'s `_budget_check`/`_key`. vy.py refuses non-GET to :52605. The key was never printed. Two free-lane ledger rows tagged `rc1-vshard-5`, $0.
+- The Ollama calls ran under `/tmp/vysted-r15-ollama.lock`. During RESEARCH-028 the trap's `rmdir` found the lock already removed by another holder (logged).
+- Own sidecar stopped by killing only its sleep pid (33968, then 55063 after the restart check). `:52605` health → 000.

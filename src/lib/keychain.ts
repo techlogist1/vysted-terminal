@@ -18,7 +18,7 @@
 import { invoke } from "@tauri-apps/api/core";
 
 /**
- * Canonical namespace builders for the four secret categories Vysted
+ * Canonical namespace builders for the secret categories Vysted
  * persists in the OS keychain. Frontend, sidecar, and plugin authors all
  * read these strings — keep them stable across releases unless coordinating
  * a migration.
@@ -34,16 +34,21 @@ export const KEYCHAIN_NAMESPACES = {
   pluginSecret: (pluginId: string, key: string): string => `plugin-secret:${pluginId}:${key}`,
 
   /**
-   * Broker credential (Phase 5). One entry per broker × field — e.g.
-   * `broker:alpaca:api_key`, `broker:kite:access_token`,
-   * `broker:dhan:client_id`. Brokers with multiple OAuth-style fields
-   * store each under its own `field` so revoking one does not require
-   * re-entering the others. The disclaimer-ack persisted state
-   * (`first-launch-tos`, per-broker `first-connect-ack`) lives under
-   * `broker:_meta:first-launch-tos` and
-   * `broker:<broker-id>:_meta:first-connect-ack` respectively.
+   * App-level meta flag (not a credential) — e.g. `app-meta:onboarding-complete`.
+   * Used for durable first-run state that must survive a workspace-layout reset
+   * or an imported older blob. Carries no secret; the stored value is a
+   * timestamp/choice tag. The onboarding flags now live in the data-dir app-meta
+   * file ({@link getAppMeta}); this keychain id is still read once as the legacy
+   * location, and the first-launch terms ack still uses it.
    */
-  broker: (brokerId: string, field: string): string => `broker:${brokerId}:${field}`,
+  appMeta: (key: string): string => `app-meta:${key}`,
+
+  /**
+   * An `action.webhook` node's destination URL (a BYOK secret: it often embeds
+   * a token). The node config carries only the ref; the renderer registers the
+   * URL with the sidecar's process memory at boot and when it is set.
+   */
+  workflowWebhook: (ref: string): string => `workflow-webhook:${ref}`,
 } as const;
 
 /** Persist a secret to the OS keychain under `account`. Overwrites any prior value. */
@@ -60,4 +65,118 @@ export async function getSecret(account: string): Promise<string | null> {
 /** Remove a secret from the OS keychain. No-op if the secret was never set. */
 export async function deleteSecret(account: string): Promise<void> {
   await invoke<void>("keychain_delete", { account });
+}
+
+/**
+ * True when a keychain call rejected because the OS secret store itself is
+ * unusable (Linux without a Secret Service provider, a locked or refused store)
+ * — the Rust core prefixes those errors (R15-CROSS-PLATFORM-011).
+ */
+export function isSecretStoreUnavailable(error: unknown): boolean {
+  return String(error).startsWith("secret-store-unavailable");
+}
+
+/**
+ * Read a non-secret app-meta flag from `<data-dir>/app-meta.json` via the Rust
+ * core. Kept out of the keychain so a missing secret store never loses it.
+ */
+export async function getAppMeta(key: string): Promise<string | null> {
+  return (await invoke<string | null>("app_meta_get", { key })) ?? null;
+}
+
+/** Persist a non-secret app-meta flag (see {@link getAppMeta}). */
+export async function setAppMeta(key: string, value: string): Promise<void> {
+  await invoke<void>("app_meta_set", { key, value });
+}
+
+/** Emitted by `keychain_migrate` (payload: seconds) before its idle wait. */
+export const KEYCHAIN_MIGRATE_WAITING_EVENT = "keychain-migrate:waiting";
+
+/** Report from {@link migrateDevKeystore}. */
+export interface KeychainMigrateReport {
+  /** `"dev-keystore"` in dev builds, `"os-keychain"` in release. */
+  backend: string;
+  /** How many accounts were copied keychain→file on this call. */
+  migrated: number;
+  /** True when migration had already run (no-op) or in release (nothing to do). */
+  already_done: boolean;
+  /** Accounts whose keychain read errored on this call; the next boot retries them. */
+  failed: string[];
+}
+
+/**
+ * Every account the dev keystore migration should sweep from the OS keychain on
+ * first dev boot. Generous by design — reading a non-existent account is a
+ * harmless `None`. Covers every provider, the app-meta flags, and the
+ * plugin/news secrets, so the operator's configured
+ * keys carry over without a single extra dialog after the migration read.
+ */
+export function devKeystoreMigrationAccounts(): string[] {
+  const providers = [
+    "anthropic",
+    "openai",
+    "gemini",
+    "groq",
+    "ollama",
+    "deepseek",
+    "xai",
+    "openrouter",
+    "perplexity",
+    "mistral",
+  ];
+  const accounts = new Set<string>();
+  for (const id of providers) accounts.add(KEYCHAIN_NAMESPACES.llmProvider(id));
+  accounts.add(KEYCHAIN_NAMESPACES.appMeta("first-launch-terms"));
+  accounts.add(KEYCHAIN_NAMESPACES.appMeta("onboarding-complete"));
+  // Plugin / external-service secrets that have shipped.
+  accounts.add(KEYCHAIN_NAMESPACES.pluginSecret("vysted-news", "newsapi_key"));
+  accounts.add(KEYCHAIN_NAMESPACES.mcpServer("openbb"));
+  return [...accounts];
+}
+
+/**
+ * Run the one-time dev-keystore migration: in a dev build, copy any existing
+ * secrets from the OS keychain into the git-ignored local keystore file so
+ * `tauri dev` never reads the keychain again (no per-cdhash SecurityAgent
+ * dialog). Idempotent — the Rust side guards with a `migrated` flag, so this is
+ * safe to call on every boot. A pure no-op in release. Best-effort: a failure
+ * (e.g. the operator denies the one final dialog) leaves the keystore empty and
+ * the user re-adds keys through Settings — it never throws into boot.
+ */
+let devKeystoreMigrationInFlight: Promise<KeychainMigrateReport | null> | null = null;
+
+export async function migrateDevKeystore(): Promise<KeychainMigrateReport | null> {
+  // De-dupe concurrent calls: React StrictMode double-invokes the boot effect in
+  // dev, which would otherwise fire two migrations racing the keystore file (and
+  // the one keychain ACL evaluation). Both concurrent calls share the in-flight
+  // promise; it's cleared once settled (the Rust `migrated` flag is the durable
+  // once-only guard, so a later explicit call is harmless).
+  if (devKeystoreMigrationInFlight) return devKeystoreMigrationInFlight;
+  devKeystoreMigrationInFlight = (async () => {
+    // The Rust side announces its idle settle (~140 s on a dev first boot) so a
+    // pending migration is not mistaken for a hang. No-op outside the Tauri shell.
+    const unlisten = await import("@tauri-apps/api/event")
+      .then(({ listen }) =>
+        listen<number>(KEYCHAIN_MIGRATE_WAITING_EVENT, (event) =>
+          console.info(
+            `[keychain-migrate] waiting ${event.payload}s for the keychain access check to settle, then re-reading`,
+          ),
+        ),
+      )
+      .catch(() => null);
+    try {
+      return await invoke<KeychainMigrateReport>("keychain_migrate", {
+        accounts: devKeystoreMigrationAccounts(),
+      });
+    } catch {
+      // Migration is best-effort; a denied dialog or missing store must not
+      // break boot. The Settings UI remains the fallback for (re-)entering keys.
+      return null;
+    } finally {
+      unlisten?.();
+    }
+  })().finally(() => {
+    devKeystoreMigrationInFlight = null;
+  });
+  return devKeystoreMigrationInFlight;
 }

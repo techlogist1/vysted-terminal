@@ -1,0 +1,620 @@
+{
+ "ok": true,
+ "query": "ITC Hotels",
+ "resolved": {
+  "ok": true,
+  "query": "ITC Hotels",
+  "region": "IN",
+  "status": "bound",
+  "reason": "score 1.00 >= accept at band 4",
+  "resolved": {
+   "symbol": "ITCHOTELS",
+   "name": "ITC Hotels Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "ITCHOTELS.NS",
+   "confidence": 1.0,
+   "isin": "INE379A01028",
+   "bse_code": "544325",
+   "industry": "Consumer Services / Hotels & Resorts",
+   "former_name": null,
+   "board": "mainboard",
+   "exchange_group": "A",
+   "face_value": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "ITCHOTELS",
+    "name": "ITC Hotels Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ITCHOTELS.NS",
+    "confidence": 1.0,
+    "isin": "INE379A01028",
+    "bse_code": "544325",
+    "industry": "Consumer Services / Hotels & Resorts",
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "A",
+    "face_value": 1.0
+   },
+   {
+    "symbol": "MACH",
+    "name": "Mac Hotels Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "MACH.BO",
+    "confidence": 0.6667,
+    "isin": "INE004Z01011",
+    "bse_code": "541973",
+    "industry": null,
+    "former_name": null,
+    "board": "SME",
+    "exchange_group": "M",
+    "face_value": 10.0
+   }
+  ]
+ },
+ "symbol": "ITCHOTELS",
+ "structured": {
+  "price": {
+   "ok": false,
+   "provider": null,
+   "error": "price timed out after 6s \u2014 dropped",
+   "reason": "provider_error"
+  },
+  "fundamentals": {
+   "ok": false,
+   "provider": null,
+   "error": "fundamentals timed out after 6s \u2014 dropped",
+   "reason": "provider_error"
+  },
+  "derived": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "drawdown_from_high": {
+     "value": null,
+     "label": "Below 52-week high",
+     "basis": "vs 52w high",
+     "formula": "(52w high - price) / 52w high",
+     "unit": "fraction"
+    },
+    "fifty_two_week_change": {
+     "value": null,
+     "label": "52-week price change (Yahoo)",
+     "basis": "trailing 52 weeks",
+     "unit": "fraction"
+    },
+    "dividend_yield": {
+     "value": null,
+     "label": "Dividend yield",
+     "basis": "fraction of price",
+     "unit": "fraction"
+    },
+    "dividend_per_share": {
+     "value": null,
+     "label": "Dividend per share",
+     "basis": "per share, listing currency",
+     "unit": "currency"
+    },
+    "revenue_growth": {
+     "value": null,
+     "label": "Revenue growth",
+     "basis": "quarterly YoY (MRQ)",
+     "unit": "fraction"
+    },
+    "earnings_growth": {
+     "value": null,
+     "label": "Earnings growth",
+     "basis": "quarterly YoY (MRQ)",
+     "unit": "fraction"
+    },
+    "market_cap": {
+     "value": null,
+     "label": "Market cap",
+     "basis": "provider market cap",
+     "unit": "currency"
+    },
+    "conflicts": []
+   }
+  },
+  "news": {
+   "ok": true,
+   "provider": null,
+   "data": []
+  },
+  "filings": {
+   "ok": true,
+   "provider": "nse+bse",
+   "data": {
+    "symbol": "ITCHOTELS",
+    "exchange": null,
+    "coverage": "covered",
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "count": 20,
+    "announcements": [
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015",
+      "category": "Trading Window",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_25092026195010_SE_Trading_Window.pdf",
+      "ts": "2026-09-25T19:50:25+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange regarding Allotment of 58655 Shares.",
+      "category": "ESOP/ESOS/ESPS",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_22092026172059_Intimation.pdf",
+      "ts": "2026-09-22T17:22:29+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_21092026185356_StockExchange_Investors_Meet_signed.pdf",
+      "ts": "2026-09-21T18:54:14+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d07aae5a-0790-41d0-aed9-85896fc86177.pdf",
+      "ts": "2026-09-14T20:06:29.950000+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_14092026195406_Stock_Exchanges-Investors_Meet_signed.pdf",
+      "ts": "2026-09-14T19:54:20+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange about Acquisition of Shares of GHK Hospitality & Infrastructures Limited",
+      "category": "Acquisition",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_01092026192539_Acquisition_01_09_2026.pdf",
+      "ts": "2026-09-01T19:26:40+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange about Schedule of meet.",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_26082026170020_SE_Intimation_Investors_Conf.pdf",
+      "ts": "2026-08-26T17:00:56+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange regarding Allotment of 29460 Equity Shares.",
+      "category": "ESOP/ESOS/ESPS",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_20082026105058_Outcome__Allotment_20-08-2026.pdf",
+      "ts": "2026-08-20T10:51:12+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_13082026163841_Stock_Exchanges_Investors_Meet_MOTILAL_OSWAL_Signed.pdf",
+      "ts": "2026-08-13T16:39:57+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange regarding 'Address by the Chairman at the 3rd Annual General Meeting of the Company'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_06082026180429_Chairman_Address.pdf",
+      "ts": "2026-08-06T18:04:45+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange regarding Appointment of Mr Ramakrishnan Chander as Non- Executive Director of the company w.e.f. August 06, 2026.",
+      "category": "Appointment",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_06082026175656_Change_in_Directorate.pdf",
+      "ts": "2026-08-06T17:57:36+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9fb9720a-2b4e-42bc-9427-9417b84d70a2.pdf",
+      "ts": "2026-08-06T17:51:56.680000+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange regarding Proceedings of  Annual General Meeting held on August 06, 2026. Further, the company has informed the Exchange regarding voting results.",
+      "category": "Shareholders meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_06082026174023_Outcome_of_AGM.pdf",
+      "ts": "2026-08-06T17:41:52+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "BSE",
+      "headline": "Media Statement And Investor Presentation - Q1 2026-27",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/74e70ebc-f895-4f82-95aa-1fb9c6100574.pdf",
+      "ts": "2026-07-16T15:06:26.090000+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange regarding 'Unaudited Financial Results - Media Statement and Presentation'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_16072026150332_Financail_Results_Presentation.pdf",
+      "ts": "2026-07-16T15:05:26+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange regarding 'Media Statement ' -Acquisition of shares of GHK Hospitality & Infrastructures Limited.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_16072026150039_Media_Statement_Acquisition.pdf",
+      "ts": "2026-07-16T15:01:30+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "BSE",
+      "headline": "Unaudited Financial Results",
+      "category": "Result",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9bab9765-bfab-4688-98fd-8099495ec3c9.pdf",
+      "ts": "2026-07-16T14:16:52.097000+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange about Acquisition",
+      "category": "Acquisition",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_16072026140823_acquisition.pdf",
+      "ts": "2026-07-16T14:08:56+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has submitted to the Exchange, the financial results for the period ended Jun 30, 2026.",
+      "category": "Outcome of Board Meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_16072026140341_Outcome_Financials_BM.pdf",
+      "ts": "2026-07-16T14:04:39+05:30"
+     },
+     {
+      "symbol": "ITCHOTELS",
+      "exchange": "NSE",
+      "headline": "ITC Hotels Limited has informed the Exchange about Certificate under SEBI (Depositories and Participants) Regulations, 2018",
+      "category": "Certificate under SEBI (Depositories and Participants) Regulations, 2018",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_14072026151248_Disclosure_Signed_74_5_.pdf",
+      "ts": "2026-07-14T15:13:28+05:30"
+     }
+    ]
+   }
+  },
+  "source_floor": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "cited": 0,
+    "floor": 3
+   },
+   "note": "0 sources (below 3)"
+  }
+ },
+ "web": {
+  "available": false,
+  "citations": [],
+  "results": [],
+  "reason": "timeout",
+  "note": "Web search did not answer within 8s \u2014 structured data only"
+ },
+ "suggested_layout": "research-cockpit",
+ "suggested_indicators": [
+  "ma",
+  "volume",
+  "rsi",
+  "macd"
+ ],
+ "execution_loop": "fast",
+ "depth": "normal",
+ "execution": {
+  "run_id": "4020a347dd3e4fbdb7e33658a539d8e4",
+  "requested_depth": "normal",
+  "loop": "fast",
+  "backend": null,
+  "started_at": 1791020565.814004,
+  "finished_at": 1791020574.5612118,
+  "degraded_reason": null
+ },
+ "brief": {
+  "query": "ITC Hotels",
+  "symbol": "ITCHOTELS",
+  "mode": "fast",
+  "depth": "quick",
+  "execution": {
+   "run_id": "4020a347dd3e4fbdb7e33658a539d8e4",
+   "requested_depth": "normal",
+   "loop": "fast",
+   "backend": null,
+   "started_at": 1791020565.814004,
+   "finished_at": 1791020574.5612118,
+   "degraded_reason": null
+  },
+  "markdown": "",
+  "sources": [],
+  "structured": {
+   "price": {
+    "ok": false,
+    "provider": null,
+    "error": "price timed out after 6s \u2014 dropped",
+    "reason": "provider_error"
+   },
+   "fundamentals": {
+    "ok": false,
+    "provider": null,
+    "error": "fundamentals timed out after 6s \u2014 dropped",
+    "reason": "provider_error"
+   },
+   "derived": {
+    "ok": true,
+    "provider": "derived",
+    "data": {
+     "drawdown_from_high": {
+      "value": null,
+      "label": "Below 52-week high",
+      "basis": "vs 52w high",
+      "formula": "(52w high - price) / 52w high",
+      "unit": "fraction"
+     },
+     "fifty_two_week_change": {
+      "value": null,
+      "label": "52-week price change (Yahoo)",
+      "basis": "trailing 52 weeks",
+      "unit": "fraction"
+     },
+     "dividend_yield": {
+      "value": null,
+      "label": "Dividend yield",
+      "basis": "fraction of price",
+      "unit": "fraction"
+     },
+     "dividend_per_share": {
+      "value": null,
+      "label": "Dividend per share",
+      "basis": "per share, listing currency",
+      "unit": "currency"
+     },
+     "revenue_growth": {
+      "value": null,
+      "label": "Revenue growth",
+      "basis": "quarterly YoY (MRQ)",
+      "unit": "fraction"
+     },
+     "earnings_growth": {
+      "value": null,
+      "label": "Earnings growth",
+      "basis": "quarterly YoY (MRQ)",
+      "unit": "fraction"
+     },
+     "market_cap": {
+      "value": null,
+      "label": "Market cap",
+      "basis": "provider market cap",
+      "unit": "currency"
+     },
+     "conflicts": []
+    }
+   },
+   "news": {
+    "ok": true,
+    "provider": null,
+    "data": []
+   },
+   "filings": {
+    "ok": true,
+    "provider": "nse+bse",
+    "data": {
+     "symbol": "ITCHOTELS",
+     "exchange": null,
+     "coverage": "covered",
+     "sources": [
+      "NSE",
+      "BSE"
+     ],
+     "errors": {},
+     "count": 20,
+     "announcements": [
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015",
+       "category": "Trading Window",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_25092026195010_SE_Trading_Window.pdf",
+       "ts": "2026-09-25T19:50:25+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange regarding Allotment of 58655 Shares.",
+       "category": "ESOP/ESOS/ESPS",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_22092026172059_Intimation.pdf",
+       "ts": "2026-09-22T17:22:29+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange about Schedule of meet",
+       "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_21092026185356_StockExchange_Investors_Meet_signed.pdf",
+       "ts": "2026-09-21T18:54:14+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d07aae5a-0790-41d0-aed9-85896fc86177.pdf",
+       "ts": "2026-09-14T20:06:29.950000+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange about Schedule of meet",
+       "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_14092026195406_Stock_Exchanges-Investors_Meet_signed.pdf",
+       "ts": "2026-09-14T19:54:20+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange about Acquisition of Shares of GHK Hospitality & Infrastructures Limited",
+       "category": "Acquisition",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_01092026192539_Acquisition_01_09_2026.pdf",
+       "ts": "2026-09-01T19:26:40+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange about Schedule of meet.",
+       "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_26082026170020_SE_Intimation_Investors_Conf.pdf",
+       "ts": "2026-08-26T17:00:56+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange regarding Allotment of 29460 Equity Shares.",
+       "category": "ESOP/ESOS/ESPS",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_20082026105058_Outcome__Allotment_20-08-2026.pdf",
+       "ts": "2026-08-20T10:51:12+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange about Schedule of meet",
+       "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_13082026163841_Stock_Exchanges_Investors_Meet_MOTILAL_OSWAL_Signed.pdf",
+       "ts": "2026-08-13T16:39:57+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange regarding 'Address by the Chairman at the 3rd Annual General Meeting of the Company'.",
+       "category": "Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_06082026180429_Chairman_Address.pdf",
+       "ts": "2026-08-06T18:04:45+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange regarding Appointment of Mr Ramakrishnan Chander as Non- Executive Director of the company w.e.f. August 06, 2026.",
+       "category": "Appointment",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_06082026175656_Change_in_Directorate.pdf",
+       "ts": "2026-08-06T17:57:36+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "BSE",
+       "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+       "category": "AGM/EGM",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9fb9720a-2b4e-42bc-9427-9417b84d70a2.pdf",
+       "ts": "2026-08-06T17:51:56.680000+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange regarding Proceedings of  Annual General Meeting held on August 06, 2026. Further, the company has informed the Exchange regarding voting results.",
+       "category": "Shareholders meeting",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_06082026174023_Outcome_of_AGM.pdf",
+       "ts": "2026-08-06T17:41:52+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "BSE",
+       "headline": "Media Statement And Investor Presentation - Q1 2026-27",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/74e70ebc-f895-4f82-95aa-1fb9c6100574.pdf",
+       "ts": "2026-07-16T15:06:26.090000+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange regarding 'Unaudited Financial Results - Media Statement and Presentation'.",
+       "category": "Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_16072026150332_Financail_Results_Presentation.pdf",
+       "ts": "2026-07-16T15:05:26+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange regarding 'Media Statement ' -Acquisition of shares of GHK Hospitality & Infrastructures Limited.",
+       "category": "Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_16072026150039_Media_Statement_Acquisition.pdf",
+       "ts": "2026-07-16T15:01:30+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "BSE",
+       "headline": "Unaudited Financial Results",
+       "category": "Result",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9bab9765-bfab-4688-98fd-8099495ec3c9.pdf",
+       "ts": "2026-07-16T14:16:52.097000+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange about Acquisition",
+       "category": "Acquisition",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_16072026140823_acquisition.pdf",
+       "ts": "2026-07-16T14:08:56+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has submitted to the Exchange, the financial results for the period ended Jun 30, 2026.",
+       "category": "Outcome of Board Meeting",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_16072026140341_Outcome_Financials_BM.pdf",
+       "ts": "2026-07-16T14:04:39+05:30"
+      },
+      {
+       "symbol": "ITCHOTELS",
+       "exchange": "NSE",
+       "headline": "ITC Hotels Limited has informed the Exchange about Certificate under SEBI (Depositories and Participants) Regulations, 2018",
+       "category": "Certificate under SEBI (Depositories and Participants) Regulations, 2018",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/ITCHOTELS12_14072026151248_Disclosure_Signed_74_5_.pdf",
+       "ts": "2026-07-14T15:13:28+05:30"
+      }
+     ]
+    }
+   },
+   "source_floor": {
+    "ok": true,
+    "provider": "derived",
+    "data": {
+     "cited": 0,
+     "floor": 3
+    },
+    "note": "0 sources (below 3)"
+   }
+  },
+  "cost": null,
+  "web_available": false,
+  "note": "Web search did not answer within 8s \u2014 structured data only",
+  "web_reason": "timeout",
+  "backend": null
+ }
+}

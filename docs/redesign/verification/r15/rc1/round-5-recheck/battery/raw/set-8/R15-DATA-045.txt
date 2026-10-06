@@ -1,0 +1,11 @@
+=== R15-DATA-045 repro: SSRF redirect re-validation ===
+candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, in-process, sidecar venv
+loopback canary server on 127.0.0.1:18765 (scratch), redirector https://httpbin.org/redirect-to?url=<canary>
+--- SSRF case: public -> loopback redirect ---
+fetch_page result: {'ok': False, 'url': 'https://httpbin.org/redirect-to?url=http://127.0.0.1:18765/latest/meta-data/', 'error': 'blocked redirect to a non-public or non-http(s) URL'}
+--- control case: public -> public redirect ---
+control fetch ok: True keys: ['ok', 'url', 'final_url', 'title', 'content', 'truncated', 'chars']
+
+canary access log (should show ZERO hits):
+canary listening on 18765
+exit: 0

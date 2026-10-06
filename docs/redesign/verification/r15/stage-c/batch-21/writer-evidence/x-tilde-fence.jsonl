@@ -1,0 +1,180 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_6a74c25b461448d48fb59436dfc8a4ff", "name": "fundamentals", "input": {"symbol": "TATAMOTORS.NS"}}
+{"kind": "heartbeat"}
+{"kind": "tool_result", "tool_call_id": "call_6a74c25b461448d48fb59436dfc8a4ff", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "~~"}
+{"kind": "delta", "text": "~\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Name"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Value"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " ---"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " ---"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " Market"}
+{"kind": "delta", "text": " Cap"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "106"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "973"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " Ratio"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " Un"}
+{"kind": "delta", "text": "available"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "negative"}
+{"kind": "delta", "text": " EPS"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " Forward"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "094"}
+{"kind": "delta", "text": "077"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " Price"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " Book"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "954"}
+{"kind": "delta", "text": "372"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " Price"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " Sales"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "307"}
+{"kind": "delta", "text": "977"}
+{"kind": "delta", "text": "26"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " EV"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "EB"}
+{"kind": "delta", "text": "IT"}
+{"kind": "delta", "text": "DA"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " Div"}
+{"kind": "delta", "text": "idend"}
+{"kind": "delta", "text": " Yield"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "010"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " E"}
+{"kind": "delta", "text": "arnings"}
+{"kind": "delta", "text": " Per"}
+{"kind": "delta", "text": " Share"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "EPS"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "17"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " Beta"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "778"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "52"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "Week"}
+{"kind": "delta", "text": " High"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "739"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "7"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "52"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "Week"}
+{"kind": "delta", "text": " Low"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "288"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " Revenue"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "347"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "339"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " Net"}
+{"kind": "delta", "text": " Income"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "375"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "~~"}
+{"kind": "delta", "text": "~"}
+{"kind": "done", "usage": {"input_tokens": 5846, "output_tokens": 174, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

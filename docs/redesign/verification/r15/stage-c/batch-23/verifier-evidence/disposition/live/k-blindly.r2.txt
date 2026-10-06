@@ -1,0 +1,17 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  23.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_bc58a8602d1e4adda56c766de472554b", "name": "market_overview", "input": {}}
+[  28.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_9726cb48788a473c968ad8ded216d05b", "name": "price_data", "input": {"symbol": "TCS.NS"}}
+[  28.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_bc58a8602d1e4adda56c766de472554b", "name": "market_overview", "ok": true, "error": null}
+[  31.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_9726cb48788a473c968ad8ded216d05b", "name": "price_data", "ok": true, "error": null}
+[  41.6s] heartbeat: {"kind": "heartbeat"}
+[  51.6s] heartbeat: {"kind": "heartbeat"}
+[  61.6s] heartbeat: {"kind": "heartbeat"}
+[  71.6s] heartbeat: {"kind": "heartbeat"}
+[  81.6s] heartbeat: {"kind": "heartbeat"}
+[  86.7s] done: {"kind": "done", "usage": {"input_tokens": 9479, "output_tokens": 38, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of TCS.NS is ₹2082.0, which has decreased by ₹5.0 from the previous close. The change percentage is -0.24%.
+
+=== ok · 86.7s · events {'heartbeat': 7, 'tool_use': 2, 'tool_result': 2, 'delta': 38, 'done': 1} · usage in=9479 out=38 · est $0.00000 · llama3.1:8b

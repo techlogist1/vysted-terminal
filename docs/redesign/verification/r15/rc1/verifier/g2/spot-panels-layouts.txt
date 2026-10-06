@@ -1,0 +1,10 @@
+# GET /quotes/SMR X-Vysted-Region: US
+{"symbol":"SMR","price":8.420000076293945,"change":-0.05019992370605486,"change_percent":-0.5926651520159484,"volume":29212700.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:03:54Z","provider":"yfinance","freshness":"eod"}
+# GET /quotes/SMR (no header)
+{"symbol":"SMR","price":94.0,"change":-2.0,"change_percent":-2.083333333333333,"volume":9000.0,"open":94.0,"high":94.0,"low":92.0,"prev_close":96.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"bse","freshness":"eod"}
+# POST /workspace name='Research: RC1 recheck'
+{"status":"saved","name":"Research: RC1 recheck"}
+# GET back
+{}
+# DELETE
+

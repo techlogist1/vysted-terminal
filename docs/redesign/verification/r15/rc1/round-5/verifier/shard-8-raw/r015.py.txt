@@ -1,0 +1,22 @@
+import sys; sys.path.insert(0,'.')
+from tests.test_research_verify import _one_claim_dual, _row_domains, _FakeLLM, _web_tool, _brief, _run
+from services.research.verify import cross_check
+from services.budget_guard import BudgetGuard
+cases={
+ "A repro one domain both lanes":("https://blog.example/a","https://blog.example/native"),
+ "B fresh bbc.co.uk hosts":("https://www.bbc.co.uk/news/x","https://news.bbc.co.uk/y"),
+ "C fresh reuters in./www.":("https://in.reuters.com/a","https://www.reuters.com/b"),
+ "D fresh bseindia api/www":("https://api.bseindia.com/x","https://www.bseindia.com/y"),
+ "E fresh indiatimes subdomains":("https://economictimes.indiatimes.com/a","https://timesofindia.indiatimes.com/b"),
+ "F fresh com.au":("https://www.asx.com.au/a","https://announcements.asx.com.au/b.pdf"),
+ "G control reuters/bloomberg":("https://www.reuters.com/a","https://www.bloomberg.com/b"),
+}
+for k,(s,n) in cases.items():
+    b,llm=_one_claim_dual(s,n)
+    c=b.structured["cross_check"]["claims"][0]
+    print(k,"| domains",_row_domains([{"url":s},{"url":n}]),"| verdict",c["verdict"],"corroborated",c["corroborated"],"verdict_llm_calls",len(llm.verdict_prompts),"| md_corr","corroborated across channels" in b.markdown)
+# H: single-lane SearXNG with two hosts of one registrable domain, no native
+llm=_FakeLLM(claims="EPS was $12.96", verdict="AGREE — both state $12.96")
+b=_run(cross_check(_brief(),tool_call=_web_tool(["https://www.sec.gov/a","https://efts.sec.gov/b"]),llm_call=llm,budget=BudgetGuard(max_steps=10),min_domains=2))
+c=b.structured["cross_check"]["claims"][0]
+print("H fresh single-lane sec.gov hosts | verdict",c["verdict"],"llm calls",len(llm.verdict_prompts))

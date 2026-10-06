@@ -1,0 +1,8 @@
+# R15-LEAD-006 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn 'def _row_value\|import _row_value\|from services.growth_check import' sidecar/services --include=*.py | cut -c1-200
+--- output ---
+sidecar/services/growth_check.py:93:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+sidecar/services/earnings_quality.py:52:from services.growth_check import _row_value
+
+EXIT=0 (0.1s)

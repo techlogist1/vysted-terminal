@@ -1,0 +1,36 @@
+provider nse_direct failed for ohlcv, falling through: nse_direct: 'JONJUA' is not a known NSE instrument
+provider nse failed for ohlcv, falling through: nse: 'JONJUA' is not a known NSE instrument
+provider nse_direct failed for quote, falling through: nse_direct: 'JONJUA' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'JONJUA' is not a known NSE instrument
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'JONJUA': Too Many Requests. Rate limited. Try after a while.
+provider nse_direct failed for ohlcv, falling through: nse_direct: 'JONJUA' is not a known NSE instrument
+provider nse failed for ohlcv, falling through: nse: 'JONJUA' is not a known NSE instrument
+provider nse_direct failed for ohlcv, falling through: nse_direct: 'JONJUA' is not a known NSE instrument
+provider nse failed for ohlcv, falling through: nse: 'JONJUA' is not a known NSE instrument
+provider nse_direct failed for quote, falling through: nse_direct: 'JONJUA' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'JONJUA' is not a known NSE instrument
+provider nse_direct failed for quote, falling through: nse_direct: 'JONJUA' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'JONJUA' is not a known NSE instrument
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'JONJUA'
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'JONJUA': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'JONJUA': Too Many Requests. Rate limited. Try after a while.
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'JONJUA'
+provider health: yahoo circuit OPEN for 60s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'JONJUA': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'JONJUA.BO': Too Many Requests. Rate limited. Try after a while.
+elapsed 28.6
+n sources 13
+  bseindia.com https://www.bseindia.com/xml-data/corpfiling/AttachHis/a787b858-46c6-4117-b003-8046f7c422e3.pdf None
+  bseindia.com https://www.bseindia.com/xml-data/corpfiling/AttachHis/fc4ba00b-3a14-4c83-b178-e3ef1b4f7b73.pdf None
+  bseindia.com https://www.bseindia.com/xml-data/corpfiling/AttachHis/4f9d6d01-421b-4592-926c-318a6411739b.pdf None
+  bseindia.com https://www.bseindia.com/xml-data/corpfiling/AttachHis/09ec9cc1-92a4-4e53-ae56-177b88eeab05.pdf None
+  bseindia.com https://www.bseindia.com/xml-data/corpfiling/AttachHis/543f377c-c745-4690-8b2f-134723df7067.pdf None
+  moneycontrol.com https://www.moneycontrol.com/india/stockpricequote/miscellaneous/jonjuaoverseas/JO None
+  anandrathi.com https://anandrathi.com/stocks/jonjua-overseas-ltd/share-price-today None
+  zerodha.com https://zerodha.com/markets/stocks/BSE/JONJUA/ None
+  groww.in https://groww.in/stocks/jonjua-overseas-ltd None
+  kotakneo.com https://www.kotakneo.com/stocks/jonjua-overseas-share-price/ None
+  trendlyne.com https://trendlyne.com/equity/129456/542446/jonjua-overseas-ltd/ None
+  bse vysted://price/JONJUA None
+  openbb-mcp vysted://fundamentals/JONJUA None
+floor-shaped (bse/nse attachments): 5

@@ -1,0 +1,7 @@
+=== AGENT-054 set_chart_indicators unknown enum ===
+tool: set_chart_indicators in: {'symbol': 'AAPL', 'indicators': ['rsi', 'bollinger_bands']}
+out: {'__vysted_invalid_args__': "invalid arguments for set_chart_indicators: 'bollinger_bands' is not one of ['rsi', 'macd', 'ma', 'ema', 'sma', 'bollinger', 'volume', 'adx', 'stochastic', 'atr', 'obv', 'mfi', 'ichimoku', 'keltner', 'vwap', 'parabolic_sar', 'cci', 'williams_r', 'roc', 'wma', 'hma', 'dema', 'tema', 'kama', 'tsi', 'kst', 'awesome_oscillator', 'ppo', 'ultimate_oscillator', 'std_dev', 'bollinger_bandwidth', 'donchian', 'chaikin_volatility', 'ad_line', 'chaikin_money_flow', 'force_index', 'ease_of_movement', 'vpt', 'aroon', 'aroon_oscillator', 'vortex', 'mass_index', 'pivot_points', 'supertrend', 'linreg', 'std_error_bands', 'hlc3', 'ohlc4', 'median_price', 'volume_profile']; call again with valid args"}
+--
+=== control set_chart_indicators valid ===
+tool: set_chart_indicators in: {'symbol': 'AAPL', 'indicators': ['rsi', 'macd']}
+out: {'symbol': 'AAPL', 'indicators': ['rsi', 'macd']}

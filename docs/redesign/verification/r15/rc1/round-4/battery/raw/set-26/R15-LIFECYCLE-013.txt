@@ -1,0 +1,15 @@
+=== AGENT-035 + LIFECYCLE-013 (fake-provider in-process: resume re-enters with launch-time provider/model, no re-supply needed) ===
+{
+  "launch_status": "error",
+  "launch_provider_id_used": [
+    "openrouter"
+  ],
+  "stored_provider_after_launch": "openrouter",
+  "stored_model_after_launch": "mistral-fake-model",
+  "resume_status": "error",
+  "resume_provider_id_used": [
+    "openrouter"
+  ],
+  "stored_provider_after_resume": "openrouter",
+  "stored_model_after_resume": "mistral-fake-model"
+}

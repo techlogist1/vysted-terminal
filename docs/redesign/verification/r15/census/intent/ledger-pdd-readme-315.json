@@ -1,0 +1,392 @@
+[
+  {
+    "pid": "INT-PD-316",
+    "promise": "The stated redesign thesis is to keep the sidecar, the safety layer, the panels, the persistence model, the Kite read path, and the copilot tool loop; rebuild the shell into an agent-first experience; promote MCP from plumbing to an extension framework; and close the copilot's catalog/provider gaps that quietly cap what the agent can do today.",
+    "source": "docs/CURRENT_STATE.md §8",
+    "kind": "use-case",
+    "status": "delivered",
+    "evidence": "docs/CURRENT_STATE.md:908-913 (§8 KEEP list: sidecar/data layer, §6.5 safety, dockview+workspace persistence, Kite read-only, copilot tool loop, BYOK+MCP plumbing) and :941-967 (REBUILD list: experience/UI, agent-centrality, MCP-as-framework, plugin-runtime guarantees, distribution) — the redesign thesis is stated verbatim as this promise paraphrases.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-317",
+    "promise": "Every panel, data source, command, agent, node-editor block, and control-plane action that a third party adds to the terminal flows through the single, stable plugin contract.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#top",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:219-258 (VystedPlugin interface — the single contract every plugin implements); src/lib/marketplace.ts:19-42 (every bundled plugin, panels, brokers, data sources imported through this one CatalogRow list); src/lib/plugin-bootstrap.ts:132-171 (moduleForPlugin routes panels/commands through the contract); src/lib/plugin-runtime.ts (PluginRuntime.callIfFlagged gates every capability getter through the same negotiation path for every plugin).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-318",
+    "promise": "The v0.3.0 plugin contract defines six capabilities a plugin can contribute (data, panels, commands, agents, nodes, control plane), lifecycle hooks (initialize, shutdown, healthCheck), and negotiation flags making every capability optional.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#What ships in v0.3.0",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:62-69 (PluginCapabilities: contributesData/Panels/Commands/Agents/Nodes, supportsControlPlane — six flags); :231-233 (initialize/shutdown/healthCheck lifecycle hooks); :239-257 (all six getters are optional `?` — negotiation flags make every capability optional).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-319",
+    "promise": "The plugin runtime discovers, instantiates, supervises, and surfaces plugins through their full lifecycle.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#What ships in v0.3.0",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/plugin-runtime.ts:148-155 (PluginRuntime class), :165-182 (discover()), :195-271 (loadPlugin() — instantiate + supervise via config/secrets resolution + initialize()), :278-295 (unloadPlugin()), :419-461 (collect* aggregators surface capabilities to the host).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-320",
+    "promise": "A Plugin Manager UI shows each loaded plugin's state, health, metadata, and provides an enable/disable toggle.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#What ships in v0.3.0",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/components/PluginManagerPanel.tsx:14-15 (\"lists every loaded plugin with its lifecycle state, recent health history, metadata, and an enable/disable toggle\"), :199-202 (state badge), :241 (HealthHistory component), :216-231 (enable/disable Toggle wired to isToggleable/pending).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-321",
+    "promise": "Two reference plugins exercise the plugin contract end-to-end and serve as the recommended starting point for new plugin authors.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#What ships in v0.3.0",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "docs/PLUGIN_DEVELOPMENT.md:20-22 (\"Two reference plugins — plugins/example/ and plugins/openbb-mcp/\"); plugins/example/index.ts (full VystedPlugin instance exercising data+commands+control-plane); plugins/openbb-mcp/ (sidecar-provider + MCP-subprocess reference, wired in src/lib/marketplace.ts:35-36).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-322",
+    "promise": "Plugins ship exclusively via bundled-import loading under plugins/<id>/ in the repo; filesystem-installed plugins, plugin signing, and an online marketplace are explicitly out of scope until v1.0 or later.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#What ships in v0.3.0",
+    "kind": "deferred-item",
+    "status": "delivered",
+    "evidence": "src/lib/marketplace.ts:19-42 (every plugin instance statically imported from plugins/<id>/ — \"Static-import note: Next.js static export can't dynamically import arbitrary\" [modules]); docs/PLUGIN_DEVELOPMENT.md:23-25 (\"Bundled-import loading ... Filesystem-installed plugins, signing, and a marketplace are out of scope until v1.0+\"); no filesystem loader, signature check, or online marketplace client exists anywhere in src/ or src-tauri/.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-323",
+    "promise": "A plugin manifest's id and version must exactly match the exported plugin instance's id and version; the runtime asserts this at load time and refuses to start a plugin whose manifest disagrees with its instance.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#The manifest",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/lib/plugin-runtime.ts:366-378 (checkCompatibility: manifest.id !== instance.pluginId → reject; manifest.version !== instance.version → reject); :207-214 (loadPlugin calls checkCompatibility and routes a mismatch straight to transitionToError with reason \"compatibility\", never reaching active).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-324",
+    "promise": "The runtime calls a capability getter (e.g. getPanels) only when the matching capabilities flag is true; a plugin that sets a flag without implementing the matching getter transitions that plugin to an error state while its other declared capabilities continue to work.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Capability negotiation",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/lib/plugin-runtime.ts:389-416 (callIfFlagged: returns [] when the flag is false; when the flag is true but `fn` is not a function it emits an \"errored\" event with message \"capability <flag> declared but <getter>() is not implemented\" and returns [] — the record itself is never flipped to `error` state by this path, but every OTHER capability accessor keeps calling normally on the same record, matching \"its other declared capabilities continue to work\").",
+    "gap": "The promise's literal phrase \"transitions that plugin to an error state\" is stronger than the code: callIfFlagged emits an `errored` event/log but does not call transitionToError or flip `record.state` to `error` — the plugin snapshot silently stays `active`. Worth a one-line doc correction, but the substantive guarantee (other capabilities keep working, the runtime never calls the missing getter) holds, so this is not filed as a defect.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-325",
+    "promise": "The example reference plugin proves capability negotiation end-to-end: it sets exactly two capability flags, contributes one data source and one command, and the runtime never invokes the panel/agent/node getters on it.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Capability negotiation",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "docs/PLUGIN_DEVELOPMENT.md:118-125 (\"This is what plugins/example/ proves end-to-end: it sets two capability flags ... the runtime catalogs both without ever calling the panel/agent/node getters\"); plugins/example/index.ts:65-72 (contributesData:true, contributesCommands:true; contributesPanels/Agents/Nodes:false — the two getter-negotiated flags the doc's own example paragraph refers to) and :108-114 (getDataSources/getCommands implemented, no getPanels/getAgents/getNodes defined).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-326",
+    "promise": "Plugin lifecycle states are discovered, initializing, active, stopping, and stopped, with an error state reachable from any lifecycle hook throwing.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Lifecycle",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "types/plugin-runtime.ts (LoadedPluginState union) and src/lib/plugin-runtime.ts:172-175 (`discovered`), :216 (`initializing`), :270 (`active`), :288 (`stopping`), :294 (`stopped`), :587-602 (transitionToError — `error` reachable from any lifecycle hook throwing: compatibility/config-load/secret-resolve/initialize/shutdown/healthCheck all funnel through it).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-327",
+    "promise": "The runtime polls each active plugin's health check every 30 seconds and retains the most recent 20 samples per plugin so the manager UI can display a health trend.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Lifecycle",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/plugin-bootstrap.ts:40 (HEALTH_POLL_INTERVAL_MS = 30_000), :273-276 (setInterval(() => runtime.healthCheckAll(), HEALTH_POLL_INTERVAL_MS)); src/lib/plugin-runtime.ts:53 (HEALTH_HISTORY_LIMIT = 20), :495 (`.slice(-HEALTH_HISTORY_LIMIT)`); src/components/PluginManagerPanel.tsx:241 (HealthHistory renders the trend from `plugin.healthHistory`).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-328",
+    "promise": "Per-plugin configuration (the enabled flag, plugin-private settings, granted secret ids) is persisted by the sidecar rather than by browser storage, backed in production by a SQLite-stored sidecar endpoint.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Persistence",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/plugins_store.py:1-20 (SQLite-backed per-plugin config store under `config.get_data_dir()/plugins.db`, mirrors PluginPersistedConfig 1:1); sidecar/routers/plugins.py:20-46 (GET/POST /plugins/{id}/config); src/lib/plugin-bootstrap.ts (createSidecarPersistence proxies PluginRuntime's persistence adapter through this endpoint, not browser storage).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-329",
+    "promise": "Tauri's WebView does not expose localStorage or sessionStorage to plugins, so any plugin-specific data beyond basic config must follow the same sidecar-persistence pattern rather than reaching for browser storage.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Persistence",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/routers/plugins.py + sidecar/services/plugins_store.py (sidecar-owned SQLite persistence, per INT-PD-328); no plugin or the runtime reads/writes localStorage/sessionStorage anywhere in src/lib/plugin-runtime.ts or plugins/*/index.ts — config always round-trips through the sidecar endpoint, matching the \"Tauri's WebView does not expose localStorage to plugins\" guarantee.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-330",
+    "promise": "Plugins needing Python dependencies compatible with the main sidecar's pinned versions add them directly to the sidecar's requirements and expose a service/router; plugins with incompatible pinned dependencies instead ship as their own separate PyInstaller onefile subprocess binary, spawned by the Tauri Rust core rather than by Python's subprocess.Popen (which deadlocks on Windows for FastAPI-based onefile binaries).",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Bundling",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "docs/PLUGIN_DEVELOPMENT.md:166-188 (Bundling section: pinned-compatible deps → sidecar/requirements.txt + a router; incompatible → own PyInstaller --onefile subprocess, \"MUST be spawned by the Tauri Rust core ... Never use Python subprocess.Popen ... deadlocks under PyInstaller --onefile\"); src-tauri/src/openbb_mcp.rs:100 and src-tauri/src/sec_edgar_mcp.rs:100 (`app.shell().sidecar(...)` — the Rust-spawn pattern actually used for both subprocess plugins, zero Python subprocess.Popen anywhere in sidecar/ for these).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-331",
+    "promise": "Vysted exposes its data and agent surface as MCP tools via a FastMCP application mounted at /mcp over the Streamable-HTTP transport, consumable by external MCP clients including Claude Desktop (via the mcp-remote bridge) and Claude Code (natively).",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#MCP plugins",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/mcp_server.py:1-9 (\"exposes the sidecar's data + agent surface as MCP tools ... FastMCP 3.x application mounted into the main sidecar's FastAPI app at /mcp over the Streamable-HTTP transport\"), :146-157 (catalog-projected tools) + :159-355 (@mcp.tool hand-written tools); docs/MCP_INTEGRATION.md:131-172 (Claude Desktop via mcp-remote, Claude Code native) — live-confirmed via `GET http://127.0.0.1:52152/mcp/status` -> {\"ready\":true,\"toolCount\":36,\"endpoint\":\"/mcp\",\"protocolVersion\":\"2025-06-18\"}.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-332",
+    "promise": "Vysted's sidecar also acts as an MCP client, wrapping the official MCP Python SDK to connect to external MCP servers over stdio or Streamable-HTTP, with the openbb-mcp plugin as the reference consumer routing OpenBB's tool surface through that wrapper.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#MCP plugins",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/mcp_client.py:49 (class McpClient — wraps the official MCP Python SDK to connect to external MCP servers over stdio/Streamable-HTTP), :218 (get_client()); plugins/openbb-mcp/ + sidecar/openbb_mcp_subprocess/ (the reference consumer routing OpenBB's tool surface through McpClient, per docs/PLUGIN_DEVELOPMENT.md:186-188).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-333",
+    "promise": "TypeScript-side plugin tests use vitest to cover capability negotiation, lifecycle transitions, and custom logic; Python-side plugin tests use pytest with monkeypatched providers; the sidecar test suite mocks every external network call, and plugin authors are expected to follow the same no-live-API-calls-in-tests rule.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Testing",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "docs/PLUGIN_DEVELOPMENT.md:222-231 (\"TypeScript-side: vitest ... plugins/example/example.test.ts is a starting point\"; \"Python-side ... pytest with monkeypatched providers ... sidecar/tests/test_openbb_mcp_provider.py\"; \"sidecar test suite mocks every external network call\"); plugins/example/example.test.ts and plugins/brokers/kite/kite.test.ts exist and run under vitest; sidecar/tests/test_openbb_mcp_provider.py exists and monkeypatches the provider.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-334",
+    "promise": "By v0.6.5, four distinct plugin architectural patterns are documented and available for new authors to copy: an in-process data-source plugin, a sidecar-provider plugin, an MCP-subprocess plugin, and a trading-system wrapper plugin.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Plugin patterns",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "docs/PLUGIN_DEVELOPMENT.md:234-360 (§Plugin patterns documents all four: #1 in-process data-source `plugins/example/`, #2 sidecar-provider `plugins/openbb-mcp/`, #3 MCP-subprocess `plugins/openbb-mcp/`+`plugins/sec-edgar-mcp/`, #4 trading-system wrapper) — the documentation for all four patterns is present and available to copy, per the promise's plain claim.",
+    "gap": "Pattern #4's only cited example, `plugins/tradesa-v2/`, does not exist in this worktree — confirmed absent (`find plugins -iname '*tradesa*'` returns nothing) and `sidecar/tests/test_no_tradesa.py::test_plugin_system_alive` asserts `\"tradesa-v2\" not in seen_ids` (E11 removal). The other three patterns' examples (`plugins/example/`, `plugins/openbb-mcp/`, `plugins/sec-edgar-mcp/` referenced via `scripts/ensure-sec-edgar-mcp-sidecar.mjs` + `src-tauri/binaries/vysted-sec-edgar-mcp-sidecar-*`) all still exist and verify. Not filed — Tradesa's status is out of scope per COMMON.md.",
+    "decision_ref": "COMMON.md out-of-scope-by-decision list: \"Tradesa\" — never report as missing or propose; corroborated by sidecar/tests/test_no_tradesa.py (E11 removal, deliberate)."
+  },
+  {
+    "pid": "INT-PD-335",
+    "promise": "A trading-system wrapper plugin is observation-only (read-only) by default; any write capability would be added later only under formal §6.5 safety-layer review.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Plugin patterns",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "docs/PLUGIN_DEVELOPMENT.md:264-268 (§4 Trading-system wrapper plugin, titled `plugins/tradesa-v2/`, \"new in v0.6.5\"); the only concrete instance of this pattern was Tradesa V2, confirmed removed — `find plugins -iname '*tradesa*'` returns nothing, `sidecar/tests/test_no_tradesa.py` asserts zero tradesa references in code and `\"tradesa-v2\" not in seen_ids`. No other plugin (brokers/*, example, openbb-mcp, vysted-lenses/news, yfinance) implements this READ-ONLY-with-future-write-review pattern.",
+    "gap": "",
+    "decision_ref": "COMMON.md out-of-scope-by-decision list: \"Tradesa\" — never report as missing or propose."
+  },
+  {
+    "pid": "INT-PD-336",
+    "promise": "A trading-bot wrapper plugin's read-only guarantee is enforced by three independent layers: no insert/update/delete/upsert-style methods on the provider's public surface (audit-tested by introspecting the class), no non-GET routes anywhere under its router prefix (audit-tested by walking the router's route table), and a control-plane-disabled capability flag so the runtime refuses to execute any command against it even if one existed.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Plugin patterns",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "docs/PLUGIN_DEVELOPMENT.md:283-292 (§Defense-in-depth for read-only: provider write-method audit via `inspect.getmembers`, router non-GET-route audit via `router.routes`, `supportsControlPlane=false`); no `inspect.getmembers` write-method audit test exists anywhere in `sidecar/tests/` (`grep -rln getmembers sidecar/tests/*.py` — zero hits) and no such trading-bot-wrapper module exists to audit — the pattern's only implementation was Tradesa V2 (removed, see INT-PD-335 evidence).",
+    "gap": "",
+    "decision_ref": "COMMON.md out-of-scope-by-decision list: \"Tradesa\" — never report as missing or propose."
+  },
+  {
+    "pid": "INT-PD-337",
+    "promise": "A trading-bot wrapper plugin's credential flow mirrors the BYOK LLM pattern: the frontend reads the credential from the OS keychain at plugin initialization, passes it in a request header on every fetch over the loopback-only connection, and the sidecar never logs, echoes, or persists that credential beyond the current request's process memory.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Plugin patterns",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "docs/PLUGIN_DEVELOPMENT.md:294-301 (credential flow mirroring the BYOK LLM pattern via `src/lib/keychain.ts::getSecret` + `KEYCHAIN_NAMESPACES.pluginSecret`); this exact flow is real and delivered for BYOK LLM keys and for the broker plugins (`plugins/brokers/*`), but the promise's SUBJECT is specifically the trading-bot-wrapper plugin's credential flow, whose only instance (Tradesa V2) is removed (see INT-PD-335 evidence).",
+    "gap": "",
+    "decision_ref": "COMMON.md out-of-scope-by-decision list: \"Tradesa\" — never report as missing or propose."
+  },
+  {
+    "pid": "INT-PD-338",
+    "promise": "Every trading-bot wrapper plugin must expose a connection-status enum with at least six distinct states (healthy, connecting, unauthenticated, bot-offline, an upstream-error state, and partial), render dedicated UI for each state, never crash the terminal on an outage, never enter a retry loop, and always surface a clear, actionable reason to the user.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Plugin patterns",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "docs/PLUGIN_DEVELOPMENT.md:303-318 (`TradesaConnectionStatus`-shaped 6-state enum: healthy/connecting/unauthenticated/bot-offline/<upstream>-error/partial); `grep -rn \"TradingBotReadAdapter|bot-offline|BotStatusStrip\" src/ plugins/` returns zero hits — no module implementing this named enum or the `BotStatusStrip` header component exists post-removal.",
+    "gap": "",
+    "decision_ref": "COMMON.md out-of-scope-by-decision list: \"Tradesa\" — never report as missing or propose."
+  },
+  {
+    "pid": "INT-PD-339",
+    "promise": "Plugins that contribute panels ship a sibling module exporting a panel-id-to-component map, which the host reads and merges into the synthesized module -- keeping the locked, serializable plugin contract itself free of any React types.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Plugin patterns",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "src/lib/plugin-bootstrap.ts:127-170 (`moduleForPlugin` DOES merge a companion panel-component map into the synthesized `VystedModule` — the underlying host mechanism the promise describes is real); src/lib/marketplace.ts:53-65 (`CatalogRow.panelComponents` is a plain 4th argument to the `row()` helper, populated inline in `marketplace.ts` itself).",
+    "gap": "The documented SHAPE does not match: docs/PLUGIN_DEVELOPMENT.md:339-345 (§Companion panels.ts glue) says a panel-contributing plugin \"ship[s] a sibling panels.ts exporting Record<string, FunctionComponent>\" which \"the host's src/lib/plugin-bootstrap.ts reads ... via PLUGIN_COMPANIONS\". Neither exists: `find plugins -iname panels.ts` is empty (no plugin has a sibling panels.ts file) and `grep -rn PLUGIN_COMPANIONS --include=*.ts --include=*.tsx .` matches only a stray comment in src/store/keybindings.ts:8 — there is no `PLUGIN_COMPANIONS` export or constant anywhere, and `plugin-bootstrap.ts` never reads one. `BUNDLED_PLUGINS` (also named in docs/CLAUDE.md as the sibling registration list) likewise does not exist (`grep -rn BUNDLED_PLUGINS` — zero hits); the actual registration point is `CATALOG_ROWS` in `src/lib/marketplace.ts`. A plugin author following the documented convention literally (creating `panels.ts`, importing `PLUGIN_COMPANIONS`) would find nothing to import and no wiring point. Currently moot in practice because no bundled plugin sets `contributesPanels: true` (`grep -rn \"contributesPanels: true\" plugins/` — zero hits), so the mismatch has not yet blocked a real plugin, but it will the first time one ships a panel.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-340",
+    "promise": "The documented plugin-contract roadmap, explicitly out of scope for v0.3.0, includes filesystem-installed plugins, signed plugins, an online plugin marketplace (v2.0+), agent/node-editor consumers for the plugin registries, and a future Tauri-spawned subprocess pattern to resolve a known OpenBB Windows hang.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Roadmap",
+    "kind": "deferred-item",
+    "status": "partial",
+    "evidence": "docs/PLUGIN_DEVELOPMENT.md:360-373 (§Roadmap, framed for v0.3.0, lists five deferred items: filesystem-installed plugins, signed plugins, an online marketplace, \"Phase 3 will add agent / node-editor consumers for the usePluginsStore registries that this phase wires but does not yet display\", and \"a future Tauri-spawned subprocess pattern ... to resolve the OpenBB Windows hang\").",
+    "gap": "Two of the five listed-as-future items are already shipped in current code (host is v0.8.0 per src/lib/plugin-bootstrap.ts:36 `HOST_VERSION = \"0.8.0\"`, five phases past the v0.3.0 the roadmap describes): (1) the Tauri-spawned subprocess pattern is DONE for both MCP subprocesses — src-tauri/src/openbb_mcp.rs:100 and src-tauri/src/sec_edgar_mcp.rs:100 both call `app.shell().sidecar(...)`; (2) the node-editor plugin consumer is DONE — src/modules/node-editor/node-registry.ts:3-4 explicitly merges `usePluginsStore.nodes` (\"plugin-contributed node types surfaced through usePluginsStore.nodes\") into the palette. The agent-picker consumer, by contrast, is genuinely still missing: `grep -rn \"state.agents\" src/modules/` outside node-editor/plugin-manager returns nothing — `usePluginsStore.agents` is collected (src/store/plugins.ts:63,87) but never read by any chat/agent-picker UI, so plugin-contributed `AgentSpec`s are invisible to the user. The roadmap section is stale as current-state documentation: it should distinguish what shipped (subprocess pattern, node consumer) from what remains open (agent consumer, filesystem/signed/marketplace plugins) instead of listing all five as uniformly future.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-341",
+    "promise": "Vysted speaks the Model Context Protocol on both sides: as a server exposing its own data and agent surface to external MCP clients, and as a client connecting to external MCP servers such as openbb-mcp-server.",
+    "source": "docs/MCP_INTEGRATION.md#top",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/mcp_server.py:1-9 (server side, FastMCP mounted at /mcp); sidecar/services/mcp_client.py:49-244 (client side, McpClient wrapping the MCP Python SDK); plugins/openbb-mcp/ (the reference external-server consumer). Live-confirmed: `curl http://127.0.0.1:52152/mcp/status` -> {\"ready\":true,\"toolCount\":36,...}.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-342",
+    "promise": "An external MCP client can reach Vysted's MCP surface two ways -- a loopback HTTP endpoint on the running app, or a stdio entrypoint that spawns the sidecar binary directly -- and both expose the identical tool set.",
+    "source": "docs/MCP_INTEGRATION.md#Connecting an external MCP client",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src-tauri/src/lib.rs:184-193 (write_mcp_endpoint_file, the loopback HTTP path) and sidecar/main.py:108-135 (`--mcp-stdio` spawns the sidecar binary directly over stdin/stdout); both transports call the SAME `services.mcp_server.get_mcp_server()` singleton (sidecar/services/mcp_server.py:369-374 for HTTP via `get_streamable_http_app()`, sidecar/main.py:135 `mcp_server.get_mcp_server().run(transport=\"stdio\", ...)`) — one tool-registration path, so both transports expose the identical tool set by construction.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-343",
+    "promise": "Once the sidecar is confirmed healthy, the Tauri core writes a small discovery file (with a documented per-OS path) containing the sidecar port, the MCP endpoint URL, and the protocol version, so an external client never has to scrape console log output to find the endpoint.",
+    "source": "docs/MCP_INTEGRATION.md#1. Loopback HTTP endpoint",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src-tauri/src/lib.rs:157-159 (MCP_ENDPOINT_FILENAME = \"mcp-endpoint.json\"), :161-172 (mcp_endpoint_json: sidecarPort, mcpEndpoint, protocolVersion), :176-178 (mcp_endpoint_path resolves it under data_dir, a documented per-OS path via `resolve_data_dir`), :262-266 (write_mcp_endpoint_file called only once `wait_for_port_with_retries` confirms the sidecar healthy).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-344",
+    "promise": "If the app fails to boot or find a free port, no discovery file is written at all, so a stale discovery file can never point at a dead port.",
+    "source": "docs/MCP_INTEGRATION.md#1. Loopback HTTP endpoint",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "src-tauri/src/lib.rs:198-201 (`if port == 0 { ...; return; }` — no free port never writes), :256-267 (write_mcp_endpoint_file is called ONLY inside the `if bound { ... }` branch of the health-wait thread; the `else` branch on a failed/timed-out boot only `eprintln!`s and never writes or removes the file) — confirmed no `remove_file`/`std::fs::remove_file` call exists anywhere in src-tauri/src/lib.rs (`grep -n \"remove_file\" src-tauri/src/lib.rs` — zero hits).",
+    "gap": "The promise's guarantee (\"a stale discovery file can never point at a dead port\") only holds within a single boot: a THIS-boot failure correctly skips the write. But if boot N succeeded and wrote mcp-endpoint.json for port P, then the app is relaunched as boot N+1 and that boot's sidecar fails to come up (or times out) before port P is freed/reused, the file from boot N is never deleted or overwritten — an external MCP client reading it discovers a stale, potentially dead port. Smallest fix: delete the discovery file at the start of `start_main_sidecar` (or in the port==0/timeout branches) before attempting the new boot.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-345",
+    "promise": "Vysted's MCP server binds to 127.0.0.1 only, inheriting the sidecar's broader no-remote-surface posture.",
+    "source": "docs/MCP_INTEGRATION.md#1. Loopback HTTP endpoint",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src-tauri/src/lib.rs:169 (`\"mcpEndpoint\": format!(\"http://127.0.0.1:{port}/mcp\")` — hardcoded loopback host, never the bind host); sidecar/routers/mcp.py:14-15 (\"Both endpoints are unauthenticated, mirroring the rest of the sidecar API (the process binds to 127.0.0.1 only — no remote surface)\").",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-346",
+    "promise": "The same sidecar binary doubles as a stdio MCP server when launched with a dedicated flag -- it then speaks JSON-RPC over stdin/stdout instead of binding a network port, and the normal port argument is ignored in that mode.",
+    "source": "docs/MCP_INTEGRATION.md#2. stdio entrypoint",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/main.py:13-16 (docstring: \"--mcp-stdio runs the FastMCP server over stdio instead of uvicorn ... --port is ignored in this mode\"), :108-114 (`--mcp-stdio` argparse flag: \"Run the FastMCP server over stdio instead of uvicorn (FR-025) ... --port is ignored in this mode\"), :119-135 (run_mcp_stdio calls `mcp_server.get_mcp_server().run(transport=\"stdio\", show_banner=False)` — no port bound, JSON-RPC over stdin/stdout).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-347",
+    "promise": "In stdio mode, passing a data-directory argument lets the process resolve the same SQLite stores and saved workspaces the running desktop app uses, and the process disables its own stdin-EOF shutdown watchdog and suppresses its startup banner since stdout is reserved for JSON-RPC.",
+    "source": "docs/MCP_INTEGRATION.md#2. stdio entrypoint",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/main.py:1-7 (\"--data-dir. The data directory is exported as the VYSTED_DATA_DIR environment variable so the persistence layer (portfolio SQLite, saved workspaces) can find it\"); this export happens before transport dispatch and is shared by both the HTTP and `--mcp-stdio` entrypoints (main.py:36-37 \"Shared by both the HTTP and --mcp-stdio entrypoints\"); sidecar/main.py:119-135 (run_mcp_stdio: `show_banner=False` suppresses the FastMCP startup banner; docstring \"the stdin-EOF watchdog is NOT started here\" — confirmed by :125-128 the watchdog thread is only spawned in the HTTP branch, not run_mcp_stdio).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-348",
+    "promise": "The data and analysis MCP tools are projected directly from the single internal capability catalog rather than being a hand-maintained duplicate; only the agent, workspace, and workflow tools are hand-written and MCP-only.",
+    "source": "docs/MCP_INTEGRATION.md#Tools exposed",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/mcp_server.py:146-157 (catalog-projected tools: `for capability in mcp_capabilities(): mcp.add_tool(FunctionTool(..., fn=_make_catalog_tool(capability.id)))`) versus :159-355 (hand-written `@mcp.tool` functions: list_agents, invoke_agent, list_workspaces, get_workspace, list_workflows, run_workflow, save_workflow, list_runs — agent/workspace/workflow tools only, matching the promise's split exactly).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-349",
+    "promise": "The catalog-projected MCP tool set covers price data, fundamentals, news, the screener, macro series and search, earnings (upcoming/history/estimates), analyst ratings (history/individual/price-target history), SEC filings (list/content/insider transactions), options pricing, Greeks, bond pricing, yield-curve values, and broker portfolio reads.",
+    "source": "docs/MCP_INTEGRATION.md#Tools exposed",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_tools/catalog.py capability ids confirmed present via grep: `price_data`, `fundamentals`, `news`, `screener`/`screener_run`, `macro_series`+`macro_search`, `earnings_upcoming`/`earnings_history`/`earnings_estimates`, `analyst_history`/`analyst_individual`/`price_target_history`, `sec_filings_list`/`sec_filing_content`/`sec_insider_transactions`, `price_option`, `compute_greeks`, `price_bond`, `yield_curve_value`, `broker_portfolio` — every category the promise lists has a matching catalog capability id, all of which project into MCP tools via INT-PD-348's `mcp_capabilities()` loop.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-350",
+    "promise": "Hand-written, MCP-only tools let an external client list first-party and custom agents, invoke an agent and get back its aggregated reply (collapsing a streamed response into one string), and list/fetch saved workspaces and list/run saved workflows.",
+    "source": "docs/MCP_INTEGRATION.md#Tools exposed",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/mcp_server.py:159-165 (list_agents), :182-238 (invoke_agent — \"aggregate its streaming reply into a single string\"), :240-246 (list_workspaces), :248-256 (get_workspace), :315-338 (list_workflows), :288-313 (run_workflow) — all hand-written, MCP-only, matching the promise's list (agents list/invoke, workspaces list/fetch, workflows list/run) plus two extras (save_workflow, list_runs) not claimed against by the promise.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-351",
+    "promise": "Because Claude Desktop's config file does not accept HTTP MCP servers directly, connecting it to Vysted requires the mcp-remote bridge package to translate between Claude Desktop's stdio expectation and Vysted's HTTP transport; once configured, Vysted's tools appear in Claude Desktop's slash-command picker.",
+    "source": "docs/MCP_INTEGRATION.md#Claude Desktop",
+    "kind": "use-case",
+    "status": "delivered",
+    "evidence": "docs/MCP_INTEGRATION.md:131-155 (§Claude Desktop: \"does not accept HTTP servers directly. Use the mcp-remote bridge ... Restart Claude Desktop. The Vysted tools appear in the slash-command\" picker) — documented config snippet uses `\"args\": [\"mcp-remote\", \"http://127.0.0.1:<sidecar-port>/mcp/\"]` against the real `/mcp` mount confirmed live in INT-PD-341/342.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-352",
+    "promise": "Claude Code supports HTTP MCP servers natively, so Vysted can be added with a single CLI command, after which its tools are addressable with a namespaced tool prefix inside a Claude Code session.",
+    "source": "docs/MCP_INTEGRATION.md#Claude Code",
+    "kind": "use-case",
+    "status": "delivered",
+    "evidence": "docs/MCP_INTEGRATION.md:158-172 (§Claude Code: \"supports HTTP MCP servers natively. From your shell: ... Inside a Claude Code session, the tools are addressable as\" a namespaced prefix) — against the same real, live `/mcp` endpoint.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-353",
+    "promise": "The MCP connection can be verified without any MCP client at all, either via a raw JSON-RPC 'initialize' request over curl (expecting a 200 OK) or via a plain GET to a status endpoint that reports readiness, live tool count, the mount path, and the protocol version.",
+    "source": "docs/MCP_INTEGRATION.md#Testing the connection",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "docs/MCP_INTEGRATION.md:191-207 (§Testing the connection: raw `curl -X POST .../mcp/ ... \"method\":\"initialize\"` expecting 200 OK; `GET /mcp/status` for readiness); sidecar/routers/mcp.py:28-38 (`GET /mcp/status` returns `{ready, toolCount, endpoint, protocolVersion}` — exactly the four fields the promise names). Live-confirmed: `curl -s http://127.0.0.1:52152/mcp/status` -> `{\"ready\":true,\"toolCount\":36,\"endpoint\":\"/mcp\",\"protocolVersion\":\"2025-06-18\"}`.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-354",
+    "promise": "Vysted's MCP server has no authentication at all -- it relies entirely on its localhost-only bind, so by design any process on the same host can reach it; exposing it beyond localhost is documented as the user's own responsibility to secure via a reverse proxy.",
+    "source": "docs/MCP_INTEGRATION.md#Authentication",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/routers/mcp.py:14-15 (\"Both endpoints are unauthenticated, mirroring the rest of the sidecar API (the process binds to 127.0.0.1 only — no remote surface)\"); docs/MCP_INTEGRATION.md:216-224 (§Authentication: \"There is no authentication today ... any process on the same host can reach it ... If you want to expose Vysted's MCP server beyond localhost, terminate a reverse proxy in front and add auth there\").",
+    "gap": "",
+    "decision_ref": ""
+  }
+]

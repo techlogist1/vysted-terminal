@@ -1,0 +1,35 @@
+=== R15-UI-051: Bond/Option pricer currency stamping (source check, no GUI available) ===
+-- grep hard-coded $ near price renders --
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/modules/quant/BondPricerPanel.tsx:124:  // India-first terminal must not hard-prefix "$" on every price. Frontend
+-- currency select / currencyAffix usage --
+266:  // Display currency, defaulting to the session region's (the Bond pricer's
+267:  // R15-DATA-100 select). Display only; the pricing request stays currency-free.
+269:  const [displayCurrency, setDisplayCurrency] = useState(() => regionConfig(region).currency);
+528:          <span className="text-charcoal-500 text-micro">Display currency</span>
+532:            data-testid="field-display-currency"
+2: * Shared numeric / currency / percent formatters for the terminal.
+25: * pass extends region into currency/FX + region-first data — this is where the
+32:/** The active region's ISO-4217 display currency (US → `USD`, byte-identical to
+35:  return regionConfig(useSettingsStore.getState().region).currency;
+39: * Resolve the display currency for a money formatter call (R8 §6 — "currency
+40: * formats by the INSTRUMENT's currency, never the locale default"). A caller
+41: * holding the instrument's quoted currency (Quote.currency / Fundamentals
+42: * .currency) passes it through; absent/blank input falls back to the region
+45:function resolveCurrency(currency?: string | null): string {
+46:  const trimmed = currency?.trim().toUpperCase();
+62:/** Currency value with full cents precision. Non-finite -> "—". `currency` is
+65:export function formatMoney(value: number, currency?: string | null): string {
+68:    style: "currency",
+69:    currency: resolveCurrency(currency),
+75: * The active currency's symbol (e.g. `$`, `₹`), derived from Intl so the compact
+78: * Exported (R11 / D57) for money cells that must keep a NON-currency mantissa
+82:export function currencyAffix(currency?: string | null): { prefix: string; suffix: string } {
+83:  const code = resolveCurrency(currency);
+85:    style: "currency",
+86:    currency: code,
+-- grep literal $ template prefix in price-rendering JSX --
+30:import { formatMoney } from "@/lib/format";
+317:            hint="Set the coupon, dates, and yield-to-maturity on the left — clean/dirty prices, accrued interest, duration, and convexity land here."
+334:                  {formatMoney(lastResult.clean_price, displayCurrency)}
+358:                value={formatMoney(lastResult.dirty_price, displayCurrency)}
+362:                value={formatMoney(lastResult.accrued_interest, displayCurrency)}

@@ -1,0 +1,21 @@
+# R15-DOCS-016 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n -i 'host action\|AUTO_APPLIED\|auto-apply' docs/CURRENT_STATE.md | cut -c1-220 | head -6; grep -n 'AUTO_APPLIED_KINDS' types/proposed-change.ts
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+from services.agent_tools import catalog
+caps=list(catalog.CAPABILITY_CATALOG.values())
+nr=[c for c in caps if not catalog.is_read_only(c.id)]
+print('non-read-only:',len(nr),'kinds',{c.kind for c in nr}, 'host_action total', sum(c.kind=='host_action' for c in caps))
+PY
+--- output ---
+81:>   — the write surface is the catalog's 19 host actions (`open_panel`/
+83:>   layout writers/`set_region`; no order action exists, D81) — none auto-apply
+451:remains — the proposed-changes trust gate over the 19 surviving host actions
+587:host-actions.ts` — 19 host actions total), staged through the diff/accept
+589:  per-action confirmation under AUTO autonomy (`AUTO_APPLIED_KINDS`,
+684:host-actions.ts` — 19 host actions total) are per-invocation closures that
+38:export const AUTO_APPLIED_KINDS: readonly ProposedChangeKind[] = [
+45:  return (AUTO_APPLIED_KINDS as readonly ProposedChangeKind[]).includes(kind);
+non-read-only: 19 kinds {'host_action'} host_action total 19
+
+EXIT=0 (0.4s)

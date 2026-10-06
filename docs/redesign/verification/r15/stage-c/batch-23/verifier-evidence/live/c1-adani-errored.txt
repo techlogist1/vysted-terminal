@@ -1,0 +1,16 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_918c9df1d546424e9b4b1e0e84b9ca7c", "name": "price_data", "input": {"symbol": "TCS.NS"}}
+[  37.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_264fbfd3f1e5442f94dca20772789cc8", "name": "price_data", "input": {"symbol": "ADANIENT.ZZ"}}
+[  48.7s] heartbeat: {"kind": "heartbeat"}
+[  53.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_918c9df1d546424e9b4b1e0e84b9ca7c", "name": "price_data", "ok": false, "error": "timeout"}
+[  56.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_264fbfd3f1e5442f94dca20772789cc8", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'ADANIENT.ZZ' from 'yfinance'"}
+[  60.5s] done: {"kind": "done", "usage": {"input_tokens": 2926, "output_tokens": 61, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+We couldn't retrieve a price for ADANIENT.ZZ.
+
+The price_data tool returned no data for this in this turn. 2026-09-23; ADANIENT.ZZ has no available price data. The Adani flagship does not have an updated price that we can access.
+
+=== ok · 60.5s · events {'heartbeat': 4, 'tool_use': 2, 'tool_result': 2, 'delta': 48, 'done': 1} · usage in=2926 out=61 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,18 @@
+{
+ "meta+k": {
+  "kbdWhileRecording": "Press keys… (Esc to cancel)",
+  "stored": "meta+k",
+  "conflicts": [],
+  "conflictBanner": "",
+  "paletteAlsoMatches": false,
+  "agentMatches": true
+ },
+ "ctrl+k": {
+  "kbdWhileRecording": "Press keys… (Esc to cancel)",
+  "stored": "ctrl+k",
+  "conflicts": [],
+  "conflictBanner": "",
+  "paletteAlsoMatches": true,
+  "agentMatches": true
+ }
+}

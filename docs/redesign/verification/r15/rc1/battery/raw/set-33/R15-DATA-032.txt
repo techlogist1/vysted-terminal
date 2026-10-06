@@ -1,0 +1,25 @@
+=== DATA-032 source ===
+289:    # R15-DATA-032: yfinance surfaces no dispersion, so ``eps_estimate_stddev``
+519:        revenue_analyst_count=_analyst_count(payload.get("revenue_estimate")),
+=== DATA-032 context ===
+    else:
+        try:
+            scheduled = datetime.fromisoformat(str(raw)).date()
+        except ValueError:
+            return None
+
+    if scheduled < start_date or scheduled > end_date:
+        return None
+
+    # R15-DATA-032: yfinance surfaces no dispersion, so ``eps_estimate_stddev``
+    # stays None (the field is for a provider that measures it).
+    return EarningsEvent(
+        symbol=payload["symbol"],
+        company_name=payload.get("name"),
+        scheduled_date=scheduled,
+        time_of_day="unknown",
+        # R15-DATA-067: yfinance names no fiscal period; the report month does
+        # not determine one (JPM's October report is its Q3), so none is stamped.
+        eps_estimate_mean=_num(cal.get("Earnings Average")),
+        estimate_analyst_count=_analyst_count(payload.get("earnings_estimate")),
+        currency=str(payload.get("currency") or "USD"),

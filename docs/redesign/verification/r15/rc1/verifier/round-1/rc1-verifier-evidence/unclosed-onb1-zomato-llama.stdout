@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  23.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_02320c9977564fc1869086b7f2185fe6", "name": "get_terminal_state", "input": {}}
+[  27.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_01307408fa8b4606ac15c0899bf2f2ba", "name": "get_terminal_state", "input": {"region": "IN", "query": "Zomato stock"}}
+[  32.8s] done: {"kind": "done", "usage": {"input_tokens": 2787, "output_tokens": 96, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+You're in the Vysted terminal. I can drive the cockpit with tools: open panels, load a symbol into the chart, apply chart indicators, arrange the layout, add or remove watchlist symbols, publish research briefs, stage screener filters for review and run, save screens or layouts, maintain your local tracked portfolio, write notes, switch market regions, or run the research tool.
+
+As for Zomato's stock, I'll check its current status.
+
+=== ok · 32.8s · events {'heartbeat': 2, 'tool_use': 2, 'delta': 95, 'done': 1} · usage in=2787 out=96 · est $0.00000 · llama3.1:8b
+EXIT=0

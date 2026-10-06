@@ -1,0 +1,89 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_1803bd00034f4e0ca0cd22adf9bbdc1b", "name": "fundamentals", "input": {"__vysted_invalid_args__": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}}
+{"kind": "delta", "text": "} \n"}
+{"kind": "delta", "text": "No tool returned data for this in this turn.\n\n"}
+{"kind": "delta", "text": "Hope"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " helps"}
+{"kind": "delta", "text": "."}
+{"kind": "tool_result", "tool_call_id": "call_1803bd00034f4e0ca0cd22adf9bbdc1b", "name": "fundamentals", "ok": false, "error": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " get"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " fundamental"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "AT"}
+{"kind": "delta", "text": "AM"}
+{"kind": "delta", "text": "OT"}
+{"kind": "delta", "text": "ORS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " pass"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " argument"}
+{"kind": "delta", "text": " when"}
+{"kind": "delta", "text": " calling"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "fund"}
+{"kind": "delta", "text": "amentals"}
+{"kind": "delta", "text": "`."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Here"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " how"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " do"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "``"}
+{"kind": "delta", "text": "`\n"}
+{"kind": "tool_use", "tool_call_id": "call_65bb71716ebd44c793226182a4b7c29d", "name": "fundamentals", "input": {"symbol": "TATAMOTORS.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_65bb71716ebd44c793226182a4b7c29d", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "~~"}
+{"kind": "delta", "text": "~\n"}
+{"kind": "delta", "text": "{\""}
+{"kind": "delta", "text": "fund"}
+{"kind": "delta", "text": "amentals"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " {\""}
+{"kind": "delta", "text": "market"}
+{"kind": "delta", "text": "_cap"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " \"\\"}
+{"kind": "delta", "text": "u"}
+{"kind": "delta", "text": "20"}
+{"kind": "delta", "text": "b"}
+{"kind": "delta", "text": "94"}
+{"kind": "delta", "text": "c"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "\\u"}
+{"kind": "delta", "text": "091"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "kr"}
+{"kind": "delta", "text": "\","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "pe"}
+{"kind": "delta", "text": "_ratio"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " null"}
+{"kind": "delta", "text": "}}\n"}
+{"kind": "delta", "text": "~~"}
+{"kind": "delta", "text": "~\n\n"}
+{"kind": "delta", "text": "Hope"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " helps"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5926, "output_tokens": 35, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,5 @@
+CMD: grep for committed pinned tests naming R15-UI-023.
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+423:  it("a failed /indicators after a symbol change leaves no overlay of the old symbol (R15-UI-023)", async () => {
+444:  it("does not draw indicators before their own symbol's candles land (R15-UI-023)", async () => {
+VERDICT: ci_pinned

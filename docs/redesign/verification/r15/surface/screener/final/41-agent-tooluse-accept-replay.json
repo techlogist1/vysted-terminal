@@ -1,0 +1,97 @@
+{
+ "input": {
+  "run": true,
+  "criteria": [
+   {
+    "field": "pe_ratio",
+    "operator": "lt",
+    "value": 20
+   },
+   {
+    "field": "roe",
+    "operator": "gt",
+    "value": {
+     "min": 15,
+     "max": 0
+    }
+   },
+   {
+    "field": "debt_to_equity",
+    "operator": "lt",
+    "value": 0.5
+   }
+  ],
+  "universe": "nse-all"
+ },
+ "describe": {
+  "kind": "panel",
+  "title": "Write screener filters",
+  "before": "Screener: 3 criteria",
+  "after": "Screener: 2 criteria · nse-all; dropped roe: value must be a number — runs on apply"
+ },
+ "apply": {
+  "status": "applied",
+  "label": "Wrote 2 of 3 screener criteria; dropped roe: value must be a number — running"
+ },
+ "run_requests": [
+  {
+   "universe": "nse-all",
+   "criteria": [
+    {
+     "field": "pe_ratio",
+     "operator": "lt",
+     "value": 20
+    },
+    {
+     "field": "debt_to_equity",
+     "operator": "lt",
+     "value": 0.5
+    }
+   ],
+   "limit": 200,
+   "sort_by": "market_cap",
+   "sort_dir": "desc"
+  }
+ ],
+ "status": "ready",
+ "error": null,
+ "result": {
+  "evaluated": 2437,
+  "matched": 536,
+  "result_count": 200,
+  "partial": true,
+  "coverage": "screened 2,437 of 3,506 — 1,069 unavailable",
+  "top": [
+   [
+    "TCS.NS",
+    15.08323,
+    0.10211,
+    7507531530240
+   ],
+   [
+    "LICI.NS",
+    8.25121,
+    0.00431,
+    4956900818944
+   ],
+   [
+    "INFY.NS",
+    13.298214,
+    0.09541000000000001,
+    4192105660416
+   ],
+   [
+    "HCLTECH.NS",
+    19.341839,
+    0.07058,
+    3363538468864
+   ],
+   [
+    "ITC.NS",
+    16.155302,
+    0.03293,
+    3206559301632
+   ]
+  ]
+ }
+}

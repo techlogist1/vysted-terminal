@@ -1,0 +1,209 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_aacaf40bc3aa4033b878f0d49fbdfbe0", "name": "research", "input": {"depth": "quick", "query": "Tata Elxsi"}}
+{"kind": "research_step", "tool_call_id": "call_aacaf40bc3aa4033b878f0d49fbdfbe0", "tool": "research", "step_kind": "engine", "detail": "research:begin 9a6bcec0eedd47f4af5ef84ca9ac499c depth=normal query=Tata Elxsi", "latency_ms": null, "status": "ok", "index": 1}
+{"kind": "research_step", "tool_call_id": "call_aacaf40bc3aa4033b878f0d49fbdfbe0", "tool": "research", "step_kind": "plan", "detail": "resolving \"Tata Elxsi\"", "latency_ms": null, "status": "ok", "index": 2}
+{"kind": "research_step", "tool_call_id": "call_aacaf40bc3aa4033b878f0d49fbdfbe0", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 TATAELXSI", "latency_ms": 430, "status": "ok", "index": 3}
+{"kind": "research_step", "tool_call_id": "call_aacaf40bc3aa4033b878f0d49fbdfbe0", "tool": "research", "step_kind": "tool", "detail": "pulling market data for TATAELXSI", "latency_ms": null, "status": "ok", "index": 4}
+{"kind": "research_step", "tool_call_id": "call_aacaf40bc3aa4033b878f0d49fbdfbe0", "tool": "research", "step_kind": "search", "detail": "searching the web for Tata Elxsi Limited", "latency_ms": null, "status": "ok", "index": 5}
+{"kind": "research_step", "tool_call_id": "call_aacaf40bc3aa4033b878f0d49fbdfbe0", "tool": "research", "step_kind": "tool", "detail": "price timed out after 6s \u2014 dropped", "latency_ms": 6006, "status": "error", "index": 6}
+{"kind": "research_step", "tool_call_id": "call_aacaf40bc3aa4033b878f0d49fbdfbe0", "tool": "research", "step_kind": "tool", "detail": "fundamentals timed out after 6s \u2014 dropped", "latency_ms": 6006, "status": "error", "index": 7}
+{"kind": "research_step", "tool_call_id": "call_aacaf40bc3aa4033b878f0d49fbdfbe0", "tool": "research", "step_kind": "tool", "detail": "pulled 2/4 data sources", "latency_ms": 6019, "status": "ok", "index": 8}
+{"kind": "research_step", "tool_call_id": "call_aacaf40bc3aa4033b878f0d49fbdfbe0", "tool": "research", "step_kind": "search", "detail": "no web backend \u2014 structured only", "latency_ms": 7282, "status": "skipped", "index": 9}
+{"kind": "research_step", "tool_call_id": "call_aacaf40bc3aa4033b878f0d49fbdfbe0", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 10}
+{"kind": "tool_result", "tool_call_id": "call_aacaf40bc3aa4033b878f0d49fbdfbe0", "name": "research", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_aacaf40bc3aa4033b878f0d49fbdfbe0__autobrief", "name": "publish_brief", "input": {"query": "Tata Elxsi", "symbol": "TATAELXSI", "mode": "fast", "depth": "quick", "execution": {"run_id": "9a6bcec0eedd47f4af5ef84ca9ac499c", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1791024032.356596, "finished_at": 1791024040.070055, "degraded_reason": null}, "markdown": "", "sources": [], "structured": {"price": {"ok": false, "provider": null, "error": "price timed out after 6s \u2014 dropped", "reason": "provider_error"}, "fundamentals": {"ok": false, "provider": null, "error": "fundamentals timed out after 6s \u2014 dropped", "reason": "provider_error"}, "derived": {"ok": true, "provider": "derived", "data": {"drawdown_from_high": {"value": null, "label": "Below 52-week high", "basis": "vs 52w high", "formula": "(52w high - price) / 52w high", "unit": "fraction"}, "fifty_two_week_change": {"value": null, "label": "52-week price change (Yahoo)", "basis": "trailing 52 weeks", "unit": "fraction"}, "dividend_yield": {"value": null, "label": "Dividend yield", "basis": "fraction of price", "unit": "fraction"}, "dividend_per_share": {"value": null, "label": "Dividend per share", "basis": "per share, listing currency", "unit": "currency"}, "revenue_growth": {"value": null, "label": "Revenue growth", "basis": "quarterly YoY (MRQ)", "unit": "fraction"}, "earnings_growth": {"value": null, "label": "Earnings growth", "basis": "quarterly YoY (MRQ)", "unit": "fraction"}, "market_cap": {"value": null, "label": "Market cap", "basis": "provider market cap", "unit": "currency"}, "conflicts": []}}, "news": {"ok": true, "provider": null, "data": []}, "filings": {"ok": true, "provider": "nse+bse", "data": {"symbol": "TATAELXSI", "exchange": null, "coverage": "covered", "sources": ["NSE", "BSE"], "errors": {}, "count": 20, "announcements": [{"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015", "category": "Trading Window", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_18092026161016_SEintimationClosureofTradingWindow.pdf", "ts": "2026-09-18T16:10:28+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange about Schedule of meet", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_17092026145933_SEintimationschule22092026.pdf", "ts": "2026-09-17T14:59:48+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange regarding a press release dated September 10, 2026, titled \"Tata Elxsi Invests in KAVIA AI to Scale AI-Driven Software Engineering for Products and Enterprises\".", "category": "Press Release", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_10092026122423_PressRelease10092026.pdf", "ts": "2026-09-10T12:30:22+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange about Copy of Newspaper Publication", "category": "Copy of Newspaper Publication", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_08092026164346_Reg30NewspaperPublication_08092026.pdf", "ts": "2026-09-08T16:44:04+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange about Copy of Newspaper Publication.", "category": "Copy of Newspaper Publication", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_02092026175515_SEintimation_newspaper02092026_1.pdf", "ts": "2026-09-02T17:55:29+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange regarding a press release dated September 01, 2026, titled \"Tata Elxsi and Sarla Aviation Partner to Accelerate Development of Shunya, India s First Indigenous eVTOL Aircraft.\".", "category": "Press Release", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_01092026115409_PressRelease01092026.pdf", "ts": "2026-09-01T11:57:22+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange regarding 'Allotment of Equity Shares'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_31082026171610_PSOPAllotment.pdf", "ts": "2026-08-31T17:16:25+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange about Copy of Newspaper Publication", "category": "Copy of Newspaper Publication", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_11082026171712_Reg30NewspaperPublication.pdf", "ts": "2026-08-11T17:17:19+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange regarding a press release dated July 27, 2026, titled \"SCTIMST and Tata Elxsi Forge Strategic Partnership to Accelerate Healthcare Innovation and Medical Technology Development\".", "category": "Press Release", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_27072026120234_PressRelease_27072026.pdf", "ts": "2026-07-27T12:02:47+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange regarding 'Disclosure under Regulation 30 of SEBI (LODR) Regulations, 2015'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_20072026150404_Reg30Order20072026.pdf", "ts": "2026-07-20T15:04:16+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange about Transcript", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_17072026162501_Reg30Transcripts.pdf", "ts": "2026-07-17T16:27:04+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange about Copy of Newspaper Publication", "category": "Copy of Newspaper Publication", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_15072026123806_SEintimationnewspaper.pdf", "ts": "2026-07-15T12:38:20+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange about Link of Recording", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_14072026204106_AudioRecording14072026.pdf", "ts": "2026-07-14T20:41:16+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange about Investor Presentation", "category": "Investor Presentation", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_14072026183436_SEIntimationPresentation.pdf", "ts": "2026-07-14T18:34:47+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange regarding a press release dated July 14, 2026, titled \"Tata Elxsi delivers steady growth at 2.8% QoQ and 14.5% YoY in Q1 FY27\".", "category": "Press Release", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_14072026182701_PressRelease.pdf", "ts": "2026-07-14T18:27:14+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has submitted to the Exchange, the financial results for the period ended Jun 30, 2026.", "category": "Outcome of Board Meeting", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_14072026181649_BMOutcome.pdf", "ts": "2026-07-14T18:18:31+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange about Copy of Newspaper Publication.", "category": "Copy of Newspaper Publication", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_10072026175440_Newspaperadvertisement.pdf", "ts": "2026-07-10T17:54:53+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange about Certificate under Regulation 74(5) of the SEBI (Depositories and Participants) Regulations, 2018", "category": "Certificate under SEBI (Depositories and Participants) Regulations, 2018", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_08072026171051_Reg74Certificatesigned.pdf", "ts": "2026-07-08T17:11:16+05:30"}, {"symbol": "TATAELXSI", "exchange": "NSE", "headline": "Tata Elxsi Limited has informed the Exchange about Schedule of meet", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TELNSE_06072026185303_Earningscallintimation.pdf", "ts": "2026-07-06T18:53:21+05:30"}, {"symbol": "TATAELXSI", "exchange": "BSE", "headline": "Board Meeting Intimation for Consideration And Approval Of Audited Financial Results For The Quarter Ended June 30, 2026", "category": "Board Meeting", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/498366e3-4081-43cb-a748-acffdbbe0e0c.pdf", "ts": "2026-07-06T16:20:38.430000+05:30"}]}}, "source_floor": {"ok": true, "provider": "derived", "data": {"cited": 0, "floor": 3}, "note": "0 sources (below 3)"}}, "cost": null, "web_available": false, "note": "Web search was rate-limited \u2014 retry in a moment", "web_reason": "rate_limited", "backend": null}}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " brief"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " Tata"}
+{"kind": "delta", "text": " El"}
+{"kind": "delta", "text": "x"}
+{"kind": "delta", "text": "si"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " follows"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "ata"}
+{"kind": "delta", "text": " El"}
+{"kind": "delta", "text": "x"}
+{"kind": "delta", "text": "si"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "symbol"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "ATA"}
+{"kind": "delta", "text": "EL"}
+{"kind": "delta", "text": "X"}
+{"kind": "delta", "text": "SI"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " Indian"}
+{"kind": "delta", "text": " IT"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " provides"}
+{"kind": "delta", "text": " software"}
+{"kind": "delta", "text": " engineering"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " consulting"}
+{"kind": "delta", "text": " services"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " It"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " informed"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " exchange"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " various"}
+{"kind": "delta", "text": " corporate"}
+{"kind": "delta", "text": " actions"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " including"}
+{"kind": "delta", "text": " trading"}
+{"kind": "delta", "text": " window"}
+{"kind": "delta", "text": " closure"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " analyst"}
+{"kind": "delta", "text": "/in"}
+{"kind": "delta", "text": "stitution"}
+{"kind": "delta", "text": "al"}
+{"kind": "delta", "text": " investor"}
+{"kind": "delta", "text": " meet"}
+{"kind": "delta", "text": "/con"}
+{"kind": "delta", "text": "ference"}
+{"kind": "delta", "text": " call"}
+{"kind": "delta", "text": " updates"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " press"}
+{"kind": "delta", "text": " releases"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " disclosure"}
+{"kind": "delta", "text": " under"}
+{"kind": "delta", "text": " Regulation"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "30"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " SE"}
+{"kind": "delta", "text": "BI"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "LO"}
+{"kind": "delta", "text": "DR"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " Regulations"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "201"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " brief"}
+{"kind": "delta", "text": " also"}
+{"kind": "delta", "text": " includes"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " link"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " press"}
+{"kind": "delta", "text": " release"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " dated"}
+{"kind": "delta", "text": " September"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " titled"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "ata"}
+{"kind": "delta", "text": " El"}
+{"kind": "delta", "text": "x"}
+{"kind": "delta", "text": "si"}
+{"kind": "delta", "text": " Invest"}
+{"kind": "delta", "text": "s"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " K"}
+{"kind": "delta", "text": "AV"}
+{"kind": "delta", "text": "IA"}
+{"kind": "delta", "text": " AI"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " Scale"}
+{"kind": "delta", "text": " AI"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "Driven"}
+{"kind": "delta", "text": " Software"}
+{"kind": "delta", "text": " Engineering"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Products"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " Enterprises"}
+{"kind": "delta", "text": "\".\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " please"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " brief"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " incomplete"}
+{"kind": "delta", "text": " due"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " gap"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " provider"}
+{"kind": "delta", "text": " timed"}
+{"kind": "delta", "text": " out"}
+{"kind": "delta", "text": " after"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": " seconds"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " fundamental"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " unavailable"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " adjust"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " query"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " complete"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 4308, "output_tokens": 186, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

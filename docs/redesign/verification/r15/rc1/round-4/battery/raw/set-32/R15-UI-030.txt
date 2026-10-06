@@ -1,0 +1,7 @@
+NOT RUN AS A LIVE PROBE: this entry's certification is a jsdom/vitest component test, not a live curl/python repro. The battery role does not run vitest suites (owned by the heavy lane). Pinned test located and confirmed present, self-labeled with the entry id:
+  src/modules/macro/MacroPanel.test.tsx:116 it("a provider tab loads that provider's own default once, never through the cold-boot retry (R15-UI-030)", ...)
+Confirmed by reading the test body: it mounts MacroPanel with FRED DGS10, asserts one call to /macro/DGS10 + one to /macro/catalog, clicks the ECB tab, and asserts the exact call sequence ["/macro/DGS10",{provider:"fred"}], ["/macro/<ecb default>",{provider:"ecb"}] with no retry-hook re-fire.
+Verdict: ci_pinned (naming MacroPanel.test.tsx's R15-UI-030 test case).
+== supplementary live check: keyless FRED 502 sentence still present ==
+{"detail":"FRED needs a free API key for macro data. Get one at fred.stlouisfed.org (API Keys), add it to Vysted as your FRED key, and reload — or switch the series provider to ECB, IMF, or World Bank, which need no key.","code":"provider_error","action":"Retry, or try again later."}
+HTTP:502

@@ -1,0 +1,16 @@
+# R15-LEAD-028 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:21+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in 506597.BO 544774.BO; do for r in quotes fundamentals history; do q="$H/$r/$s"; [ $r = history ] && q="$q?range=1y"; echo -n "\$ GET /$r/$s: "; curl -s -m 100 -H "X-Vysted-Region: IN" -w ' [%{http_code}]' "$q" | python3 -c "
+import sys,json;raw=sys.stdin.read();body,code=raw.rsplit(' [',1)
+try:
+  d=json.loads(body);print(code.strip(']'),{k:d.get(k) for k in ('symbol','name','price','provider')},'bars',len(d.get('bars',[])) if 'bars' in d else '')
+except Exception: print(raw[:300])"; done; done
+--- output ---
+$ GET /quotes/506597.BO: 200 {'symbol': 'AMAL', 'name': None, 'price': 699.85, 'provider': 'bse'} bars 
+$ GET /fundamentals/506597.BO: 200 {'symbol': 'AMAL.BO', 'name': 'Amal Ltd', 'price': None, 'provider': 'yfinance'} bars 
+$ GET /history/506597.BO: 200 {'symbol': 'AMAL', 'name': None, 'price': None, 'provider': 'bse'} bars 255
+$ GET /quotes/544774.BO: 200 {'symbol': 'SMR', 'name': None, 'price': 93.05, 'provider': 'bse'} bars 
+$ GET /fundamentals/544774.BO: 200 {'symbol': 'SMR.BO', 'name': 'SMR Jewels Limited', 'price': None, 'provider': 'yfinance'} bars 
+$ GET /history/544774.BO: 200 {'symbol': 'SMR', 'name': None, 'price': None, 'provider': 'bse'} bars 76
+
+EXIT=0 (12.7s)

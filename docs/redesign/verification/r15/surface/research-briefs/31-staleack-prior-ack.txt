@@ -1,0 +1,2 @@
+### 08:01:20 prior turn's panel ack for its auto-publish (exactly what ackHostAction posts after an applied publish on the Ollama lane; id is the constant '__autobrief')
+{"ok":true} [HTTP 200]

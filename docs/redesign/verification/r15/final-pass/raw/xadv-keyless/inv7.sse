@@ -1,0 +1,304 @@
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "tool_use", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "name": "research", "input": {"query": "KITEX.NS"}}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "engine", "detail": "research:begin f479c6c657ad4e1a8444a7669306c149 depth=normal query=KITEX.NS", "latency_ms": null, "status": "ok", "index": 1}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "plan", "detail": "resolving \"KITEX.NS\"", "latency_ms": null, "status": "ok", "index": 2}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 KITEX", "latency_ms": 1, "status": "ok", "index": 3}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "tool", "detail": "pulling market data for KITEX", "latency_ms": null, "status": "ok", "index": 4}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "search", "detail": "searching the web for Kitex Garments Limited", "latency_ms": null, "status": "ok", "index": 5}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "tool", "detail": "filings timed out after 6s \u2014 dropped", "latency_ms": 6005, "status": "error", "index": 6}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "tool", "detail": "price timed out after 6s \u2014 dropped", "latency_ms": 6000, "status": "error", "index": 7}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "tool", "detail": "growth cross-check", "latency_ms": 29, "status": "ok", "index": 8}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "tool", "detail": "earnings quality cross-check", "latency_ms": 16, "status": "ok", "index": 9}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "tool", "detail": "market-cap witness cross-check", "latency_ms": 0, "status": "ok", "index": 10}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "tool", "detail": "dividend TTM cross-check", "latency_ms": 328, "status": "ok", "index": 11}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "search", "detail": "no web backend \u2014 structured only", "latency_ms": 8000, "status": "skipped", "index": 12}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "tool", "detail": "ownership cross-check timed out after 6s \u2014 dropped", "latency_ms": 6001, "status": "error", "index": 13}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "tool", "detail": "declared dividend cross-check timed out after 6s \u2014 dropped", "latency_ms": 5999, "status": "error", "index": 14}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "tool", "detail": "52-week range cross-check timed out after 6s \u2014 dropped", "latency_ms": 6001, "status": "error", "index": 15}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "tool", "detail": "pulled 2/4 data sources", "latency_ms": 12047, "status": "ok", "index": 16}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 17}
+
+data: {"kind": "tool_result", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83", "name": "research", "ok": true, "error": null}
+
+data: {"kind": "tool_use", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83__autobrief", "name": "publish_brief", "input": {"query": "KITEX.NS", "symbol": "KITEX", "mode": "fast", "depth": "quick", "execution": {"run_id": "f479c6c657ad4e1a8444a7669306c149", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1791021057.176448, "finished_at": 1791021069.238553, "degraded_reason": null}, "markdown": "", "sources": [], "structured": {"price": {"ok": false, "provider": null, "error": "price timed out after 6s \u2014 dropped", "reason": "provider_error"}, "fundamentals": {"ok": true, "provider": "yfinance", "data": {"symbol": "KITEX.NS", "name": "Kitex Garments Limited", "sector": "Consumer Cyclical", "industry": "Apparel Manufacturing", "sector_source": "resolver", "currency": "INR", "financial_currency": null, "ratio_price": 116.75, "market_cap": 23291625472.0, "pe_ratio": null, "forward_pe": 6.1609497, "peg_ratio": null, "price_to_book": 2.2185273, "price_to_sales": 3.7048311, "ev_to_ebitda": -1277.464, "book_value": 52.625, "dividend_yield": 0.0043, "dividend_per_share": 0.5, "eps": -1.19, "beta": 0.459, "fifty_two_week_high": 232.7, "fifty_two_week_low": 114.36, "fifty_two_week_change": -0.36549026, "fifty_two_week_high_date": "2025-10-24", "fifty_two_week_low_date": "2026-09-29", "listing_date": "2012-09-25", "first_trade_date": "2012-09-25", "forward_pe_fiscal_year": "2027-03-31", "roe": -0.023156818581929788, "roa": null, "gross_margin": 0.48610002, "operating_margin": -0.04665, "profit_margin": -0.03793, "debt_to_equity": 0.96813, "current_ratio": null, "quick_ratio": null, "roce": 0.01931676903035067, "basis": null, "revenue_ttm": 6286824960.0, "net_income_ttm": -238475008.0, "free_cash_flow": null, "shares_outstanding": 199500000.0, "revenue_growth": -0.195, "earnings_growth": null, "growth_basis": "mrq_yoy", "held_percent_insiders": 0.66011, "held_percent_institutions": 0.00737, "dividend_per_share_ttm": 0.5, "revenue_growth_computed": -0.19454995350596543, "earnings_growth_computed": -1.9206885921815695, "growth_computed_quarters": {"mrq": "2026-06-30", "prior": "2025-06-30"}, "field_meta": {"name": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "sector": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "industry": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "sector_source": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "currency": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "ratio_price": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-01T09:59:52+00:00", "reason": null, "label": null, "basis_note": null}, "market_cap": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-01T09:59:52+00:00", "reason": null, "label": null, "basis_note": null}, "pe_ratio": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": "P/E not meaningful for a loss-making company (negative EPS)", "label": null, "basis_note": null}, "forward_pe": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-01T09:59:52+00:00", "reason": null, "label": null, "basis_note": null}, "peg_ratio": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-10-01T09:59:52+00:00", "reason": "provider did not publish this field", "label": null, "basis_note": null}, "price_to_book": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-01T09:59:52+00:00", "reason": null, "label": null, "basis_note": null}, "price_to_sales": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-01T09:59:52+00:00", "reason": null, "label": null, "basis_note": null}, "ev_to_ebitda": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-01T09:59:52+00:00", "reason": null, "label": null, "basis_note": null}, "book_value": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "dividend_yield": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-01T09:59:52+00:00", "reason": null, "label": null, "basis_note": null}, "dividend_per_share": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "eps": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "beta": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "fifty_two_week_high": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "fifty_two_week_low": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "fifty_two_week_change": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-01T09:59:52+00:00", "reason": null, "label": null, "basis_note": null}, "fifty_two_week_high_date": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "fifty_two_week_low_date": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "listing_date": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "first_trade_date": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "forward_pe_fiscal_year": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "roe": {"status": "ok", "provider": "derived", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": "net income (TTM) / stockholders equity"}, "roa": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": "provider did not publish this field", "label": null, "basis_note": null}, "gross_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "operating_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "profit_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "debt_to_equity": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "current_ratio": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": "provider did not publish this field", "label": null, "basis_note": null}, "quick_ratio": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": "provider did not publish this field", "label": null, "basis_note": null}, "roce": {"status": "ok", "provider": "derived", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": "annual EBIT / (total assets - current liabilities)"}, "basis": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": "provider did not publish this field", "label": null, "basis_note": null}, "revenue_ttm": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "net_income_ttm": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "free_cash_flow": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": "provider did not publish this field", "label": null, "basis_note": null}, "shares_outstanding": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "revenue_growth": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "earnings_growth": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": "provider did not publish this field", "label": null, "basis_note": null}, "held_percent_insiders": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "held_percent_institutions": {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": null, "label": null, "basis_note": null}, "identity_note": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-10-03T09:50:57.967006+00:00", "reason": "provider did not publish this field", "label": null, "basis_note": null}, "dividend_per_share_ttm": {"status": "ok", "provider": "yfinance", "reason": null, "label": null}}, "provider": "yfinance", "identity_note": null, "earnings_quality": {"reported_net_income": 59087000.0, "normalized_income": -42986200.0, "unusual_items": 170122000.0, "tax_effect": 68048800.0, "one_off_net": 102073200.0, "distortion_fraction": 1.7275068966100835, "period": "2026-03-31"}, "market_cap_witness": {"shares_outstanding": 199500000.0, "source": "BSE ListOfScripData (bundled India master) (as of 2026-06-11)", "scrip_code": "521248", "as_of": "2026-06-11"}}}, "derived": {"ok": true, "provider": "derived", "data": {"drawdown_from_high": {"value": null, "label": "Below 52-week high", "basis": "vs 52w high", "formula": "(52w high - price) / 52w high", "unit": "fraction"}, "fifty_two_week_change": {"value": -0.36549026, "label": "52-week price change (Yahoo)", "basis": "trailing 52 weeks", "unit": "fraction", "display": "-36.55%"}, "dividend_yield": {"value": 0.0043, "label": "Dividend yield", "basis": "fraction of price", "unit": "fraction", "display": "0.43%"}, "dividend_per_share": {"value": null, "label": "Dividend per share", "basis": "per share, INR", "unit": "currency"}, "revenue_growth": {"value": -0.195, "label": "Revenue growth", "basis": "quarterly YoY (MRQ)", "unit": "fraction", "display": "-19.50%"}, "earnings_growth": {"value": null, "label": "Earnings growth", "basis": "quarterly YoY (MRQ)", "unit": "fraction", "reason": "provider did not publish this field"}, "reported_net_income": {"value": 59087000.0, "label": "Net income (reported, incl. one-offs)", "basis": "annual income statement, FY 2026-03-31", "unit": "currency", "display": "\u20b95.91 cr"}, "normalized_net_income": {"value": -42986200.0, "label": "Net income (adjusted, ex one-offs)", "basis": "annual income statement, FY 2026-03-31", "unit": "currency", "display": "\u20b9-4.30 cr"}, "market_cap": {"value": 23291625472.0, "label": "Market cap", "basis": "provider market cap", "unit": "currency", "display": "\u20b92,329 cr"}, "conflicts": [{"field": "earnings_quality", "kind": "earnings_quality_conflict", "conflict_kind": "definitional_expected", "sources": [{"provider": "yfinance (reported net income)", "value": 59087000.0, "basis": "reported (incl. one-off items)"}, {"provider": "derived (adjusted / normalized)", "value": -42986200.0, "basis": "adjusted (ex one-off items)"}], "note": "Reported net income (\u20b95.9 Cr (FY 2026-03-31)) includes large one-off/exceptional items (~\u20b910.2 Cr, 173% of reported) \u2014 reported earnings are INFLATED by one-off gains, so PE reads low on the reported basis. PE/ROE/EPS here are on the REPORTED basis; the adjusted (normalized) basis (\u20b9-4.3 Cr) differs materially. Both bases are valid; neither number is replaced."}]}}, "news": {"ok": true, "provider": null, "data": []}, "filings": {"ok": false, "provider": null, "error": "filings timed out after 6s \u2014 dropped", "reason": "provider_error"}, "source_floor": {"ok": true, "provider": "derived", "data": {"cited": 0, "floor": 3}, "note": "0 sources (below 3)"}}, "cost": null, "web_available": false, "note": "Web search did not answer within 8s \u2014 structured data only", "web_reason": "timeout", "backend": null}}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "delta", "text": "We"}
+
+data: {"kind": "delta", "text": " couldn"}
+
+data: {"kind": "delta", "text": "'t"}
+
+data: {"kind": "delta", "text": " retrieve"}
+
+data: {"kind": "delta", "text": " K"}
+
+data: {"kind": "delta", "text": "IT"}
+
+data: {"kind": "delta", "text": "EX"}
+
+data: {"kind": "delta", "text": ".N"}
+
+data: {"kind": "delta", "text": "S"}
+
+data: {"kind": "delta", "text": "'s"}
+
+data: {"kind": "delta", "text": " price"}
+
+data: {"kind": "delta", "text": " due"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " a"}
+
+data: {"kind": "delta", "text": " provider"}
+
+data: {"kind": "delta", "text": " error"}
+
+data: {"kind": "delta", "text": " ("}
+
+data: {"kind": "delta", "text": "price"}
+
+data: {"kind": "delta", "text": " timed"}
+
+data: {"kind": "delta", "text": " out"}
+
+data: {"kind": "delta", "text": " after"}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "6"}
+
+data: {"kind": "delta", "text": "s"}
+
+data: {"kind": "delta", "text": " \u2014"}
+
+data: {"kind": "delta", "text": " dropped"}
+
+data: {"kind": "delta", "text": ")."}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "However"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " we"}
+
+data: {"kind": "delta", "text": " were"}
+
+data: {"kind": "delta", "text": " able"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " fetch"}
+
+data: {"kind": "delta", "text": " some"}
+
+data: {"kind": "delta", "text": " of"}
+
+data: {"kind": "delta", "text": " its"}
+
+data: {"kind": "delta", "text": " fundamentals"}
+
+data: {"kind": "delta", "text": ".\n\n"}
+
+data: {"kind": "delta", "text": "*"}
+
+data: {"kind": "delta", "text": " Name"}
+
+data: {"kind": "delta", "text": ":"}
+
+data: {"kind": "delta", "text": " Kit"}
+
+data: {"kind": "delta", "text": "ex"}
+
+data: {"kind": "delta", "text": " Gar"}
+
+data: {"kind": "delta", "text": "ments"}
+
+data: {"kind": "delta", "text": " Limited"}
+
+data: {"kind": "delta", "text": "\n"}
+
+data: {"kind": "delta", "text": "*"}
+
+data: {"kind": "delta", "text": " Sector"}
+
+data: {"kind": "delta", "text": ":"}
+
+data: {"kind": "delta", "text": " Consumer"}
+
+data: {"kind": "delta", "text": " Cyc"}
+
+data: {"kind": "delta", "text": "lical"}
+
+data: {"kind": "delta", "text": "\n"}
+
+data: {"kind": "delta", "text": "*"}
+
+data: {"kind": "delta", "text": " Industry"}
+
+data: {"kind": "delta", "text": ":"}
+
+data: {"kind": "delta", "text": " Apparel"}
+
+data: {"kind": "delta", "text": " Manufacturing"}
+
+data: {"kind": "delta", "text": "\n"}
+
+data: {"kind": "delta", "text": "*"}
+
+data: {"kind": "delta", "text": " Market"}
+
+data: {"kind": "delta", "text": " Cap"}
+
+data: {"kind": "delta", "text": ":"}
+
+data: {"kind": "delta", "text": " \u20b9"}
+
+data: {"kind": "delta", "text": "2"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": "329"}
+
+data: {"kind": "delta", "text": " cr"}
+
+data: {"kind": "delta", "text": "\n"}
+
+data: {"kind": "delta", "text": "*"}
+
+data: {"kind": "delta", "text": " Div"}
+
+data: {"kind": "delta", "text": "idend"}
+
+data: {"kind": "delta", "text": " Yield"}
+
+data: {"kind": "delta", "text": ":"}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "0"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": "43"}
+
+data: {"kind": "delta", "text": "%\n"}
+
+data: {"kind": "delta", "text": "*"}
+
+data: {"kind": "delta", "text": " EPS"}
+
+data: {"kind": "delta", "text": " ("}
+
+data: {"kind": "delta", "text": "TT"}
+
+data: {"kind": "delta", "text": "M"}
+
+data: {"kind": "delta", "text": "):"}
+
+data: {"kind": "delta", "text": " -"}
+
+data: {"kind": "delta", "text": "1"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": "19"}
+
+data: {"kind": "delta", "text": "\n\n"}
+
+data: {"kind": "delta", "text": "Please"}
+
+data: {"kind": "delta", "text": " note"}
+
+data: {"kind": "delta", "text": " that"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " price"}
+
+data: {"kind": "delta", "text": " was"}
+
+data: {"kind": "delta", "text": " not"}
+
+data: {"kind": "delta", "text": " available"}
+
+data: {"kind": "delta", "text": " due"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " a"}
+
+data: {"kind": "delta", "text": " provider"}
+
+data: {"kind": "delta", "text": " error"}
+
+data: {"kind": "delta", "text": ".\n\n"}
+
+data: {"kind": "delta", "text": "Would"}
+
+data: {"kind": "delta", "text": " you"}
+
+data: {"kind": "delta", "text": " like"}
+
+data: {"kind": "delta", "text": " me"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " propose"}
+
+data: {"kind": "delta", "text": " publishing"}
+
+data: {"kind": "delta", "text": " this"}
+
+data: {"kind": "delta", "text": " brief"}
+
+data: {"kind": "delta", "text": " for"}
+
+data: {"kind": "delta", "text": " your"}
+
+data: {"kind": "delta", "text": " review"}
+
+data: {"kind": "delta", "text": "?"}
+
+data: {"kind": "research_step", "tool_call_id": "call_f4660daf53284fe086ffd747b8d1ec83__autobrief", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: publish_brief KITEX. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+
+data: {"kind": "done", "usage": {"input_tokens": 4798, "output_tokens": 120, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+

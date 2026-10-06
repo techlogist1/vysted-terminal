@@ -1,0 +1,14 @@
+# R15-CODE-FRONTEND-036 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn 'RAIL_PANELS' src --include=*.ts --include=*.tsx | cut -c1-180 | head
+--- output ---
+src/lib/layout-templates.test.ts:16:  RAIL_PANELS,
+src/lib/layout-templates.test.ts:633:    expect([...RAIL_PANELS].filter((id) => !arrangeable.has(id))).toEqual([]);
+src/lib/layout-templates.ts:411:export const RAIL_PANELS: ReadonlySet<string> = new Set([
+src/lib/layout-templates.ts:491:  const rails = ids.filter((id) => RAIL_PANELS.has(id));
+src/lib/layout-templates.ts:492:  let mains = ids.filter((id) => !RAIL_PANELS.has(id));
+src/store/workspace.ts:5:import { RAIL_PANELS } from "@/lib/layout-templates";
+src/store/workspace.ts:42:  if (RAIL_PANELS.has(panelId)) {
+src/store/workspace.ts:47:    api.panels.find((p) => !RAIL_PANELS.has(p.id))?.id;
+
+EXIT=0 (0.0s)

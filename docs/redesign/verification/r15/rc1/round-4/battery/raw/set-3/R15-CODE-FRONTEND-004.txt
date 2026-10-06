@@ -1,0 +1,27 @@
+== SAVE 'Research: NVDA' ==
+{"status":"saved","name":"Research: NVDA"}
+HTTP_CODE:200
+== SAVE 'Research: RELIANCE.NS' ==
+{"status":"saved","name":"Research: RELIANCE.NS"}
+HTTP_CODE:200
+== SAVE 'Research: M&M' ==
+{"status":"saved","name":"Research: M&M"}
+HTTP_CODE:200
+== SAVE 'My Layout (2)' ==
+{"status":"saved","name":"My Layout (2)"}
+HTTP_CODE:200
+== SAVE '../escape' ==
+{"status":"saved","name":"../escape"}
+HTTP_CODE:200
+== SAVE 'a/b{"status":"saved","name":"a/b\\c"}
+HTTP_CODE:200
+== LIST ==
+["../escape","My Layout (2)","Research: M&M","Research: NVDA","Research: RELIANCE.NS","__autosave__","a/b\\c"]
+HTTP_CODE:200
+%2E%2E%2Fescape.vysted-workspace
+__autosave__.vysted-workspace
+a%2Fb%5Cc.vysted-workspace
+'My Layout %282%29.vysted-workspace'
+'Research%3A M%26M.vysted-workspace'
+'Research%3A NVDA.vysted-workspace'
+'Research%3A RELIANCE%2ENS.vysted-workspace'

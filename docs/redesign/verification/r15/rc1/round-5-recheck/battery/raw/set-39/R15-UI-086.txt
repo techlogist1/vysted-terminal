@@ -1,0 +1,6 @@
+Entry: R15-UI-086 (batch-9, W5-frontend-shell)
+Repro per register: Cmd-K palette rows show no <kbd> shortcut, only the literal "Enter" on Ask-agent row (pre-fix).
+No GUI/no vitest available to this battery role -> ci_pinned.
+Pinned committed test:
+  src/components/CommandPalette.test.tsx:170 it("an action row shows its current (remapped) chord as a <kbd> (R15-UI-086)")
+170:  it("an action row shows its current (remapped) chord as a <kbd> (R15-UI-086)", () => {

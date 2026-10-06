@@ -1,0 +1,81 @@
+{
+ "certified": [
+  "R15-FINAL-001",
+  "R15-FINAL-007",
+  "R15-FINAL-017",
+  "R15-FINAL-033",
+  "R15-FINAL-016",
+  "R15-FINAL-030",
+  "R15-LEAD-077",
+  "R15-FINAL-003",
+  "R15-FINAL-009",
+  "R15-FINAL-024",
+  "R15-FINAL-010",
+  "R15-LEAD-071",
+  "R15-FINAL-002",
+  "R15-FINAL-011",
+  "R15-FINAL-004",
+  "R15-FINAL-027",
+  "R15-LEAD-060",
+  "R15-FINAL-021",
+  "R15-FINAL-022",
+  "R15-FINAL-023",
+  "R15-FINAL-037",
+  "R15-FINAL-035",
+  "R15-FINAL-008",
+  "R15-LIFECYCLE-024",
+  "R15-FINAL-031",
+  "R15-FINAL-028"
+ ],
+ "not_certified": [
+  {
+   "id": "R15-FINAL-006",
+   "reason": "The single-quote starvation half of the claim is not fixed. Fresh case: 100 cold NSE names (sym100b) mounted ALONE on an idle own sidecar :52888. Cold single quotes took 15.0-21.2 s while mounted (AXISBANK 21.2, MARUTI 19.9, SUNPHARMA 20.1, TITAN 20.4, ONGC 15.0). The same sidecar answered idle cold singles in 4.8-7.0 s (HDFCBANK, ICICIBANK, KOTAKBANK). Plan acceptance is under 5 s. On :52887 with a 120-name mount, HDFCBANK timed out at 40 s twice. The literal RELIANCE.NS answer under 5 s is a cache hit. Cause: nse_provider._Throttle is one global FIFO pacer at about 1.0-1.4 s per request. The 16-worker batch pool reserves its slots ahead of any single, so the new semaphore bounds the queue but does not isolate it. The batch also outlasts its own client budget: the 100-name batch aborted at 120 s with 0/100 priced, and the server finished at about 137 s. Parts that hold: one request in flight, backoff, no per-tick resend."
+  },
+  {
+   "id": "R15-FINAL-005",
+   "reason": "VOLERCAR, an SME listing named in the claim, still has no fundamentals and gives no reason. GET /fundamentals/VOLERCAR (IN) returns 200 with only ratio_price and revenue/earnings growth. revenue, net income, eps and pe_ratio are null with no field_meta reason, although NSE filed periods exist (growth is computed from them). YASHOPTICS is fixed: revenue 53.99 Cr, P/E 37.1, and statements carry the typed SME reason. SUMAX, QUALIANCE and GANESHIN give the typed not-covered reason."
+  }
+ ],
+ "adjudicated": [],
+ "head": "cac9d206759c2cd83d46778cc94a4dbd0b678429",
+ "evidence": {
+  "R15-FINAL-001": "verify/fe-replay.json",
+  "R15-FINAL-007": "verify/fe2-replay.json",
+  "R15-FINAL-017": "verify/fe-replay.json",
+  "R15-FINAL-033": "verify/fe-replay.json",
+  "R15-FINAL-016": "verify/fe2-replay.json",
+  "R15-FINAL-030": "verify/fe2-replay.json",
+  "R15-LEAD-077": "verify/fe2-replay.json",
+  "R15-FINAL-003": "verify/a.out",
+  "R15-FINAL-009": "verify/a.out, verify/f009-fresh.txt",
+  "R15-FINAL-024": "verify/a.out, verify/b.out, verify/f024-fresh.txt",
+  "R15-FINAL-010": "verify/a.out, verify/b.out",
+  "R15-LEAD-071": "verify/lead071.txt",
+  "R15-FINAL-002": "verify/a.out, verify/b.out, verify/f002-pairs.txt",
+  "R15-FINAL-011": "verify/a.out, verify/b.out",
+  "R15-FINAL-004": "verify/f004-relevance.txt",
+  "R15-FINAL-027": "verify/a.out",
+  "R15-LEAD-060": "verify/lead060.txt",
+  "R15-FINAL-021": "verify/f021-check.txt, verify/openapi-52887.json",
+  "R15-FINAL-022": "verify/docs-checks.txt",
+  "R15-FINAL-023": "verify/docs-checks.txt",
+  "R15-FINAL-037": "verify/docs-checks.txt",
+  "R15-FINAL-035": "verify/mcp-tools.raw, verify/f035-check.txt",
+  "R15-FINAL-008": "verify/f008-hdr-source.log, verify/f008-trunc-binary.log, verify/f008-trunc-routes.txt",
+  "R15-LIFECYCLE-024": "verify/l024-v080-shape-boots.txt, verify/l024-boots.txt",
+  "R15-FINAL-031": "verify/f031.txt",
+  "R15-FINAL-028": "verify/f028-exit.txt, verify/f028-bin.log, verify/f028-src.log",
+  "R15-FINAL-006": "verify/f006-fe4-clean-replay.json, verify/f006-clean-52888-latency.txt, verify/f006-baseline-idle-52888.txt, verify/f006-single-latency-loaded.txt, verify/f006-fe3-replay.json",
+  "R15-FINAL-005": "verify/b.out (### /fundamentals/VOLERCAR), verify/a.out"
+ },
+ "pins": "frontend pin files 5/183 passed in scratch run (verify/frontend-pins.log); every pytest pin file present in fix-r1/ci-local.log run 2 EXIT=0 (pytest 3958 passed, vitest 2048 passed)",
+ "r7_counts": {
+  "R15-FINAL-006": 1,
+  "R15-FINAL-005": 1
+ },
+ "observations": [
+  "data_cache.db at user_version 1 with no meta table crashes startup ('no such table: meta', data_cache.py:146); no build writes that shape; low, for 0.9.1",
+  "FINAL-007 copilot tool-result turn and FINAL-004 live research run not driven: scripts/r15/vy.py refuses non-GET outside ports 52100-52399; in-process and closed-panel snapshot evidence used"
+ ]
+}

@@ -1,0 +1,4 @@
+Wikipedia List_of_S&P_500_companies fetched 2026-09-25: 503 | pack 503 snapshot 2026-09-24
+missing from pack [] | extra in pack []
+BXP/NVR/UDR in pack True | known-delisted in pack []
+US seed pack rows 498 | universe names absent from seed ['BXP', 'ECHO', 'NVR', 'UDR', 'VMRK']

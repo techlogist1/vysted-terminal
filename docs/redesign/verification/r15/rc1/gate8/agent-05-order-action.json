@@ -1,0 +1,12 @@
+{
+ "tool_call_id": "call_eff1806631444fdcb333fde3eff56aef",
+ "name": "portfolio_add_position",
+ "input": {
+  "symbol": "AAPL",
+  "asset_class": "equity",
+  "cost_basis": 0,
+  "note": "",
+  "purchased_at": "2026-09-26",
+  "quantity": 10
+ }
+}

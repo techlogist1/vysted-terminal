@@ -1,0 +1,13 @@
+{
+  "certified": ["R15-AGENT-010", "R15-LEAD-039"],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-DATA-002",
+      "reason": "The user-pick legs hold live (watchlist pick, per-region /quotes, row click, palette item, workspace round trip, and the agent add by company name, all confirmed on a fresh SMR/NuScale case against :52310). The agent leg of the class does not. add_to_watchlist carries no region (catalog.py:1368-1377, parseHostAction host-actions.ts:1005-1011), so when the agent resolves a company and then adds the ticker it got back, addResolvedEquity re-resolves the bare ticker under the session region and writes the other company. Fresh-case repro: llama3.1:8b via vy.py on :52310 (IN session), prompt 'Resolve the company name Amalgamated Financial ... then add it to my watchlist'. The model called resolve_symbol('Amalgamated Financial') -> AMAL/US, then add_to_watchlist {symbol:'AMAL'}, and said 'I've added Amalgamated Financial (AMAL)'. The live frontend path applyIntentAsync(add_to_watchlist {symbol:'AMAL'}) with an IN session and an empty watchlist adds {AMAL, region:'IN'}, and its row quotes 674.4 INR (Amal Ltd), not Amalgamated's 47.58 USD. SMR does the same: it adds {SMR, IN} at 94 INR (SMR Jewels), not NuScale. The title's claim that a bare ticker binds silently to the session region after the listing was picked still holds on the agent path. The plan's fix step 11 claims this class site is fixed."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-26-int@2e1950fe0acfb7a765c70f6a2adcf57ed59f59c1"
+}

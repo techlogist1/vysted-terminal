@@ -1,0 +1,30 @@
+=== MacroPanel.test.tsx line 116 ===
+    render(<MacroPanel />);
+    await waitFor(() => expect(screen.getAllByText("10-Year Treasury").length).toBeGreaterThan(0));
+    expect(screen.getByTestId("macro-chart-canvas")).toBeInTheDocument();
+  });
+
+  it("shows an error state when the series load fails", async () => {
+    vi.mocked(sidecarGet).mockImplementation(async (path: string) => {
+      if (path === "/macro/DGS10") throw new Error("FRED is down");
+      if (path === "/macro/catalog") return SAMPLE_CATALOG;
+      return null;
+    });
+    render(<MacroPanel />);
+    await waitFor(() => expect(screen.getByTestId("macro-error")).toBeInTheDocument());
+    expect(screen.getByText(/FRED is down/)).toBeInTheDocument();
+  });
+
+  it("a provider tab loads that provider's own default once, never through the cold-boot retry (R15-UI-030)", async () => {
+    vi.useFakeTimers();
+    const ecbDefault = "FM.D.U2.EUR.4F.KR.MRR_FR.LEV";
+    vi.mocked(sidecarGet).mockImplementation(async (path: string) => {
+      if (path === "/macro/DGS10") return SAMPLE_SERIES;
+      if (path === "/macro/catalog") return SAMPLE_CATALOG;
+      // A transient-looking failure: the retry hook WOULD re-fire this.
+      throw new TypeError("Failed to fetch");
+    });
+    render(<MacroPanel />);
+=== use-sidecar-retry.ts ===
+16: *   1. **Bounded backoff** (1s, 2s, 4s, capped 5s, ~12 attempts ≈ 50s) re-runs
+39:const MAX_ATTEMPTS = 12;

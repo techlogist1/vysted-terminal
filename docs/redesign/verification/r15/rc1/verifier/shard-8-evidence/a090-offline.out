@@ -1,0 +1,23 @@
+GUARDED | Each SIFY ADR represents 1 ordinary share.
+GUARDED | One ADR represents 2 ordinary shares.
+KEPT    | Each ADS represents 0.5 ordinary shares.
+KEPT    | Each SIFY ADR represents 2.5 equity shares.
+GUARDED | One American Depositary Share is backed by one-half of an equity share.
+KEPT    | Each ADR represents half an ordinary share.
+KEPT    | Each ADR corresponds to a dozen ordinary shares.
+GUARDED | SIFY's ADS ratio is 1:6.
+GUARDED | The depositary ratio is six-to-one.
+GUARDED | Each ADR is exchangeable for 10 Series B shares.
+GUARDED | Each ADS represents 6 H-shares.
+GUARDED | Each Sify ADR carries twelve underlying shares.
+GUARDED | Per ADR, holders receive 3 shares.
+KEPT    | The ADR converts into 0.1 shares of the company.
+KEPT    | Each ADR closed at 5.20 USD on Friday.
+KEPT    | SIFY's ADS gained 3% in 2024.
+--- with SIFY grounded result (true ratio 6)
+KEPT    | Each SIFY ADS represents 6 equity shares.
+GUARDED | Each SIFY ADR represents 2 ordinary shares.
+KEPT    | Each SIFY ADR represents 1.5 ordinary shares.
+GUARDED | Per the fundamentals data, one SIFY ADS equals 0.6 equity shares.
+GUARDED | One SIFY ADS represents half an equity share.
+KEPT    | Each SIFY ADS represents a dozen equity shares.

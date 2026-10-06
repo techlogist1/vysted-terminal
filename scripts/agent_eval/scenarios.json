@@ -1,0 +1,110 @@
+[
+  {
+    "id": "price-reliance",
+    "prompt": "How has RELIANCE performed over the past year?",
+    "expect": { "tools": [{ "tool": "price_data|compare_symbols", "input": "(?i)RELIANCE" }] }
+  },
+  {
+    "id": "price-aapl",
+    "region": "US",
+    "prompt": "What is Apple's latest share price and how has it moved over the last 6 months?",
+    "expect": { "tools": [{ "tool": "price_data", "input": "AAPL" }] }
+  },
+  {
+    "id": "fundamentals-aapl",
+    "region": "US",
+    "prompt": "Give me AAPL's P/E, market cap and profit margins.",
+    "expect": { "tools": [{ "tool": "fundamentals|compare_symbols", "input": "AAPL" }] }
+  },
+  {
+    "id": "fundamentals-tcs",
+    "prompt": "What are TCS's valuation ratios - P/E, P/B and market cap?",
+    "expect": { "tools": [{ "tool": "fundamentals|compare_symbols", "input": "(?i)TCS" }] }
+  },
+  {
+    "id": "compare-tcs-infy",
+    "prompt": "Compare TCS and INFY side by side on valuation and recent performance.",
+    "expect": {
+      "tools": [
+        { "tool": "compare_symbols|fundamentals|price_data", "input": "(?i)TCS" },
+        { "tool": "compare_symbols|fundamentals|price_data", "input": "(?i)INFY" }
+      ]
+    }
+  },
+  {
+    "id": "research-brief-reliance",
+    "prompt": "Research RELIANCE for me: latest quarter results, valuation and outlook.",
+    "expect": {
+      "tools": [{ "tool": "research", "input": "(?i)RELIANCE" }, { "tool": "publish_brief" }],
+      "research_step": true
+    }
+  },
+  {
+    "id": "ask-watchlist-add",
+    "prompt": "Add NVDA to my watchlist.",
+    "region": "US",
+    "expect": { "tools": [{ "tool": "add_to_watchlist", "input": "NVDA" }] }
+  },
+  {
+    "id": "ask-chart-indicator",
+    "prompt": "Put RSI 14 on the RELIANCE chart.",
+    "expect": { "tools": [{ "tool": "set_chart_indicators", "input": "(?i)rsi" }] }
+  },
+  {
+    "id": "ask-portfolio-add",
+    "prompt": "Add 10 shares of INFY bought at 1500 rupees each to my portfolio.",
+    "state_probe": "/portfolio/positions",
+    "expect": {
+      "tools": [
+        { "tool": "portfolio_add_position", "input": "(?s)(?=.*INFY)(?=.*\\b10\\b)(?=.*1500)" }
+      ]
+    }
+  },
+  {
+    "id": "missing-param-portfolio",
+    "prompt": "Add some shares to my portfolio.",
+    "state_probe": "/portfolio/positions",
+    "expect": {
+      "forbid_tools": ["portfolio_add_position"],
+      "answer_matches": [
+        "(?i)\\?|\\bwhich\\b|please (provide|tell|share|specify|confirm|let me know)"
+      ]
+    }
+  },
+  {
+    "id": "macro-us-10y",
+    "region": "US",
+    "prompt": "What is the latest US 10-year Treasury yield from FRED?",
+    "expect": {
+      "tools": [{ "tool": "macro_series|macro_search", "input": "(?i)DGS10|10.?year|treasury" }]
+    }
+  },
+  {
+    "id": "macro-us-cpi",
+    "region": "US",
+    "prompt": "Show me the recent trend in US CPI inflation.",
+    "expect": { "tools": [{ "tool": "macro_series|macro_search", "input": "(?i)CPI|inflation" }] }
+  },
+  {
+    "id": "sec-filings-aapl",
+    "region": "US",
+    "prompt": "List Apple's most recent 10-K and 10-Q filings with the SEC.",
+    "expect": { "tools": [{ "tool": "sec_filings_list", "input": "(?i)AAPL|320193" }] }
+  },
+  {
+    "id": "sec-insider-nvda",
+    "region": "US",
+    "prompt": "Have NVIDIA insiders been buying or selling recently?",
+    "expect": { "tools": [{ "tool": "sec_insider_transactions", "input": "(?i)NVDA|1045810" }] }
+  },
+  {
+    "id": "disclosures-tcs",
+    "prompt": "What corporate announcements has TCS filed with the exchanges recently?",
+    "expect": { "tools": [{ "tool": "corporate_announcements", "input": "(?i)TCS" }] }
+  },
+  {
+    "id": "shareholding-reliance",
+    "prompt": "What is the promoter holding in RELIANCE as of the latest quarter?",
+    "expect": { "tools": [{ "tool": "shareholding_pattern", "input": "(?i)RELIANCE" }] }
+  }
+]

@@ -1,0 +1,15 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  36.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_bb5a85225d804505bfc9291c69728917", "name": "price_data", "input": {"symbol": "TCS.NS", "timeframe": "1d"}}
+[  46.7s] heartbeat: {"kind": "heartbeat"}
+[  47.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_bb5a85225d804505bfc9291c69728917", "name": "price_data", "ok": true, "error": null}
+[  57.1s] heartbeat: {"kind": "heartbeat"}
+[  67.1s] heartbeat: {"kind": "heartbeat"}
+[  77.1s] heartbeat: {"kind": "heartbeat"}
+[  79.6s] done: {"kind": "done", "usage": {"input_tokens": 7024, "output_tokens": 21, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+TCS.NS closed at ₹2082.0 on 2026-09-25.
+
+=== ok · 79.6s · events {'heartbeat': 7, 'tool_use': 1, 'tool_result': 1, 'delta': 20, 'done': 1} · usage in=7024 out=21 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,10 @@
+CMD: grep ConfirmButton usage + test
+src/components/ConfirmButton.test.tsx
+src/components/ConfirmButton.tsx
+src/components/SettingsPanel.tsx
+src/modules/screener/ScreenerPanel.tsx
+src/modules/agent-builder/AgentBuilderPanel.tsx
+src/modules/marketplace/MarketplacePanel.tsx
+src/modules/platform/WorkspaceDialog.tsx
+src/modules/portfolio/PortfolioPanel.tsx
+80:  it("a single click on Remove does not remove the plugin; a second click confirms it", async () => {

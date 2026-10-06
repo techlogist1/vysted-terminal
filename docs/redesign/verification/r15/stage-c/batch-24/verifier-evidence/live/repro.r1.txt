@@ -1,0 +1,8 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  22.2s] done: {"kind": "done", "usage": {"input_tokens": 2750, "output_tokens": 28, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+You sold 5 TCS shares for ₹3,100 each. Your total proceeds from the sale would be ₹15,500.
+
+=== ok · 22.2s · events {'heartbeat': 2, 'delta': 28, 'done': 1} · usage in=2750 out=28 · est $0.00000 · llama3.1:8b

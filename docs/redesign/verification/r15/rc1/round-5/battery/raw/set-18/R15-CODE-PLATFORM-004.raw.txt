@@ -1,0 +1,38 @@
+{
+  "false": {
+    "true_path": "SKIP",
+    "false_path": "false"
+  },
+  "no": {
+    "true_path": "SKIP",
+    "false_path": "no"
+  },
+  "0": {
+    "true_path": "SKIP",
+    "false_path": "0"
+  },
+  "off": {
+    "true_path": "SKIP",
+    "false_path": "off"
+  },
+  "true": {
+    "true_path": "true",
+    "false_path": "SKIP"
+  },
+  "yes": {
+    "true_path": "yes",
+    "false_path": "SKIP"
+  },
+  "1": {
+    "true_path": "1",
+    "false_path": "SKIP"
+  },
+  "on": {
+    "true_path": "on",
+    "false_path": "SKIP"
+  },
+  "": {
+    "true_path": "SKIP",
+    "false_path": ""
+  }
+}

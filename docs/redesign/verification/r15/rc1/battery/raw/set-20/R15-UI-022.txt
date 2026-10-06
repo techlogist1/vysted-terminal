@@ -1,0 +1,8 @@
+Source confirmation: ChartPanel.tsx:760-763 resolves the anchor via
+`candleSeries.coordinateToPrice(param.point.y)` (comment line 760-762: "the price at the ... past the
+last bar, where no bar time exists — the logical index"), replacing the old bar-close-snap. Line 342
+comment "A placed Text anchor awaiting its typed label (R15-UI-022)" confirms an inline text-prompt
+flow replaced the fixed "label" string. Line 1751 `disabled={!!drawing.locked}` on the drawing row's
+delete button confirms Lock now guards the row control (drag-edit intentionally not built, per PLAN.md
+"Record this").
+Verdict: holds (source-confirmed); ci_pinned for the ChartPanel click-path tests.

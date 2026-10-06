@@ -12,27 +12,36 @@ describe("module registry", () => {
       "agent-builder",
       "analyst-ratings",
       "backtest",
-      "broker-connect",
       "chart",
       "chat",
       "earnings",
       "equity-overview",
       "macro",
+      "marketplace",
       "news",
       "node-editor",
+      "notes",
       "platform",
       "plugin-manager",
       "portfolio",
       "quant",
-      "safety",
+      "research",
       "screener",
       "sec-filings",
       "watchlist",
     ]);
   });
 
-  it("every module declares at least one panel and one command", () => {
+  it("every dockview module declares at least one panel and one command", () => {
     for (const mod of vystedModules) {
+      // The chat module is the agent SHELL COLUMN (FR-001), not a dockview
+      // panel — it intentionally contributes no panel/command/component so there
+      // is exactly ONE agent surface (no duplicate "AI Assistant" panel).
+      if (mod.id === "chat") {
+        expect(mod.panels.length).toBe(0);
+        expect(mod.commands.length).toBe(0);
+        continue;
+      }
       expect(mod.panels.length).toBeGreaterThan(0);
       expect(mod.commands.length).toBeGreaterThan(0);
     }

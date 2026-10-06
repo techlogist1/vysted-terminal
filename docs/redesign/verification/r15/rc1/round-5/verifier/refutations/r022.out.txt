@@ -1,0 +1,5 @@
+OWN SearchError rate_limited keyless web search has no engine available right now — DuckDuckGo: blocked (challenge page); Brave: unavailable; Mojeek: unavailable. Wait a moment and retry, o
+OWN ddg breaker state closed failures 1
+FRESH DdgSearchBackend 200 block page -> ok rows 0
+FRESH keyless(ddg real parser) ok rows 0 backend keyless
+FRESH ddg breaker failures before 1 after 0

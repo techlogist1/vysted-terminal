@@ -1,0 +1,9 @@
+cwd=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-9bc600e-fix-int/sidecar sha=633f844071d972b337f4c3526d86555c80df0568
+'UNVERIFIED - no source confirms the 23% operating margin.' -> ('unverified', 'UNVERIFIED - no source confirms the 23% operating margin.')
+'UNVERIFIED - evidence does not support the figure' -> ('unverified', 'UNVERIFIED - evidence does not support the figure')
+'UNVERIFIED - no matching figure' -> ('unverified', 'UNVERIFIED - no matching figure')
+'_UNVERIFIED_ - no source confirms the 23% operating margin.' -> ('agree', '_UNVERIFIED_ - no source confirms the 23% operating margin.')
+'__UNVERIFIED__ - evidence does not support the figure' -> ('agree', '__UNVERIFIED__ - evidence does not support the figure')
+'_UNVERIFIED_ — sources agree on revenue but not on EPS' -> ('agree', '_UNVERIFIED_ — sources agree on revenue but not on EPS')
+'~~AGREE~~ UNVERIFIED - nothing matches' -> ('unverified', '~~AGREE~~ UNVERIFIED - nothing matches')
+'The claim cannot be verified; no source confirms it.' -> ('agree', 'The claim cannot be verified; no source confirms it.')

@@ -1,0 +1,23 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_d4c372e3c54d445ebc60729019ef08ee", "name": "price_data", "input": {"__vysted_invalid_args__": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}}
+[  37.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_d4c372e3c54d445ebc60729019ef08ee", "name": "price_data", "ok": false, "error": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+[  45.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_06b05f49d6ad496b88fe933f39408fdb", "name": "price_data", "input": {"symbol": "HDFCBANK.NS"}}
+[  55.0s] heartbeat: {"kind": "heartbeat"}
+[  55.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_06b05f49d6ad496b88fe933f39408fdb", "name": "price_data", "ok": true, "error": null}
+[  65.2s] heartbeat: {"kind": "heartbeat"}
+[  75.2s] heartbeat: {"kind": "heartbeat"}
+[  85.2s] heartbeat: {"kind": "heartbeat"}
+[  85.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_9048d3ecadc6407fbe33025064ddecea", "name": "price_data", "input": {"symbol": "ICICIBANK.NS"}}
+[  94.9s] tool_result: {"kind": "tool_result", "tool_call_id": "call_9048d3ecadc6407fbe33025064ddecea", "name": "price_data", "ok": true, "error": null}
+[ 104.9s] heartbeat: {"kind": "heartbeat"}
+[ 114.9s] heartbeat: {"kind": "heartbeat"}
+[ 124.9s] heartbeat: {"kind": "heartbeat"}
+[ 136.3s] done: {"kind": "done", "usage": {"input_tokens": 11136, "output_tokens": 25, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+HDFCBANK.NS: ₹735.6
+ICICIBANK.NS: ₹1326.8
+
+=== ok · 136.3s · events {'heartbeat': 10, 'tool_use': 3, 'tool_result': 3, 'delta': 24, 'done': 1} · usage in=11136 out=25 · est $0.00000 · llama3.1:8b

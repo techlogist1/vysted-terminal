@@ -1,0 +1,47 @@
+CMD: curl -s -m 30 http://127.0.0.1:52343/screener/default-universe -H 'X-Vysted-Region: IN'
+{"universe":"nifty50"}
+CMD: curl -s -m 30 http://127.0.0.1:52343/screener/default-universe -H 'X-Vysted-Region: US'
+{"universe":"sp500"}
+CMD (no header, default):
+{"universe":"nifty50"}
+VERDICT: holds — live GET /screener/default-universe on :52343 returns {universe:nifty50} for X-Vysted-Region: IN and {universe:sp500} for US (matches FR-060 US->sp500, IN->nifty50 per router docstring). Frontend store.ts:318-323 adoptRegionDefaultUniverse() calls this route and only overwrites universe when !universeChosen (guards a user-picked or saved-screen universe), matching the fix's described mechanism.
+--- store adoption logic ---
+297:  universe: "sp500",
+320:      "/screener/default-universe",
+707:      universe: "sp500",
+--- router docstring ---
+14:  - ``GET  /screener/default-universe``  — the request region's default
+15:    universe id (``{"universe": …}``; US→sp500, IN→nifty50, FR-060).
+77:    ``GET /screener/default-universe`` (the panel adopts it on mount, FR-060).
+174:    """The request region's default universe (R15-CODE-DATA-004, FR-060).
+  sortBy: DEFAULT_SORT_BY,
+  sortDir: DEFAULT_SORT_DIR,
+  lastLimit: DEFAULT_LIMIT,
+  lastResult: null,
+  status: "idle",
+  error: null,
+  progress: null,
+  universeMeta: {},
+  universeStatus: {},
+  universeCauses: {},
+  savedScreens: [],
+
+  setUniverse: (id) => set({ universe: id, universeChosen: true }),
+  adoptRegionDefaultUniverse: async () => {
+    const { universe } = await sidecarGet<{ universe: ScreenerUniverseId }>(
+      "/screener/default-universe",
+    );
+    if (!get().universeChosen && typeof universe === "string") set({ universe });
+  },
+  setCustomSymbols: (raw) => set({ customSymbols: raw }),
+  setCombinator: (combinator) => set({ combinator }),
+  setCriteria: (criteria) => set({ criteria }),
+  resetCriteria: () =>
+    set({ criteria: DEFAULT_CRITERIA, group: null, advanced: false, formula: "" }),
+  addCriterion: (criterion) => set((state) => ({ criteria: [...state.criteria, criterion] })),
+  removeCriterion: (index) =>
+    set((state) => ({
+      criteria: state.criteria.filter((_, i) => i !== index),
+    })),
+  updateCriterion: (index, criterion) =>
+    set((state) => {

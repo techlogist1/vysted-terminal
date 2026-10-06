@@ -1,0 +1,11 @@
+# R15-DATA-110 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:26:29+0530
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-7974259162988154361.json 'http://127.0.0.1:52861/screener/run' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');d=json.loads(t[:i]);rows=d.get('rows') or d.get('results') or [];print({k:v for k,v in d.items() if not isinstance(v,list)});print('rows',len(rows));print([ (r.get('symbol'),r.get('pe_ratio'),r.get('market_cap')) for r in rows[:8]]);print('skip reasons',__import__('collections').Counter(s.get('reason') for s in d.get('skipped',[]) ));print(t[i:])"
+[exit 0] [0.10s]
+{'universe': 'sp500', 'evaluated_count': 498, 'skipped_count': 5, 'result_count': 200, 'matched_count': 498, 'duration_ms': 84.47983406949788, 'partial': True, 'coverage': 'screened 498 of 503 — 5 unavailable · 200 rows on stale/snapshot basis (oldest 2026-09-23)', 'freshness': {'seed_as_of': 1790192206.301636}, 'basis_counts': {'snapshot': 200}, 'throttled': True}
+rows 200
+[('NVDA', 28.494312, 5442492170240.0), ('AAPL', 38.550976, 4911671017472.0), ('GOOGL', 16.993732, 4146253791232.0), ('GOOG', 16.830492, 4104366325760.0), ('MSFT', 28.055525, 3714480865280.0), ('AMZN', 20.086554, 2690915500032.0), ('META', 28.273756, 1910171107328.0), ('AVGO', 45.32886, 1694280581120.0)]
+skip reasons Counter()
+
+[http 200 0.087834s]
+

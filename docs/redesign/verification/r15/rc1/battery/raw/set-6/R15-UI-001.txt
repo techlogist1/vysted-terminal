@@ -1,0 +1,45 @@
+  it("shows an agent write_note into the open note, and the next keystroke keeps it", async () => {
+    useNotesStore.setState({ general: "My thesis.", bySymbol: {}, focusSymbol: "" });
+    await renderPanel();
+    expect(markdown()).toContain("My thesis.");
+
+    act(() => {
+      applyHostAction("write_note", { scope: "global", text: "Agent takeaway." });
+    });
+    expect(markdown()).toContain("Agent takeaway.");
+
+    type("Mine ");
+    act(() => {
+      vi.advanceTimersByTime(600);
+    });
+    const saved = useNotesStore.getState().general;
+    expect(saved).toContain("My thesis.");
+    expect(saved).toContain("Agent takeaway.");
+    expect(saved).toContain("Mine");
+  });
+
+  it("a scope switch inside the debounce window saves each scope's own text", async () => {
+    useNotesStore.setState({
+      general: "",
+      bySymbol: { AAPL: "a", MSFT: "m" },
+      focusSymbol: "AAPL",
+    });
+    await renderPanel();
+
+    type("X");
+    act(() => {
+      useNotesStore.getState().setFocusSymbol("MSFT");
+    });
+    expect(useNotesStore.getState().bySymbol.AAPL).toContain("X");
+    expect(useNotesStore.getState().bySymbol.MSFT).toBe("m");
+    expect(markdown()).toBe("m");
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(useNotesStore.getState().bySymbol.MSFT).toBe("m");
+  });
+
+  it("R15-UI-050: a slash-menu row never carries a fixed h-8 (two-line rows clip)", async () => {
+    useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
+    await renderPanel();

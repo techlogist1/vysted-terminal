@@ -1,11 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { KEYCHAIN_NAMESPACES, deleteSecret, getSecret, setSecret } from "@/lib/keychain";
+import {
+  KEYCHAIN_NAMESPACES,
+  deleteSecret,
+  devKeystoreMigrationAccounts,
+  getSecret,
+  migrateDevKeystore,
+  setSecret,
+} from "@/lib/keychain";
 
 const invokeMock = vi.hoisted(() => vi.fn());
+const listenMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: invokeMock,
+}));
+vi.mock("@tauri-apps/api/event", () => ({
+  listen: listenMock,
 }));
 
 describe("KEYCHAIN_NAMESPACES", () => {
@@ -21,14 +32,6 @@ describe("KEYCHAIN_NAMESPACES", () => {
   it("builds plugin-secret ids that include the plugin id and key", () => {
     expect(KEYCHAIN_NAMESPACES.pluginSecret("openbb-mcp", "fmp-api-key")).toBe(
       "plugin-secret:openbb-mcp:fmp-api-key",
-    );
-  });
-
-  it("builds broker:<id>:<field> ids for Phase 5 broker credentials", () => {
-    expect(KEYCHAIN_NAMESPACES.broker("alpaca", "api_key")).toBe("broker:alpaca:api_key");
-    expect(KEYCHAIN_NAMESPACES.broker("kite", "access_token")).toBe("broker:kite:access_token");
-    expect(KEYCHAIN_NAMESPACES.broker("_meta", "first-launch-tos")).toBe(
-      "broker:_meta:first-launch-tos",
     );
   });
 });
@@ -72,5 +75,65 @@ describe("keychain wrappers", () => {
     expect(invokeMock).toHaveBeenCalledWith("keychain_delete", {
       account: "llm-provider:gemini",
     });
+  });
+});
+
+describe("migrateDevKeystore (R9 dev keystore)", () => {
+  it("invokes keychain_migrate with the candidate account list and returns the report", async () => {
+    invokeMock.mockResolvedValueOnce({ backend: "dev-keystore", migrated: 2, already_done: false });
+    const report = await migrateDevKeystore();
+    expect(report).toEqual({ backend: "dev-keystore", migrated: 2, already_done: false });
+    const [cmd, args] = invokeMock.mock.calls.at(-1)!;
+    expect(cmd).toBe("keychain_migrate");
+    const accounts = (args as { accounts: string[] }).accounts;
+    // The four named items the operator listed are always swept.
+    expect(accounts).toContain("llm-provider:deepseek");
+    expect(accounts).toContain("llm-provider:openrouter");
+    expect(accounts).toContain("app-meta:first-launch-terms");
+    expect(accounts).toContain("app-meta:onboarding-complete");
+    // No duplicates (the assembler dedupes via a Set).
+    expect(new Set(accounts).size).toBe(accounts.length);
+  });
+
+  it("swallows a migration failure (denied dialog) and returns null — never breaks boot", async () => {
+    invokeMock.mockRejectedValueOnce(new Error("user denied"));
+    await expect(migrateDevKeystore()).resolves.toBeNull();
+  });
+
+  it("the candidate list covers every LLM provider id", () => {
+    const accounts = devKeystoreMigrationAccounts();
+    for (const id of [
+      "anthropic",
+      "openai",
+      "gemini",
+      "groq",
+      "ollama",
+      "deepseek",
+      "xai",
+      "openrouter",
+    ]) {
+      expect(accounts).toContain(`llm-provider:${id}`);
+    }
+  });
+
+  it("surfaces the keychain-migrate:waiting countdown while the migration runs (R15-CODE-PLATFORM-057)", async () => {
+    const unlisten = vi.fn();
+    let onWaiting: ((event: { payload: number }) => void) | undefined;
+    listenMock.mockImplementationOnce(async (name: string, handler: typeof onWaiting) => {
+      expect(name).toBe("keychain-migrate:waiting");
+      onWaiting = handler;
+      return unlisten;
+    });
+    const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    invokeMock.mockImplementationOnce(async () => {
+      onWaiting?.({ payload: 140 });
+      return { backend: "dev-keystore", migrated: 1, already_done: false, failed: [] };
+    });
+
+    await migrateDevKeystore();
+
+    expect(info).toHaveBeenCalledWith(expect.stringContaining("waiting 140s"));
+    expect(unlisten).toHaveBeenCalledOnce();
+    info.mockRestore();
   });
 });

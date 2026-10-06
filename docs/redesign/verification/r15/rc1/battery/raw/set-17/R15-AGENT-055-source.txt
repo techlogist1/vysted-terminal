@@ -1,0 +1,22 @@
+ * PURE planner: map a template name to its `LayoutPlan`. No dockview, no side
+ * effects — fully unit-testable. The panel set is the template's JSON entry;
+ * `opts` is reserved for the chart-command channel (symbol/symbols); the layout
+ * shape itself is symbol-agnostic.
+ */
+export function planLayout(template: LayoutTemplate, opts?: LayoutPlanOptions): LayoutPlan {
+  // `opts` (symbol/symbols) is part of the host-action signature for parity, but
+  // the layout SHAPE is symbol-agnostic — symbols ride the chart-command channel,
+  // not the tiling. Referenced here so the contract param stays without lint noise.
+  void opts;
+  const placement = TEMPLATE_PLACEMENT[template];
+  api: DockviewApi,
+  template: LayoutTemplate,
+  opts?: LayoutPlanOptions,
+): void {
+  const plan = planLayout(template, opts);
+  const run = () => applyPlan(api, plan);
+
+  if (typeof requestAnimationFrame === "function") {
+    requestAnimationFrame(run);
+  } else {
+    run();

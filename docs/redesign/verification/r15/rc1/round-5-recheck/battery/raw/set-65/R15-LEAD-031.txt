@@ -1,0 +1,3 @@
+streamed to the user: ''
+held (would be dropped once rescue fires): '{"name": "price_data"}The ADR-to-ordinary-share ratio is 1:1.'
+PASS: no leaked-marker/prose splice reached the shown stream

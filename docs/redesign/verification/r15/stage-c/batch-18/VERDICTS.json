@@ -1,0 +1,13 @@
+{
+  "certified": ["R15-LEAD-033", "R15-LEAD-034"],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-LEAD-030",
+      "reason": "The reviewer's regression is fixed: in 24bff097 a lead-in cites only an exact tool id, or a humanised id followed by a tool noun. With that, 'According to news reports from Reuters…', 'Based on research from Morgan Stanley…' and 'The P/E is 30, based on the price data and earnings.' all stream again, as they did on base. The batch-17 probes show BAD 0, and err-mention and camelCase hold. The title claim still fails in the entry's own repro, and fails the same way on base. Live, llama3.1:8b was asked 'What is SIFY's TTM revenue in USD?'. financial_statements errored (period 'ttm'). The model then streamed: 'After calling the `financial_statements` tool for SIFY's annual revenue, I get:\\n\\n{\"ok\": true, \"value\": {\"ttmRevenueUsd\": 164600000}}' (verifier-evidence/v030-sify-orig). The attribution forms miss 'after calling X …, I get:' and 'Running the X tool …, I got back:' when the dump sits on the next line (probe-d.out; the WIPRO.NS case is fresh). There was a second fresh live case, a two-turn run (v033-infy-t1). price_data errored on invalid arguments. The model wrote 'Here are the results:' followed by the list 'INFY.NS: ₹1,233.65 / TCS.NS: ₹3,235.50'. The running app's truth is INFY 1000.2 and TCS 2082.0. The list streamed, because a generic 'results:' label followed by a bullet list is not screened (probe-c.out)."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-18-int@24bff097b6e90a29fd4b72f9e931b4c333fded2e"
+}

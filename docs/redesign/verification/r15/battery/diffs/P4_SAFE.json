@@ -1,0 +1,388 @@
+{
+  "slot": "P4",
+  "symbol": "SAFE",
+  "pack_file": "docs/redesign/verification/r15/battery/packs/P4_SAFE.json",
+  "collected_file": "docs/redesign/verification/r15/battery/collected/P4_SAFE.json",
+  "diffed_at": "2026-09-23",
+  "subtle_tier_covered": true,
+  "notes": "No field was refreshed live against :52152 for this diff; the 2026-09-19 collected snapshot was used throughout. The collected file's calls.income/.balance/.cashflow bodies (provider 'openbb-mcp') are on a completely different numeric scale (revenue ~INR 36.9 crore/quarter, total_assets ~INR 724.9 crore or USD 7.2bn, 71.76M shares) than every other endpoint in the same collected file (calls.fundamentals, calls.quote, calls.shareholding all agree tightly with the pack's Indian BSE-SME company) -- this is flagged as DAT-P4-1 and several other diff rows below note where it disagrees with the correct-company fields.",
+  "diffs": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "Sodhani Academy of Fintech Enablers Limited",
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": "Sodhani Academy of Fintech Enablers Limited",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://in.tradingview.com/symbols/BSE-SAFE/",
+      "status": "match"
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "INE0Q3401017",
+      "app_as_of": "2026-09-19T15:12:23+05:30",
+      "outside_value": "INE0Q3401017",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://in.tradingview.com/symbols/BSE-SAFE/",
+      "status": "match"
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "544257",
+      "app_as_of": "2026-09-19T15:12:23+05:30",
+      "outside_value": "544257",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "match"
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": null,
+      "app_as_of": "2026-09-19T15:12:23+05:30",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.tickertape.in/search?text=sodhani&types=stock",
+      "status": "match",
+      "comment": "app correctly has no nse_symbol; app's own /disclosures/results route independently confirms 'not a known NSE instrument' (see DAT-P4-4)"
+    },
+    {
+      "field": "identity.sector_and_industry",
+      "app_value": "sector=Industrials, industry=Specialty Business Services",
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": "4-way conflict: Consumer Discretionary/E-Learning (screener), Education (Angel One), Technology Services/Internet Software (TradingView), Fintech/Financial Services Training (Groww)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/544257/ ; https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd ; https://in.tradingview.com/symbols/BSE-SAFE/ ; https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "status": "mismatch",
+      "comment": "app's reading matches none of the 4 corroborating outside sources -> DAT-P4-5"
+    },
+    {
+      "field": "price.last_close",
+      "app_value": 117.0,
+      "app_as_of": "2026-09-18T00:00:00Z",
+      "outside_value": 117.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "match"
+    },
+    {
+      "field": "price.change_pct",
+      "app_value": -6.958250497017893,
+      "app_as_of": "2026-09-18T00:00:00Z",
+      "outside_value": -6.96,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "status": "match"
+    },
+    {
+      "field": "market_cap",
+      "app_value": "INR 66.63 crore (666,315,008)",
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": "INR 66.63 crore",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "status": "match"
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 19.211823,
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": 19.21,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "status": "match"
+    },
+    {
+      "field": "pb",
+      "app_value": 3.8957145,
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": 3.9,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "status": "match"
+    },
+    {
+      "field": "roe",
+      "app_value": 0.22358,
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": 0.2028,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "status": "mismatch",
+      "comment": "22.358% vs the arithmetic-verified, doubly-corroborated (Angel One + Groww) 20.28% -> DAT-P4-2"
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "not_reconciled (screener 12.8% vs Angel One 24.12%, no clean pack value)",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "no source truth",
+      "comment": "app does not expose a roce field in /fundamentals; pack itself has no settled single value so not filed"
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "status": "app blank",
+      "comment": "field_meta.debt_to_equity.status = 'unavailable', reason 'provider did not publish this field'; outside value is doubly cross-checked (screener borrowings row = 0 for FY25 and FY26, interest expense 0 every year FY21-26) -> DAT-P4-6"
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": "INR 3.6488 crore (36,488,000)",
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": "INR 3.65 crore",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "match",
+      "comment": "correctly uses the sales-only basis, not the inflated total-income (sales+other income) figure"
+    },
+    {
+      "field": "revenue_ttm (income-statement endpoint)",
+      "app_value": "INR 36.94 crore / USD $369.4M-scale (operating_revenue 369,376,000, calls.income.body)",
+      "app_as_of": "2025-12-31 (endpoint's own period label)",
+      "outside_value": "INR 3.65 crore (FY26 sales, standalone)",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "mismatch",
+      "comment": "/fundamentals/SAFE/income (and /balance, /cashflow) are off by ~10x from /fundamentals/SAFE's own revenue_ttm and use a Dec-FY calendar the real company does not report on -> DAT-P4-1"
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": "INR 3.4682 crore (34,682,000)",
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": "INR 3.47 crore",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "match"
+    },
+    {
+      "field": "net_profit (income-statement endpoint)",
+      "app_value": "INR 11.45 crore or USD $114.5M-scale (net_income 114,469,000, calls.income.body)",
+      "app_as_of": "2025-12-31",
+      "outside_value": "INR 3.47 crore",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "mismatch",
+      "comment": "same DAT-P4-1 mismatch as revenue"
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": -0.452,
+      "app_as_of": "2026-09-19T09:42:10Z (growth_basis: mrq_yoy)",
+      "outside_value": 0.0282,
+      "outside_as_of": "2026-03-31 (FY26 vs FY25 full-year sales)",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "definitional difference",
+      "comment": "app computes half-year-over-half-year (Mar-2026 H2 1.58cr vs Mar-2025 H2 2.89cr = -45.3%, matches app's -45.2% almost exactly); pack computes FY26-vs-FY25 full year. Both defensible, basis is labelled (growth_basis field) -> not filed"
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 6.09,
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": 6.09,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "match"
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": 30.033,
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": 30.03,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "status": "match"
+    },
+    {
+      "field": "face_value",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 10.0,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "no source truth",
+      "comment": "no face_value field present anywhere in the collected snapshot for this slot; not enough to call it app-blank vs a field the endpoint never carries"
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": 0.75,
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": 0.75,
+      "outside_as_of": "2026-08-18 (ex-date)",
+      "outside_source_url": "https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "status": "match",
+      "comment": "app landed on the correct side of the pack's TEN_X_CONFLICT_UNRESOLVED (0.75 vs a possible 7.50 misreading)"
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": 0.006,
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": 0.006,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://in.tradingview.com/symbols/BSE-SAFE/",
+      "status": "match"
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": 0.75,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "status": "app blank",
+      "comment": "dividend_per_share_ttm is null even though the trailing-12m figure is cleanly derivable (only one ex-date, 2026-08-18, falls in the 12m window) and equals dividend_per_share which the app DOES populate -> DAT-P4-7"
+    },
+    {
+      "field": "week52.high",
+      "app_value": 348.0,
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": 348.0,
+      "outside_as_of": "2025-10-27",
+      "outside_source_url": "https://in.tradingview.com/symbols/BSE-SAFE/",
+      "status": "match",
+      "comment": "as-of skew only: app's as_of is the fetch timestamp, not the 27-Oct-2025 event date the pack carries; value itself matches all 4 corroborating sources"
+    },
+    {
+      "field": "week52.low",
+      "app_value": 112.8,
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": 112.8,
+      "outside_as_of": "2026-09-18 (dateless)",
+      "outside_source_url": "https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "status": "match",
+      "comment": "app correctly avoided the T8 trap (TradingView's mislabelled 'Rs 53.00 / 23-Sep-2024' since-listing low, which is outside any real 52-week window)"
+    },
+    {
+      "field": "shareholding.promoter_pct (Mar-2026, /disclosures/shareholding)",
+      "app_value": 73.58,
+      "app_as_of": "2026-03-31 (submission_date 2026-04-20)",
+      "outside_value": 73.58,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.insiders_pct (/fundamentals main endpoint, held_percent_insiders)",
+      "app_value": 0.75907,
+      "app_as_of": "2026-09-19T09:42:10Z",
+      "outside_value": 0.7358,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "mismatch",
+      "comment": "the app's own BSE-sourced /disclosures/shareholding endpoint says 73.58% for the same as-of quarter; yfinance-sourced held_percent_insiders says 75.91% -- a self-contradiction on the single most gameable Indian small-cap number -> DAT-P4-3"
+    },
+    {
+      "field": "shareholding.fii_pct (Mar-2026)",
+      "app_value": null,
+      "app_as_of": "2026-03-31",
+      "outside_value": "no FII row published (absence, not a zero)",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "status": "match",
+      "comment": "pack itself flags this as an absent row, not a genuine zero; app's null is the more defensible rendering"
+    },
+    {
+      "field": "shareholding.dii_pct (Mar-2026)",
+      "app_value": null,
+      "app_as_of": "2026-03-31",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "app blank",
+      "comment": "screener publishes an explicit dii history (0.79/0.00/0.01/0.00 across Sep24/Mar25/Sep25/Mar26); app shows null exactly on the two quarters where the true value is 0.00 (Mar-2026, Mar-2025) while correctly showing the nonzero values (0.01 for Sep-2025, 0.79 for Sep-2024) -> DAT-P4-8"
+    },
+    {
+      "field": "shareholding.dii_pct (Mar-2025)",
+      "app_value": null,
+      "app_as_of": "2025-03-31",
+      "outside_value": 0.0,
+      "outside_as_of": "2025-03-31",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "app blank",
+      "comment": "second occurrence of the same zero-rendered-as-null pattern, corroborating DAT-P4-8"
+    },
+    {
+      "field": "shareholding.dii_pct (Sep-2025)",
+      "app_value": 0.01,
+      "app_as_of": "2025-09-30",
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "comment": "pack's narrative mentions the 0.01 figure but has no dedicated source_url for this specific quarter row; app value is internally consistent, listed for completeness"
+    },
+    {
+      "field": "shareholding.public_pct (Mar-2026)",
+      "app_value": 26.42,
+      "app_as_of": "2026-03-31",
+      "outside_value": "26.43 (screener) / 26.42 (groww, angelone)",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "match",
+      "comment": "app agrees with 2 of 3 outside sources; the 0.01pp spread is the sources' own disagreement, not an app error"
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "comment": "not published by any reachable pack source either (G2 gap)"
+    },
+    {
+      "field": "shareholding.quarter_cadence (half-yearly, Sep/Mar only)",
+      "app_value": "Sep-2024, Mar-2025, Sep-2025, Mar-2026 (4 rows, no Jun/Dec)",
+      "app_as_of": "2026-09-19T15:12:23+05:30",
+      "outside_value": "Sep 2024, Mar 2025, Sep 2025, Mar 2026",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "match",
+      "comment": "app correctly avoided the T2 trap of inventing a quarterly cadence for a half-yearly SME filer"
+    },
+    {
+      "field": "corporate_actions_2026.acquisition (CredArc, Reg 30)",
+      "app_value": "announcement present, ts 2026-09-18T16:26:56 and 2026-09-09T12:32:04, category 'Company Update'",
+      "app_as_of": "2026-09-18",
+      "outside_value": "board approved 2026-09-09, completed 2026-09-18, Rs 1 crore for 1% of CredArc Technologies",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "match",
+      "comment": "dates and headline category line up; neither side opened the underlying PDF for the Rs 1cr / 1% figures, so those specific numbers are 'no source truth' on the app side (app does not parse PDF content)"
+    },
+    {
+      "field": "corporate_actions_2026.promoter_group_trades (Reg 7(2) PIT, 17-Sep trades)",
+      "app_value": "two disclosures present, ts 2026-09-18T18:23:35 and 2026-09-18T17:40:28",
+      "app_as_of": "2026-09-18",
+      "outside_value": "Oasis Securities bought 26,500 shares (~0.47%); another promoter-group entity sold 26,500 shares, holding down to 24.56%",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "match",
+      "comment": "dates/existence match; the 26,500-share and 24.56% figures are 'no source truth' on the app side (PDF content, not parsed by either collector)"
+    },
+    {
+      "field": "latest_results.quarter",
+      "app_value": "502 error: \"nse_direct: 'SAFE' is not a known NSE instrument\" (GET /disclosures/results?symbol=SAFE)",
+      "app_as_of": "2026-09-19T15:12:23+05:30",
+      "outside_value": "H2 FY2026 (half-year ended 31-Mar-2026), sales 1.58cr, net_profit 1.43cr, eps 2.51, filed 2026-05-13",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544257/",
+      "status": "app blank",
+      "comment": "hard 502, not an empty/blank field -- the results route appears to require an NSE instrument and fails outright for a company that is genuinely BSE-SME-only with real, findable results -> DAT-P4-4"
+    },
+    {
+      "field": "consolidated_vs_standalone",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "standalone only (consolidated page resolves but renders fully blank)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/544257/consolidated/",
+      "status": "no source truth",
+      "comment": "no field for this in the collected snapshot; not filed"
+    }
+  ]
+}

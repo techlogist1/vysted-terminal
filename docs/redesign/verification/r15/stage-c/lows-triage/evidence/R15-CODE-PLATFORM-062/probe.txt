@@ -1,0 +1,80 @@
+## 69057cdc diff of smoke-test-sidecars.mjs (stat + hunks)
+69057cdc fix(agents): a skipped agent JSON surfaces on /health as agents_degraded (R15-LIFECYCLE-014)
+
+diff --git a/scripts/smoke-test-sidecars.mjs b/scripts/smoke-test-sidecars.mjs
+index aa257b77..7a8d8ece 100644
+--- a/scripts/smoke-test-sidecars.mjs
++++ b/scripts/smoke-test-sidecars.mjs
+@@ -43,7 +43,7 @@
+ //      - 200 OK → PASS. Process exit / timeout → FAIL.
+ //      - Then assert: /health version matches package.json, the screener
+ //        universe endpoint, the ICONIKSPEV deterministic resolve, the
+-//        /agents roster (count > 0), and /mcp/status (this binary's OWN
++//        /agents roster (count > 0, /health agents_degraded empty), and /mcp/status (this binary's OWN
+ //        embedded MCP integration reports ready).
+ //   4. For each MCP subprocess sidecar (vysted-openbb-mcp-sidecar,
+ //      vysted-sec-edgar-mcp-sidecar):
+@@ -767,6 +767,16 @@ async function _smokeTestMainSidecar(triple) {
+         `frozen binary. (CLAUDE.md deferred carry-forward: "/agents count > 0".)`,
+     );
+   }
++  // R15-LIFECYCLE-014: a skipped agent JSON shrinks the roster without failing
++  // /agents, so /health names every skipped file; the shipped roster is whole.
++  const agentsDegraded = healthBody && healthBody.agents_degraded;
++  if (!Array.isArray(agentsDegraded) || agentsDegraded.length > 0) {
++    throw new Error(
++      `[smoke] vysted-sidecar FAILED roster integrity: /health agents_degraded = ` +
++        `${JSON.stringify(agentsDegraded)} (expected []). Each entry names an agent JSON ` +
++        `the loader skipped (services/agent_runtime._discover_specs) and why.`,
++    );
++  }
+   console.log(`[smoke] vysted-sidecar /agents roster OK (${agentsCount} agents).`);
+   if (!mcpReady) {
+     throw new Error(
+## grep _httpGetOk
+334:async function _httpGetOk(url, timeoutMs = 1500) {
+383:    const ok = await _httpGetOk(url, 4000);
+623:    if (await _httpGetOk(url)) {
+659:  const universeOk = await _httpGetOk(universeUrl, 5000);
+## smoke-test-sidecars.mjs:334-345 (_httpGetOk)
+async function _httpGetOk(url, timeoutMs = 1500) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const resp = await fetch(url, { signal: ctrl.signal });
+    return resp.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(t);
+  }
+}
+## :376-399 (BSE probe try/catch)
+    `${String(istNow.getUTCMonth() + 1).padStart(2, "0")}` +
+    `${String(istNow.getUTCDate()).padStart(2, "0")}`;
+  const url =
+    `https://www.bseindia.com/download/BhavCopy/Equity/` +
+    `BhavCopy_BSE_CM_0_0_0_${ymd}_F_0000.CSV`;
+  console.log(`[smoke] BSE bhavcopy probe (no-SLA): GET ${url} ...`);
+  try {
+    const ok = await _httpGetOk(url, 4000);
+    if (ok) {
+      console.log("[smoke] BSE bhavcopy probe OK (endpoint reachable).");
+    } else {
+      console.warn(
+        `[smoke] WARN: BSE bhavcopy probe did not return 200 (no-SLA — not a failure). ` +
+          `Common + benign: weekend/holiday/not-yet-published day, geo-fence, or no ` +
+          `outbound network in CI. Only investigate if the URL SHAPE changed.`,
+      );
+    }
+  } catch (err) {
+    console.warn(
+      `[smoke] WARN: BSE bhavcopy probe errored (no-SLA — not a failure): ` +
+        `${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+}
+## fresh probe: extract _httpGetOk and call it on a 404 (:52350/nope) and an unresolvable host
+{"notFound404":false,"offline":false,"distinguishable":false}
+## direct curl of the 404 to prove it is a 404 not offline
+404

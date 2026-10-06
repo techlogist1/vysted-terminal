@@ -1,0 +1,51 @@
+=== R15-RESEARCH-013: fast.py _filings_leg provider label (source read) ===
+async def _filings_leg(tool_call: ToolCall, target: ResearchTarget) -> dict[str, Any]:
+    """The filings leg, routed by REGION (R13 ledger #10).
+
+    SEC EDGAR indexes US filings — for an IN-listed target it is the WRONG
+    lane (a different jurisdiction's index entirely, and its MCP sidecar can
+    independently be down), so an Indian listing routes to the exchange
+    announcements feed instead: the SAME ``corporate_announcements`` tool the
+    DEEP path already consults for disclosures
+    (:func:`services.research.disclosures.gather_floor`) — mirrored here, not
+    reimplemented. The US path is UNCHANGED: ``sec_filings_list``, including
+    its own honest "sidecar unavailable" shape (:func:`_leg_reason` still
+    classifies a down sidecar as ``provider_error``).
+    """
+    from services.research.relevance import is_india_target
+
+    if is_india_target(target):
+        result = await _safe_call(
+            tool_call,
+            "corporate_announcements",
+            {"symbol": target.symbol, "limit": _FAST_ANNOUNCEMENTS_LIMIT},
+        )
+        value = _structured_value(result, "filings")
+        # corporate_announcements carries no top-level provider/source/mode key
+        # (unlike sec_filings_list's per-item "sec-edgar" tag) — stamp the
+        # exchanges that actually served it (a BSE-only listing or a lane
+        # outage serves one) so the FR-041 badge never claims both.
+        if value.get("ok") and not value.get("provider"):
+            value["provider"] = "+".join(str(s).lower() for s in result.get("sources") or [])
+
+=== pinned test ===
+def test_fast_filings_leg_provider_names_only_the_serving_exchanges(
+    sources: list[str], errors: dict[str, str], provider: str
+) -> None:
+    announcements_result = {
+        "ok": True,
+        "symbol": "CDG",
+        "exchange": None,
+        "sources": sources,
+        "errors": errors,
+        "count": 0,
+        "announcements": [],
+    }
+    tool = _INToolCall(
+        symbol="CDG", name="CDG Petchem Ltd", announcements_result=announcements_result
+    )
+    bundle = asyncio.run(gather_fast("CDG outlook", region="IN", tool_call=tool))
+    assert bundle["structured"]["filings"]["provider"] == provider
+
+
+def test_fast_filings_leg_us_target_still_uses_sec_edgar() -> None:

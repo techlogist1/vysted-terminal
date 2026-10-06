@@ -1,0 +1,4 @@
+SidecarError(502) transient: false
+SidecarError(503) transient: true
+SidecarError(0) transient: true
+plain TypeError transient: true

@@ -1,0 +1,130 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_c0a155a503e74aa69395b0682721e845", "name": "price_data", "input": {"symbol": "TCS.NS", "asset_class": "equity", "range": "1y"}}
+{"kind": "tool_result", "tool_call_id": "call_c0a155a503e74aa69395b0682721e845", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "Based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " past"}
+{"kind": "delta", "text": " year"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " tell"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "208"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " highest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": " months"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "244"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "on"}
+{"kind": "delta", "text": " July"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "29"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": ").\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " lowest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": " months"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "205"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "on"}
+{"kind": "delta", "text": " June"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "23"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": ").\n\n"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " also"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " brief"}
+{"kind": "delta", "text": " chart"}
+{"kind": "delta", "text": " showing"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " movement"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " over"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " past"}
+{"kind": "delta", "text": " year"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " see"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " details"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 7022, "output_tokens": 122, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

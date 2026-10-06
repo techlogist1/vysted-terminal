@@ -1,0 +1,16 @@
+# R15-UI-048 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:40+0530
+
+$ git merge-base --is-ancestor f407107 HEAD && echo 'closure f407107 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure f407107 NOT an ancestor'
+[exit 0] [0.02s]
+closure f407107 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-UI-048\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+src/modules/chart/ChartPanel.tsx:268:  // Absent that, a FRESH panel opens on the user's chart default (R15-UI-048)
+src/modules/chart/ChartPanel.test.tsx:287:  it("a fresh panel (no persisted view) opens on the settings chart default (R15-UI-048)", async () => {
+src/store/settings.ts:54: * The chart's default symbol/timeframe/indicators (R15-UI-048) — what a FRESH
+src/store/settings.ts:90:  /** The chart's default symbol/timeframe/indicators (R15-UI-048). */
+src/store/settings.ts:181: * older blob predating R15-UI-048, a hand-edited import) falls back to the
+src/store/settings.test.ts:164:  // ---- chartDefaults (R15-UI-048) ----
+

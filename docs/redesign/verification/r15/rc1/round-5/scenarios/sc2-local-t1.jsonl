@@ -1,0 +1,27 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_0cbf1a2f12b14ee4ac5e7f688a5cf181", "name": "resolve_symbol", "input": {"query": "AMAL", "region": "IN"}}
+{"kind": "tool_result", "tool_call_id": "call_0cbf1a2f12b14ee4ac5e7f688a5cf181", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " ticker"}
+{"kind": "delta", "text": " AM"}
+{"kind": "delta", "text": "AL"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " resolved"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " Am"}
+{"kind": "delta", "text": "al"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " N"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "National"}
+{"kind": "delta", "text": " Stock"}
+{"kind": "delta", "text": " Exchange"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " India"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 3275, "output_tokens": 23, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

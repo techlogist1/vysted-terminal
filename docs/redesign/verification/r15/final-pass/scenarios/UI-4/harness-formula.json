@@ -1,0 +1,10 @@
+{
+ "nRun": 2,
+ "labels": [
+  "Run screener",
+  "Retry"
+ ],
+ "runDisabled": false,
+ "error": "Formula: unexpected end of formula (col 11)",
+ "text": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSESymbols (comma or space)Run screenerFormula: unexpected end of formula (col 11)Retry> SavedNo saved screensSave screen> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYCriterionGroupNumericStringSetMarket cap (listing currency)P/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook value (listing currency)Dividend yield (frac, 0.02 = 2%)EPS (listing currency)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high (listing currency)52w low (listing currency)1y change (frac)Insider holding (Yahoo)Institutional holding (frac)Price (listing currency)1-day %Volume><≥≤betweenCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemizedpe_ratio >\n          ^ unexpected end of formulaExamplesvalue + qualityyield, low debtcalm compoundersCould not load resultsThe screener run failed. Retry — if it persists, loosen a criterion or check the data engine.Retry"
+}

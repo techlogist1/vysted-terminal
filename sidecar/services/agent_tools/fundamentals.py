@@ -8,12 +8,193 @@ and from ``app.create_app``.
 
 from __future__ import annotations
 
+import asyncio
+from dataclasses import dataclass, field
 from typing import Any
 
 from services.agent_tools import register_tool
 
+#: One retry after a short backoff (R8 structured parity): the live failure
+#: was a single transient provider hiccup turning into a brief that claimed
+#: P/E "not available" while the equity panel — same provider_registry —
+#: rendered it. A second attempt half a second later usually succeeds.
+_RETRY_BACKOFF_SECS = 0.5
+
+#: Closed reason vocabulary for a fundamentals-leg failure (R13 JARVIS 2a) — so
+#: the model narrates the CAUSE, never a bare "unavailable" it can round up to a
+#: world-absence claim. ``rate_limited``: the provider throttled THIS run (retry
+#: helps); ``not_found``: the symbol did not resolve to a covered instrument;
+#: ``provider_error``: an app-side / provider fetch failure — OUR feed's gap,
+#: never proof the world does not publish the data.
+_REASON_RATE_LIMITED = "rate_limited"
+_REASON_NOT_FOUND = "not_found"
+_REASON_PROVIDER_ERROR = "provider_error"
+
+_RATE_LIMIT_MARKERS = (
+    "rate limit",
+    "rate-limit",
+    "ratelimit",
+    "429",
+    "too many requests",
+    "throttl",
+)
+_NOT_FOUND_MARKERS = ("not found", "no data", "no such", "unknown symbol", "delisted", "404")
+
+
+def _classify_reason(error_text: str | None, kind: str | None = None) -> str:
+    """Map a provider failure onto the closed reason vocabulary: the
+    ``ProviderError.kind`` when the provider classified it (a ``network``
+    failure is our feed's gap, ``provider_error``), else the error text."""
+    if kind in (_REASON_RATE_LIMITED, _REASON_NOT_FOUND):
+        return kind
+    if kind == "network":
+        return _REASON_PROVIDER_ERROR
+    text = (error_text or "").lower()
+    if any(marker in text for marker in _RATE_LIMIT_MARKERS):
+        return _REASON_RATE_LIMITED
+    if any(marker in text for marker in _NOT_FOUND_MARKERS):
+        return _REASON_NOT_FOUND
+    return _REASON_PROVIDER_ERROR
+
+
+@dataclass(frozen=True)
+class _FetchResult:
+    fundamentals: Any | None
+    error: str | None
+    kind: str | None = None  # the ProviderError.kind of a failed fetch
+
+
+async def _fetch_once(symbol: str) -> _FetchResult:
+    """One ``provider_registry.get_fundamentals`` call, error captured (never
+    raised), with the exchange-filed overlay an Indian listing gets on the
+    panel route too (D-B7-1), so chat and research read the same figure."""
+    from services import correctness_gate, provider_registry
+    from services.errors import ProviderError
+
+    try:
+        fundamentals = await provider_registry.get_fundamentals(symbol)
+    except ProviderError as exc:
+        return _FetchResult(None, f"provider error: {exc}", exc.kind)
+    except Exception as exc:  # noqa: BLE001
+        return _FetchResult(None, f"unexpected error: {exc}")
+    return _FetchResult(await correctness_gate.apply_exchange_financials(fundamentals), None)
+
+
+@dataclass(frozen=True)
+class _Canonicalization:
+    """The ONE resolution-policy verdict on a model-supplied symbol.
+
+    ``canonical_symbol`` is set only when the policy confidently ``bound`` a
+    DIFFERENT yahoo-style symbol than the one supplied — a re-fetch under
+    that symbol is worth trying. ``honest_not_found`` is set only when the
+    policy found plausible-but-not-confident candidates (``disambiguate``) —
+    those ride the tool result instead of a bare provider echo. Neither set
+    (both ``None``) means "the resolver has nothing to add" — the original
+    provider error stands unchanged (R10/R11's D46 substring-band hardening:
+    a fuzzy/substring hit NEVER silently binds, and an outright miss is not
+    manufactured into a false "unresolved" claim about a symbol the bundled
+    US/NSE/BSE masters simply don't cover).
+    """
+
+    canonical_symbol: str | None = None
+    note: str | None = None
+    honest_not_found: dict[str, Any] | None = None
+    candidates: list[dict[str, Any]] = field(default_factory=list)
+
+
+def _instrument_candidate(instrument: Any) -> dict[str, Any]:
+    return {
+        "symbol": instrument.yahoo_symbol,
+        "name": instrument.name,
+        "exchange": instrument.exchange,
+    }
+
+
+async def _canonicalize(symbol: str) -> _Canonicalization:
+    """Run ``symbol`` through the ONE resolution policy (R10 ``decide``).
+
+    Never reimplements matching — same seam as ``resolve_symbol``
+    (:mod:`services.symbol_resolver` + :mod:`services.resolution_policy`).
+    A confident ``bound`` verdict at a different symbol is a correctable
+    typo (R12: the SIMPLEXREA.BO / SIMPLXREA.BO symbol-typo cascade); a
+    ``disambiguate`` verdict carries candidates worth surfacing instead of a
+    bare 404; an ``unresolved`` verdict means the bundled masters have
+    nothing to say — never treated as proof the symbol itself is invalid.
+    Never raises: the resolver runs on a worker thread (a master miss can
+    block on a live Search), and a resolver failure has nothing to add.
+    """
+    import config
+    from services import resolution_policy, symbol_resolver
+
+    region = config.get_region()
+    try:
+        resolution = await symbol_resolver.resolve_async(symbol, region)
+    except Exception:  # noqa: BLE001 — the original provider error then stands
+        return _Canonicalization()
+    decision = resolution_policy.decide(resolution)
+
+    if decision.outcome == "bound" and decision.instrument is not None:
+        resolved = decision.instrument.yahoo_symbol
+        if resolved.strip().upper() == symbol.strip().upper():
+            return _Canonicalization()
+        return _Canonicalization(
+            canonical_symbol=resolved,
+            note=f"resolved {symbol!r} → {resolved!r}",
+        )
+
+    if decision.outcome == "disambiguate" and decision.candidates:
+        candidates = [_instrument_candidate(c) for c in decision.candidates]
+        listed = ", ".join(f"{c['symbol']} ({c['name']})" for c in candidates[:6])
+        return _Canonicalization(
+            honest_not_found={
+                "ok": False,
+                "error": (
+                    f"{symbol!r} did not resolve to one known instrument — did you mean: {listed}?"
+                ),
+                "reason": _REASON_NOT_FOUND,
+                "candidates": candidates,
+            },
+            candidates=candidates,
+        )
+
+    return _Canonicalization()
+
+
+async def _result(symbol: str, fundamentals: Any) -> dict[str, Any]:
+    """The ok result, with the depositary ratio of a foreign reporter
+    (``financial_currency`` set — an ADR such as SIFY) read off its 20-F cover
+    page (R15-AGENT-090). No result carried the ratio, so the model stated one;
+    now a stated ratio is traceable to ``ads_ratio.statement`` and the true
+    one reaches the model. Absent (never guessed) when no 20-F states it. It
+    leads the payload: the model-facing view is cut to a share of the context
+    window, and a dump with field_meta can outrun a small model's share."""
+    payload: dict[str, Any] = {"ok": True, **await _ads_ratio(symbol, fundamentals)}
+    payload["fundamentals"] = fundamentals.model_dump(by_alias=True, mode="json")
+    return payload
+
+
+async def _ads_ratio(symbol: str, fundamentals: Any) -> dict[str, Any]:
+    """``{"ads_ratio": ...}`` for a foreign reporter whose 20-F states one, else ``{}``."""
+    if not getattr(fundamentals, "financial_currency", None):
+        return {}
+    from services import adr_ratio
+
+    ratio = await adr_ratio.lookup(symbol)
+    return {} if ratio is None else {"ads_ratio": ratio}
+
 
 async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
+    """``fundamentals`` scoped to the optional ``region`` arg (R15-LEAD-127).
+
+    Every leg (fetch, retry, canonicalization) runs under that region, so
+    ``{symbol: 'HAL', region: 'US'}`` reaches Halliburton under session IN.
+    """
+    from services.agent_tools.price_data import in_region, listing_region
+
+    return await in_region(listing_region(args), _fundamentals_impl(args))
+
+
+async def _fundamentals_impl(args: dict[str, Any]) -> dict[str, Any]:
     """Return valuation ratios + a company profile for ``symbol``.
 
     The Strategy Critic uses fundamentals to challenge value/growth
@@ -23,33 +204,151 @@ async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
 
     Args:
         symbol: Ticker. Required.
+        region: optional ``US`` / ``IN`` / ``GLOBAL`` listing region; omitted
+            keeps the session region.
 
     Falls back through the same registry path as ``GET /fundamentals``;
     openbb-mcp when bundled, yfinance otherwise. The registry's
-    fundamentals path is async (it awaits the openbb-mcp client).
+    fundamentals path is async (it awaits the openbb-mcp client). One
+    transient provider exception gets ONE retry (0.5s backoff) before the
+    honest ``ok: False`` — a single hiccup must not read as "no data exists".
+
+    R12 (symbol-typo cascade): a model-supplied symbol that fails BOTH
+    attempts is run through the resolution policy (:func:`_canonicalize`)
+    before the failure is returned. A confidently-``bound`` different
+    symbol gets ONE corrective re-fetch, surfaced via a ``note`` field on
+    success ("resolved 'SIMPLEXREA.BO' -> 'SIMPLXREA.BO'") — never silent,
+    so a narrative built on the result can say what happened. A
+    ``disambiguate`` verdict returns the candidates instead of a bare
+    provider 404 echo. A symbol the resolver has no opinion on (including
+    one genuinely outside the bundled US/NSE/BSE masters) keeps the
+    original provider error untouched — the resolver's silence is never
+    read as "this symbol does not exist". The already-correct/first-try
+    path never touches the resolver at all (unchanged fast path).
     """
     symbol = args.get("symbol")
     if not isinstance(symbol, str) or not symbol:
         return {"ok": False, "error": "missing or non-string symbol"}
+
+    for attempt in (0, 1):
+        failed = await _fetch_once(symbol)
+        if failed.error is None:
+            assert failed.fundamentals is not None
+            return await _result(symbol, failed.fundamentals)
+        if attempt == 0:
+            await asyncio.sleep(_RETRY_BACKOFF_SECS)
+
+    canonicalization = await _canonicalize(symbol)
+    if canonicalization.honest_not_found is not None:
+        return canonicalization.honest_not_found
+
+    if canonicalization.canonical_symbol is not None:
+        corrected = await _fetch_once(canonicalization.canonical_symbol)
+        if corrected.error is None:
+            assert corrected.fundamentals is not None
+            return {
+                **await _result(canonicalization.canonical_symbol, corrected.fundamentals),
+                "note": canonicalization.note,
+            }
+        failed = corrected
+
+    return {
+        "ok": False,
+        "error": failed.error,
+        "reason": _classify_reason(failed.error, failed.kind),
+    }
+
+
+#: Statement periods returned to the model (prompt budget); the payload's
+#: ``periods_available`` says when older periods were cut.
+_MAX_STATEMENT_PERIODS = 8
+_STATEMENT_FETCHERS = {
+    "income": "get_income_statement",
+    "balance": "get_balance_sheet",
+    "cashflow": "get_cash_flow",
+}
+
+
+async def _statement_context(symbol: str) -> tuple[str | None, dict[str, Any]]:
+    """The currency the statements are reported in — ``financial_currency``
+    (an ADR such as SIFY reports in INR), else the trading ``currency``, ``None``
+    when the lookup fails, never a guessed code — and the ``ads_ratio`` entry
+    a foreign reporter's statement carries (R15-AGENT-090: the model reaches
+    for this tool on a revenue question and states the ratio beside it)."""
+    from services import provider_registry
+
+    try:
+        fund = await provider_registry.get_fundamentals(symbol)
+    except Exception:  # noqa: BLE001 — the statement still ships, currency unknown
+        return None, {}
+    return fund.financial_currency or fund.currency, await _ads_ratio(symbol, fund)
+
+
+async def _financial_statements(args: dict[str, Any]) -> dict[str, Any]:
+    """Return one financial statement (income / balance / cashflow) for
+    ``symbol``, annual or quarterly, as ``{symbol, statement, period, currency,
+    periods, lines}`` (R15-DATA-026).
+
+    Periods are fiscal years (annual) or ISO period-end dates (quarterly),
+    newest first, capped at the newest :data:`_MAX_STATEMENT_PERIODS`;
+    ``periods_available`` counts what the provider served. ``currency`` is the
+    reporting currency (rc1-scenarios:5: SIFY's INR revenue reached the model
+    bare and was stated in dollars); ``None`` plus a ``note`` when unknown.
+    """
     from services import provider_registry
     from services.errors import ProviderError
 
+    symbol = args.get("symbol")
+    if not isinstance(symbol, str) or not symbol.strip():
+        return {"ok": False, "error": "missing or non-string symbol"}
+    statement = str(args.get("statement") or "")
+    if statement not in _STATEMENT_FETCHERS:
+        return {"ok": False, "error": "statement must be one of income, balance, cashflow"}
+    period = str(args.get("period") or "annual")
+    if period not in ("annual", "quarterly"):
+        return {"ok": False, "error": "period must be 'annual' or 'quarterly'"}
+
+    fetch = getattr(provider_registry, _STATEMENT_FETCHERS[statement])
     try:
-        fundamentals = await provider_registry.get_fundamentals(symbol)
+        result, (currency, ads_ratio) = await asyncio.gather(
+            fetch(symbol, period=period), _statement_context(symbol)
+        )
     except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
+        return {
+            "ok": False,
+            "error": f"provider error: {exc}",
+            "reason": _classify_reason(str(exc), exc.kind),
+        }
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "error": f"unexpected error: {exc}"}
 
+    periods = sorted(result.periods, reverse=True)[:_MAX_STATEMENT_PERIODS]
     return {
         "ok": True,
-        "fundamentals": fundamentals.model_dump(by_alias=True, mode="json"),
+        **ads_ratio,
+        "symbol": result.symbol,
+        "statement": statement,
+        "period": period,
+        "provider": result.provider,
+        "currency": currency,
+        **(
+            {}
+            if currency
+            else {"note": "reporting currency unknown — do not state these values in any currency"}
+        ),
+        "periods": periods,
+        "periods_available": len(result.periods),
+        "lines": [
+            {"label": line.label, "values": {p: line.values.get(p) for p in periods}}
+            for line in result.lines
+        ],
     }
 
 
 def register() -> None:
-    """Register the ``fundamentals`` tool in the package registry."""
+    """Register the ``fundamentals`` and ``financial_statements`` tools."""
     register_tool("fundamentals", _fundamentals)
+    register_tool("financial_statements", _financial_statements)
 
 
-__all__ = ["_fundamentals", "register"]
+__all__ = ["_financial_statements", "_fundamentals", "register"]

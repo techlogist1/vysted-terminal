@@ -11,7 +11,8 @@ Public surface
 * :func:`get_surprises(symbol)` — :class:`EarningsSurprisesResponse` —
   the analyst-mean diff against the actual report for each past quarter.
 * :func:`get_estimate_detail(symbol)` — :class:`EarningsEstimateDetail`
-  for the *next* upcoming report — mean / median / high / low / stddev.
+  for the *next* upcoming report — mean / high / low / analyst counts (median
+  and stddev only when the provider supplies them; yfinance does not).
 
 Data sources
 ~~~~~~~~~~~~
@@ -44,6 +45,7 @@ from typing import Any
 
 import pandas as pd
 
+from config import get_region
 from models.earnings import (
     EarningsEstimateDetail,
     EarningsEvent,
@@ -52,16 +54,24 @@ from models.earnings import (
     EarningsSurprise,
     EarningsSurprisesResponse,
     EarningsUpcomingResponse,
-    FiscalPeriod,
 )
+from services import provider_health
 from services.errors import ProviderError
+from services.nse_provider import _EVENT_CALENDAR_PATH, _get_json
+from services.yfinance_provider import _yahoo_symbol
 
 logger = logging.getLogger(__name__)
 
 PROVIDER = "yfinance"
 
-# Default "interesting" symbol universe used when no watchlist is supplied —
-# small list, deterministic, large-cap so the upstream has data for them.
+#: Concurrency cap on the per-symbol calendar fan-out (R15-DATA-104), mirroring
+#: bar_loader._LOAD_CONCURRENCY / yahoo_batch_provider._BATCH_CONCURRENCY — an
+#: unbounded gather over a large watchlist is 3-4 Yahoo round trips PER symbol.
+_UPCOMING_CONCURRENCY = 8
+
+# Default US universe used when no watchlist is supplied outside the IN
+# region — small list, deterministic, large-cap so the upstream has data for
+# them. An IN session reads NSE's market-wide event calendar instead.
 _DEFAULT_UNIVERSE: tuple[str, ...] = (
     "AAPL",
     "MSFT",
@@ -74,11 +84,6 @@ _DEFAULT_UNIVERSE: tuple[str, ...] = (
     "V",
     "WMT",
 )
-
-
-def _normalise_symbol(symbol: str) -> str:
-    """Translate dotted tickers (``BRK.B``) to yfinance's dashed form."""
-    return symbol.strip().upper().replace(".", "-")
 
 
 def _num(value: Any) -> float | None:
@@ -99,30 +104,93 @@ def _num(value: Any) -> float | None:
     return out
 
 
-def _fiscal_period_for(ts: date | datetime) -> FiscalPeriod:
-    """Best-effort quarter inference from a reporting date.
+#: A quarterly revenue estimate, annualised (x4), must land within this
+#: multiple of ``totalRevenue`` for ``financialCurrency`` to be trusted as the
+#: estimate's currency (R15-DATA-113 round 2: INFY's is 97x out of band).
+_REVENUE_SCALE_BAND = (0.3, 3.0)
 
-    Most companies report fiscal Q1 in Q2-calendar, but the precise
-    fiscal-year alignment varies. yfinance does not always surface a
-    fiscal-period field, so we infer ``Q1..Q4`` from the calendar month
-    and stamp the year as the calendar year of the report. The label is
-    used only for UI display; downstream consumers that need the exact
-    fiscal alignment can override via openbb-mcp once enrichment is wired.
+#: Home-market currency for the app's covered markets, keyed by Yahoo's
+#: ``info.country`` — the fallback once the scale check can't confirm
+#: ``financialCurrency`` (e.g. INFY/INFY.NS: financialCurrency USD, but the
+#: revenue estimate is INR-sized). ponytail: covers the markets this app
+#: already serves; extend the map, not the scale-check logic, for a new one.
+_COUNTRY_CURRENCY: dict[str, str] = {
+    "India": "INR",
+    "Taiwan": "TWD",
+    "United States": "USD",
+}
+
+
+def _revenue_currency(payload: dict[str, Any], sample_estimate: float | None) -> str | None:
+    """The revenue-estimate fields' own currency.
+
+    Yahoo reports statement-size revenue fields in the filer's reporting
+    currency (``financialCurrency``), which for a foreign reporter (WIT: ADS
+    trades in USD, reports in INR) differs from the trading ``currency`` every
+    other money field on the payload carries. But ``financialCurrency`` alone
+    is not trustworthy: INFY / INFY.NS both report ``financialCurrency`` USD
+    while their revenue estimates are INR-sized (R15-DATA-113 round 2).
+
+    Scale-check instead: annualise ``sample_estimate`` (x4, a quarterly
+    figure) and compare it with ``total_revenue`` (already on the payload, in
+    ``financialCurrency`` by construction — no extra fetch). Within
+    ``_REVENUE_SCALE_BAND``, trust ``financialCurrency``. Otherwise fall back
+    to the issuer's home-market currency from ``_COUNTRY_CURRENCY``, unless
+    that is the currency the scale check ruled out. If neither answer is
+    determinable, ``None`` — never a guessed label.
     """
-    if isinstance(ts, datetime):
-        d = ts.date()
-    else:
-        d = ts
-    month = d.month
-    if month <= 3:
-        quarter: str = "Q1"
-    elif month <= 6:
-        quarter = "Q2"
-    elif month <= 9:
-        quarter = "Q3"
-    else:
-        quarter = "Q4"
-    return FiscalPeriod(quarter=quarter, year=d.year)  # type: ignore[arg-type]
+    financial_currency = payload.get("financial_currency")
+    total_revenue = payload.get("total_revenue")
+    ruled_out: str | None = None
+    if financial_currency and sample_estimate is not None and total_revenue:
+        ratio = (sample_estimate * 4) / total_revenue
+        if _REVENUE_SCALE_BAND[0] <= ratio <= _REVENUE_SCALE_BAND[1]:
+            return str(financial_currency)
+        ruled_out = str(financial_currency)
+    fallback = _COUNTRY_CURRENCY.get(payload.get("country") or "")
+    # The home-market currency is no answer when it is the very currency the
+    # scale check just ruled out (SIFY: a USD-sized estimate beside INR
+    # revenue, country India; R15-FINAL-010).
+    return None if fallback == ruled_out else fallback
+
+
+def _eps_currency(payload: dict[str, Any], sample_eps: float | None) -> str | None:
+    """The EPS fields' own currency (mirrors :func:`_revenue_currency`).
+
+    Every EPS field was labelled with the trading ``currency`` even when Yahoo
+    serves the EPS itself in the filer's reporting currency (PDD/NVO/JD report
+    CNY/DKK/CNY per-share EPS while trading in USD) — R15-DATA-113. Unlike
+    revenue there is no ``totalRevenue``-shaped anchor to scale against, so the
+    self-consistency check instead annualises ``sample_eps`` (x4, a quarterly
+    figure) against ``trailing_eps`` (``info['trailingEps']``, already in the
+    filer's true EPS currency by construction): within ``_REVENUE_SCALE_BAND``
+    the trading currency and ``trailingEps`` agree in scale, so ``financialCurrency``
+    is a mislabel and the trading currency is trusted; outside the band
+    ``financialCurrency`` is trusted instead. No trailing EPS to check against
+    (or it is non-positive) on a foreign reporter yields ``None`` — never a
+    guessed label.
+    """
+    trading_currency = payload.get("currency")
+    financial_currency = payload.get("financial_currency")
+    if not financial_currency or financial_currency == trading_currency:
+        return trading_currency
+    trailing_eps = payload.get("trailing_eps")
+    if sample_eps is None or not trailing_eps or trailing_eps <= 0:
+        return None
+    ratio = (sample_eps * 4) / trailing_eps
+    if _REVENUE_SCALE_BAND[0] <= ratio <= _REVENUE_SCALE_BAND[1]:
+        return trading_currency
+    return str(financial_currency)
+
+
+def _analyst_count(frame: Any) -> int | None:
+    """The current-quarter ``numberOfAnalysts`` of a yfinance estimate frame
+    (``earnings_estimate`` / ``revenue_estimate``), or ``None`` when absent —
+    never a borrowed count or a 0 standing in for "unknown" (R15-DATA-032)."""
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        return None
+    count = _num(frame.iloc[0].get("numberOfAnalysts"))
+    return int(count) if count is not None else None
 
 
 def _surprise_pct(actual: float, estimate: float) -> float | None:
@@ -144,30 +212,40 @@ def _yf_ticker(symbol: str) -> Any:
     return yf.Ticker(symbol)
 
 
+def _optional(ticker: Any, attr: str, symbol: str) -> Any:
+    """One optional yfinance accessor: a failure is ``None`` (the field is
+    simply absent), except a throttle, which raises ``rate_limited`` so the
+    router's cache never stores the empty answer it would otherwise become
+    (R15-LEAD-071: a 429 on ``earnings_history`` was cached for 24 h)."""
+    try:
+        return getattr(ticker, attr)
+    except Exception as exc:  # noqa: BLE001 — optional accessor
+        if provider_health.is_rate_limit(exc):
+            raise ProviderError(
+                f"yfinance {attr} throttled for {symbol!r}", kind="rate_limited"
+            ) from exc
+        return None
+
+
 def _fetch_calendar_sync(symbol: str) -> dict[str, Any]:
     """Return a dict of the yfinance calendar (dates + estimates).
 
     yfinance exposes ``Ticker.calendar`` (a dict with ``"Earnings Date"`` and
     ``"Earnings Average"`` keys) plus ``Ticker.earnings_dates`` (a DataFrame
     indexed by report date with columns ``EPS Estimate`` / ``Reported EPS`` /
-    ``Surprise(%)``). We pull both and let the caller merge.
+    ``Surprise(%)``). We pull both and let the caller merge. ``symbol`` is
+    resolved once here, region-aware (``_yahoo_symbol``), and echoed back.
     """
-    normalized = _normalise_symbol(symbol)
+    normalized = _yahoo_symbol(symbol)
     try:
         ticker = _yf_ticker(normalized)
         calendar = getattr(ticker, "calendar", None) or {}
-        try:
-            earnings_dates = ticker.earnings_dates
-        except Exception:  # noqa: BLE001 — optional accessor
-            earnings_dates = None
-        try:
-            info = ticker.info or {}
-        except Exception:  # noqa: BLE001
-            info = {}
-        try:
-            est_frame = ticker.earnings_estimate
-        except Exception:  # noqa: BLE001
-            est_frame = None
+        earnings_dates = _optional(ticker, "earnings_dates", symbol)
+        info = _optional(ticker, "info", symbol) or {}
+        est_frame = _optional(ticker, "earnings_estimate", symbol)
+        rev_frame = _optional(ticker, "revenue_estimate", symbol)
+    except ProviderError:
+        raise
     except Exception as exc:  # noqa: BLE001
         raise ProviderError(f"yfinance earnings calendar failed for {symbol!r}: {exc}") from exc
 
@@ -176,31 +254,81 @@ def _fetch_calendar_sync(symbol: str) -> dict[str, Any]:
         "calendar": calendar,
         "earnings_dates": earnings_dates,
         "earnings_estimate": est_frame,
+        "revenue_estimate": rev_frame,
         "currency": info.get("currency") or "USD",
+        "financial_currency": info.get("financialCurrency"),
+        "total_revenue": _num(info.get("totalRevenue")),
+        "trailing_eps": _num(info.get("trailingEps")),
+        "country": info.get("country"),
         "name": info.get("longName") or info.get("shortName"),
     }
 
 
 def _fetch_history_sync(symbol: str) -> dict[str, Any]:
-    """Return the yfinance earnings_history DataFrame for ``symbol``."""
-    normalized = _normalise_symbol(symbol)
+    """Return the yfinance earnings_history DataFrame for ``symbol`` (resolved
+    here), plus ``Ticker.earnings_dates`` (R15-LEAD-016) — the announcement
+    dates used to resolve each entry's true ``reported_date``, distinct from
+    ``period_end``."""
+    normalized = _yahoo_symbol(symbol)
     try:
         ticker = _yf_ticker(normalized)
-        try:
-            history = ticker.earnings_history
-        except Exception:  # noqa: BLE001
-            history = None
-        try:
-            info = ticker.info or {}
-        except Exception:  # noqa: BLE001
-            info = {}
+        history = _optional(ticker, "earnings_history", symbol)
+        earnings_dates = _optional(ticker, "earnings_dates", symbol)
+        info = _optional(ticker, "info", symbol) or {}
+    except ProviderError:
+        raise
     except Exception as exc:  # noqa: BLE001
         raise ProviderError(f"yfinance earnings history failed for {symbol!r}: {exc}") from exc
     return {
         "symbol": normalized,
         "history": history,
+        "earnings_dates": earnings_dates,
         "currency": info.get("currency") or "USD",
+        "financial_currency": info.get("financialCurrency"),
+        "total_revenue": _num(info.get("totalRevenue")),
+        "trailing_eps": _num(info.get("trailingEps")),
+        "country": info.get("country"),
     }
+
+
+def _as_date(value: Any) -> date | None:
+    """Best-effort coercion of a pandas index label / cell to a plain ``date``."""
+    if hasattr(value, "to_pydatetime"):
+        value = value.to_pydatetime()
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    try:
+        return datetime.fromisoformat(str(value)).date()
+    except (TypeError, ValueError):
+        return None
+
+
+def _extract_announcement_dates(frame: Any) -> list[date]:
+    """Every ALREADY-REPORTED announcement date in a ``Ticker.earnings_dates``
+    frame (R15-LEAD-016) — a future scheduled event (``Reported EPS`` still
+    ``NaN``) is not an announcement yet, so it is excluded; a frame that lacks
+    the column (schema drift) is read unfiltered rather than dropped whole.
+    Best-effort: an unreadable/empty frame yields ``[]``, never a crash."""
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        return []
+    if "Reported EPS" in frame.columns:
+        frame = frame[frame["Reported EPS"].notna()]
+    dates: list[date] = []
+    for idx in frame.index:
+        parsed = _as_date(idx)
+        if parsed is not None:
+            dates.append(parsed)
+    return dates
+
+
+def _nearest_reported_date(period_end: date, announcement_dates: list[date]) -> date | None:
+    """The earliest announcement date 0-120 days after ``period_end`` — the
+    quarter's actual report date, never the quarter end itself (R15-LEAD-016).
+    ``None`` when no announcement date falls in that window."""
+    candidates = [d for d in announcement_dates if 0 <= (d - period_end).days <= 120]
+    return min(candidates) if candidates else None
 
 
 # ---------------------------------------------------------------------------
@@ -237,41 +365,69 @@ def _event_from_calendar(
     if scheduled < start_date or scheduled > end_date:
         return None
 
+    # R15-DATA-032: yfinance surfaces no dispersion, so ``eps_estimate_stddev``
+    # stays None (the field is for a provider that measures it).
     eps_mean = _num(cal.get("Earnings Average"))
-    eps_high = _num(cal.get("Earnings High"))
-    eps_low = _num(cal.get("Earnings Low"))
-
-    # Try to compute a coarse dispersion from the high/low spread when the
-    # estimate-frame surfaces a stddev; yfinance's ``earnings_estimate``
-    # DataFrame includes a ``numberOfAnalysts`` column in newer releases.
-    est_frame = payload.get("earnings_estimate")
-    eps_stddev: float | None = None
-    analyst_count = 0
-    if isinstance(est_frame, pd.DataFrame) and not est_frame.empty:
-        # The first row is typically "0q" — current quarter estimate.
-        # Some yfinance versions surface a ``growth`` column but it's
-        # consensus-growth not analyst dispersion, so it is not a valid
-        # stddev source. Fall through to the high/low spread approximation
-        # below, which is what the Strategy Critic consumes.
-        # (Phase 8 T2 S2 hot-patch: was `if False`-guarded dead branch.)
-        row = est_frame.iloc[0]
-        analyst_count = int(_num(row.get("numberOfAnalysts")) or 0)
-    if eps_stddev is None and eps_high is not None and eps_low is not None:
-        # Approximation: assume high/low span ~= 4 stddev (95% CI rule).
-        eps_stddev = max(eps_high - eps_low, 0.0) / 4.0 or None
-
     return EarningsEvent(
         symbol=payload["symbol"],
         company_name=payload.get("name"),
         scheduled_date=scheduled,
         time_of_day="unknown",
-        fiscal_period=_fiscal_period_for(scheduled),
+        # R15-DATA-067: yfinance names no fiscal period; the report month does
+        # not determine one (JPM's October report is its Q3), so none is stamped.
         eps_estimate_mean=eps_mean,
-        eps_estimate_stddev=eps_stddev,
-        estimate_analyst_count=analyst_count,
-        currency=str(payload.get("currency") or "USD"),
+        estimate_analyst_count=_analyst_count(payload.get("earnings_estimate")),
+        currency=_eps_currency(payload, eps_mean),
         provider=PROVIDER,
     )
+
+
+# ---------------------------------------------------------------------------
+# NSE market-wide event calendar (the IN default universe, R15-DATA-028)
+# ---------------------------------------------------------------------------
+
+_NSE_EVENT_CALENDAR_REFERER = (
+    "https://www.nseindia.com/companies-listing/corporate-filings-event-calendar"
+)
+
+
+def _nse_results_events(start_date: date, end_date: date) -> list[EarningsEvent]:
+    """Every NSE board meeting in ``[start, end]`` whose purpose is results.
+
+    The feed is market-wide (no ``symbol`` param), so it answers "which Indian
+    companies report this week" — a board meeting for a dividend, split or
+    fund raise is not a results event and is excluded. The feed carries no
+    consensus, so the estimate fields stay None."""
+    params = {
+        "index": "equities",
+        "from_date": start_date.strftime("%d-%m-%Y"),
+        "to_date": end_date.strftime("%d-%m-%Y"),
+    }
+    payload = _get_json(_EVENT_CALENDAR_PATH, params, _NSE_EVENT_CALENDAR_REFERER)
+    if not isinstance(payload, list):
+        raise ProviderError("nse event calendar: malformed payload")
+    events: list[EarningsEvent] = []
+    for row in payload:
+        if not isinstance(row, dict) or "results" not in str(row.get("purpose") or "").lower():
+            continue
+        symbol = str(row.get("symbol") or "").strip()
+        try:
+            scheduled = datetime.strptime(str(row.get("date")), "%d-%b-%Y").date()
+        except ValueError:
+            continue
+        if not symbol or not start_date <= scheduled <= end_date:
+            continue
+        events.append(
+            EarningsEvent(
+                symbol=f"{symbol}.NS",
+                company_name=row.get("company") or None,
+                scheduled_date=scheduled,
+                time_of_day="unknown",
+                currency="INR",
+                provider="nse",
+            )
+        )
+    return events
 
 
 # ---------------------------------------------------------------------------
@@ -286,25 +442,36 @@ async def get_upcoming(
 ) -> EarningsUpcomingResponse:
     """Return scheduled earnings events in ``[start, end]`` for ``watchlist``.
 
-    Defaults: ``start`` = today, ``end`` = today + 7 days, ``watchlist`` = a
-    small built-in universe of large-caps so the panel populates without
-    a configured watchlist.
+    Defaults: ``start`` = today, ``end`` = today + 7 days. With no
+    ``watchlist`` an IN session reads NSE's market-wide event calendar (every
+    results board meeting in the window); any other region uses a small
+    built-in universe of US large-caps so the panel populates.
     """
     today = datetime.now(tz=UTC).date()
     start_date = start or today
     end_date = end or (today + timedelta(days=7))
-    universe = list(watchlist) if watchlist else list(_DEFAULT_UNIVERSE)
     if start_date > end_date:
         raise ProviderError("start_date must be on or before end_date")
+    if not watchlist and get_region() == "IN":
+        events_in = await asyncio.to_thread(_nse_results_events, start_date, end_date)
+        events_in.sort(key=lambda event: (event.scheduled_date, event.symbol))
+        return EarningsUpcomingResponse(start_date=start_date, end_date=end_date, events=events_in)
+    universe = list(watchlist) if watchlist else list(_DEFAULT_UNIVERSE)
+    sem = asyncio.Semaphore(_UPCOMING_CONCURRENCY)
 
     async def _one(symbol: str) -> EarningsEvent | None:
-        try:
-            payload = await asyncio.to_thread(_fetch_calendar_sync, symbol)
-        except ProviderError as exc:
-            # Was a silent drop; log it like the _event_from_calendar path so a
-            # symbol vanishing from the calendar is traceable (Phase 9.5).
-            logger.warning("earnings: calendar fetch failed for %r: %s", symbol, exc)
+        # R15-DATA-104: consult the shared Yahoo breaker before spending a
+        # thread on a symbol that will only fail (mirrors yahoo_batch_provider).
+        if provider_health.is_open(provider_health.YAHOO):
             return None
+        async with sem:
+            try:
+                payload = await asyncio.to_thread(_fetch_calendar_sync, symbol)
+            except ProviderError as exc:
+                # Was a silent drop; log it like the _event_from_calendar path so
+                # a symbol vanishing from the calendar is traceable (Phase 9.5).
+                logger.warning("earnings: calendar fetch failed for %r: %s", symbol, exc)
+                return None
         try:
             return _event_from_calendar(payload, start_date, end_date)
         except Exception:  # noqa: BLE001 — log and continue past one bad symbol
@@ -322,47 +489,64 @@ async def get_upcoming(
 
 
 async def get_history(symbol: str) -> EarningsHistoryResponse:
-    """Return the historical earnings results for ``symbol``."""
-    normalized = _normalise_symbol(symbol)
-    payload = await asyncio.to_thread(_fetch_history_sync, normalized)
+    """Return the historical earnings results for ``symbol``.
+
+    ``period_end`` is the fiscal quarter end (the ``earnings_history`` index)
+    and the sort key. ``reported_date`` is the ACTUAL announcement date — the
+    nearest ``Ticker.earnings_dates`` entry 0-120 days after ``period_end``, or
+    ``None`` when none is found in that window (R15-LEAD-016: the OLD code
+    reported ``period_end`` itself as ``reported_date``, which is wrong
+    whenever a company reports weeks after its quarter closes)."""
+    payload = await asyncio.to_thread(_fetch_history_sync, symbol)
+    normalized = payload["symbol"]
     history_frame = payload.get("history")
     currency = str(payload.get("currency") or "USD")
+    announcement_dates = _extract_announcement_dates(payload.get("earnings_dates"))
     entries: list[EarningsHistoryEntry] = []
+    newest_period_end: date | None = None
+    newest_revenue_estimate: float | None = None
+    newest_eps_estimate: float | None = None
     if isinstance(history_frame, pd.DataFrame) and not history_frame.empty:
         for raw_idx, row in history_frame.iterrows():
-            reported = raw_idx
-            if hasattr(reported, "to_pydatetime"):
-                reported = reported.to_pydatetime().date()
-            elif isinstance(reported, datetime):
-                reported = reported.date()
-            elif not isinstance(reported, date):
-                try:
-                    reported = datetime.fromisoformat(str(reported)).date()
-                except (TypeError, ValueError):
-                    continue
+            period_end = _as_date(raw_idx)
+            if period_end is None:
+                continue
             eps_actual = _num(row.get("epsActual"))
             if eps_actual is None:
                 continue
             eps_estimate = _num(row.get("epsEstimate"))
+            revenue_estimate_mean = _num(row.get("revenueEstimate"))
+            if newest_period_end is None or period_end > newest_period_end:
+                newest_period_end = period_end
+                newest_revenue_estimate = revenue_estimate_mean
+                newest_eps_estimate = eps_estimate
             entries.append(
                 EarningsHistoryEntry(
-                    fiscal_period=_fiscal_period_for(reported),
-                    reported_date=reported,
+                    period_end=period_end,
+                    reported_date=_nearest_reported_date(period_end, announcement_dates),
                     eps_actual=eps_actual,
                     eps_estimate_mean=eps_estimate,
                     revenue_actual=_num(row.get("revenueActual")),
-                    revenue_estimate_mean=_num(row.get("revenueEstimate")),
+                    revenue_estimate_mean=revenue_estimate_mean,
                     currency=currency,
                 )
             )
-    entries.sort(key=lambda entry: entry.reported_date, reverse=True)
+    # The whole response shares one revenue_currency / eps currency, each
+    # scale-checked against the NEWEST quarter's estimate (R15-DATA-113).
+    revenue_currency = _revenue_currency(payload, newest_revenue_estimate)
+    eps_currency = _eps_currency(payload, newest_eps_estimate)
+    entries = [
+        entry.model_copy(update={"revenue_currency": revenue_currency, "currency": eps_currency})
+        for entry in entries
+    ]
+    entries.sort(key=lambda entry: entry.period_end, reverse=True)
     return EarningsHistoryResponse(symbol=normalized, history=entries)
 
 
 async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
     """Return per-quarter surprises (actual vs. consensus) for ``symbol``."""
-    normalized = _normalise_symbol(symbol)
-    history = await get_history(normalized)
+    history = await get_history(symbol)
+    normalized = history.symbol
     surprises: list[EarningsSurprise] = []
     for entry in history.history:
         estimate = entry.eps_estimate_mean
@@ -378,6 +562,7 @@ async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
         surprises.append(
             EarningsSurprise(
                 symbol=normalized,
+                period_end=entry.period_end,
                 reported_date=entry.reported_date,
                 fiscal_period=entry.fiscal_period,
                 eps_actual=entry.eps_actual,
@@ -388,6 +573,7 @@ async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
                 revenue_estimate_mean=revenue_estimate,
                 revenue_surprise_pct=revenue_pct,
                 currency=entry.currency,
+                revenue_currency=entry.revenue_currency,
                 provider=PROVIDER,
             )
         )
@@ -396,37 +582,27 @@ async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
 
 async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
     """Return the analyst estimate breakdown for the next earnings event."""
-    normalized = _normalise_symbol(symbol)
-    payload = await asyncio.to_thread(_fetch_calendar_sync, normalized)
+    payload = await asyncio.to_thread(_fetch_calendar_sync, symbol)
+    normalized = payload["symbol"]
     cal = payload.get("calendar") or {}
     earnings_dates = cal.get("Earnings Date") or []
     if not earnings_dates:
         raise ProviderError(f"no upcoming earnings event found for {symbol!r}")
     raw = earnings_dates[0]
-    if isinstance(raw, datetime):
-        scheduled = raw.date()
-    elif isinstance(raw, date):
-        scheduled = raw
-    else:
+    if not isinstance(raw, date):
         try:
-            scheduled = datetime.fromisoformat(str(raw)).date()
+            datetime.fromisoformat(str(raw))
         except (TypeError, ValueError) as exc:
             raise ProviderError(f"could not parse earnings date {raw!r} for {symbol!r}") from exc
 
+    # R15-LEAD-039: Yahoo's calendar payload omits Earnings Average/High/Low
+    # for several liquid non-US names (RDY, TM, SONY); each field is
+    # independently nullable, the same shape as the revenue triple below —
+    # a missing "Earnings Date" is the hard failure above, a missing EPS
+    # field is a partial result, not one.
     eps_mean = _num(cal.get("Earnings Average"))
     eps_high = _num(cal.get("Earnings High"))
     eps_low = _num(cal.get("Earnings Low"))
-    if eps_mean is None or eps_high is None or eps_low is None:
-        raise ProviderError(f"incomplete estimate fields for {symbol!r}")
-
-    eps_stddev: float | None = None
-    analyst_count = 0
-    est_frame = payload.get("earnings_estimate")
-    if isinstance(est_frame, pd.DataFrame) and not est_frame.empty:
-        row = est_frame.iloc[0]
-        analyst_count = int(_num(row.get("numberOfAnalysts")) or 0)
-    if eps_stddev is None:
-        eps_stddev = max(eps_high - eps_low, 0.0) / 4.0 or None
 
     rev_mean = _num(cal.get("Revenue Average"))
     rev_high = _num(cal.get("Revenue High"))
@@ -434,19 +610,18 @@ async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
 
     return EarningsEstimateDetail(
         symbol=normalized,
-        fiscal_period=_fiscal_period_for(scheduled),
+        # R15-DATA-032: yfinance surfaces no median or stddev — they stay None
+        # rather than the mean / a (high-low)/4 proxy on a measured-value field.
         eps_estimate_mean=eps_mean,
-        eps_estimate_median=eps_mean,  # yfinance does not surface a separate median
         eps_estimate_high=eps_high,
         eps_estimate_low=eps_low,
-        eps_estimate_stddev=eps_stddev,
-        estimate_analyst_count=analyst_count,
+        estimate_analyst_count=_analyst_count(payload.get("earnings_estimate")),
         revenue_estimate_mean=rev_mean,
-        revenue_estimate_median=rev_mean,
         revenue_estimate_high=rev_high,
         revenue_estimate_low=rev_low,
-        revenue_analyst_count=analyst_count,
-        currency=str(payload.get("currency") or "USD"),
+        revenue_analyst_count=_analyst_count(payload.get("revenue_estimate")),
+        currency=_eps_currency(payload, eps_mean),
+        revenue_currency=_revenue_currency(payload, rev_mean),
         provider=PROVIDER,
         as_of=datetime.now(tz=UTC),
     )

@@ -8,13 +8,18 @@ response objects whose shape matches the SDK's real output
 
 from __future__ import annotations
 
+import json
 from collections.abc import AsyncIterator
+from pathlib import Path
 from typing import Any
 
+import httpx
 import pytest
 from google import genai
+from google.genai import types
 
-from models.llm import LLMMessage
+from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMMessage, LLMToolUseEvent
+from services.llm.base import is_length_finish
 from services.llm.gemini import GeminiProvider
 
 
@@ -35,9 +40,17 @@ class _Candidate:
 
 
 class _UsageMetadata:
-    def __init__(self, prompt: int, candidates: int) -> None:
+    def __init__(
+        self,
+        prompt: int,
+        candidates: int,
+        thoughts: int | None = None,
+        tool_use_prompt: int | None = None,
+    ) -> None:
         self.prompt_token_count = prompt
         self.candidates_token_count = candidates
+        self.thoughts_token_count = thoughts
+        self.tool_use_prompt_token_count = tool_use_prompt
 
 
 class _Response:
@@ -131,6 +144,36 @@ async def test_stream_chat_emits_text_deltas(monkeypatch: pytest.MonkeyPatch) ->
 
 
 @pytest.mark.asyncio
+async def test_usage_meters_thinking_and_tool_use_prompt_tokens(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-AGENT-004: a thinking round bills its thoughts as output and the
+    tool-use prompt as input, so the BudgetGuard token ceiling sees them."""
+    from services.budget_guard import BudgetGuard
+
+    responses = [
+        _Response(
+            [_Candidate(_Content([_Part("ok")]), finish_reason="STOP")],
+            usage=_UsageMetadata(100, 800, thoughts=6000, tool_use_prompt=40),
+        ),
+    ]
+    _patch_client(monkeypatch, responses=responses)
+    out = [
+        e
+        async for e in GeminiProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="gemini-2.5-pro",
+            api_key="key",
+        )
+    ]
+    usage = out[-1].usage
+    assert (usage.input_tokens, usage.output_tokens) == (140, 6800)
+    guard = BudgetGuard(max_tokens=5000)
+    guard.record(usage, provider="gemini", model="gemini-2.5-pro")
+    assert guard.breach() is not None
+
+
+@pytest.mark.asyncio
 async def test_assistant_role_maps_to_model_role(monkeypatch: pytest.MonkeyPatch) -> None:
     state = _patch_client(monkeypatch, responses=[])
     provider = GeminiProvider()
@@ -173,6 +216,12 @@ async def test_stream_chat_handles_api_error(monkeypatch: pytest.MonkeyPatch) ->
     ):
         out.append(event)
     assert any(e.kind == "error" for e in out)
+    err = next(e for e in out if e.kind == "error")
+    # E9: the adapter routed through humanize — raw text behind detail,
+    # a stable machine code, and a plain message (not the raw blob).
+    assert err.detail is not None
+    assert err.code is not None
+    assert err.message
 
 
 @pytest.mark.asyncio
@@ -180,3 +229,163 @@ async def test_validate_key_false_when_no_key(monkeypatch: pytest.MonkeyPatch) -
     _patch_client(monkeypatch)
     provider = GeminiProvider()
     assert await provider.validate_key(None) is False
+
+
+def _patch_list_error(monkeypatch: pytest.MonkeyPatch, exc: Exception) -> None:
+    class _Models:
+        async def list(self) -> Any:
+            raise exc
+
+    class _Client:
+        def __init__(self, **_: Any) -> None:
+            self.aio = type("_Aio", (), {"models": _Models()})()
+
+    monkeypatch.setattr(genai, "Client", _Client)
+
+
+#: The body Gemini returned for a bogus key (live probe, R15 error-layer-2).
+_GEMINI_BAD_KEY_BODY = {
+    "error": {
+        "code": 400,
+        "message": "API key not valid. Please pass a valid API key.",
+        "status": "INVALID_ARGUMENT",
+        "details": [
+            {
+                "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+                "reason": "API_KEY_INVALID",
+                "domain": "googleapis.com",
+            }
+        ],
+    }
+}
+
+
+@pytest.mark.asyncio
+async def test_validate_key_false_on_400_invalid_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    # R15-CODE-AGENT-003: Gemini says "bad key" with 400, not 401/403; that is a
+    # failed validation, not a transport error.
+    from google.genai import errors as genai_errors
+
+    _patch_list_error(monkeypatch, genai_errors.ClientError(400, _GEMINI_BAD_KEY_BODY))
+    assert await GeminiProvider().validate_key("AIzaSyNOTAREALKEY") is False
+
+
+@pytest.mark.asyncio
+async def test_validate_key_raises_on_other_400(monkeypatch: pytest.MonkeyPatch) -> None:
+    from google.genai import errors as genai_errors
+
+    body = {"error": {"code": 400, "message": "Bad request.", "status": "FAILED_PRECONDITION"}}
+    _patch_list_error(monkeypatch, genai_errors.ClientError(400, body))
+    with pytest.raises(genai_errors.ClientError):
+        await GeminiProvider().validate_key("AIzaSyREAL")
+
+
+def test_gemini_tools_build_a_valid_config_for_every_internal_tool() -> None:
+    # R15-LEAD-007: the catalog's JSON Schema (int enums, list-valued ``type``)
+    # failed google-genai's OpenAPI-subset ``parameters`` validation, so every
+    # Gemini tool turn died before the request left the process.
+    from google.genai import types
+
+    from services.agent_tools.schemas import TOOL_SCHEMAS, gemini_tools
+
+    types.GenerateContentConfig(tools=gemini_tools(list(TOOL_SCHEMAS)))
+
+
+def test_gemini_tools_accept_json_schema_outside_the_openapi_subset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from google.genai import types
+
+    from services.agent_tools import schemas
+
+    monkeypatch.setitem(
+        schemas.TOOL_SCHEMAS,
+        "probe_tool",
+        {
+            "description": "probe",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "when": {"type": ["string", "null"]},
+                    "target": {"oneOf": [{"type": "string"}, {"type": "integer"}]},
+                },
+            },
+        },
+    )
+    types.GenerateContentConfig(tools=schemas.gemini_tools(["probe_tool"]))
+
+
+# ---------------------------------------------------------------------------
+# Wire cassettes (R15-AGENT-007): recorded-shape ``streamGenerateContent?alt=sse``
+# bodies replayed through the REAL SDK parser over an httpx mock transport, so
+# the adapter sees the SDK's own objects (enums, bytes signatures), not fakes.
+# ---------------------------------------------------------------------------
+
+_CASSETTES = Path(__file__).parent / "fixtures" / "llm"
+
+
+def _serve_cassettes(monkeypatch: pytest.MonkeyPatch, *names: str) -> list[dict[str, Any]]:
+    """Answer each Gemini request with the next cassette; return the sent bodies."""
+    real_client = genai.Client
+    bodies = [(_CASSETTES / name).read_bytes() for name in names]
+    sent: list[dict[str, Any]] = []
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path.endswith(":streamGenerateContent")
+        sent.append(json.loads(request.content))
+        body = bodies[len(sent) - 1]
+        return httpx.Response(200, headers={"content-type": "text/event-stream"}, content=body)
+
+    options = types.HttpOptions(async_client_args={"transport": httpx.MockTransport(_handler)})
+    monkeypatch.setattr(genai, "Client", lambda **kw: real_client(**kw, http_options=options))
+    return sent
+
+
+async def _replay(monkeypatch: pytest.MonkeyPatch, cassette: str) -> list[Any]:
+    _serve_cassettes(monkeypatch, cassette)
+    return [
+        event
+        async for event in GeminiProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="check RELIANCE")],
+            model="gemini-3-pro-preview",
+            api_key="key",
+        )
+    ]
+
+
+@pytest.mark.asyncio
+async def test_cassette_parallel_calls_arrive_with_args_and_signature(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    events = await _replay(monkeypatch, "gemini_parallel_calls.sse")
+
+    assert [type(e) for e in events] == [
+        LLMDeltaEvent,
+        LLMToolUseEvent,
+        LLMToolUseEvent,
+        LLMDoneEvent,
+    ]
+    first, second = events[1], events[2]
+    assert (first.name, first.input) == ("get_terminal_state", {})
+    assert first.provider_meta == {"thought_signature": "Q2lJQlZLaHZjM2xuTFdFPQ=="}
+    assert (second.name, second.input) == ("read_notes", {"scope": "RELIANCE"})
+    assert second.provider_meta is None
+    assert first.tool_call_id != second.tool_call_id
+    done = events[-1]
+    assert done.usage.input_tokens == 2143 + 10
+    assert done.usage.output_tokens == 31 + 118
+    assert not is_length_finish(done.finish_reason)
+
+
+@pytest.mark.asyncio
+async def test_cassette_contentless_max_tokens_stop_is_reported(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Gemini 2.5 can spend the whole budget thinking and close on a candidate
+    # with a MAX_TOKENS finish and no content; the truncation must still surface.
+    events = await _replay(monkeypatch, "gemini_max_tokens_contentless.sse")
+
+    assert [e.text for e in events if isinstance(e, LLMDeltaEvent)] == ["RELIANCE trades at"]
+    done = events[-1]
+    assert isinstance(done, LLMDoneEvent)
+    assert is_length_finish(done.finish_reason)

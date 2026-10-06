@@ -1,0 +1,12 @@
+No API/GUI-reachable repro (React component gate logic).
+Static source check of candidate src/components/OnboardingBanner.tsx:26-49:
+  - showBanner = probed && dismissed === false && !hasAnyKey && defaultLaneNotReady
+    (gates on defaultLaneNotReady via useKeylessReadiness, not merely "has any key" — matches
+     the certified fix: no banner for a working keyless local model, banner only when the lane
+     is actually not ready).
+Pinned test: src/components/OnboardingBanner.test.tsx describe("OnboardingBanner (R15-UI-019)")
+  - "no banner for a working local model with no cloud key"
+  - "shows when no key is set and the local model is not reachable"
+  - "a dismissal survives a remount"
+Not rerun here (vitest suites owned by the heavy lane per task rules).
+VERDICT: ci_pinned (src/components/OnboardingBanner.test.tsx)

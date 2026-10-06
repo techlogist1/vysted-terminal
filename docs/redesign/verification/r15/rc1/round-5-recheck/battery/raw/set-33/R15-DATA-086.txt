@@ -1,0 +1,4 @@
+search() raised ProviderError as expected: World Bank search failed for 'unemployment': network down
+router.search propagated the ProviderError, no cache write
+cache writes: []
+PASS: upstream failure raises, is never cached as a degraded result

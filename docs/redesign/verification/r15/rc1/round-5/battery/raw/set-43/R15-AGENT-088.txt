@@ -1,0 +1,10 @@
+--- AGENT-088: source confirmation (ChatSidebar.tsx bare-ticker fast path) ---
+427:  // The composer's known-ticker set for the bare-ticker fast path (R15-AGENT-088,
+736:      if (result.kind === "bare-ticker") {
+
+--- pinned tests (slash-commands.test.ts) ---
+72:      it("a full suffixed symbol over the old 10-char cap resolves", () => {
+79:      it("a bare base with one suffixed known match resolves to the suffixed symbol", () => {
+86:      it("class pin: M&M.NS and BAJAJ-AUTO.NS (ampersand/hyphen bases) resolve", () => {
+98:      it("an ambiguous bare base with two suffixed known matches stays raw", () => {
+177:  it("opens the picker on a bare slash with the full list in stable order", () => {

@@ -1,0 +1,579 @@
+{
+  "collected_at": "2026-09-19",
+  "actual_fetch_date_note": "The R15 run was paused/resumed; this pack's live fetches were actually made 2026-09-22/23 (BSE's own API stamps its latest session 'Ason: 22 Sep 26 | 16:00'), not 2026-09-19. collected_at is kept at 2026-09-19 for battery-wide consistency with the other packs' metadata field; every individual value below carries its own real as_of/fetched_at date so a reader can tell the two apart.",
+  "slot": "S4",
+  "symbol": "TTC",
+  "status": "complete",
+  "collector_notes": "Toss The Coin Ltd, BSE SME (Group M), scrip 544303, ISIN INE0XAY01012. WebSearch was unavailable for this session (budget exhausted before this task began per COMMON.md/PROMPT_data_s2.md), so every value below comes from a direct-URL fetch: BSE's own JSON APIs (api.bseindia.com, headless curl with a browser UA + Referer:https://www.bseindia.com/, 1.2-1.3s spacing), screener.in's scrip-code URL (https://www.screener.in/company/544303/ -- the name-slug URL /company/TTC/ 404s, see traps.screener_needs_scrip_code_url), the company's own FY2025-26 Annual Report (BSE Reg 34(1) filing, PDF text-extracted with pypdf from the sidecar's own venv since no PDF tool was preinstalled), and one SEBI filings-page hit and one stockanalysis.com hit used only to corroborate the US TTC collision. The manifest's world_gaps note ('Live price and market cap not collected - screener.in host-verification failure') did NOT reproduce here: the scrip-code URL form worked cleanly on the first attempt. This is itself a finding, not a boast - see traps.screener_needs_scrip_code_url.",
+  "authority_note": "Order of authority used: (1) BSE's own scrip APIs (api.bseindia.com) and the company's own filed PDFs on bseindia.com, (2) the company's FY26 Annual Report (self-filed under Reg 34(1)), (3) screener.in (its shareholding/P&L/balance-sheet tables are themselves sourced from the company's BSE XBRL filings, so they are treated as a faithful secondary rendering, not an independent source, except where flagged as a screener-specific computation).",
+
+  "identity": {
+    "legal_name": {
+      "value": "Toss The Coin Limited",
+      "as_of": "2026-08-14",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf",
+      "quote": "Toss The Coin Limited (Formerly known as Toss the Coin Pvt Ltd)",
+      "note": "Page 1 letterhead of the FY26 Annual Report covering letter to BSE, dated 14.08.2026."
+    },
+    "former_names": {
+      "value": "Toss the Coin Private Limited",
+      "rename_date": null,
+      "as_of": "2026-08-14",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf",
+      "note": "Standard private-to-public conversion ahead of the Dec-2024 SME IPO. The exact conversion date is in the RHP, which was not fetched - see world_gaps.conversion_date_unreached."
+    },
+    "isin": {
+      "value": "INE0XAY01012",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544303&seriesid=",
+      "corroboration": "Matches the manifest's master_presence.bse row verbatim (INE0XAY01012)."
+    },
+    "cin": {
+      "value": "L72900TN2020PLC138199",
+      "as_of": "2026-08-14",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf",
+      "note": "CIN prefix 'L' (listed) and encodes incorporation year 2020, state TN (Tamil Nadu). Printed identically on the annual report's team/identity page and on the covering-letter letterhead."
+    },
+    "bse_code": {
+      "value": "544303",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544303&seriesid="
+    },
+    "nse_symbol": {
+      "value": null,
+      "gap": "world_gaps.nse_absent",
+      "note": "BSE-only listing. BSE's own ComHeader API returns SecurityId 'TTC' with no NSE cross-reference field; the manifest's master_presence.nse is 'absent'. No NSE symbol exists to collect."
+    },
+    "board": {
+      "value": "SME",
+      "as_of": "2026-08-14",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf",
+      "quote": "Listed With: Bombay Stock Exchange Limited (BSE) - SME",
+      "corroboration": "BSE's ComHeader API independently reports Group 'M' (the SME group code), matching the manifest's master_presence.bse ('group M'). GSM/ASM flags on the live quote header are both empty (no surveillance measure active as of 2026-09-22)."
+    },
+    "exchange": {
+      "value": "BSE only",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544303&seriesid=",
+      "note": "No NSE presence found anywhere in this collection (screener, the annual report, or BSE's own header)."
+    },
+    "sector": {
+      "value": "Consumer Discretionary",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544303&seriesid=",
+      "note": "BSE's classification chain: Sector 'Consumer Discretionary' > IndustryNew 'Media, Entertainment & Publication' > IGroup 'Media' > ISubGroup 'Advertising & Media Agencies'."
+    },
+    "industry": {
+      "value": "Advertising & Media Agencies",
+      "hierarchy": "Consumer Discretionary > Media, Entertainment & Publication > Media > Advertising & Media Agencies",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544303&seriesid=",
+      "note": "BSE's own field 'Industry' (short) reads 'Advertising & Media Agencies'; matches the operating description below (B2B marketing/branding agency)."
+    },
+    "listing_date": {
+      "value": "2024-12-17",
+      "as_of": "2024-12-17",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20240601&strScrip=544303&strSearch=P&strToDate=20250601&strType=C&subcategory=-1",
+      "quote": "Listing of Equity Shares of Toss The Coin Ltd",
+      "category": "New Listing / New Listing",
+      "corroboration": "SEBI's own filings index shows a 'Public Issues : Other Documents' entry for TOSS THE COIN LIMITED dated 2024-12-30 (https://www.sebi.gov.in/filings/public-issues/dec-2024/toss-the-coin-limited_90319.html), i.e. within the same December-2024 IPO window; SEBI's page does not itself state a listing date, so it corroborates the month, not the exact day."
+    },
+    "incorporated": {
+      "value": "2020",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/544303/",
+      "quote": "Incorporated in 2020, Toss the Coin Ltd offers marketing consultation services.",
+      "corroboration": "Consistent with the CIN's encoded year (L72900TN2020PLC138199)."
+    },
+    "registered_office": {
+      "value": "Door No.1A, Bheemanna Mudali Street, Alwarpet, Teynampet, Chennai - 600 018",
+      "as_of": "2026-08-14",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf",
+      "note": "Printed both on the annual report's identity page and on the covering-letter letterhead ('No.1A, Bheemanna Mudali Street, Alwarpet, Chennai - 600018'). Do NOT confuse with the Registrar & Share Transfer Agent's Coimbatore address printed on the same page - see traps.rta_address_vs_registered_office."
+    },
+    "chairman_managing_director": {
+      "value": "Narayanan Jayan",
+      "as_of": "2026-08-14",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf",
+      "quote": "Mr. Narayanan Jayan - Chairman Cum Managing Director"
+    },
+    "whole_time_director_and_cfo": {
+      "value": "Reshma Budhia",
+      "as_of": "2026-08-14",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf",
+      "note": "Listed as both Whole Time Director AND Chief Financial Officer - one person holds both roles. Also signs the FY26 CFO's letter in the annual report."
+    },
+    "company_secretary": {
+      "value": "Pooja Jain (Membership No. A61974)",
+      "as_of": "2026-08-14",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf"
+    },
+    "statutory_auditors": {
+      "value": "M/S. CNGSN & Associates LLP, Chartered Accountants",
+      "as_of": "2026-08-14",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf"
+    },
+    "registrar_and_share_transfer_agent": {
+      "value": "MUFG Intime India Private Limited (Formerly Link Intime India Private Limited), Coimbatore",
+      "as_of": "2026-08-14",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf"
+    },
+    "gst": {
+      "value": "33AAICT1219R1Z0",
+      "as_of": "2026-08-14",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf"
+    },
+    "website": {
+      "value": "www.tossthe.co.in",
+      "as_of": "2026-08-14",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf"
+    },
+    "business_description": {
+      "value": "B2B marketing/branding consultancy and creative agency ('Toss The Coin') serving organizations from startups to large corporates, with an in-house AI operating layer (RayAI, capitalised in FY26 as internally-generated intellectual property) and an AI-plus-senior-strategist service model branded 'Marketeroid'. FY26 shareholder letters describe a push into U.S. advisory/lead-generation partnerships and a new 'Branding Before the Bell' IPO-readiness vertical.",
+      "as_of": "2026-08-14",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf",
+      "screener_short_form": "Incorporated in 2020, Toss the Coin Ltd offers marketing consultation services. (https://www.screener.in/company/544303/)"
+    },
+    "reportable_segments": {
+      "value": "Single entity, no subsidiaries found (Investments = INR 0.00 crore on the balance sheet in every year Mar2022-Mar2026); results are filed as one set of figures with no standalone/consolidated split in the announcement headline.",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/544303/",
+      "note": "See consolidated_vs_standalone_note below - this is the opposite situation from a multi-entity group."
+    }
+  },
+
+  "price": {
+    "last_close": {
+      "value": 164.0,
+      "unit": "INR per share",
+      "exchange": "BSE",
+      "date": "2026-09-22",
+      "as_of": "2026-09-22T16:00:00+05:30",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544303&seriesid=",
+      "note": "BSE's own API, field Header.LTP, stamped 'Ason: 22 Sep 26 | 16:00' (the freshest session BSE had at fetch time)."
+    },
+    "previous_close": { "value": 174.0, "unit": "INR per share", "date": "2026-09-21", "as_of": "2026-09-22", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544303&seriesid=" },
+    "open": { "value": 171.0, "unit": "INR per share", "date": "2026-09-22", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544303&seriesid=" },
+    "day_high": { "value": 171.0, "unit": "INR per share", "date": "2026-09-22", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544303&seriesid=" },
+    "day_low": { "value": 162.0, "unit": "INR per share", "date": "2026-09-22", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544303&seriesid=" },
+    "change_pct": { "value": -5.75, "unit": "percent", "date": "2026-09-22", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544303&seriesid=" },
+    "intra_bse_disagreement": {
+      "note": "BSE'S OWN TWO ENDPOINTS DISAGREE on the same session, exactly the pattern seen on S1/DHOOTTRANS. getScripHeaderData: PrevClose 174.00, High 171.00, Low 162.00, LTP 164.00. StockReachGraph (same scrip, same day, CurrDate 'Tue Sep 22 2026 16:01:16'): PrevClose 174, HighVal 175, LowVal 160, CurrVal 164.00 - LTP and PrevClose agree, but the day's High/Low band does not (171/162 vs 175/160).",
+      "values": { "getScripHeaderData_high": 171.0, "stockreachgraph_high": 175.0, "getScripHeaderData_low": 162.0, "stockreachgraph_low": 160.0 },
+      "source_urls": [
+        "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544303&seriesid=",
+        "https://api.bseindia.com/BseIndiaAPI/api/StockReachGraph/w?scripcode=544303&flag=0&fromdate=&todate=&seriesid="
+      ],
+      "as_of": "2026-09-22"
+    },
+    "liquidity_note": {
+      "value": "StockReachGraph's own intraday tick tape for 2026-09-22 shows long stretches with 'vole' (volume) = 0 between prints, and the day's total traded volume implied by the tape is in the low hundreds of shares (e.g. a single 1,500-share print is the session's 'HighVol'). This is a thinly-traded SME micro-cap; a single small order can move the LTP 5-6% (matches the -5.75% change_pct on ordinary-looking volume).",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockReachGraph/w?scripcode=544303&flag=0&fromdate=&todate=&seriesid=",
+      "as_of": "2026-09-22"
+    }
+  },
+
+  "week52": {
+    "high": { "value": 445.0, "unit": "INR per share", "date": "2025-12-12", "as_of": "2026-09-22", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544303", "note": "BSE reports adjusted and unadjusted highs as identical (445.00 both), i.e. no split/bonus adjustment has occurred in the trailing window." },
+    "low": { "value": 135.0, "unit": "INR per share", "date": "2026-09-07", "as_of": "2026-09-22", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544303" },
+    "month_high_low": { "value": "202.00 / 135.00", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544303", "as_of": "2026-09-22" },
+    "week_high_low": { "value": "175.80 / 161.15", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544303", "as_of": "2026-09-22" },
+    "corroboration": "screener.in's top-ratio block independently prints 'High / Low ₹ 445 / 135' (https://www.screener.in/company/544303/, as_of 2026-09-22) - exact agreement with BSE on both legs, unlike the DHOOTTRANS name where screener truncated a decimal.",
+    "note": "The stock is down 63% from its 52-week high (445 -> 164) and only 21% above its 52-week low (135 -> 164), set just 15 days before this collection (2026-09-07). A '% off highs' style screen would flag this as a severe, recent drawdown, not a stale historical peak - the drawdown is current and ongoing."
+  },
+
+  "market_cap": {
+    "value": 31.0,
+    "unit": "INR crore",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/544303/",
+    "basis": "Derived-and-corroborated: implied share count from screener's own Market Cap / Current Price (31.0cr / 164 = ~1,890,244 shares) matches the balance-sheet-derived share count below (equity capital INR 1.89cr at face value INR 10 = 1,890,000 shares) to within screener's crore-level rounding.",
+    "share_count_derivation": "Paid-up equity capital at 2026-03-31 was INR 1.89 crore at face value INR 10 = 1,890,000 shares (screener balance sheet, sourced from the company's own filed FY26 results). Unchanged from Mar-2025, i.e. no further equity issuance since the Dec-2024 IPO.",
+    "note": "This overturns the battery manifest's world_gaps note ('Live price and market cap not collected - screener.in host-verification failure on the fetch for scrip 544303'). See traps.screener_needs_scrip_code_url - the failure was a URL-shape problem (name-slug 404s), not a host-verification block; the scrip-code URL (https://www.screener.in/company/544303/) returned HTTP 200 on the first attempt in this session."
+  },
+
+  "pe_ttm": {
+    "value": 11.5,
+    "unit": "x",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/544303/",
+    "basis": "Internally consistent: current price 164 / FY26 filed EPS 14.29 = 11.48x, matching screener's printed 11.5x. FY26 (year ended 2026-03-31) IS the trailing-twelve-month figure at this as-of date because the company's SME half-yearly reporting regime has not yet produced an H1 FY27 (Apr-Sep 2026) result (not due until roughly mid-November 2026) - unlike a mainboard quarterly reporter, there is no more-recent filed period to roll into a TTM figure.",
+    "note": "No disagreement found across sources for this metric, unusually for this battery - BSE's own ComHeader API returns PE '-' (blank) for this scrip, so screener is the only populated source, not a second opinion."
+  },
+
+  "pb": {
+    "value": 2.19,
+    "unit": "x",
+    "as_of": "2026-09-22",
+    "basis": "Computed: current price 164 / book value per share 75.0 (screener) = 2.187x.",
+    "source_url": "https://www.screener.in/company/544303/",
+    "note": "screener's top-ratio block does not print a P/B figure directly for this scrip (only 'Book Value'); the P/B ratio above is this pack's own division, not a scraped field. BSE's API returns PB '-' (blank)."
+  },
+
+  "roe": {
+    "value": 19.9,
+    "unit": "percent",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/544303/",
+    "corroboration": "screener's 'Return on Equity' history panel separately shows 'Last Year: 20%' (rounded), consistent with the headline 19.9%. Independently sanity-checked: FY26 net profit INR 2.70cr / average FY25-FY26 equity ((13.98cr avg-ish using capital+reserves 1.89+11.09=12.98 at FY25-end and 1.89+12.29=14.18 at FY26-end, average ~13.58cr)) implies ROE of ~19.9% - matches.",
+    "note": "BSE's API returns ROE '-' (blank); screener is the only populated source found."
+  },
+
+  "roce": {
+    "value": 27.0,
+    "unit": "percent",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/544303/",
+    "note": "Single source (screener top-ratio block); BSE's API returns ROCE '-'. No historical ROCE time-series was extracted from screener's ratios section in this pass - see world_gaps.roce_history_unreached."
+  },
+
+  "debt_to_equity": {
+    "value": 0.002,
+    "unit": "x",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/544303/",
+    "basis": "Screener's balance sheet: Borrowings INR 0.03 crore / (Equity Capital 1.89 + Reserves 12.29 = 14.18 crore) = 0.0021x at 2026-03-31. Effectively debt-free.",
+    "note": "Borrowings have been near-zero across the entire five-year balance-sheet history shown (0.00cr in Mar2022-Mar2024, 0.04cr Mar2025, 0.03cr Mar2026) - this is a structural feature of the business (an asset-light services agency), not a one-off deleveraging event. Contrast with a leveraged small-cap where D/E swings are the story; here a D/E field would be correctly reported but analytically almost inert."
+  },
+
+  "revenue_ttm": {
+    "value": 14.67,
+    "unit": "INR crore",
+    "as_of": "2026-03-31",
+    "basis": "FY26 (year ended 2026-03-31) full-year Sales, from the company's own filed audited results. This IS the TTM figure as of this collection - see pe_ttm.basis for why (no more-recent half-year has been filed yet).",
+    "source_url": "https://www.screener.in/company/544303/",
+    "corroboration": "The FY26 Annual Report's CFO letter independently states the same figure in prose: 'We closed FY 2025-26 with [~14.67cr, rendered as an image/embedded-glyph amount in the extracted text - see traps.annual_report_glyph_numbers] crores in revenue, 70% representing year-on-year growth' (https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf, page 10)."
+  },
+
+  "net_profit_ttm": {
+    "value": 2.70,
+    "unit": "INR crore",
+    "as_of": "2026-03-31",
+    "basis": "FY26 full-year Net Profit, filed audited results. TTM = FY26 for the same reason as revenue_ttm.",
+    "source_url": "https://www.screener.in/company/544303/",
+    "note": "screener's 'Compounded Profit Growth: TTM: 114%' figure is FY26 PAT (2.70) vs FY25 PAT (1.26): 2.70/1.26 - 1 = +114.3% - matches exactly."
+  },
+
+  "revenue_growth_yoy": {
+    "value": 70.0,
+    "unit": "percent",
+    "basis": "FY26 Sales 14.67cr vs FY25 Sales 8.63cr = +70.0%. Basis: standalone/single-entity, annual (the company has no half-yearly-vs-half-yearly YoY figure published on screener for the same period pair in this pass).",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/544303/",
+    "quote": "70% representing year-on-year growth (CFO's Message, FY26 Annual Report, page 10, https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf)",
+    "note": "Company-stated and screener-derived figures agree exactly at 70%. Also matches screener's 'Compounded Sales Growth: TTM: 70%' panel."
+  },
+
+  "eps_ttm": {
+    "value": 14.29,
+    "unit": "INR per share",
+    "as_of": "2026-03-31",
+    "basis": "FY26 filed EPS, on the post-IPO share count of 1,890,000 shares (unchanged since Mar-2025).",
+    "source_url": "https://www.screener.in/company/544303/",
+    "disagreement": "NONE for the current figure, but see traps.eps_history_dilution_trap - the FY23->FY25 EPS SERIES (141.27 -> 84.13 -> 6.67) is a dilution artefact of the Dec-2024 IPO, not an earnings collapse, and a naive multi-year EPS CAGR off this series would be catastrophically wrong."
+  },
+
+  "book_value_per_share": {
+    "value": 75.0,
+    "unit": "INR per share",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/544303/",
+    "basis": "Screener's headline Book Value; independently reproduced from the balance sheet: (Equity Capital 1.89cr + Reserves 12.29cr) / 1,890,000 shares = 14.18cr / 1.89 lakh-equivalent shares = INR 75.03/share. Matches to the cent."
+  },
+
+  "face_value": {
+    "value": 10.0,
+    "unit": "INR per share",
+    "as_of": "2026-09-22",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544303&seriesid=",
+    "corroboration": "BSE's API field 'FaceVal':'10.00' and screener's top-ratio block 'Face Value ₹ 10.0' agree exactly."
+  },
+
+  "dividend": {
+    "last_declared_per_share": {
+      "value": 5.0,
+      "unit": "INR per share",
+      "as_of": "2026-03-04",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544303",
+      "note": "Labelled 'Interim Dividend' by BSE's corporate-action API. The board-meeting intimation dated 2026-03-04 describes it as the '3rd' interim dividend of FY26 (headline: 'Board Meeting Intimation for Considering Declaration Of Interim Dividend (3Rd ...)'). This is the MOST RECENT dividend EVENT, not necessarily the largest of the year - see the full FY26 series in the note below."
+    },
+    "record_date": { "value": "2026-03-13", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544303", "note": "BSE's field is 'BCRD_from' (book-closure/record date), '13 Mar 2026'." },
+    "ex_date": { "value": "2026-03-13", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544303", "note": "BSE's Table2 prints the same date under both 'BCRD' and 'Ex_date' for this SME name - no separate ex-date is distinguished in the API response." },
+    "payment_date": { "value": "2026-04-08", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544303" },
+    "paid_trailing_12m_per_share": {
+      "value": 5.0,
+      "unit": "INR per share",
+      "as_of": "2026-09-22",
+      "basis": "Sum of dividends with a PAYMENT_DATE inside the trailing-12-month window (2025-09-22 to 2026-09-22): only the 2026-04-08 payment of INR 5.00 falls inside it. The 2025-08-06 payment of INR 2.50 and the 2025-06-29 payment of INR 0.50 both predate the window by 1.5-3 months.",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544303",
+      "IMPORTANT_definitional_note": "THIS IS A DIFFERENT NUMBER FROM last_declared_per_share BY COINCIDENCE ONLY (both happen to be 5.00) - they measure different things (most-recent single declaration vs. sum of cash actually paid in the trailing year) and must not be treated as the same field. See also the FY26-full-year figure immediately below, which is different again."
+    },
+    "fy26_full_year_declared_per_share": {
+      "value": 8.0,
+      "unit": "INR per share",
+      "basis": "Three interim dividends were declared DURING FY26 (Apr-2025 to Mar-2026): RD 06-Jun-2025 (0.50) + RD 11-Jul-2025 (2.50) + RD 13-Mar-2026 (5.00) = 8.00 total.",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544303",
+      "note": "A THIRD distinct dividend figure, different from both fields above. screener's 'Dividend Payout %: Mar2026: 35.00%' does not reconcile cleanly against 8.00/14.29=56% or 5.00/14.29=35.0% - the 35.0% figure matches ONLY the single most recent declaration (5.00) divided by FY26 EPS (14.29), not the full three-dividend FY26 total. This pack does not resolve which convention screener used; recorded as an open question, not asserted."
+    },
+    "yield": {
+      "value": 4.57,
+      "unit": "percent",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/544303/",
+      "reconciliation_attempt": "7.50 (= RD-11-Jul-2025 2.50 + RD-13-Mar-2026 5.00, i.e. the two most recent dividend EVENTS by record date, spanning a ~14-month window) / current price 164 = 4.573%, which matches screener's printed 4.57% almost exactly. This suggests screener's yield uses 'last N dividend events by record date' rather than a strict trailing-12-month PAYMENT-date window (which would give 5.00/164 = 3.05%, a materially different number). Neither convention is stated on the page; both are recorded rather than one being asserted as ground truth.",
+      "source_url_dividend_events": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544303"
+    },
+    "note": "Do not collapse last_declared_per_share (5.00), paid_trailing_12m_per_share (5.00, coincidentally equal), fy26_full_year_declared_per_share (8.00) and the yield's reconciliation basis (7.50) into one number - all four are real, differently-defined, and independently sourced from the same three-row BSE corporate-action table."
+  },
+
+  "shareholding": {
+    "quarter": "Mar 2026 (quarter/half-year ended 2026-03-31)",
+    "as_of": "2026-03-31",
+    "promoter_pct": { "value": 58.67, "unit": "percent", "source_url": "https://www.screener.in/company/544303/", "note": "UNCHANGED at 58.67% across all four quarterly columns screener shows (Dec 2024, Mar 2025, Sep 2025, Mar 2026) - no promoter buying or selling activity since listing." },
+    "fii_pct": { "value": 0.00, "unit": "percent", "source_url": "https://www.screener.in/company/544303/", "note": "Declined steadily: 2.19% (Dec 2024) -> 0.48% (Mar 2025) -> 0.00% (Sep 2025) -> 0.00% (Mar 2026)." },
+    "dii_pct": { "value": 5.82, "unit": "percent", "source_url": "https://www.screener.in/company/544303/", "note": "Also declining: 10.41% -> 7.68% -> 6.46% -> 5.82% across the same four quarters." },
+    "public_pct": { "value": 35.52, "unit": "percent", "source_url": "https://www.screener.in/company/544303/", "note": "Rising as FII/DII exit: 28.73% -> 33.18% -> 34.88% -> 35.52%." },
+    "no_of_shareholders": { "value": 318, "as_of": "2026-03-31", "source_url": "https://www.screener.in/company/544303/", "note": "Shareholder count history: 468 (Dec 2024) -> 253 (Mar 2025) -> 349 (Sep 2025) -> 318 (Mar 2026). The Dec-2024-to-Mar-2025 nearly-halving (468 -> 253) sits exactly across the Dec-17-2024 listing date and is very likely an IPO-allotment-record artefact (many small post-listing-day holders consolidating or the listing-day snapshot including short-lived flippers), not verified against a filing." },
+    "sums_to": "58.67 + 0.00 + 5.82 + 35.52 = 100.01 (rounding)",
+    "pledged_pct_of_promoter": {
+      "value": null,
+      "confidence": "medium-high (absence of evidence, not evidence of absence, but the evidence trail is reasonably long)",
+      "basis": "screener.in's shareholding card contains NO pledge/encumbrance field anywhere on the page for this scrip (a text search for 'pledg' across the full fetched HTML returns zero matches). Independently, the full BSE announcement history retrieved for this scrip across three overlapping 12-month windows (2024-06 to 2026-09, 38+18+10 = 66 items total) contains ZERO SAST Regulation 29/31 encumbrance-disclosure filings - only routine 'Insider Trading / SAST / Closure of Trading Window' entries (which are unrelated: they announce blackout periods, not pledges) and one 'Disclosure Under Regulation 7(2) of SEBI (Prohibition of Insider Trading) Regulations' (2025-12-12, an insider TRADE disclosure, not an encumbrance one).",
+      "source_urls": [
+        "https://www.screener.in/company/544303/",
+        "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20250601&strScrip=544303&strSearch=P&strToDate=20260601&strType=C&subcategory=-1",
+        "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20240601&strScrip=544303&strSearch=P&strToDate=20250601&strType=C&subcategory=-1"
+      ],
+      "honest_answer": "No promoter pledge/encumbrance filing was found anywhere in this scrip's entire listed announcement history (Dec 2024 - Sep 2026) or on screener's shareholding card. Recorded as 'apparently nil, not directly confirmed by a dedicated SAST filing' rather than asserting a bare 0% - the distinction matters because a differ that requires a POSITIVE 'no pledge' filing to assert 0% will correctly find none here, unlike a scrip where a Reg 31(1) filing explicitly states NIL."
+    }
+  },
+
+  "corporate_actions_2026": {
+    "dividends": {
+      "value": "One interim dividend declared in calendar-2026 so far: INR 5.00/share, board meeting 2026-03-04, record date 2026-03-13, paid 2026-04-08 (the FY26 '3rd interim'). A further two interims (0.50, 2.50) were declared in 2025 for the same FY26 year - see dividend section.",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544303",
+      "as_of": "2026-09-22"
+    },
+    "splits_bonus_rights": {
+      "value": "NONE found. BSE's HighLow API reports adjusted and unadjusted 52-week values as identical (445.00 both), which is only true when no adjustment event has occurred in the trailing window; no split/bonus/rights announcement appears in any of the three fetched announcement windows (2024-06 through 2026-09).",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544303",
+      "as_of": "2026-09-22",
+      "caveat": "This does NOT mean the pre-IPO share count was never restructured - see traps.eps_history_dilution_trap for the Dec-2024 IPO-related capital expansion, which happened via a FRESH ISSUE at IPO (going from 0.13cr to a much larger paid-up capital), not a bonus/split, and therefore correctly shows as 'no adjustment event' in BSE's split-adjusted price series while still being the reason the EPS time series is not comparable across FY24/FY25."
+    },
+    "internally_generated_ip_capitalised": {
+      "value": "The company states in its FY26 CFO letter that it 'took the step of formalising RayAI as our own intellectual property' this year, describing it as 'an asset the business owns outright, something that sits on our books the same way any other piece of intellectual property would.' This lines up with Fixed Assets on the balance sheet jumping from INR 0.62cr (Mar 2025) to INR 2.03cr (Mar 2026), a 3.3x increase in one year for a company with Capital WIP falling from 0.27cr to 0.00cr in the same period.",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf",
+      "as_of": "2026-08-14",
+      "why_it_matters": "Capitalising an internally-developed software/AI asset is a real, disclosed, judgment-heavy accounting choice (not a red flag by itself, but exactly the kind of line item that materially inflates both Fixed Assets and, via lower amortisation-vs-expensing in the short run, near-term reported profit for a services company). The annual report states the trademark registration for RayAI is still IN PROGRESS ('The Company is taking necessary steps for getting the same registered with trademark aut[hority]', page 11, text cut off at a page boundary in extraction - see traps.annual_report_page_break_truncation), i.e. the IP asset sits on the books before the trademark itself is secured."
+    }
+  },
+
+  "latest_results": {
+    "quarter": "FY 2025-26 (year ended 2026-03-31), audited - filed together with Q4/H2 FY26 under the SME half-yearly reporting regime (no separate quarterly result exists for this name; SME-listed issuers under LODR Reg 33 may report half-yearly rather than quarterly)",
+    "filing_date": "2026-05-29",
+    "board_meeting_date": "2026-05-29",
+    "board_meeting_intimation_date": "2026-05-21",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20250601&strScrip=544303&strSearch=P&strToDate=20260601&strType=C&subcategory=-1",
+    "reporting_regime": "HALF-YEARLY, not quarterly. Confirmed by the announcement history: 'Unaudited Financial Results For The Half Year Ended 30th September, 2025' (filed 2025-11-13) and 'Audited Financial Results Of The Company For The Quarter And Year Ended As On 31[-03-2026]' (filed 2026-05-29) are the only two results filings in the trailing 14 months - there is no separate Q1/Q3 filing. A pipeline built around mainboard's four-quarters-a-year cadence will show two false 'missing quarter' gaps a year for every SME name.",
+    "annual_figures_inr_crore": {
+      "sales": { "fy24": 4.86, "fy25": 8.63, "fy26": 14.67 },
+      "operating_profit": { "fy24": 1.43, "fy25": 1.69, "fy26": 3.67 },
+      "opm_pct": { "fy24": 29.42, "fy25": 19.58, "fy26": 25.02 },
+      "other_income": { "fy24": 0.09, "fy25": 0.19, "fy26": 0.57 },
+      "interest": { "fy24": 0.01, "fy25": 0.01, "fy26": 0.07 },
+      "depreciation": { "fy24": 0.07, "fy25": 0.19, "fy26": 0.56 },
+      "profit_before_tax": { "fy24": 1.44, "fy25": 1.68, "fy26": 3.61 },
+      "tax_pct": { "fy24": 25.69, "fy25": 25.60, "fy26": 25.21 },
+      "net_profit": { "fy24": 1.06, "fy25": 1.26, "fy26": 2.70 },
+      "eps_inr": { "fy24": 84.13, "fy25": 6.67, "fy26": 14.29 },
+      "dividend_payout_pct": { "fy24": 24.53, "fy25": 45.00, "fy26": 35.00 },
+      "source_url": "https://www.screener.in/company/544303/"
+    },
+    "half_yearly_figures_inr_crore": {
+      "sales": { "h1_fy25_sep24": 4.36, "h2_fy25_mar25": 4.29, "h1_fy26_sep25": 6.89, "h2_fy26_mar26": 7.81 },
+      "operating_profit": { "h1_fy25_sep24": 1.58, "h2_fy25_mar25": 0.10, "h1_fy26_sep25": 1.90, "h2_fy26_mar26": 1.69 },
+      "opm_pct": { "h1_fy25_sep24": 36.24, "h2_fy25_mar25": 2.33, "h1_fy26_sep25": 27.58, "h2_fy26_mar26": 21.64 },
+      "net_profit": { "h1_fy25_sep24": 1.16, "h2_fy25_mar25": 0.09, "h1_fy26_sep25": 1.43, "h2_fy26_mar26": 1.27 },
+      "eps_inr": { "h1_fy25_sep24": 8.37, "h2_fy25_mar25": 0.48, "h1_fy26_sep25": 7.57, "h2_fy26_mar26": 6.72 },
+      "source_url": "https://www.screener.in/company/544303/",
+      "note": "H2 FY25 (Oct24-Mar25, spanning the Dec-2024 IPO) shows a near-total operating-margin collapse (36.24% -> 2.33% OPM) that fully recovers the following half (27.58%). This is exactly the half that straddles the listing event; whether the dip is IPO-related one-off expense (listing fees, professional fees) or a genuine seasonal/business dip was not established from the figures alone - see world_gaps.h2fy25_margin_dip_unexplained."
+    }
+  },
+
+  "last_3_announcements": [
+    { "date": "2026-09-12", "headline": "Shareholder Meeting / Postal Ballot - Scrutinizer's Report (AGM voting results, all resolutions passed with requisite majority)", "category": "AGM/EGM", "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=0cfa2671-3989-4cbe-aebd-4bdf8d4e4d17.pdf" },
+    { "date": "2026-09-11", "headline": "Shareholder Meeting / Postal Ballot - Outcome of AGM", "category": "AGM/EGM", "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=b6d00518-e2cd-44b5-b2a1-a921f4595985.pdf" },
+    { "date": "2026-08-15", "headline": "Announcement under Regulation 30 (LODR) - Newspaper Publication", "category": "Company Update / Newspaper Publication", "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=ecdee7eb-9f86-4f10-8c78-d56cb527c384.pdf" }
+  ],
+
+  "all_announcements_since_listing_sample": {
+    "count_in_fetched_windows": 66,
+    "windows_fetched": [
+      "2026-06-01 to 2026-09-23 (10 items)",
+      "2025-06-01 to 2026-06-01 (38 items)",
+      "2024-06-01 to 2025-06-01 (18 items, includes the 2024-12-17 listing itself)"
+    ],
+    "source_url_pattern": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=<YYYYMMDD>&strScrip=544303&strSearch=P&strToDate=<YYYYMMDD>&strType=C&subcategory=-1",
+    "note": "BSE's date-range API caps a single query at 12 months ('Date range cannot exceed 12 months'), so the full since-listing history required three chained calls, not one - any single-shot fetcher will silently miss everything before its 12-month window without an explicit error (the API DOES error loudly on an over-range query, so the failure mode is a fetcher that never asks for more than 12 months in the first place, not one that gets a bad response).",
+    "notable_categories_seen": "AGM/EGM, Corp. Action/Book Closure, Result/Financial Results, Board Meeting, Company Update/Award of Order (six separate 'Award of Order / Receipt of Order' announcements across the history - a services-agency-specific disclosure category not seen on the manufacturing-sector names in this battery), Company Update/Analyst Investor Meet, Company Update/Earnings Call Transcript, Company Update/Press Release, Insider Trading/SAST/Closure of Trading Window, Company Update/Certificate under Reg 74(5) of SEBI (DP) Regulations (a recurring depository-compliance filing, monthly-ish cadence), Company Update/General (includes one 'Clarification On Price Movement' + 'Clarification sought from Toss The Coin Ltd' PAIR on 2025-01-06 - see traps.exchange_clarification_early_2025), Others/Reg 34(1) Annual Report."
+  },
+
+  "consolidated_vs_standalone_note": {
+    "summary": "NOT APPLICABLE in the DHOOTTRANS sense. This is a single-entity company with no subsidiaries (Investments = INR 0.00 crore on the balance sheet in every year from Mar-2022 through Mar-2026) and its results are filed as one unlabelled set of figures, never split standalone-vs-consolidated.",
+    "why_flagged_anyway": "A pipeline built generically around 'always check standalone vs consolidated' needs to correctly render 'not applicable' rather than either fabricating a consolidated figure or silently leaving a consolidated field blank in a way that looks like a data-quality failure.",
+    "source_url": "https://www.screener.in/company/544303/"
+  },
+
+  "traps": {
+    "near_miss_us_ticker_collision": {
+      "severity": "critical",
+      "detail": "The battery manifest's master_presence.us records the app's US master resolving symbol 'TTC' to 'TORO CO'. Independently verified: stockanalysis.com/stocks/TTC/ resolves to 'The Toro Company (TTC) Stock Price & Overview', NYSE-listed, market cap approximately $8.95 billion (fetched 2026-09-22). The BSE entity this pack covers has a market cap of INR 31 crore (~USD 3.5 million at typical INR/USD rates) - roughly 2,500x smaller than the US company sharing its ticker. A symbol-only resolver with no exchange/country disambiguation returns a US lawn-and-turf-equipment multinational for a Chennai marketing-agency SME micro-cap, or vice versa.",
+      "evidence": [
+        "https://stockanalysis.com/stocks/TTC/",
+        "https://www.screener.in/company/544303/",
+        "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544303&seriesid="
+      ],
+      "correct_discriminator": "ISIN (INE0XAY01012 for the Indian entity) or exchange+country (BSE/India vs NYSE/US), never the bare symbol 'TTC' alone."
+    },
+    "sentence_shaped_legal_name": {
+      "severity": "high",
+      "detail": "The legal name 'Toss The Coin Limited' parses grammatically as an imperative English sentence ('Toss the coin'). Any entity-extraction pass over free text (a news article, an earnings-call transcript, a chat message) that treats capitalized noun-phrases as company-name candidates will either miss this company entirely (the phrase reads as instructional, not nominal) or, worse, extract 'Toss The Coin' as a company mention from unrelated text that is literally just telling someone to flip a coin.",
+      "evidence": "No code-level evidence collected in this pass (this is a world/design trap, not a code claim) - flagged per the manifest's stated hostile_traits for this slot."
+    },
+    "screener_needs_scrip_code_url": {
+      "severity": "medium",
+      "detail": "https://www.screener.in/company/TTC/ returns HTTP 404 ('Error 404: Page Not Found - Screener'). The working URL is the BSE-scrip-code form: https://www.screener.in/company/544303/ (HTTP 200). This is the opposite of most mainboard names in this battery, where the NSE/BSE symbol slug works directly.",
+      "evidence": [
+        "https://www.screener.in/company/TTC/ -> HTTP 404",
+        "https://www.screener.in/company/544303/ -> HTTP 200"
+      ],
+      "consequence": "The battery manifest's own world_gaps entry for this slot records a prior 'screener.in host-verification failure' fetching this name - plausibly the earlier attempt tried the symbol-slug URL (which 404s, not a host-verification block) rather than the scrip-code URL. Recorded as a specific, fixable URL-shape issue rather than repeating the vaguer 'host-verification failure' description."
+    },
+    "eps_history_dilution_trap": {
+      "severity": "critical",
+      "detail": "screener's own annual EPS series for this company reads: FY22 83.33, FY23 141.27, FY24 84.13, FY25 6.67, FY26 14.29. The FY24-to-FY25 drop (84.13 -> 6.67, a 92% apparent collapse) is NOT an earnings collapse - FY25 net profit (1.26cr) actually grew 19% over FY24 (1.06cr). The paid-up equity capital jumped from INR 0.13cr (Mar 2024) to INR 1.89cr (Mar 2025), a ~14.5x increase in shares outstanding, driven by the Dec-2024 SME IPO (fresh issue plus, likely, a pre-IPO bonus/split - the exact mechanism was not established from the sources fetched in this pass, see world_gaps.pre_ipo_capital_restructure_mechanism_unreached).",
+      "consequence": "MONEY-RELEVANT. Any automatic multi-year EPS CAGR or 'earnings trend' computed off this raw series returns a catastrophic false collapse for a company whose per-share earnings, correctly read, grew 114% in the most recent year. This is the same class of trap as DHOOTTRANS's traps.unrestated_historical_eps, but caused by IPO-related share issuance rather than an Ind AS 33 bonus restatement, and it appears in THIS pack's own primary source (screener), not merely in a third-party aggregator - i.e. even a pipeline that trusts screener completely still needs a share-count-change guard, not just a source-quality guard.",
+      "detection_rule": "Any per-share series with a >5x single-period jump should be cross-checked against the paid-up-capital line for the same period before being read as an earnings signal; here 0.13cr -> 1.89cr is the tell.",
+      "evidence": ["https://www.screener.in/company/544303/"]
+    },
+    "sme_half_yearly_not_quarterly": {
+      "severity": "high",
+      "detail": "This SME-board issuer files HALF-YEARLY results (H1 ended Sep, H2/annual ended Mar), not quarterly. Confirmed directly from the announcement headlines: 'Unaudited Financial Results For The Half Year Ended 30th September, 2025' and 'Audited Financial Results ... For The Quarter And Year Ended As On 31[-03-2026]' are the only two results filings between 2025-04 and 2026-09 - there is no Q1 (Jun) or Q3 (Dec) filing.",
+      "consequence": "A pipeline assuming a uniform four-quarters-a-year cadence across all Indian listed names will report this SME name as having 'missing Q1/Q3 results' twice a year, forever, which is not a data gap but a correctly-applied SEBI relaxation for SME issuers under LODR Reg 33.",
+      "evidence": ["https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20250601&strScrip=544303&strSearch=P&strToDate=20260601&strType=C&subcategory=-1"]
+    },
+    "dividend_field_collision": {
+      "severity": "high",
+      "detail": "In this specific case, last_declared_per_share (5.00, the most recent single event) and paid_trailing_12m_per_share (5.00, a sum-over-a-window computation that happens to include only that one event) land on the SAME NUMBER by coincidence, while a third defensible figure - the full FY26 declared total across three interim dividends (8.00) - is different again, and a fourth figure implied by screener's own printed yield (7.50, via a still-different 'last two events by record date' window) is different a fourth time.",
+      "consequence": "A schema that stores 'the dividend' as one field will silently pick one of four different, individually correct, differently-defined numbers depending on which code path populated it, and the numeric coincidence between two of them (last_declared vs trailing-12m-paid, both 5.00) makes a wiring bug where the wrong one got plumbed through LOOK like it is working correctly.",
+      "evidence": ["https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544303", "https://www.screener.in/company/544303/"]
+    },
+    "intra_bse_price_disagreement": {
+      "severity": "medium",
+      "detail": "getScripHeaderData (High 171.00, Low 162.00) and StockReachGraph (HighVal 175.00, LowVal 160.00) disagree on the day's trading range for the same scrip and session (2026-09-22), matching the same-class trap already documented on S1/DHOOTTRANS. Picking 'the BSE API' as a source is not sufficient; the specific endpoint matters."
+    },
+    "annual_report_glyph_numbers": {
+      "severity": "medium",
+      "detail": "The FY26 Annual Report PDF (817a016c-b8e5-449e-acde-89b962eccf59.pdf) uses a custom/subsetted display font for at least one pull-quote figure: the CFO's-letter revenue callout on page 10 extracts (via pypdf, no OCR) as a private-use-area glyph string ('ʤʧʡʪʣ') instead of readable digits, immediately followed by readable text 'crores in revenue'. Separately, pages 47-53 (the Notice to Shareholders / Board's Report section) extract as WHOLESALE CIPHER-SUBSTITUTED GARBAGE across entire paragraphs (e.g. '0A:K>AHE=>KL*>F;>KLPAHPBEE;>IK>L>GMBGMA>$>G>K:E*>>MBG@' for what is almost certainly 'Shareholders Members who will be present in the General Meeting') - a consistent single-letter substitution cipher, symptomatic of a subsetted font with a broken or absent ToUnicode CMap in exactly that page range.",
+      "consequence": "A naive whole-PDF text-extraction-and-keyword-search pipeline gets ZERO usable text from roughly 7 consecutive pages of this filing (the Board's Report - one of the highest-signal sections: related-party transactions, director remuneration, dividend policy statement) while pages 1-11 and 89+ (financial statements) extract cleanly. A keyword search for e.g. 'related party' or 'pledge' across this PDF would silently return no hits from the one section most likely to discuss them, with no visible error - the extraction 'succeeds' (non-empty text, no exception) while being useless for that range.",
+      "evidence": ["https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf, pages 10 and 47-53, pypdf 6.x, no OCR fallback applied in this pass"]
+    },
+    "rta_address_vs_registered_office": {
+      "severity": "low",
+      "detail": "The annual report's identity page prints the Registrar & Share Transfer Agent's Coimbatore address (MUFG Intime India Private Limited, Surya 35, Mayflower Avenue, Coimbatore) directly above/adjacent to the company's own registered-office block (Chennai). A layout-order-dependent scraper of this page could easily attribute the Coimbatore address to the company itself."
+    },
+    "exchange_clarification_early_2025": {
+      "severity": "low",
+      "detail": "A paired announcement on 2025-01-06 - 'Clarification sought from Toss The Coin Ltd' followed same-day by 'Clarification On Price Movement' - indicates BSE formally queried the company about a price movement roughly three weeks after its Dec-17-2024 listing. The PDF content of either filing was not read in this pass (see world_gaps.price_movement_clarification_content_unreached); flagged because an early-life exchange query about price movement is exactly the kind of governance signal a diligent SME-investing user would want surfaced, not buried in a 66-item announcement list."
+    },
+    "thin_liquidity": {
+      "severity": "medium",
+      "detail": "StockReachGraph's intraday tape for 2026-09-22 shows the session's single largest print at 1,500 shares and long multi-minute stretches with zero incremental volume between LTP updates, on a stock that still moved -5.75% for the day. Any 'volume-weighted' or 'liquidity-adjusted' feature computed the same way as for a mainboard large-cap will behave very differently (much higher effective slippage per unit size) on this name without a data-quality flag distinguishing the two.",
+      "evidence": ["https://api.bseindia.com/BseIndiaAPI/api/StockReachGraph/w?scripcode=544303&flag=0&fromdate=&todate=&seriesid="]
+    }
+  },
+
+  "world_gaps": {
+    "nse_absent": "GENUINELY DOES NOT EXIST. This is a BSE-SME-only listing; there is no NSE symbol, no NSE Emerge cross-listing found anywhere in this collection.",
+    "conversion_date_unreached": "COULD NOT REACH. The exact date 'Toss the Coin Private Limited' converted to 'Toss The Coin Limited' ahead of its SME IPO is in the RHP/DRHP, which was not located or fetched (chittorgarh's IPO record page for this name could not be found under any of several guessed URL slugs, and WebSearch was unavailable to locate it - see traps.chittorgarh_slug_not_found below)."
+  ,
+    "chittorgarh_slug_not_found": "COULD NOT REACH. Guessed URL slugs (toss-the-coin-ipo, toss-the-coin-limited-ipo, toss-the-coin-ltd-ipo, all under /ipo/<slug>/) all 404 on chittorgarh.com. WebSearch was unavailable (session budget exhausted) and html.duckduckgo.com/html/ returned only a bot-check/homepage response (HTTP 202, no result links) for two attempted queries, not a genuine search-results page. IPO-specific fields (issue price, lot size, subscription multiple, listing-day price) are therefore NOT collected for this name - recorded as a reachability gap, not asserted as unavailable in principle.",
+    "pre_ipo_capital_restructure_mechanism_unreached": "COULD NOT REACH. The equity-capital jump from INR 0.13cr to INR 1.89cr around the Dec-2024 IPO is observed on the balance sheet (see traps.eps_history_dilution_trap) but the exact mechanism (fresh issue only, vs. a pre-IPO bonus/split plus a smaller fresh issue) was not established - no RHP or pre-IPO capital-history filing was fetched.",
+    "h2fy25_margin_dip_unexplained": "COULD NOT REACH. H2 FY25 (Oct 2024-Mar 2025, the half spanning the Dec-2024 listing) shows OPM falling to 2.33% from 36.24% the half before and recovering to 27.58% the half after. Whether this is IPO-related one-off cost recognition (listing/professional fees) or an unrelated business dip was not established from the P&L figures alone; the FY25 results filing PDF itself was not opened to check the notes-to-accounts for a one-off-expense line.",
+    "roce_history_unreached": "COULD NOT REACH in this pass. Only the current headline ROCE (27.0%) was extracted; screener's multi-year ROCE row (visible on the DHOOTTRANS pack pattern) was not pulled for this name.",
+    "price_movement_clarification_content_unreached": "COULD NOT REACH. The 2025-01-06 exchange clarification and the company's response were identified in the announcement index (see traps.exchange_clarification_early_2025) but their PDF content was not downloaded or read in this pass.",
+    "promoter_individual_names_unreached": "COULD NOT REACH in machine-readable form. The annual report's Board's Report section, which would normally itemise promoter/KMP individual shareholding, extracted as cipher-garbage (see traps.annual_report_glyph_numbers) for the relevant page range; only the aggregate 58.67% promoter-group figure (screener) was obtained, not a promoter-by-promoter split.",
+    "shareholder_count_dec2024_to_mar2025_drop_unverified": "The shareholder count nearly halving from 468 (Dec 2024) to 253 (Mar 2025) is noted in shareholding.no_of_shareholders but its cause (listing-day flippers exiting vs. a data-definition change at the first regular post-listing filing) was not verified against a filing."
+  },
+
+  "verification_log": {
+    "sources_fetched": [
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544303&seriesid=", "result": "HTTP 200" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544303&seriesid=", "result": "HTTP 200" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/StockReachGraph/w?scripcode=544303&flag=0&fromdate=&todate=&seriesid=", "result": "HTTP 200" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544303", "result": "HTTP 200" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544303", "result": "HTTP 200, 3 dividend rows" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?...strPrevDate=20260601...strToDate=20260923...", "result": "HTTP 200, 10 items" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?...strPrevDate=20250601...strToDate=20260601...", "result": "HTTP 200, 38 items" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?...strPrevDate=20240601...strToDate=20250601...", "result": "HTTP 200, 18 items, includes the listing itself" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?...strPrevDate=20240101...strToDate=20260923...", "result": "HTTP 200 but Status:false - 'Date range cannot exceed 12 months' (confirms the API's own hard cap; not treated as a real result)" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/ShareholdingPattern/w?scripcode=544303", "result": "HTTP 302 redirect to an error page - endpoint name guessed incorrectly, not a working shareholding-pattern route" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?strCat=Shareholding+Pattern&...", "result": "HTTP 200, Table: [] - either the wrong category-name string or shareholding-pattern filings are not surfaced through this endpoint for this scrip; screener.in was used instead" },
+      { "url": "https://www.screener.in/company/TTC/", "result": "HTTP 404" },
+      { "url": "https://www.screener.in/company/544303/", "result": "HTTP 200 - working URL form for this name" },
+      { "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/817a016c-b8e5-449e-acde-89b962eccf59.pdf", "result": "HTTP 200, 131 pages, text-extracted with pypdf (no OCR); pages 1-11 and 89+ clean, pages 47-53 cipher-garbled - see traps.annual_report_glyph_numbers", "note": "FY 2025-26 Annual Report, Reg 34(1) filing" },
+      { "url": "https://www.chittorgarh.com/ipo/toss-the-coin-ipo/", "result": "HTTP 404" },
+      { "url": "https://www.chittorgarh.com/ipo/toss-the-coin-limited-ipo/", "result": "HTTP 404" },
+      { "url": "https://www.chittorgarh.com/ipo/toss-the-coin-ltd-ipo/", "result": "HTTP 404" },
+      { "url": "https://html.duckduckgo.com/html/?q=chittorgarh+toss+the+coin+ipo", "result": "HTTP 202, no result links parsed (bot-check/homepage response, not a results page)" },
+      { "url": "https://html.duckduckgo.com/html/?q=%22toss+the+coin%22+ipo+chittorgarh", "result": "HTTP 202, same as above" },
+      { "url": "https://www.sebi.gov.in/filings/public-issues/dec-2024/toss-the-coin-limited_90319.html", "result": "HTTP 200 - confirms a Dec-30-2024 SEBI public-issues filing exists for this name, no further detail extracted" },
+      { "url": "https://stockanalysis.com/stocks/TTC/", "result": "HTTP 301 then HTTP 200 on -L follow - confirms NYSE:TTC = The Toro Company, ~$8.95B market cap, used only for the collision trap" }
+    ],
+    "method_note": "WebSearch was unavailable (session budget exhausted per COMMON.md/PROMPT_data_s2.md). All BSE and screener sources were reached by direct-URL headless curl with a browser User-Agent and Referer, at approximately 1.2-1.3s spacing per host. The annual report PDF was downloaded and text-extracted locally using the sidecar's own bundled pypdf (sidecar/.venv), since no system PDF tool was preinstalled in this environment; no network call was made to any PDF-processing service. No GUI, no browser window, no process started other than curl and python. Two html.duckduckgo.com queries were attempted for the chittorgarh IPO page and both returned non-result bot-check pages, not genuine search results - recorded honestly as an unreached gap rather than padded with a guessed IPO record.",
+    "rate_limiting": "A minimum 1.2-1.3s sleep was interposed between consecutive requests to api.bseindia.com, satisfying the <=1 req/sec/host rule in COMMON.md."
+  },
+
+  "differ_guidance": {
+    "authoritative_values_for_diffing": {
+      "isin": "INE0XAY01012",
+      "bse_code": "544303",
+      "nse_symbol": null,
+      "face_value_inr": 10.0,
+      "listing_date": "2024-12-17",
+      "shares_outstanding": 1890000,
+      "last_close_bse_inr": 164.0,
+      "last_close_date": "2026-09-22",
+      "week52_high_inr": 445.0,
+      "week52_high_date": "2025-12-12",
+      "week52_low_inr": 135.0,
+      "week52_low_date": "2026-09-07",
+      "market_cap_inr_crore": 31.0,
+      "latest_period": "FY26 annual/H2, year ended 2026-03-31, filed 2026-05-29 (SME half-yearly regime, not quarterly)",
+      "fy26_revenue_inr_crore": 14.67,
+      "fy26_net_profit_inr_crore": 2.70,
+      "revenue_growth_yoy_pct": 70.0,
+      "profit_growth_yoy_pct": 114.3,
+      "eps_ttm_inr": 14.29,
+      "pe_ttm": 11.5,
+      "book_value_per_share_inr": 75.0,
+      "pb": 2.19,
+      "roe_pct": 19.9,
+      "roce_pct": 27.0,
+      "debt_to_equity": 0.002,
+      "promoter_pct": 58.67,
+      "promoter_pct_as_of": "2026-03-31",
+      "pledged_pct_of_promoter": "no encumbrance filing found - see shareholding.pledged_pct_of_promoter",
+      "dividend_last_declared_per_share_inr": 5.0,
+      "dividend_yield_pct": 4.57
+    },
+    "fields_where_a_single_expected_value_is_WRONG_to_assert": [
+      "dividend per-share - FOUR different, all-correct, differently-defined figures exist (5.00 last-declared / 5.00 trailing-12m-paid, coincidentally equal / 8.00 FY26-full-year-declared / 7.50 yield-reconciliation-basis); assert which definition, not a bare number",
+      "eps multi-year trend - the FY23-FY25 series (141.27/84.13/6.67) is a share-count dilution artefact of the Dec-2024 IPO, not an earnings trend; never chart it un-annotated",
+      "quarterly results cadence - this name has NO Q1/Q3 filings by design (SME half-yearly regime); do not flag them as missing",
+      "pledged_pct_of_promoter - no dedicated SAST encumbrance filing exists to confirm a bare 0%; state 'no filing found' rather than asserting zero",
+      "nse_symbol - genuinely null, not a fetch failure"
+    ],
+    "scoring_note": "For this name, an app that correctly reports 'BSE-SME, half-yearly reporting, no NSE listing, no pledge filing found' scores ABOVE one that forces a quarterly-cadence / NSE-symbol / pledge-percentage template onto a scrip that structurally does not have those things. The near-miss US-ticker collision (NYSE:TTC = The Toro Company) is the single highest-severity risk for this name - any resolver path that can return the US company for an Indian-market query on 'TTC' is a critical defect regardless of how good the rest of the data is."
+  }
+}

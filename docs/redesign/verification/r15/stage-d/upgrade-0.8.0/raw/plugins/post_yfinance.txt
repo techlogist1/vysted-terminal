@@ -1,0 +1,1 @@
+{"plugin_id":"yfinance","enabled":true,"settings":{"defaultExchange":"binance","refreshSeconds":15,"showVolume":true},"granted_secret_ids":[]} HTTP200

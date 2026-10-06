@@ -1,0 +1,16 @@
+# R15-UI-038 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:51+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+cat > /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb0/out/tmp-ui038.mts <<'T'
+import { deriveSourceType, sanitizeCitationMarkers, countBrokenCitations } from '/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/src/lib/brief-ingest.ts';
+console.log('legacy sonar sec.gov ->', deriveSourceType({url:'https://www.sec.gov/Archives/x', domain:'sec.gov (via Perplexity Sonar)'} as any));
+console.log('reuters ->', deriveSourceType({url:'https://www.reuters.com/x', domain:'reuters.com (via Perplexity Sonar)'} as any));
+console.log('blog ->', deriveSourceType({url:'https://someblog.example/x', domain:'someblog.example'} as any));
+T
+node --experimental-strip-types /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb0/out/tmp-ui038.mts 2>&1 | grep -v ExperimentalWarning | head
+--- output ---
+legacy sonar sec.gov -> filing
+reuters -> news
+blog -> web
+
+EXIT=0 (0.1s)

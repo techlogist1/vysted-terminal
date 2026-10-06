@@ -1,0 +1,14 @@
+# R15-LEAD-009 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:09:32+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for r in IN US IN; do echo -n "[$r] /earnings/INFY/estimates: "; curl -s -m 100 -H "X-Vysted-Region: $r" "$H/earnings/INFY/estimates" | python3 -c "
+import sys,json;d=json.load(sys.stdin);e=d.get('estimates') or d.get('items') or []
+print('symbol',d.get('symbol'),'currency',d.get('currency'),'first eps',d.get('eps_estimate_mean'))"; echo -n "[$r] /fundamentals/INFY/ratings: "; curl -s -m 100 -H "X-Vysted-Region: $r" "$H/fundamentals/INFY/ratings" | python3 -c "import sys,json;d=json.load(sys.stdin);print('symbol',d.get('symbol'),'consensus',d.get('consensus') or d.get('rating') or d.get('recommendation'))"; done
+--- output ---
+[IN] /earnings/INFY/estimates: symbol INFY.NS currency INR first eps 19.63622
+[IN] /fundamentals/INFY/ratings: symbol INFY.NS consensus buy
+[US] /earnings/INFY/estimates: symbol INFY currency USD first eps 0.205
+[US] /fundamentals/INFY/ratings: symbol INFY consensus hold
+[IN] /earnings/INFY/estimates: symbol INFY.NS currency INR first eps 19.63622
+[IN] /fundamentals/INFY/ratings: symbol INFY.NS consensus buy
+
+EXIT=0 (0.2s)

@@ -1,0 +1,24 @@
+-- literal extraFiles hardcode check (should be absent) --
+NOT FOUND (good - fix intact)
+-- smoke-test freshness gate reads SIDECAR_SPECS --
+80:import { SIDECAR_SPECS, assertAllFresh, binaryPath, targetTriple } from "./sidecar-specs.mjs";
+857:function _assertAllFresh(triple) {
+858:  assertAllFresh(triple);
+873:  _assertAllFresh(triple);
+876:  for (const spec of SIDECAR_SPECS) {
+-- ensure-sidecar.mjs reads SIDECAR_SPECS row --
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/scripts/ensure-openbb-mcp-sidecar.mjs:11:import { SIDECAR_SPECS, buildSidecar } from "./sidecar-specs.mjs";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/scripts/ensure-openbb-mcp-sidecar.mjs:14:  SIDECAR_SPECS.find((s) => s.name === "vysted-openbb-mcp-sidecar"),
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/scripts/ensure-sidecar.mjs:9:import { SIDECAR_SPECS, buildSidecar } from "./sidecar-specs.mjs";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/scripts/ensure-sidecar.mjs:12:  SIDECAR_SPECS.find((s) => s.name === "vysted-sidecar"),
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/scripts/ensure-sec-edgar-mcp-sidecar.mjs:10:import { SIDECAR_SPECS, buildSidecar } from "./sidecar-specs.mjs";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/scripts/ensure-sec-edgar-mcp-sidecar.mjs:13:  SIDECAR_SPECS.find((s) => s.name === "vysted-sec-edgar-mcp-sidecar"),
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/scripts/ensure-all-sidecars.mjs:3:// Orchestrator that builds every sidecar in SIDECAR_SPECS, in order. Wired into
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/scripts/ensure-all-sidecars.mjs:15:import { SIDECAR_SPECS, buildSidecar } from "./sidecar-specs.mjs";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/scripts/ensure-all-sidecars.mjs:19:for (const spec of SIDECAR_SPECS) {
+-- line counts (thin runners) --
+      14 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/scripts/ensure-sidecar.mjs
+      16 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/scripts/ensure-openbb-mcp-sidecar.mjs
+      15 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/scripts/ensure-sec-edgar-mcp-sidecar.mjs
+     313 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/scripts/sidecar-specs.mjs
+     358 total

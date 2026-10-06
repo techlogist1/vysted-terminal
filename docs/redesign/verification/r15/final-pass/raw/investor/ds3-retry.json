@@ -1,0 +1,438 @@
+{
+ "WIT": [
+  429,
+  {
+   "detail": "The data provider is throttled right now \u2014 try again shortly.",
+   "code": "rate_limited",
+   "action": "Wait a minute, then retry."
+  }
+ ],
+ "IBN": [
+  200,
+  {
+   "symbol": "IBN",
+   "name": "ICICI Bank Limited",
+   "sector": "Financial Services",
+   "industry": "Banks - Regional",
+   "sector_source": "yfinance",
+   "currency": "USD",
+   "financial_currency": "INR",
+   "ratio_price": 27.44,
+   "market_cap": 98487787520.0,
+   "pe_ratio": 17.043478,
+   "forward_pe": 14.663446,
+   "peg_ratio": 0.52,
+   "price_to_book": null,
+   "price_to_sales": null,
+   "ev_to_ebitda": null,
+   "book_value": null,
+   "dividend_yield": 0.0091,
+   "dividend_per_share": 0.25,
+   "eps": 1.61,
+   "beta": 0.26,
+   "fifty_two_week_high": 33.03,
+   "fifty_two_week_low": 25.08,
+   "fifty_two_week_change": -0.10565668,
+   "fifty_two_week_high_date": "2025-10-17",
+   "fifty_two_week_low_date": "2026-03-30",
+   "listing_date": null,
+   "first_trade_date": "2000-03-28",
+   "forward_pe_fiscal_year": "2027-03-31",
+   "roe": 0.16073999,
+   "roa": 0.021070002,
+   "gross_margin": 0.0,
+   "operating_margin": 0.38509998,
+   "profit_margin": 0.27531,
+   "debt_to_equity": 0.5947438900368647,
+   "current_ratio": null,
+   "quick_ratio": null,
+   "roce": null,
+   "basis": null,
+   "revenue_ttm": 2037316714496.0,
+   "net_income_ttm": 560901652480.0,
+   "free_cash_flow": null,
+   "shares_outstanding": 3589204966.0,
+   "revenue_growth": 0.114,
+   "earnings_growth": 0.138,
+   "growth_basis": "mrq_yoy",
+   "held_percent_insiders": 0.0022,
+   "held_percent_institutions": 0.16070999,
+   "dividend_per_share_ttm": 0.249,
+   "revenue_growth_computed": null,
+   "earnings_growth_computed": null,
+   "growth_computed_quarters": null,
+   "field_meta": {
+    "name": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "sector": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "industry": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "sector_source": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "currency": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "ratio_price": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-02T20:00:02+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "market_cap": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-02T20:00:02+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "pe_ratio": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-02T20:00:02+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "forward_pe": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-02T20:00:02+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "peg_ratio": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-02T20:00:02+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "price_to_book": {
+     "status": "withheld",
+     "provider": "yfinance",
+     "as_of": "2026-10-02T20:00:02+00:00",
+     "reason": "Yahoo's price/book (listing price over book value per share) divides or states a USD listing value against INR statements; its basis cannot be verified without FX, so it is withheld",
+     "label": null,
+     "basis_note": null
+    },
+    "price_to_sales": {
+     "status": "withheld",
+     "provider": "yfinance",
+     "as_of": "2026-10-02T20:00:02+00:00",
+     "reason": "Yahoo's price/sales (market cap over trailing revenue) divides or states a USD listing value against INR statements; its basis cannot be verified without FX, so it is withheld",
+     "label": null,
+     "basis_note": null
+    },
+    "ev_to_ebitda": {
+     "status": "unavailable",
+     "provider": "yfinance",
+     "as_of": "2026-10-02T20:00:02+00:00",
+     "reason": "provider did not publish this field",
+     "label": null,
+     "basis_note": null
+    },
+    "book_value": {
+     "status": "withheld",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": "Yahoo's book value per share divides or states a USD listing value against INR statements; its basis cannot be verified without FX, so it is withheld",
+     "label": null,
+     "basis_note": null
+    },
+    "dividend_yield": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-02T20:00:02+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "dividend_per_share": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "eps": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "beta": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "fifty_two_week_high": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "fifty_two_week_low": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "fifty_two_week_change": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-02T20:00:02+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "fifty_two_week_high_date": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "fifty_two_week_low_date": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "listing_date": {
+     "status": "unavailable",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": "provider did not publish this field",
+     "label": null,
+     "basis_note": null
+    },
+    "first_trade_date": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "forward_pe_fiscal_year": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "roe": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "roa": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "gross_margin": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "operating_margin": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "profit_margin": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "debt_to_equity": {
+     "status": "ok",
+     "provider": "derived",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": "total debt / stockholders equity"
+    },
+    "current_ratio": {
+     "status": "unavailable",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": "provider did not publish this field",
+     "label": null,
+     "basis_note": null
+    },
+    "quick_ratio": {
+     "status": "unavailable",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": "provider did not publish this field",
+     "label": null,
+     "basis_note": null
+    },
+    "roce": {
+     "status": "unavailable",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": "insufficient statement data to derive ROCE",
+     "label": null,
+     "basis_note": null
+    },
+    "basis": {
+     "status": "unavailable",
+     "provider": "exchange-filings",
+     "as_of": "2026-10-03T09:45:40.339840+00:00",
+     "reason": "no NSE/BSE filing states a basis",
+     "label": null,
+     "basis_note": null
+    },
+    "revenue_ttm": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "net_income_ttm": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "free_cash_flow": {
+     "status": "unavailable",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": "provider did not publish this field",
+     "label": null,
+     "basis_note": null
+    },
+    "shares_outstanding": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "revenue_growth": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "earnings_growth": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "held_percent_insiders": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "held_percent_institutions": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    },
+    "identity_note": {
+     "status": "unavailable",
+     "provider": "yfinance",
+     "as_of": "2026-10-03T09:45:36.999839+00:00",
+     "reason": "provider did not publish this field",
+     "label": null,
+     "basis_note": null
+    },
+    "dividend_per_share_ttm": {
+     "status": "ok",
+     "provider": "yfinance",
+     "as_of": null,
+     "reason": null,
+     "label": null,
+     "basis_note": null
+    }
+   },
+   "provider": "yfinance",
+   "identity_note": null
+  }
+ ]
+}

@@ -1,0 +1,1 @@
+{"detail":[{"type":"greater_than","loc":["body","budget","maxSteps"],"msg":"Input should be greater than 0","input":0,"ctx":{"gt":0}}]}

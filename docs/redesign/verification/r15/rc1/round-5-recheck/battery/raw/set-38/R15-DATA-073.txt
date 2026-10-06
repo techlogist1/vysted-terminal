@@ -1,0 +1,9 @@
+=== R15-DATA-073: NSE holiday table coverage + regenerator presence ===
+-- latest _NSE_HOLIDAYS / _US_HOLIDAYS entries --
+NSE latest: 2026-12-25 count 34
+US latest: 2027-12-24 count 30
+-- regenerator presence --
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar/services/resolver_masters/regenerate_holidays.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar/services/resolver_masters/__pycache__/regenerate_holidays.cpython-313.pyc
+NSE 2026 holidays: 20
+['2026-01-15', '2026-01-26', '2026-02-15', '2026-03-03', '2026-03-21', '2026-03-26', '2026-03-31', '2026-04-03', '2026-04-14', '2026-05-01', '2026-05-28', '2026-06-26', '2026-08-15', '2026-09-14', '2026-10-02', '2026-10-20', '2026-11-08', '2026-11-10', '2026-11-24', '2026-12-25']

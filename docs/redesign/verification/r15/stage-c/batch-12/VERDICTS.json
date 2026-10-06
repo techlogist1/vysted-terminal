@@ -1,0 +1,41 @@
+{
+  "certified": [
+    "R15-DATA-002",
+    "R15-RESEARCH-002",
+    "R15-AGENT-019",
+    "R15-DATA-043",
+    "R15-LEAD-010",
+    "R15-UI-090",
+    "R15-AGENT-092",
+    "R15-AGENT-093",
+    "R15-AGENT-027",
+    "R15-CODE-PLATFORM-013",
+    "R15-DATA-059",
+    "R15-DATA-068",
+    "R15-DOCS-018",
+    "R15-LEAD-028",
+    "R15-RELEASE-007",
+    "R15-DATA-112",
+    "R15-DATA-113",
+    "R15-DATA-114",
+    "R15-DATA-115"
+  ],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-RESEARCH-007",
+      "reason": "Acceptance cases pass, but the class fix fails fresh cases. The fix enumerates nine platforms in a denylist, so other free-hosting platforms still rank TIER_PRIMARY: ir.firebaseapp.com, investors.web.app, ir.azurewebsites.net, ir.onrender.com, ir.fly.dev, ir.glitch.me, investors.notion.site, ir.webflow.io, ir.herokuapp.com. The three-label 'IR label is a subdomain' check also misses ccSLD registrable domains: https://www.investors.co.uk/news/x, https://ir.co.in/x and https://investors.com.au/x rank 1, which is the original investors.com mechanism on a two-part TLD. Root fix: decide 'IR label sits on a registrable domain' from the Public Suffix List, including its private section (github.io, web.app, herokuapp.com, blogspot.* etc. are PSL private suffixes). No PSL package is in the venv today."
+    },
+    {
+      "id": "R15-DOCS-017",
+      "reason": "The rewritten section 3.3 bullet has the same drift class the entry is about. It says nse-all is 'every NSE master row (EQ + ETF) ... ~2,675', but the running code's load_india_universe('nse-all') returns 3,506 symbols: EQ 2584 + ETF 351 + SM 571 (the NSE Emerge rows added by 1df9cb0e, R15-DATA-017). bse-all is 5,042 and india-all is 5,891, and the doc gives no count for either. The count came from a stale module docstring (screener_universe_india.py:6), not the master. The sp500 count and snapshot date (503, 2026-09-24) and the universe names are correct."
+    },
+    {
+      "id": "R15-AGENT-090",
+      "reason": "Still reproduces on the running sidecar. The original repro prompt on llama3.1:8b (ollama, autonomy ask) fabricated an ADR ratio in 3 of 5 runs. Run 1: '10 ordinary shares'. Run 4: 'approximately 144869230 ordinary shares', derived from the fundamentals tool result's shares-outstanding field and a made-up 'typically two'. Run 5: '1 ordinary share'. Truth is 1 ADS = 6 ordinary shares. Runs 2 and 3 followed the new preamble rule ('unavailable in the terminal's data'). The fix is a prompt rule only; the ponytail note records that no deterministic guard landed. nemotron-3-super:free now reasons that fundamentals has no ADR field and web-searches instead (it found 'Each Repr 6 Ords'), but both of its runs hit an upstream 'Nvidia overloaded' 5xx before the final answer."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-12-int@3d588a292b08b56c5a09767ce7bb56d615a91699"
+}

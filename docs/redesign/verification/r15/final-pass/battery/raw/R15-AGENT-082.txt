@@ -1,0 +1,9 @@
+# R15-AGENT-082 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn "parses a priced model's spend_usd\|free model's 0 is a real zero\|unpriced yields undefined\|footer shows tokens and estimated spend" src --include=*.test.ts --include=*.test.tsx | cut -c1-220; grep -n 'spend_usd' sidecar/routers/llm.py | head -5
+--- output ---
+src/modules/chat/ChatSidebar.test.tsx:1140:  it("a finished message's footer shows tokens and estimated spend (R15-AGENT-082)", async () => {
+src/modules/chat/streaming.test.ts:232:  it("parses a priced model's spend_usd into doneFrameOf", async () => {
+166:                    event.spend_usd = budget_guard.spend_usd(
+
+EXIT=0 (0.1s)

@@ -1,0 +1,8 @@
+{"kind": "run-start", "runId": "2b86f8cd-1fdc-4138-8da9-04a7d94bc755", "startedAt": 1790133114903, "_t": 0.02}
+{"kind": "node-start", "runId": "2b86f8cd-1fdc-4138-8da9-04a7d94bc755", "nodeId": "q", "nodeType": "data.fetch_quote", "startedAt": 1790133114903, "_t": 0.02}
+{"kind": "node-output", "runId": "2b86f8cd-1fdc-4138-8da9-04a7d94bc755", "nodeId": "q", "outputs": {"quote": {"symbol": "RELIANCE", "price": 1240.4, "change": -7.0, "change_percent": -0.5611672278338945, "volume": 10684376.0, "currency": "INR", "market_state": "CLOSED", "timestamp": "2026-09-22T00:00:00Z", "provider": "nse_direct", "freshness": null}}, "durationMs": 5957.601625, "_t": 5.97}
+{"kind": "node-start", "runId": "2b86f8cd-1fdc-4138-8da9-04a7d94bc755", "nodeId": "j", "nodeType": "transform.json_path", "startedAt": 1790133120861, "_t": 5.97}
+{"kind": "node-output", "runId": "2b86f8cd-1fdc-4138-8da9-04a7d94bc755", "nodeId": "j", "outputs": {"extracted": null}, "durationMs": 0.036875, "_t": 5.97}
+{"kind": "node-start", "runId": "2b86f8cd-1fdc-4138-8da9-04a7d94bc755", "nodeId": "c", "nodeType": "logic.compare", "startedAt": 1790133120861, "_t": 5.97}
+{"kind": "node-error", "runId": "2b86f8cd-1fdc-4138-8da9-04a7d94bc755", "nodeId": "c", "message": "logic.compare: op 'gt' requires numeric a/b; got None/None", "durationMs": 0.021791, "_t": 5.97}
+{"kind": "run-error", "runId": "2b86f8cd-1fdc-4138-8da9-04a7d94bc755", "message": "failures in nodes: ['c']", "durationMs": 5958.193833, "_t": 5.97}

@@ -1,0 +1,4 @@
+COMMAND: python -c SearxngBackend row with publishedDate -> Citation.domain/published_at
+EXIT: 0
+OUTPUT:
+domain='reuters.com' published_at='2026-07-17T10:05:00'

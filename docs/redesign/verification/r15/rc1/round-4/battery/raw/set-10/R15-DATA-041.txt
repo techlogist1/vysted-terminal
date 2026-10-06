@@ -1,0 +1,17 @@
+Repro: grep + read sidecar/services/agent_tools/compare_symbols.py at 1006c6da.
+
+$ grep -n "_WINDOW_START_SLACK\|def _rank\|comparable" sidecar/services/agent_tools/compare_symbols.py
+29:_WINDOW_START_SLACK = timedelta(days=7)
+192:    """Best/worst by trailing return, across comparable windows only.
+203:    cutoff = (common_start + _WINDOW_START_SLACK).isoformat()
+208:      relative["best"] = max(comparable, key=...)["symbol"]
+211:      relative["note"] = "windows not comparable: " + "; ".join(...)
+
+Read _rank(): computes common_start (earliest bar across symbols' fetched windows), a cutoff =
+common_start + 7 days slack, and only symbols whose own window start falls within that slack are
+"comparable" and eligible for best/worst; symbols with a materially shorter/later-starting window
+(e.g. a 2-bar new listing) are excluded from ranking and surfaced via a "windows not comparable"
+note instead of silently winning best/worst.
+
+Verdict: holds. A 2-bar new-listing series can no longer out-rank a full 6-month series; it is
+excluded from best/worst and the payload states why via `relative.note`.

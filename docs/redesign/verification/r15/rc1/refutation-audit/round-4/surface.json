@@ -1,0 +1,47 @@
+{
+ "group": "surface",
+ "verdicts": [
+  {
+   "id": "R15-UI-015",
+   "key": "rc1-verifier:9",
+   "tie": "",
+   "verdict": "partial",
+   "severity": "low",
+   "root_cause": "src/store/sec.ts:257-258: searchCompanies' bare catch sets searchStatus 'error' and drops the SidecarError and its message; SecFilingsPanel.tsx never reads any search status or error (reads only searchResults, :49/:201/:208/:214).",
+   "fix_shape": "Catch the error in sec.searchCompanies and keep searchError = err instanceof Error ? err.message : 'company search failed' (cleared on loading, idle and clearSearch); SecFilingsPanel shows it as one muted line under the symbol field when searchStatus === 'error' (for example 'Company search unavailable: <reason>') instead of showing nothing.",
+   "acceptance_test": "src/store/sec.test.ts: sidecarGet rejects new SidecarError(501, 'sec-edgar-mcp is not available') -> after searchCompanies('apple'), searchStatus === 'error' and searchError contains 'sec-edgar-mcp is not available'; SecFilingsPanel test: typing 'Apple' under that rejection renders the reason. Live re-proof: MCP unbound, curl :<port>/sec/filings/search?q=Apple -> 501, the panel shows the reason under the field.",
+   "failure_count": 1,
+   "failure_sources": "Given baseline UI-015 = 0 (register note has no 'certification failures so far' clause; the batch-8 VERDICTS.json not_certified row was 'Not claimed', a partial landing the integrator recorded, which the given baseline does not count) + 1 for this partial = 1. Counting the batch-8 'Not claimed' row mechanically gives 2. No UI-015 rows in REFUTATION_AUDIT.json or round-*/REFUTATION_AUDIT.json.",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/round-4/surface-R15-UI-015.md",
+   "note": "The retry clause is fixed at HEAD: the hook retries only a non-SidecarError, 0 or 503 (use-sidecar-retry.ts:44-46). Scratch hook test over 60 s: 502 -> 1 attempt, 501 -> 1, 503 -> 13, TypeError -> 13. Macro/News/Earnings/SEC/Screener re-throw the original error. Live :52415 FRED DGS10 -> 502. Seven repo test files, 200 tests, green. The secondary clause from the entry's own repro and fix_shape ('keep the reason in sec.searchCompanies') is unmet. Live :52415 /sec/filings/search?q=Apple -> 501 'sec-edgar-mcp is not available ... Relaunch the app'. Fed that SidecarError, the store keeps only {searchResults: [], searchStatus: 'error'}, while loadFilings keeps filingsError + filingsCause. Severity lowered from the entry's medium to low: this is autocomplete only, and a failed search looks the same as no match. Workaround: type the ticker or CIK, and the filings load shows the same reason. This matches rc1-verifier:9 and rc1-vshard-4:3."
+  },
+  {
+   "id": "rc1-verifier:10",
+   "key": "rc1-verifier:10",
+   "tie": "R15-AGENT-043",
+   "verdict": "new_defect_confirmed",
+   "severity": "medium",
+   "root_cause": "src/store/screener.ts:343-351: applyFilters keeps the caller's flat criteria beside a flat (un-nested) group and sets advanced=hasNestedGroup(group)=false. So runScreener (:416-422) sends the flat list: for AND, no group; for OR, {or: criteria}, built from the flat list and not the group's leaves. Fed by src/lib/host-actions.ts:916, which passes the agent's flat list whenever it is non-empty, although the host's own count (:925), the tool contract (catalog.py:1529-1531) and the server (screener.py:373) all treat the group as superseding it.",
+   "fix_shape": "In applyFilters, a flat group supplies the criteria: criteria = group && !hasNestedGroup(group) ? (group.criteria as ScreenerCriterion[]) : criteria. The combinator already follows the group. This is one line in the shared function, so write_screener_filters, save_screen (the saved screen then stores the group's leaves) and any later caller all get 'the group supersedes the flat list'. Nested handling is unchanged. Scratch-verified with applyFilters patched this way: the run body equals what the label counts for the AND, OR and rc1-vshard-3:3 inputs, and AGENT-043's own case is unchanged.",
+   "acceptance_test": "src/store/screener.test.ts: applyFilters({criteria:[market_cap gt 1000], group:{combinator:'and', criteria:[pe_ratio lt 20]}}) -> state.criteria equals [pe_ratio lt 20]. src/lib/host-actions.test.ts with fetch stubbed: (1) write_screener_filters {criteria:[{market_cap gt 1000}], group:{combinator:'and', criteria:[{pe_ratio lt 20}]}, run:true} -> POST body criteria is [pe_ratio lt 20], with no market_cap. (2) {criteria:[{market_cap gt 1e11}], group:{combinator:'or', criteria:[{pe_ratio lt 15},{dividend_yield gt 0.03}]}, run:true} -> body group or[pe_ratio lt 15, dividend_yield gt 0.03]. (3) The rc1-vshard-3:3 input {criteria:[{roe gt '15'},{market_cap gt 1000}], group:{combinator:'and', criteria:[{pe_ratio lt 20}]}} -> body [pe_ratio lt 20]. (4) save_screen, then loadScreen, then runScreener on input (1) -> body [pe_ratio lt 20]. Live re-proof: POST the captured body to /screener/run on custom [AAPL,MSFT,JPM,XOM,KO,PFE,VZ,T,CVX,INTC] -> 4 rows (JPM, CVX, VZ, T), not 10.",
+   "failure_count": 0,
+   "failure_sources": "n/a (new defect; lands on no register entry; AGENT-043 not reopened)",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/round-4/surface-rc1-verifier-10.md",
+   "note": "Confirmed at HEAD and wider than claimed: any flat group, AND or OR, whose leaves differ from the flat list is replaced by that list. The label, review diff and ack all describe the group. Scratch vitest (real stores and host-actions, fetch captured):\n- C: criteria [mcap>1000] + and[pe<20] -> 'Wrote 1 screener criterion \u2014 running', body criteria [mcap>1000], no group.\n- D: criteria [mcap>1e11] + or[pe<15, dy>0.03] -> 'Wrote 2 screener criteria', body or[mcap>1e11].\n- H: the same failure with a malformed group leaf.\n- save_screen: the same failure after loadScreen.\n- Mirrored leaves (F, J) and empty criteria (G) are correct.\nLive :52415 replay of the captured bodies: C sent 10 rows (AAPL P/E 39.07, MSFT 28.74, PFE 37.72) against 4 intended (JPM, CVX, VZ, T); D sent 10 against 5. llama3.1:8b over 7 fresh phrasings: 4 flat-only writes; p4 text-only pseudo-call with mirrored OR leaves (benign); p5 the divergent shape on screener_run (criteria [dy>0.03, pe<12] + or[mcap>5e10]); p6 an OR-group write_screener_filters rejected as malformed JSON. No valid host write with a flat group landed on the local lane; hosted lanes were not exercised. Medium, same as the verifier: with run:true the wrong screen runs at once while the ack claims the group was written, but the panel's simple builder shows the list that actually runs. It is not AGENT-043's class: every leaf is well-formed and reported, and the store runs a different list. The defect predates AGENT-043's fix (flat-group collapse since ba2d0eb5). No register entry covers it: R15-UI-007 is the preset path with a stale nested tree. Same defect as rc1-vshard-3:6."
+  },
+  {
+   "id": "rc1-vshard-3:3",
+   "key": "rc1-vshard-3:3",
+   "tie": "R15-AGENT-043",
+   "verdict": "verifier_error",
+   "severity": "medium",
+   "root_cause": "",
+   "fix_shape": "",
+   "acceptance_test": "",
+   "failure_count": 0,
+   "failure_sources": "n/a (no register entry reopened; AGENT-043 baseline stays 0: batch-7 certified, no not_certified rows, no refutation-audit partial/regression)",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/round-4/surface-rc1-vshard-3-3.md",
+   "note": "The observation reproduces at HEAD, but the harm is rc1-verifier:10's defect, not AGENT-043's. Shard input {criteria:[{roe gt '15'},{market_cap gt 1000}], group:{combinator:'and', criteria:[{pe_ratio lt 20}]}} -> 'Wrote 1 screener criterion \u2014 running', ack dropped [], and the body sent is criteria [market_cap gt 1000] with no group. AGENT-043's own repro holds (case A: 'Wrote 2 of 3 screener criteria; dropped roe: value must be a number', body pe + debt_to_equity), and a malformed group leaf is reported too (case H). The silence for a flat leaf when a group is sent is deliberate: the contract says the group supersedes the flat list (catalog.py:1529-1531, sidecar screener.py:373, host-actions.ts:922 'A surviving group is what applies (and is counted)', fix 98311dfb). The looser screen runs only because the store runs the flat list instead of a flat group. With a nested group (case E) the group runs exactly as labelled, and a malformed flat leaf is superseded like any well-formed one. With rc1-verifier:10's one-line applyFilters fix applied in scratch, the shard's input sends body [pe_ratio lt 20], matching the label. Adding flatDropped to the note, as the shard implies, would report 'dropped roe' while the equally superseded market_cap goes unmentioned. The shard's exact input is in rc1-verifier:10's acceptance test. The medium severity is that harm, counted once under rc1-verifier:10."
+  }
+ ]
+}

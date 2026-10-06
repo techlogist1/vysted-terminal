@@ -1,0 +1,6 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: curl -s 'localhost:52344/macro/NY.GDP.MKTP.CD?provider=world-bank&country=IND' | head -c 500; echo; curl -s 'localhost:52344/macro/NY.GDP.MKTP.CD?provider=world-bank' | python3 -c 'import sys,json;d=json.load(sys.stdin);print(d.get("title"), d.get("series_id"), len(d.get("observations",[])))'
+{"series_id":"NY.GDP.MKTP.CD","title":"GDP (current US$) — IND","units":null,"observations":[{"date":"1960-01-01T00:00:00Z","value":37029883876.1839,"is_projection":false},{"date":"1961-01-01T00:00:00Z","value":39232435784.0358,"is_projection":false},{"date":"1962-01-01T00:00:00Z","value":42161481858.0819,"is_projection":false},{"date":"1963-01-01T00:00:00Z","value":48421923459.1235,"is_projection":false},{"date":"1964-01-01T00:00:00Z","value":56480289940.9899,"is_projection":false},{"date":"1
+GDP (current US$) — IND NY.GDP.MKTP.CD 66
+
+exit=0

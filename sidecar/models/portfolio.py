@@ -1,7 +1,7 @@
 """Portfolio Pydantic models.
 
-``Position`` is the stored record (manual entry in v1.0 — broker connection is
-Phase 5). The portfolio service (Teammate B, Phase 1.B) computes P&L by joining
+``Position`` is the stored record (manual entry — the user's tracked
+portfolio). The portfolio service (Teammate B, Phase 1.B) computes P&L by joining
 positions against live quotes. Mirrored by hand in ``types/data.ts`` — keep in
 sync (see CLAUDE.md Gotchas).
 """

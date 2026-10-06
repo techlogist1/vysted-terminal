@@ -1,0 +1,13 @@
+# macOS dev-signing runner (NOT the rejected [env] APPLE_SIGNING_IDENTITY idea —
+# see docs/redesign/KEYCHAIN_DEV_SIGNING.md). Cargo hands every freshly built
+# executable to the runner BEFORE first exec; the runner signs it with the
+# stable "Vysted Terminal Dev Signing" identity and then execs it. This is the
+# only point where signing can succeed (a running binary's file is text-busy),
+# and it makes the designated requirement stable across rebuilds so keychain
+# ACL + TCC grants stick. The runner passes through untouched when the identity
+# is absent (CI, fresh machines) or VYSTED_SKIP_DEV_SIGN=1.
+[target.aarch64-apple-darwin]
+runner = "../scripts/macos-dev-sign-run.sh"
+
+[target.x86_64-apple-darwin]
+runner = "../scripts/macos-dev-sign-run.sh"

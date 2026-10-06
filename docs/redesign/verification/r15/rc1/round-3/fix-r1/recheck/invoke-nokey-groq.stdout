@@ -1,0 +1,9 @@
+usage: vy invoke [-h] --provider {openrouter,openai,deepseek,ollama}
+                 [--model MODEL] [--mode {agent,ask,edit,build,delegate}]
+                 [--autonomy {ask,auto}] [--tier TIER] [--region REGION]
+                 [--options OPTIONS] [--context CONTEXT] [--tag TAG]
+                 [--out OUT] [--bad-key] [--no-key] [--quiet]
+                 [--max-event MAX_EVENT] [--port PORT] [--timeout TIMEOUT]
+                 [--header HEADER] [--max-bytes MAX_BYTES]
+                 agent prompt
+vy invoke: error: argument --provider: invalid choice: 'groq' (choose from 'openrouter', 'openai', 'deepseek', 'ollama')

@@ -1,0 +1,31 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_60db4ac2bad8499b9578e882c988e541", "name": "price_data", "input": {"symbol": ""}}
+[  43.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_149b879dbbfc45eaa7e7b198a1950408", "name": "price_data", "input": {"symbol": "SBIN.NS"}}
+[  46.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_04cfcc9973e84bf3a450fb0c88a27915", "name": "price_data", "input": {"symbol": "AXISBANK.NS"}}
+[  52.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_b2b314b0de524f59bf859f8da3d8c4fa", "name": "price_data", "input": {"symbol": "[SBIN.NS,AXISBANK.NS]"}}
+[  54.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_60db4ac2bad8499b9578e882c988e541", "name": "price_data", "ok": false, "error": "missing or non-string symbol"}
+[  63.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_149b879dbbfc45eaa7e7b198a1950408", "name": "price_data", "ok": true, "error": null}
+[  68.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_04cfcc9973e84bf3a450fb0c88a27915", "name": "price_data", "ok": true, "error": null}
+[  71.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_b2b314b0de524f59bf859f8da3d8c4fa", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for '[SBIN.NS,AXISBANK.NS]' from 'yfinance'"}
+[  81.2s] heartbeat: {"kind": "heartbeat"}
+[  91.2s] heartbeat: {"kind": "heartbeat"}
+[ 101.2s] heartbeat: {"kind": "heartbeat"}
+[ 111.2s] heartbeat: {"kind": "heartbeat"}
+[ 121.2s] heartbeat: {"kind": "heartbeat"}
+[ 131.2s] heartbeat: {"kind": "heartbeat"}
+[ 141.2s] heartbeat: {"kind": "heartbeat"}
+[ 148.9s] done: {"kind": "done", "usage": {"input_tokens": 11317, "output_tokens": 85, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Here are the latest prices of SBIN.NS and AXISBANK.NS as a markdown table:
+
+| Symbol | Price |
+| --- | --- |
+| SBIN.NS | ₹983.00 |
+| AXISBANK.NS | ₹1222.40 |
+
+Note: The prices may not be up to date, as the terminal is unable to fetch the latest data due to an error from the provider.
+
+=== ok · 148.9s · events {'heartbeat': 10, 'tool_use': 4, 'tool_result': 4, 'delta': 84, 'done': 1} · usage in=11317 out=85 · est $0.00000 · llama3.1:8b

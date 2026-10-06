@@ -1,0 +1,10 @@
+provider health: yahoo circuit OPEN for 65s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+provider health: yahoo circuit OPEN for 70s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+provider health: yahoo circuit OPEN for 67s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+provider health: yahoo circuit OPEN for 63s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+provider health: yahoo circuit OPEN for 54s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+get_history MSFT 1d: open_before=True call=raised ProviderError: yfinance history rate-limited for 'MSFT': Too Many Requests. Rate limited. Try after a while. open_after=True status={'open': True, 'cooldown_remaining': 64.06333975301823, 'consecutive_throttles': 0.0, 'consecutive_opens': 1, 'opens_total': 1, 'throttles_total': 4.0}
+get_cash_flow NVDA: open_before=True call=ok open_after=False status={'open': False, 'cooldown_remaining': 0.0, 'consecutive_throttles': 0.0, 'consecutive_opens': 0, 'opens_total': 1, 'throttles_total': 3.0}
+get_balance_sheet INFY.NS: open_before=True call=ok open_after=False status={'open': False, 'cooldown_remaining': 0.0, 'consecutive_throttles': 0.0, 'consecutive_opens': 0, 'opens_total': 1, 'throttles_total': 3.0}
+get_income_statement ASML quarterly: open_before=True call=ok open_after=False status={'open': False, 'cooldown_remaining': 0.0, 'consecutive_throttles': 0.0, 'consecutive_opens': 0, 'opens_total': 1, 'throttles_total': 3.0}
+get_analyst_rating TSM: open_before=True call=raised ProviderError: yfinance analyst rating rate-limited for 'TSM': Too Many Requests. Rate limited. Try after a while. open_after=True status={'open': True, 'cooldown_remaining': 53.66129415674368, 'consecutive_throttles': 0.0, 'consecutive_opens': 1, 'opens_total': 1, 'throttles_total': 4.0}

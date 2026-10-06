@@ -1,0 +1,2 @@
+candidate ace7dd76; cmd: cd sidecar; PYTHONPATH=. .venv/bin/python scratchpad/b13_bt.py 036
+compile_rule calls for one strategy construction: 2

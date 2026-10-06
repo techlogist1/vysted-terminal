@@ -1,0 +1,18 @@
+['RELIANCE.NS'] -> ['RELIANCE.NS'] | aliases {'RELIANCE.NS': ['RELIANCE.NS', 'RELIANCE', 'reliance industries']}
+['TCS.NS', 'INFY.NS'] -> ['TCS.NS'] | aliases {'TCS.NS': ['TCS.NS', 'TCS', 'tata consultancy services'], 'INFY.NS': ['INFY.NS', 'INFY', 'infosys']}
+['HDFCBANK'] -> ['HDFCBANK'] | aliases {'HDFCBANK': ['HDFCBANK', 'hdfc bank']}
+['SBIN'] -> ['SBIN'] | aliases {'SBIN': ['SBIN', 'state bank of india']}
+['BAJFINANCE'] -> ['BAJFINANCE'] | aliases {'BAJFINANCE': ['BAJFINANCE', 'bajaj finance']}
+['A'] -> [] | aliases {'A': ['agilent technologies']}
+['T', 'F', 'C'] -> [] | aliases {'T': ['at&t'], 'F': ['ford motor'], 'C': ['citigroup']}
+['RELIANCE.NS'] -> ['RELIANCE.NS'] | aliases {'RELIANCE.NS': ['RELIANCE.NS', 'RELIANCE', 'reliance industries']}
+['KOTAKBANK.NS'] -> ['KOTAKBANK.NS'] | aliases {'KOTAKBANK.NS': ['KOTAKBANK.NS', 'KOTAKBANK', 'kotak mahindra bank']}
+['LT.NS'] -> ['LT.NS'] | aliases {'LT.NS': ['LT.NS', 'LT', 'larsen & toubro']}
+['INFY.NS'] -> ['INFY.NS'] | aliases {'INFY.NS': ['INFY.NS', 'INFY', 'infosys']}
+['ITC.NS'] -> ['ITC.NS'] | aliases {'ITC.NS': ['ITC.NS', 'ITC', 'itc']}
+--- over-match fresh cases (different listed companies sharing the bare ticker as a word)
+LT.NS 'LT Foods Q2 profit jumps 30%' -> ['LT.NS']
+ITC.NS 'ITC Hotels shares list at premium' -> ['ITC.NS']
+RELIANCE.NS 'Reliance Power wins Bhutan project' -> ['RELIANCE.NS']
+RELIANCE.NS 'Reliance Infrastructure plunges' -> ['RELIANCE.NS']
+TCS.NS 'Tata Motors PV unit demerger' -> []

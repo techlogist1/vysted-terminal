@@ -1,0 +1,18 @@
+# R15-AGENT-023 probe: saved workflow quote->webhook scheduled every 5 min, local receiver 127.0.0.1:52347
+Sat Oct  3 05:51:49 IST 2026
+$ PUT webhook
+{"refs":["b6hook"]} [200]
+$ save
+{"id":"b6wf","name":"b6wf","description":null,"version":1,"nodes":[{"id":"n1","type":"data.fetch_quote","position":{"x":0.0,"y":0.0},"config":{"symbol":"AAPL"}},{"id":"n2","type":"action.webhook","position":{"x":200.0,"y":0.0},"config":{"secret_ref":"b6hook"}}],"edges":[{"id":"e1","sourceNode":"n1",
+$ schedule everyMinutes 1 (expect 422)
+{"detail":[{"type":"greater_than_equal","loc":["body","trigger","interval","everyMinutes"],"msg":"Input should be greater than or equal to 5","input":1,"ctx":{"ge":5}}]} [422]
+$ schedule everyMinutes 5
+{"id":"sch-4c4ebfdea6bb","workflowId":"b6wf","trigger":{"kind":"interval","everyMinutes":5},"enabled":true,"createdAt":1790986909217,"lastFiredAt":null,"lastSeen":null,"lastStatus":null,"lastDetail":null} [200]
+$ GET webhooks
+{"refs":["b6hook"]}
+--- result
+First scheduled fire 05:57:07 lastStatus=error (n2): my receiver port 52347 was owned by another service (404 JSON) - harness cause, not product. Receiver moved to 58347, webhook re-PUT.
+Unattended fire 06:02:08 (no request from me), receiver log:
+06:00:42 {"probe":1}
+06:02:08 {"workflow":"b6wf","node":"n2","value":{"symbol":"AAPL","price":333.69,"change":2.890100000000018,"change_percent":0.8736701552811891,"volume":31878433.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timest
+[{"id":"sch-4c4ebfdea6bb","workflowId":"b6wf","trigger":{"kind":"interval","everyMinutes":5},"enabled":true,"createdAt":1790986909217,"lastFiredAt":1790987527744,"lastSeen":null,"lastStatus":"ok","lastDetail":null}]

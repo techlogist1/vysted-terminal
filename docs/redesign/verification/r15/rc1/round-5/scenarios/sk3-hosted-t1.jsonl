@@ -1,0 +1,65 @@
+{"kind": "tool_use", "tool_call_id": "call_0b9e7b762b6243cfa5168c8856ac8fb4", "name": "resolve_symbol", "input": {"query": "BGNE"}}
+{"kind": "tool_use", "tool_call_id": "call_90a68c6052564c5a8c3a6345dd1158d7", "name": "news", "input": {"symbols": ["BGNE"]}}
+{"kind": "tool_result", "tool_call_id": "call_0b9e7b762b6243cfa5168c8856ac8fb4", "name": "resolve_symbol", "ok": false, "error": "Could not resolve 'BGNE' to a known instrument in the bundled US/NSE/BSE masters or a live lookup. Check the spelling, or add a data source that covers it."}
+{"kind": "heartbeat"}
+{"kind": "tool_result", "tool_call_id": "call_90a68c6052564c5a8c3a6345dd1158d7", "name": "news", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " couldn't"}
+{"kind": "delta", "text": " find"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " trading"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " BG"}
+{"kind": "delta", "text": "NE"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " indicates"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " might"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " listed"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " exchanges"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " access"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Additionally"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " there"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " no"}
+{"kind": "delta", "text": " recent"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": " articles"}
+{"kind": "delta", "text": " associated"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " believe"}
+{"kind": "delta", "text": " there"}
+{"kind": "delta", "text": " might"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " different"}
+{"kind": "delta", "text": " ticker"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " name"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " goes"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " please"}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 8919, "output_tokens": 59, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.010608}

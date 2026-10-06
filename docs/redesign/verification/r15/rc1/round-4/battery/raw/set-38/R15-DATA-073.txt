@@ -1,0 +1,41 @@
+=== DATA-073: locale.py holiday table tail ===
+--- NSE holidays block ---
+--- last dates ---
+2027-01-01
+2027-01-18
+2027-02-15
+2027-03-26
+2027-05-31
+2027-06-18
+2027-07-05
+2027-09-06
+2027-11-25
+2027-12-24
+=== regenerator script present? ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/services/resolver_masters/regenerate_holidays.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/services/resolver_masters/__pycache__/regenerate_holidays.cpython-313.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/holidays.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/__pycache__/holidays.cpython-313.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/lib/python3.13/site-packages/pandas/tseries/holiday.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/lib/python3.13/site-packages/pandas/tests/tseries/holiday
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/lib/python3.13/site-packages/pandas/tests/tseries/holiday/test_holiday.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/lib/python3.13/site-packages/pandas/tseries/__pycache__/holiday.cpython-313.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/lib/python3.13/site-packages/pandas/tests/tseries/holiday/__pycache__/test_holiday.cpython-313.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/pandas/tseries/holiday.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/openbb_mcp_subprocess/.venv/lib/python3.13/site-packages/pandas/tseries/holiday.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/openbb_mcp_subprocess/.venv/lib/python3.13/site-packages/pandas/tests/tseries/holiday
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/pandas/tseries/__pycache__/holiday.cpython-313.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/pandas/tests/tseries/holiday
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/openbb_mcp_subprocess/.venv/lib/python3.13/site-packages/pandas/tseries/__pycache__/holiday.cpython-313.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/openbb_mcp_subprocess/.venv/lib/python3.13/site-packages/pandas/tests/tseries/holiday/test_holiday.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/pandas/tests/tseries/holiday/test_holiday.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/pandas/tests/tseries/holiday/__pycache__/test_holiday.cpython-313.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/openbb_mcp_subprocess/.venv/lib/python3.13/site-packages/pandas/tests/tseries/holiday/__pycache__/test_holiday.cpython-313.pyc
+=== last holiday entries in locale.py ===
+2027-06-18
+2027-07-05
+2027-09-06
+2027-11-25
+2027-12-24
+=== expiry test present? ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/test_bse_provider.py

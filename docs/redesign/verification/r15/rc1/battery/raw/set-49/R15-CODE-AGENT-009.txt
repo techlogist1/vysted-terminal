@@ -1,0 +1,3 @@
+cmd: python3 ast walk over services/agent_runtime.py counting invoke_agent and _dispatch_round line spans
+output: invoke_agent = 101 lines (batch-11 cert said 95 lines, 488 at base -- small drift since certification from unrelated later commits touching the same function region, still an order of magnitude under the 488-line baseline, not a regression back toward the monolith); _dispatch_round = 182 lines (batch-11 noted 152, same class of minor drift). test_runtime_phases.py present. Runtime regression suites not re-run this shard (pytest is the heavy lane's job) -- ci_pinned for the exact-count claim, holds for the "split, not reverted to monolith" structural claim.
+verdict: holds

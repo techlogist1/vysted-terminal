@@ -1,0 +1,54 @@
+# UI-040 fresh-case scratch vitest; src copied from worktree HEAD 633f844071d972b337f4c3526d86555c80df0568; cmd: vitest run --reporter=verbose src/lib/vs3-fresh.test.ts
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs3-vitest
+ ✓ src/lib/vs3-fresh.test.ts > vs3 fresh UI-040 > A: a PAUSED run (with its question) is adopted, then the poller syncs it to done 3ms
+ ✓ src/lib/vs3-fresh.test.ts > vs3 fresh UI-040 > B: a cancel whose request never reaches the sidecar (network throw) leaves the run running 0ms
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  16:52:58
+   Duration  1.09s (transform 262ms, setup 80ms, import 295ms, tests 4ms, environment 590ms)
+
+## test source (appended part)
+describe("vs3 fresh UI-040", () => {
+  beforeEach(() => resetAgentRunsStoreForTests());
+  afterEach(() => {
+    stopDelegatePolling();
+    vi.restoreAllMocks();
+  });
+
+  it("A: a PAUSED run (with its question) is adopted, then the poller syncs it to done", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse({
+          runs: [
+            { id: "run-p", agent_id: "researcher", agent_name: "Researcher", status: "paused", question: "Which fiscal year?", cost: { tokens: 900, spend_usd: 0, steps: 1 } },
+            { id: "run-c", agent_id: "copilot", status: "cancelled" },
+          ],
+        }),
+      ),
+    );
+    await adoptSidecarRuns();
+    let runs = useAgentRunsStore.getState().runs;
+    expect(runs).toHaveLength(1);
+    expect(runs[0]).toMatchObject({ sidecarRunId: "run-p", status: "paused", question: "Which fiscal year?" });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse({ runs: [{ id: "run-p", agent_id: "researcher", status: "done", cost: { tokens: 3000, spend_usd: 0, steps: 3 } }] }),
+      ),
+    );
+    await pollDelegateRuns();
+    runs = useAgentRunsStore.getState().runs;
+    expect(runs[0].status).toBe("done");
+  });
+
+  it("B: a cancel whose request never reaches the sidecar (network throw) leaves the run running", async () => {
+    const id = useAgentRunsStore.getState().startRun({ agentId: "copilot", agentName: "Copilot", mode: "delegate", sidecarRunId: "run-n" });
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
+    const r = await cancelDelegateRun("run-n");
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/retry/);
+    expect(useAgentRunsStore.getState().runs.find((x) => x.id === id)?.status).toBe("running");
+  });
+});

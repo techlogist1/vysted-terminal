@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_4b88c724275b4f09b113a421026f0c52", "name": "fundamentals", "input": {"__vysted_invalid_args__": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}}
+[  37.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_4b88c724275b4f09b113a421026f0c52", "name": "fundamentals", "ok": false, "error": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}
+[  42.3s] done: {"kind": "done", "usage": {"input_tokens": 2872, "output_tokens": 83, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The fundamentals tool returned no data for this in this turn.
+
+Please provide the symbol when calling fundamentals.
+
+=== ok · 42.3s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 9, 'done': 1} · usage in=2872 out=83 · est $0.00000 · llama3.1:8b

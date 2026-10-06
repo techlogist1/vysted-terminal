@@ -1,0 +1,56 @@
+[
+ {
+  "raw_id": "INT-blueprint-96-1",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Re-ran the search myself: no alpha_vantage/alphavantage token anywhere in sidecar/ (source, not just requirements.txt), confirmed yfinance==1.3.0 is the only named fallback actually present, and confirmed provider_registry.py has no alpha_vantage entry in its fallback chain. The promise's own 'no API key needed' framing is also internally inconsistent with Alpha Vantage's real requirement (a free API key), which further supports treating this as unbuilt rather than partially built.",
+  "evidence": "sidecar/requirements.txt; sidecar/services/provider_registry.py; docs/BLUEPRINT.md:252",
+  "evidence_checked": "grepped sidecar/ recursively for alpha_vantage/alphavantage/AlphaVantage (zero hits outside this census's own new output files), read requirements.txt in full, opened provider_registry.py and confirmed its provider list",
+  "repro_check": "grep -rn 'alpha_vantage\\|AlphaVantage\\|alphavantage' sidecar/ -> no source hits; grep -n 'yfinance\\|alpha_vantage' sidecar/requirements.txt -> only yfinance==1.3.0"
+ },
+ {
+  "raw_id": "INT-blueprint-96-2",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Confirmed VaR/Beta/correlation-matrix are absent sidecar-wide (not just in portfolio code), and that Sharpe/Sortino/Calmar/max-drawdown are computed only inside backtest_engine.py against a simulated equity curve, never against the user's actual tracked-portfolio return series in portfolio_db.py/models/portfolio.py. The promise sits under 'Portfolio & Risk' in BLUEPRINT.md's own module catalog, not under Backtesting, so grading it against the live portfolio (where it is 0% built for 3 of 7 metrics and 100% absent for the rest) is the right frame, not a misread of scope.",
+  "evidence": "sidecar/services/backtest_engine.py:236-282,480; sidecar/models/portfolio.py; sidecar/services/portfolio_db.py; docs/BLUEPRINT.md:266",
+  "evidence_checked": "grepped sidecar/services and sidecar/routers for value_at_risk/VaR/beta/correlation_matrix (zero hits anywhere), opened backtest_engine.py around the sharpe/sortino/calmar computation, opened portfolio.py and portfolio_db.py and confirmed no risk-metric fields or functions exist there",
+  "repro_check": "grep -rn 'value_at_risk\\|\\bVaR\\b\\|def.*beta\\|correlation_matrix' sidecar/services sidecar/routers -> no output; grep -n 'sharpe\\|sortino\\|calmar' sidecar/services/*.py -> only backtest_engine.py"
+ },
+ {
+  "raw_id": "INT-blueprint-96-3",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Confirmed there is no dedicated license UI component anywhere, that the sole licensing text is one bullet inside DisclaimerFlow.tsx's TOS_BODY, and that FirstLaunchTosDialog is mounted unconditionally (not behind any broker-connect gate) at page.tsx:289 - so it genuinely is the first thing every new user sees. Read the full TOS_BODY text and confirmed 4 of its 5 bullets are about broker orders / kill switch, which D81 (23 Sep) removed from the product; the dialog's own subtitle ('before connecting a broker') no longer matches why it fires for every user regardless of broker intent.",
+  "evidence": "src/modules/safety/DisclaimerFlow.tsx:35-95; src/app/page.tsx:19,289; docs/redesign/DECISIONS.md:141 (D81)",
+  "evidence_checked": "opened DisclaimerFlow.tsx in full including the render-gate (firstLaunchTosAcked) and the exported DisclaimerFlow() wrapper, opened page.tsx around the mount site, re-read D81's full text",
+  "repro_check": "grep -rln 'LicenseGate\\|LicenseModal\\|LicenseDialog' src/ -> no output; grep -n 'FirstLaunchTosDialog' src/app/page.tsx -> imported and rendered unconditionally at :289"
+ },
+ {
+  "raw_id": "INT-blueprint-96-4",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Parsed tauri.conf.json's app.windows array directly (not a text grep that could miss a second definition elsewhere) and confirmed exactly one window is declared; confirmed no WebviewWindowBuilder or equivalent second-window spawn exists in the Rust core, and no pop-out affordance exists in the frontend. Multi-tab (dockview) is real and not in question - only the 'multi-window' half of the combined promise is unmet.",
+  "evidence": "src-tauri/tauri.conf.json app.windows; src-tauri/src/lib.rs; docs/BLUEPRINT.md:235",
+  "evidence_checked": "parsed tauri.conf.json with python3/json to get the exact windows array rather than eyeballing the file, grepped src-tauri/src and src/ for popout/newWindow/WebviewWindow patterns",
+  "repro_check": "python3 -c \"import json;print(len(json.load(open('src-tauri/tauri.conf.json'))['app']['windows']))\" -> 1; grep -rln 'popout\\|pop-out\\|newWindow\\|WebviewWindow\\|secondary window' src/ src-tauri/src/*.rs -> no output"
+ },
+ {
+  "raw_id": "INT-blueprint-96-5",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Confirmed tauri.conf.json hardcodes theme: 'Dark' with no light variant, confirmed zero prefers-color-scheme/data-theme/ThemeToggle references anywhere in src/ or styles/, and confirmed settings.ts's own comment names themeKnobs as an explicitly killed field. Cross-checked against docs/CURRENT_STATE.md, which independently confirms this is a known, named, already-tracked blocker (BLOCKERS S2 #10) rather than a fresh regression - the finding's value is in the promise ledger accurately reflecting that status, not in discovering something unknown to the team.",
+  "evidence": "src-tauri/tauri.conf.json app.windows[0].theme; src/store/settings.ts:1-14; docs/CURRENT_STATE.md:551,894",
+  "evidence_checked": "parsed tauri.conf.json's theme field directly, read settings.ts's file-header comment in full, grepped CURRENT_STATE.md for the light-theme status line and its BLOCKERS pointer",
+  "repro_check": "python3 -c \"import json;print(json.load(open('src-tauri/tauri.conf.json'))['app']['windows'][0]['theme'])\" -> Dark; grep -n 'Light theme' docs/CURRENT_STATE.md -> 'Deferred to v1.1 - dark-only ships'"
+ },
+ {
+  "raw_id": "INT-blueprint-96-6",
+  "verdict": "admitted",
+  "severity_final": "low",
+  "reason": "Confirmed BLUEPRINT.md:233 still reads the retired palette description verbatim, and cross-checked CLAUDE.md's own Gotchas section (which the operator maintains as living project DNA) to confirm the palette change is real, deliberate and dated (003 rebuild), not a misreading on my part. This is the same drift class as the already-filed Next.js/Vite findings, at a different citation (BLUEPRINT.md's Module Catalog rather than its TL;DR or Locked Decisions table), so it is filed as a distinct low-severity doc finding rather than folded into an existing one to keep each citation traceable.",
+  "evidence": "docs/BLUEPRINT.md:233; CLAUDE.md (Frontend Gotchas, design token names paragraph)",
+  "evidence_checked": "grepped BLUEPRINT.md for the exact retired palette phrase, re-read CLAUDE.md's design-token-naming gotcha in full",
+  "repro_check": "grep -n 'charcoal + warm amber + sage' docs/BLUEPRINT.md -> line 233 present"
+ }
+]

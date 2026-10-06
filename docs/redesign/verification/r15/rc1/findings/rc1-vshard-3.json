@@ -1,0 +1,22 @@
+[
+  {
+    "key": "rc1-vshard-3:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "MCP list_workspaces and get_workspace always fail: they call GET /workspaces (plural) but the router is mounted at /workspace, so both published MCP tools 404 on every call",
+    "repro": "Own sidecar at 81fbfe91 on :52603. fastmcp Client('http://127.0.0.1:52603/mcp/').call_tool('list_workspaces', {}) -> ToolError \"Client error '404 Not Found' for url 'http://sidecar/workspaces'\"; call_tool('get_workspace', {'workspace_id':'__autosave__'}) -> same 404 for /workspaces/__autosave__. curl :52603/workspaces -> 404; curl :52603/workspace -> [\"__autosave__\"].",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-3.md",
+    "suspected_files": ["sidecar/services/mcp_server.py", "sidecar/routers/workspace.py"]
+  },
+  {
+    "key": "rc1-vshard-3:2",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-LIFECYCLE-023",
+    "title": "The agent dock (ChatSidebar) has no error boundary: a render throw in chat still unmounts the whole cockpit, portfolio panels included, even though each dockview panel is now guarded",
+    "repro": "Scratch vitest in a git-archive copy of 81fbfe91 (not committed): ChatSidebar mocked to throw, root = createRoot(host); render <AgentDock><Guarded/></AgentDock> where Guarded = withPanelErrorBoundaries({p: () => <div>portfolio panel</div>}).p. After act: THROWN: Error: chat render boom; host.innerHTML === \"\" (the guarded portfolio panel is gone). Code: src/app/page.tsx:273-275 (AgentDock wraps PanelHost), src/components/AgentDock.tsx:117 (<ChatSidebar /> with no boundary); the only boundary in src is PanelHost's PanelErrorBoundary.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-3.md",
+    "suspected_files": ["src/components/AgentDock.tsx", "src/app/page.tsx"]
+  }
+]

@@ -1,0 +1,34 @@
+# R15-UI-046 probe: sidecar list + frontend filter in source
+["__autosave__","b6ro","b6ws"]
+750:export async function listWorkspaces(): Promise<string[]> {
+751-  const response = await fetch(await workspaceUrl());
+752-  if (!response.ok) {
+753-    throw await sidecarFailure("Could not list workspaces", response);
+754-  }
+755-  let names: string[];
+756-  try {
+757-    names = (await response.json()) as string[];
+758-  } catch {
+759-    throw new WorkspaceError("Could not parse the workspace list response (malformed JSON).");
+760-  }
+761-  // The reserved slots (`__autosave__`) are internal, never a user workspace.
+762-  return names.filter((name) => !isReservedLayoutName(name));
+763-}
+764-
+src/lib/workspace.ts:46:import { AUTOSAVE_LAYOUT_NAME, isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
+src/lib/workspace.ts:761:  // The reserved slots (`__autosave__`) are internal, never a user workspace.
+src/lib/workspace.ts:765:/** A user-chosen workspace name: non-empty, never a reserved `__` slot (R15-UI-046). */
+src/lib/workspace.ts:772:    throw new WorkspaceError(`Names starting with "__" are reserved; choose another name.`);
+src/lib/workspace.ts:1046:    const response = await fetch(await workspaceUrl(AUTOSAVE_LAYOUT_NAME));
+src/lib/workspace.ts:1056:      // The reserved slot's name is internal — present the restored cockpit
+src/lib/workspace.ts:1096:const AUTOSAVE_DEBOUNCE_MS = 500;
+src/lib/workspace.ts:1105:const AUTOSAVE_FAILURES_BEFORE_BADGE = 3;
+src/lib/workspace.ts:1108: * Schedule a save of the current cockpit to the reserved autosave slot. A
+src/lib/workspace.ts:1125:  }, AUTOSAVE_DEBOUNCE_MS);
+src/lib/workspace.ts:1151:    const payload = buildWorkspacePayload(AUTOSAVE_LAYOUT_NAME);
+src/lib/workspace.ts:1156:      body: JSON.stringify({ name: AUTOSAVE_LAYOUT_NAME, workspace: payload }),
+src/lib/workspace.ts:1169:    if (autosaveFailures >= AUTOSAVE_FAILURES_BEFORE_BADGE) {
+src/store/workspace.ts:23:export const AUTOSAVE_LAYOUT_NAME = "__autosave__";
+src/store/workspace.ts:27:  return name.startsWith("__");
+sidecar/services/workspace_store.py:44:# macOS/Windows/Linux (path separators + Windows-reserved punctuation).
+sidecar/services/workspace_store.py:65:    Path separators, Windows-reserved punctuation, control characters, NUL

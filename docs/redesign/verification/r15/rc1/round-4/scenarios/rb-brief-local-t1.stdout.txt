@@ -1,0 +1,26 @@
+
+=== ASSISTANT TEXT ===
+Built you a brief on MSFT — it's at the top of the cockpit; click any ticker to dig in.
+
+ Brief:
+Microsoft Corporation
+MICROSOFT CORP
+USD 516.17 (price)
+ USD 3.83T (market cap)
+28.74 (PE ratio)
+21.80 (forward PE)
+1.62 (PEG ratio)
+8.67 (Price-to-Book)
+11.55 (Price-to-Sales)
+20.00 (EV/EBITDA)
+59.57 (book value)
+0.0076 (dividend yield)
+ USD 3.92 (dividend per share)
+17.96 (EPS)
+1.11 (beta)
+553.72 (52 week high)
+349.2 (52 week low)
+
+The brief reflects the real data gathered from various tools and sources, including yfinance and derived. The terminal's data does not include information about the listing date for Microsoft Corporation.
+
+=== ok · 72.7s · events {'heartbeat': 5, 'tool_use': 2, 'research_step': 15, 'tool_result': 1, 'delta': 194, 'done': 1} · usage in=5968 out=194 · est $0.00000 · llama3.1:8b

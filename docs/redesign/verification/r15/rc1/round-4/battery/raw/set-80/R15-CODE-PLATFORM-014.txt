@@ -1,0 +1,31 @@
+COMMAND (source re-trace, candidate sha 1006c6da; no GUI/live drive available for a Tauri
+keychain round-trip in this headless sidecar-only lane): traced the exact register repro's call
+chain from marketplace.configure() through to plugin-runtime's state machine.
+
+src/store/marketplace.ts:200-233 (configure(), the exact "save a key for an already-active
+plugin" path the register named): after writing the secret + updateConfig, it now calls
+  await runtime.reloadPlugin(row.discovered);
+(previously it called runtime.enablePlugin(row.discovered), which the register's fix identified
+as the no-op culprit; enablePlugin still exists and is used ONLY by the separate first-time
+enable() action at marketplace.ts:151-163, not by configure()).
+
+src/lib/plugin-runtime.ts:319-322:
+  async reloadPlugin(plugin) {
+    await this.unloadPlugin(plugin.manifest.id);   // active -> stopped, deregisters
+    return this.loadPlugin(plugin);                // re-enters loadPlugin from `stopped`
+  }
+
+src/lib/plugin-runtime.ts:213-218 (the bug's exact site): loadPlugin() early-returns ONLY when
+record.state is "active" or "initializing". Since unloadPlugin() (called first by reloadPlugin)
+transitions the record to "stopped" before loadPlugin() runs, the early-return guard no longer
+fires, so loadPlugin's initialize(config) call (line 277, WITH the freshly-resolved
+secrets from this.context.resolveSecrets(persisted.grantedSecretIds), line 261) executes for
+real on every configure().
+
+VERDICT: holds.
+The exact no-op path the register named (configure -> enablePlugin -> patchConfig -> loadPlugin
+early-return on state==="active") is gone: configure() now routes through reloadPlugin's
+unload-then-load, which mechanically cannot hit the early-return guard, so initialize() reruns
+with the new PluginConfig.secrets every time. Verified by tracing concrete state transitions in
+the current source, not by reading a diff against the certifying commit; a live GUI keychain
+round-trip was not re-driven (headless sidecar-only lane, no GUI per lead note).

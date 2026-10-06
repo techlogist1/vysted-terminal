@@ -1,0 +1,61 @@
+R15-CODE-DATA-006: ci_pinned check — heavy lane owns vitest execution; this shard confirms the pinned test exists and targets the entry's invariant.
+CMD: grep -n "R15-CODE-DATA-006" src/store/screener.test.ts
+310:    it("R15-CODE-DATA-006: run A's late unary fallback does not touch run B's result or status", async () => {
+
+Test body (context):
+      // B completes successfully; A's cleanup did NOT clobber B's result.
+      expect(useScreenerStore.getState().status).toBe("ready");
+      expect(useScreenerStore.getState().lastResult).toEqual(RESULT_SAMPLE);
+    }, 10000);
+
+    it("R15-CODE-DATA-006: run A's late unary fallback does not touch run B's result or status", async () => {
+      const RESULT_A: ScreenerResult = { ...RESULT_SAMPLE, universe: "nifty50", rows: [] };
+      let resolveUnaryA!: (r: Response) => void;
+      const unaryA = new Promise<Response>((r) => {
+        resolveUnaryA = r;
+      });
+      let calls = 0;
+      vi.spyOn(globalThis, "fetch").mockImplementation(async () => {
+        calls++;
+        if (calls === 1) return new Response(null, { status: 404 }); // A: older sidecar
+        if (calls === 2) return unaryA; // A: unary fallback, answered late
+        return makeStreamResponse(RESULT_SAMPLE); // B
+      });
+
+      const runA = useScreenerStore.getState().runScreener();
+      await vi.waitFor(() => expect(calls).toBe(2));
+      await useScreenerStore.getState().runScreener();
+      resolveUnaryA(
+        new Response(JSON.stringify(RESULT_A), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+      expect(await runA).toBeNull();
+      expect(useScreenerStore.getState().lastResult).toEqual(RESULT_SAMPLE);
+      expect(useScreenerStore.getState().status).toBe("ready");
+    });
+
+    it("R15-UI-056: the stream's error frame puts the server's reason in store.error", async () => {
+      const frames = [
+        { event: "progress", phase: "universe", done: 0, total: 1, detail: "resolving" },
+        { event: "error", message: "missing universe snapshot 'nifty50.json'" },
+      ];
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          for (const f of frames)
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(f)}\n\n`));
+          controller.close();
+        },
+      });
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(stream, { status: 200, headers: { "Content-Type": "text/event-stream" } }),
+      );
+
+      expect(await useScreenerStore.getState().runScreener()).toBeNull();
+      const state = useScreenerStore.getState();
+      expect(state.status).toBe("error");
+      expect(state.error).toBe("missing universe snapshot 'nifty50.json'");
+      expect(state.progress).toBeNull();

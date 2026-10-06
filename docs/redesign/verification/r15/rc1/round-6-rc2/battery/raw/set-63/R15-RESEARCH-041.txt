@@ -1,0 +1,23 @@
+CMD: git grep the RESEARCH-041 pin at candidate
+src/lib/host-actions.test.ts:590:    // R15-RESEARCH-041: structured pulls and exchange-filing rows are cited
+src/lib/host-actions.test.ts-591-    // sources but not the web, so the structured-only banner can fire.
+src/lib/host-actions.test.ts-592-    useBriefStore.getState().clearBrief();
+src/lib/host-actions.test.ts-593-    const input = {
+src/lib/host-actions.test.ts-594-      query: "BDL outlook",
+src/lib/host-actions.test.ts-595-      symbol: "BDL",
+src/lib/host-actions.test.ts-596-      mode: "deep",
+src/lib/host-actions.test.ts-597-      markdown: "## Brief\nPrice [1], filing [2].",
+src/lib/host-actions.test.ts-598-      sources: [
+src/lib/host-actions.test.ts-599-        { url: "vysted://price/BDL", title: "Price for BDL", domain: "yfinance" },
+src/lib/host-actions.test.ts-600-        {
+src/lib/host-actions.test.ts-601-          url: "https://nsearchives.nseindia.com/corporate/BDL_18092026111355_BDL_SE_JS_DIP_Cov-1.pdf",
+src/lib/host-actions.test.ts-602-          title: "Appointment of a Non-Executive Director",
+src/lib/host-actions.test.ts-603-          domain: "NSE",
+src/lib/host-actions.test.ts-604-          source_type: "filing",
+src/lib/host-actions.test.ts-605-        },
+src/lib/host-actions.test.ts-606-      ],
+
+src/lib/host-actions.ts:191: *  the web (R15-RESEARCH-041). Mirrors the sidecar's `is_web_search_source`. */
+src/lib/host-actions.ts:207: * web-search sources (WS3, R15-RESEARCH-041): a brief that cited a web source is
+src/lib/host-actions.ts:295:  // exchange filings never count (R15-RESEARCH-041), and an omitted flag never
+src/lib/host-actions.ts:1016:        // alone do not count as web (R15-RESEARCH-041).

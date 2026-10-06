@@ -1,0 +1,17 @@
+=== R15-CODE-PLATFORM-012 plugin toggle off/on persist ===
+{"plugin_id":"vysted-example","enabled":false,"installed":true,"settings":{},"granted_secret_ids":[]}
+[{'plugin_id': 'vysted-example', 'enabled': False, 'installed': True, 'settings': {}, 'granted_secret_ids': []}]
+-- restore --
+{"plugin_id":"vysted-example","enabled":true,"installed":true,"settings":{},"granted_secret_ids":[]}
+=== R15-UI-082 workspace name edge cases ===
+-- ASCII long name (234 chars), expect 400 with reason --
+HTTP 400
+{"detail":"Workspace name 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' is too long to save."}
+-- Devanagari name, 33 chars, expect the byte-length residual --
+HTTP 400
+{"detail":"Workspace name 'मेरा लेआउट परीक्षण नाम राउंड तीन यह' is too long to save."}
+-- short Devanagari name (2 words), expect ok --
+HTTP 200
+{"status":"saved","name":"मेरा लेआउट"}
+-- cleanup short devanagari save --
+DELETE HTTP 204

@@ -1,0 +1,2 @@
+=== live /search/searxng/status probe (upstream engine block, environment) ===
+{"state":"degraded","detail":"SearXNG is running but its search engines are blocked","reason":"brave: Suspended: too many requests; duckduckgo: CAPTCHA; startpage: Suspended: CAPTCHA","port":8888,"url":null,"container":"running","container_name":"vysted-searxng","image":"searxng/searxng","docker":{"cli_present":true,"daemon_running":true,"runtime":"Docker Engine - Community"}}

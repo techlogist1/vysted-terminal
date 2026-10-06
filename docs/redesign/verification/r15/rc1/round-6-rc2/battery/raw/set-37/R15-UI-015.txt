@@ -1,0 +1,18 @@
+# R15-UI-015
+$ curl /macro/DGS10?provider=fred
+{"detail":"FRED needs a free API key for macro data. Get one at fred.stlouisfed.org (API Keys), add it to Vysted as your FRED key, and reload — or switch the series provider to ECB, IMF, or World Bank, which need no key.","code":"provider_error","action":"Retry, or try again later."} HTTP 502
+
+--- source / pinned tests
+src/components/SettingsPanel.tsx
+src/lib/market-session.ts
+src/lib/brief-claims.ts
+src/lib/sidecar-client.test.ts
+src/lib/dev-mcp-bridge.ts
+src/lib/brief-ingest.ts
+src/lib/workspace.test.ts
+src/lib/use-sidecar-retry.ts
+src/lib/menu-bridge.ts
+src/lib/host-actions.ts
+26:  it("settles after one attempt when the engine answered (a keyless 502)", async () => {
+30:  it("retries a raw fetch failure (the engine is not up yet)", async () => {
+34:  it("retries an unreachable engine (SidecarError 0) and a not-ready one (503)", async () => {

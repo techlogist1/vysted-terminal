@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from datetime import date
+from pathlib import Path
 from typing import Any
 
 import pytest
 
+from config import DATA_DIR_ENV
 from models.sec import (
     Filing,
     FilingDetail,
@@ -15,7 +18,7 @@ from models.sec import (
     InsiderTransaction,
     InsiderTransactionsResponse,
 )
-from services import agent_tools, sec_filings_provider
+from services import agent_tools, data_cache, mcp_client, sec_filings_provider
 from services.agent_tools import sec_tools
 
 
@@ -108,7 +111,9 @@ async def test_sec_filing_content(
         total_chars=sum(len(s.text) for s in sections),
     )
 
-    async def _fake(accession: str, *, cik_or_symbol: str | None = None) -> FilingDetail:
+    async def _fake(
+        accession: str, *, cik_or_symbol: str | None = None, form_type: str | None = None
+    ) -> FilingDetail:
         return fixture
 
     monkeypatch.setattr(sec_filings_provider, "get_filing", _fake)
@@ -119,6 +124,58 @@ async def test_sec_filing_content(
     assert result["ok"] is True
     assert result["filing"]["filing"]["form_type"] == "10-K"
     assert len(result["filing"]["sections"]) == 3
+
+
+class _StubMcpClient:
+    """A minimal fake MCP client answering the three tools ``get_filing``
+    needs, so the tool test exercises the real provider (R15-DATA-038)."""
+
+    async def call_tool(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        if name == "get_recent_filings":
+            body: Any = {
+                "filings": [
+                    {
+                        "accession": "0000320193-24-000100",
+                        "form": "10-Q",
+                        "filed_date": "2024-08-02",
+                        "cik": "320193",
+                    }
+                ]
+            }
+        elif name == "get_filing_sections":
+            body = {"sections": {"has_financials": True}, "available_sections": []}
+        elif name == "get_filing_content":
+            body = {"content": "Item 1. Financial Statements... " * 50}
+        else:
+            raise AssertionError(f"unexpected tool: {name!r}")
+        return {"isError": False, "content": [{"type": "text", "text": json.dumps(body)}]}
+
+
+@pytest.mark.asyncio
+async def test_sec_filing_content_reads_a_10q_with_no_parsed_sections(
+    available_provider: None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """R15-DATA-038, through the tool: sec-edgar-mcp's ``get_filing_sections``
+    parsed this 10-Q to zero sections; ``sec_filing_content`` still comes back
+    ``ok`` with non-empty text, from the raw ``get_filing_content`` fallback."""
+    monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
+    data_cache.reset_for_tests(tmp_path / "test_cache.db")
+
+    async def _fake_get_client(
+        server_id: str, *, transport: str, endpoint: str | None = None, **_: Any
+    ) -> _StubMcpClient:
+        return _StubMcpClient()
+
+    monkeypatch.setattr(mcp_client, "get_client", _fake_get_client)
+
+    result = await agent_tools.invoke_tool(
+        "sec_filing_content",
+        {"accession": "0000320193-24-000100", "identifier": "AAPL"},
+    )
+    assert result["ok"] is True
+    assert result["filing"]["sections"][0]["title"] == "Filing Content"
+    assert result["filing"]["total_chars"] > 0
+    data_cache.reset_for_tests(None)
 
 
 @pytest.mark.asyncio
@@ -165,6 +222,43 @@ async def test_sec_insider_transactions(
     assert result["ok"] is True
     assert len(result["transactions"]["transactions"]) == 1
     assert result["transactions"]["transactions"][0]["direction"] == "disposed"
+
+
+@pytest.mark.asyncio
+async def test_limit_is_clamped_both_ways(
+    available_provider: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-CODE-AGENT-015: sec_filings_list/sec_insider_transactions used to
+    pass an unclamped model-supplied limit (100000, -1) straight to the
+    provider while every sibling tool clamps."""
+    seen_limits: dict[str, int] = {}
+
+    async def _fake_list_filings(identifier: str, **kwargs: Any) -> FilingsListResponse:
+        seen_limits["filings"] = kwargs["limit"]
+        return FilingsListResponse(cik="0000320193", company_name="Apple Inc.", filings=[])
+
+    async def _fake_list_insider(
+        identifier: str, form_type: Any = None, limit: int = 30
+    ) -> InsiderTransactionsResponse:
+        seen_limits["insider"] = limit
+        return InsiderTransactionsResponse(
+            cik="0000320193", issuer_name="Apple Inc.", transactions=[]
+        )
+
+    monkeypatch.setattr(sec_filings_provider, "list_filings", _fake_list_filings)
+    monkeypatch.setattr(sec_filings_provider, "list_insider_transactions", _fake_list_insider)
+
+    await agent_tools.invoke_tool("sec_filings_list", {"symbol": "AAPL", "limit": 100000})
+    assert seen_limits["filings"] == 100
+
+    await agent_tools.invoke_tool("sec_filings_list", {"symbol": "AAPL", "limit": -1})
+    assert seen_limits["filings"] == 1
+
+    await agent_tools.invoke_tool("sec_insider_transactions", {"symbol": "AAPL", "limit": 100000})
+    assert seen_limits["insider"] == 100
+
+    await agent_tools.invoke_tool("sec_insider_transactions", {"symbol": "AAPL", "limit": -1})
+    assert seen_limits["insider"] == 1
 
 
 def test_tool_ids_have_no_execution_substrings() -> None:

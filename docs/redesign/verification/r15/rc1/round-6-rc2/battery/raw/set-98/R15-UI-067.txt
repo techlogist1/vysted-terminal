@@ -1,0 +1,7 @@
+$ grep pinned test at candidate
+36:  it("states synthetic in visible text without a prefix, never colour alone (R15-UI-067)", () => {
+73:  it("dates EOD in the viewer's local calendar across IST midnight (R15-UI-067)", () => {
+6: * cached / structured-only / synthetic read for a live one. They are generic
+10: *    with an optional `synthetic` flag that re-colours it as a caution.
+31: * Provider-origin badge. Reads `<provider>` normally; a `synthetic` value is
+39:  synthetic = false,

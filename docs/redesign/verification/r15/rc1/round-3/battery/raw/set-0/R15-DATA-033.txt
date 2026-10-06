@@ -1,0 +1,2 @@
+validate_series raised (fix confirmed): CorrectnessError - correctness gate: non-positive last close nan for 'TEST' from 'test'
+validate_quote raised (fix confirmed): CorrectnessError - correctness gate: non-positive price nan for 'TEST' from 'test'

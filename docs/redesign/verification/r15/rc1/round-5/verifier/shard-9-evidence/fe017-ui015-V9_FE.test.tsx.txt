@@ -1,0 +1,110 @@
+import { renderHook } from "@testing-library/react";
+import { act } from "react";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+
+vi.mock("@/lib/sidecar-client", async () => {
+  class SidecarError extends Error {
+    constructor(public readonly status: number, message: string) { super(message); this.name = "SidecarError"; }
+  }
+  return { getSidecarBaseUrl: vi.fn().mockResolvedValue("http://x"), sidecarGet: vi.fn(), SidecarError };
+});
+import { sidecarGet, SidecarError } from "@/lib/sidecar-client";
+import { useSecStore } from "./sec";
+import { useEarningsStore } from "./earnings";
+import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
+
+function deferred<T>() { let res!: (v: T) => void; let rej!: (e: unknown) => void; const p = new Promise<T>((a, b) => { res = a; rej = b; }); return { p, res, rej }; }
+const flush = () => new Promise((r) => setTimeout(r, 0));
+const S = () => useSecStore.getState();
+const log = (k: string, v: unknown) => console.log(`V9 ${k} => ${JSON.stringify(v)}`);
+
+beforeEach(() => { vi.mocked(sidecarGet).mockReset(); S().__resetForTests(); });
+
+describe("FE-017", () => {
+  it("P1 filings: late AAPL success then late AAPL error after MSFT ready", async () => {
+    const a = deferred<unknown>(); const m = deferred<unknown>();
+    vi.mocked(sidecarGet).mockReturnValueOnce(a.p as never).mockReturnValueOnce(m.p as never);
+    S().setActiveIdentifier("AAPL"); const pa = S().loadFilings("AAPL");
+    S().setActiveIdentifier("MSFT"); const pm = S().loadFilings("MSFT");
+    m.res({ cik: "1", company_name: "MSFT", symbol: "MSFT", filings: [] }); await pm;
+    a.rej(new Error("late aapl")); await pa; await flush();
+    log("P1", { active: S().activeIdentifier, status: S().filingsStatus, err: S().filingsError });
+    expect(S().activeIdentifier).toBe("MSFT"); expect(S().filingsStatus).toBe("ready"); expect(S().filingsError).toBeNull();
+  });
+  it("acc1-3 detail: late A-1 success/reject after B-2", async () => {
+    const a = deferred<unknown>(); const b = deferred<unknown>();
+    vi.mocked(sidecarGet).mockReturnValueOnce(a.p as never).mockReturnValueOnce(b.p as never);
+    S().setActiveAccession("A-1"); const pa = S().loadFilingDetail("A-1", "AAPL");
+    S().setActiveAccession("B-2"); const pb = S().loadFilingDetail("B-2", "AAPL");
+    b.res({ filing: {}, sections: [], total_chars: 0 }); await pb;
+    a.res({ filing: {}, sections: [], total_chars: 0 }); await pa;
+    log("acc1", { active: S().activeAccession, status: S().filingDetailStatus });
+    expect(S().activeAccession).toBe("B-2"); expect(S().filingDetailStatus).toBe("ready");
+    // acc3: late reject
+    const c = deferred<unknown>(); const d = deferred<unknown>();
+    vi.mocked(sidecarGet).mockReturnValueOnce(c.p as never).mockReturnValueOnce(d.p as never);
+    const pc = S().loadFilingDetail("C-3", "AAPL"); const pd = S().loadFilingDetail("D-4", "AAPL");
+    d.res({ filing: {}, sections: [], total_chars: 0 }); await pd; c.rej(new Error("late")); await pc;
+    log("acc3", { status: S().filingDetailStatus, err: S().filingDetailError });
+    expect(S().filingDetailError).toBeNull();
+  });
+  it("acc2 detail after setActiveAccession(null) stays null", async () => {
+    const a = deferred<unknown>(); vi.mocked(sidecarGet).mockReturnValueOnce(a.p as never);
+    S().setActiveAccession("A-1"); const pa = S().loadFilingDetail("A-1", "AAPL"); S().setActiveAccession(null);
+    a.res({ filing: {}, sections: [], total_chars: 0 }); await pa;
+    log("acc2", S().activeAccession); expect(S().activeAccession).toBeNull();
+  });
+  it("acc4 insider late AAPL reject after MSFT ready", async () => {
+    const a = deferred<unknown>(); const m = deferred<unknown>();
+    vi.mocked(sidecarGet).mockReturnValueOnce(a.p as never).mockReturnValueOnce(m.p as never);
+    const pa = S().loadInsider("AAPL"); const pm = S().loadInsider("MSFT");
+    m.res({ cik: "1", issuer_name: "M", transactions: [] }); await pm; a.rej(new Error("late")); await pa;
+    log("acc4", { status: S().insiderStatus, err: S().insiderError });
+    expect(S().insiderStatus).toBe("ready"); expect(S().insiderError).toBeNull();
+  });
+  it("FRESH detail: late A success after newer B error keeps B's error", async () => {
+    const a = deferred<unknown>(); const b = deferred<unknown>();
+    vi.mocked(sidecarGet).mockReturnValueOnce(a.p as never).mockReturnValueOnce(b.p as never);
+    const pa = S().loadFilingDetail("A-1", "AAPL"); const pb = S().loadFilingDetail("B-2", "AAPL");
+    b.rej(new Error("B failed")); await pb; a.res({ filing: {}, sections: [], total_chars: 0 }); await pa;
+    log("fresh-detail", { status: S().filingDetailStatus, err: S().filingDetailError });
+    expect(S().filingDetailStatus).toBe("error"); expect(S().filingDetailError).toBe("B failed");
+  });
+  it("FRESH earnings: late 7-day success and late 7-day reject after 30-day", async () => {
+    const s7 = deferred<unknown>(); const s30 = deferred<unknown>();
+    vi.mocked(sidecarGet).mockReturnValueOnce(s7.p as never).mockReturnValueOnce(s30.p as never);
+    const E = () => useEarningsStore.getState();
+    const p7 = E().loadUpcoming(7); const p30 = E().loadUpcoming(30);
+    s30.res({ days: 30, events: [] }); await p30; s7.res({ days: 7, events: [] }); await p7;
+    log("earn", { upcoming: E().upcoming, status: E().upcomingStatus, lastDays: E().lastDays });
+    expect((E().upcoming as { days: number }).days).toBe(30);
+    const r7 = deferred<unknown>(); const r30 = deferred<unknown>();
+    vi.mocked(sidecarGet).mockReturnValueOnce(r7.p as never).mockReturnValueOnce(r30.p as never);
+    const q7 = E().loadUpcoming(7); const q30 = E().loadUpcoming(30);
+    r30.res({ days: 30, events: [] }); await q30; r7.rej(new Error("late 7")); await q7;
+    log("earn-rej", { status: E().upcomingStatus, err: E().upcomingError });
+    expect(E().upcomingStatus).toBe("ready");
+  });
+});
+
+describe("UI-015", () => {
+  it("search keeps the 501 reason", async () => {
+    vi.mocked(sidecarGet).mockRejectedValueOnce(new SidecarError(501, "sec-edgar-mcp is not available"));
+    await S().searchCompanies("apple");
+    log("search501", { status: S().searchStatus, err: S().searchError });
+    expect(S().searchError).toContain("sec-edgar-mcp is not available");
+  });
+  it("RESIDUAL: clearSearch then a late rejection for the cleared query", async () => {
+    const a = deferred<unknown>(); vi.mocked(sidecarGet).mockReturnValueOnce(a.p as never);
+    const pa = S().searchCompanies("Apple"); S().clearSearch();
+    a.rej(new SidecarError(501, "sec-edgar-mcp is not available")); await pa;
+    log("clear-race", { status: S().searchStatus, err: S().searchError });
+  });
+  it("hook: attempts per error class", async () => {
+    vi.useFakeTimers();
+    const attempts = async (e: unknown) => { const load = vi.fn(() => Promise.reject(e)); const h = renderHook(() => useRetryOnSidecarReady(load, [])); await act(async () => { await vi.advanceTimersByTimeAsync(60_000); }); h.unmount(); return load.mock.calls.length; };
+    const r = { s502: await attempts(new SidecarError(502, "FRED")), s404: await attempts(new SidecarError(404, "nf")), s422: await attempts(new SidecarError(422, "bad")), s503: await attempts(new SidecarError(503, "nr")), typeErr: await attempts(new TypeError("Failed to fetch")) };
+    log("hook", r); vi.useRealTimers();
+    expect(r.s502).toBe(1); expect(r.s404).toBe(1); expect(r.s422).toBe(1); expect(r.s503).toBeGreaterThan(1); expect(r.typeErr).toBeGreaterThan(1);
+  });
+});

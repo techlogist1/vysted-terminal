@@ -1,0 +1,4 @@
+# R15-CODE-FRONTEND-021 at ace7dd76 (pinned test existence + source check; vitest not run, heavy lane owns)
+$ grep -n -F 'R15-CODE-FRONTEND-021' src/modules/chat/ChatSidebar.test.tsx
+580:  it("ContextBadge hidden with no bus events, shown with one panel event (asserted on kind) (R15-CODE-FRONTEND-021)", () => {
+exit=0

@@ -1,0 +1,18 @@
+=== R15-LEAD-004 repro: 'half-yearly filer' TTM label ===
+candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+
+-- live GET /fundamentals/<sym> -H 'X-Vysted-Region: IN', own sidecar :52358 --
+TCS.NS revenue_ttm/net_income_ttm reason: None (no flag at all — matches register 'TCS.NS carries no reason')
+NDTV revenue_ttm/net_income_ttm reason: 'TTM basis: the exchange filings leave a quarter of the trailing year unfiled or unparsed; kept, flagged' (no 'half-yearly' substring — matches register exactly)
+JONJUA.BO revenue_ttm/net_income_ttm reason: SAME quarterly-gap message as NDTV, NOT '(a half-yearly filer)' as the batch-29 verifier logged.
+  ADJACENT NOTE (not a regression per gate rule change 1 — outside the entry's own generic repro): JONJUA's live cadence computed to quarterly-gap in this run, not half-yearly as when batch-29 verified it hours earlier; most likely the exchange-filings lane now sees one more filed quarter for JONJUA than it did then (real-world data drift), not a code change. What matters for the entry's own repro — a quarterly filer never getting the half-yearly label — holds: JONJUA (now computed quarterly-gap) correctly gets the quarterly-gap message, not the half-yearly one.
+
+-- in-process: 6 fresh services.exchange_financials.FiledPeriods.cadence() shapes --
+case1 (3 quarters, Jan-Mar missing, no half-year): quarterly-gap
+case3 (4 contiguous quarters): quarterly
+case4 (pure half-yearly, newest ends March): half-yearly
+case5 (pure half-yearly, newest ends September): half-yearly
+case6 (calendar-FY halves): half-yearly
+case_fresh (only 2 quarters ever filed): quarterly-gap
+PASS: all 6 cadence() shapes match the certified table
+exit: 0

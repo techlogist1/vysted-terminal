@@ -1,0 +1,8 @@
+CMD: grep for committed pinned tests naming R15-AGENT-057.
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+57:  it("updates an already-registered agent via PUT on a 409 so a revised spec replaces it (R15-AGENT-057)", async () => {
+71:  it("a rejected registration (422) marks the plugin errored with the reason (R15-AGENT-057)", async () => {
+67:        if (response.status === 409) {
+76:        if (response.status === 404) continue;
+78:      if (!response.ok) {
+VERDICT: ci_pinned

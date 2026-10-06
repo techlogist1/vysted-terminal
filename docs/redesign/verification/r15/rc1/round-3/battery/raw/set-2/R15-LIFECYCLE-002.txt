@@ -1,0 +1,203 @@
+=== R15-LIFECYCLE-002: unknown-component-skip guard / restoreLastSessionOrDefault ===
+859: * so one unknown component would throw and half-mutate the grid; stripping it
+944:export async function restoreLastSessionOrDefault(
+interface SerializedGroup {
+  views: string[];
+  activeView?: string;
+}
+
+/**
+ * The layout with every panel whose component is not registered removed — a
+ * panel dropped from the product, or a plugin panel that registers after
+ * `handleReady`. dockview instantiates panel content eagerly during `fromJSON`,
+ * so one unknown component would throw and half-mutate the grid; stripping it
+ * restores the rest of the cockpit instead of abandoning it. Groups the strip
+ * empties are pruned. Returns `null` when the shape is unreadable or no panel
+ * survives, so the caller falls back to the default layout.
+ */
+function stripUnknownPanels(layout: SerializedDockview): SerializedDockview | null {
+  const panels = (layout as { panels?: Record<string, { contentComponent?: string }> }).panels;
+  const root = (layout as { grid?: SerializedDockview["grid"] }).grid?.root;
+  if (!panels || typeof panels !== "object" || !root) {
+    return null;
+  }
+  const known = new Set(Object.keys(collectPanelComponents(useModulesStore.getState().modules)));
+  const unknown = new Set(
+    Object.entries(panels)
+      .filter(
+        ([, panel]) => panel?.contentComponent !== undefined && !known.has(panel.contentComponent),
+      )
+      .map(([id]) => id),
+  );
+  if (unknown.size === 0) {
+    return layout;
+  }
+  if (unknown.size === Object.keys(panels).length) {
+    return null;
+  }
+  const keep = (id: string) => !unknown.has(id);
+  // A group the strip empties is dropped; a group that was already empty stays.
+  const strip = <G extends SerializedGroup>(group: G): G | null => {
+    const views = group.views.filter(keep);
+    if (views.length === 0 && group.views.length > 0) {
+      return null;
+    }
+    const activeView =
+      group.activeView !== undefined && keep(group.activeView) ? group.activeView : views[0];
+    return { ...group, views, activeView };
+  };
+  type GridNode = SerializedGridObject<SerializedGroup>;
+  const prune = (node: GridNode): GridNode | null => {
+    if (node.type === "leaf") {
+      const data = strip(node.data as SerializedGroup);
+      return data ? { ...node, data } : null;
+    }
+    const children = (node.data as GridNode[])
+      .map(prune)
+      .filter((child): child is GridNode => child !== null);
+    return children.length > 0 ? { ...node, data: children } : null;
+  };
+  // The maximized node is addressed by its tree location, which pruning moves.
+  const { maximizedNode: _maximized, ...grid } = layout.grid as SerializedDockview["grid"] & {
+    maximizedNode?: unknown;
+  };
+  const prunedRoot = prune(root as GridNode) ?? { ...root, data: [] };
+  return {
+    ...layout,
+    grid: { ...grid, root: prunedRoot as SerializedDockview["grid"]["root"] },
+    panels: Object.fromEntries(Object.entries(layout.panels).filter(([id]) => keep(id))),
+    ...(layout.floatingGroups
+      ? {
+          floatingGroups: layout.floatingGroups.flatMap((floating) => {
+            const data = strip(floating.data);
+            return data ? [{ ...floating, data }] : [];
+          }),
+        }
+      : {}),
+  };
+}
+
+/**
+ * Restore the auto-saved "last session" cockpit if one exists, else apply the
+ * bundled default layout. Called once on launch from PanelHost; this is what
+ * makes a customised cockpit survive a relaunch (Track C). Never throws — a
+ * failed restore falls back to the default so the app always boots usable.
+ * The saved data slices (holdings, watchlist, notes, …) are restored even when
+ * the saved layout is not, so the next autosave never overwrites them with
+ * defaults. Returns true when the saved layout was restored.
+ *
+ * Autosave is a no-op until this settles (R15-LIFECYCLE-003): every slice the
+ * restore writes fires its autosave trigger, and a save mid-restore would
+ * persist a half-restored blob.
+ *
+ * The fetch below awaits a Tauri IPC + localhost round-trip. Under
+ * StrictMode/HMR the dockview api can be disposed and replaced while we wait,
+ * so re-check that THIS api is still the live one before every mutation —
+ * touching a disposed api throws `element.parentElement is null`.
+ */
+export async function restoreLastSessionOrDefault(
+  api: DockviewApi,
+  enabledPanelIds: Set<string>,
+): Promise<boolean> {
+  const isLive = () => useWorkspaceStore.getState().dockviewApi === api;
+  let imported = false;
+  try {
+    const session = await restoreSession(api, enabledPanelIds, isLive);
+    imported = session.imported;
+    return session.layoutRestored;
+  } finally {
+    // A replaced api's restore is superseded by the live api's own restore,
+    // which settles the gate when it finishes.
+    if (isLive()) {
+      restoreSettled = true;
+      // The legacy import landed under the gate: save it now, so the blob
+      // carries `portfolios` and the next launch does not import again.
+      if (imported) {
+        autosaveLayout();
+      }
+    }
+  }
+}
+
+async function restoreSession(
+  api: DockviewApi,
+  enabledPanelIds: Set<string>,
+  isLive: () => boolean,
+): Promise<{ layoutRestored: boolean; imported: boolean }> {
+  const superseded = { layoutRestored: false, imported: false };
+  let saved: SerializedWorkspace | null = null;
+  let layoutRestored = false;
+  try {
+    const response = await fetch(await workspaceUrl(AUTOSAVE_LAYOUT_NAME));
+    if (!isLive()) {
+      return superseded; // api was disposed/replaced during the fetch
+    }
+    if (response.ok) {
+      saved = (await response.json()) as SerializedWorkspace;
+      if (!isLive()) {
+        return superseded;
+      }
+      layoutRestored = deserializeWorkspace(saved);
+      // The reserved slot's name is internal — present the restored cockpit
+      // under the neutral "default" name, not "__autosave__".
+      useWorkspaceStore.getState().setName("default");
+    }
+  } catch (error) {
+    // Restore failed — log (Track A discipline) then fall through to default.
+    console.warn("[workspace] session restore failed; using default layout.", error);
+  }
+  // Holdings lived in the sidecar's SQLite ledger until they moved into the
+  // blob (12862d3); a session that has never saved `portfolios` imports that
+  // ledger once (R15-LIFECYCLE-009).
+  const imported = saved && "portfolios" in saved ? false : await importLegacyPositions();
+  if (!isLive()) {
+    return superseded;
+    return superseded;
+  }
+  if (!layoutRestored) {
+    // No saved layout applied — re-base the fallback on a clean grid so a
+    // partial `fromJSON` can't leave a corrupt grid under `addPanel`.
+    api.clear();
+    applyDefaultLayout(api, enabledPanelIds);
+  }
+  return { layoutRestored, imported };
+}
+
+/** Seed the default portfolio from the legacy sidecar ledger; true when it held rows. */
+async function importLegacyPositions(): Promise<boolean> {
+  try {
+    const holdings = await fetchLegacyPositions();
+    if (holdings.length === 0) {
+      return false;
+    }
+    seedDefaultPortfolio(holdings);
+    return true;
+  } catch (error) {
+    console.warn("[workspace] could not read the legacy portfolio ledger.", error);
+    return false;
+  }
+}
+
+/** Trailing-edge window that coalesces a burst of changes into one autosave. */
+const AUTOSAVE_DEBOUNCE_MS = 500;
+
+/** False until the launch restore settles; autosave is a no-op before then. */
+let restoreSettled = false;
+--- deserializeWorkspace ---
+ * every {@link PERSISTED_SLICES} slice. Throws if the dockview layout has not
+ * mounted yet.
+ */
+export function serializeWorkspace(name: string): SerializedWorkspace {
+  return buildWorkspacePayload(name);
+}
+
+/**
+ * Apply the launch restore of the autosave slot: the user's global data first,
+ * then the per-workspace cockpit ({@link applyLayoutSlice}). Each slice
+ * restores independently and before the dockview layout, so neither a garbled
+ * slice nor a layout that cannot be restored costs the user the rest of their
+ * data (R15-LIFECYCLE-002). Returns false when no saved layout could be
+ * applied, so the caller can apply the default layout. Throws if the dockview
+ * layout has not mounted yet, or if `fromJSON` itself throws (every slice is
+ * already restored by then).
+ */

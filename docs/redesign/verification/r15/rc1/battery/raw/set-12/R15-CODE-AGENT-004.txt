@@ -1,0 +1,22 @@
+                                    else None
+                                ),
+                            )
+                            tool_call_index += 1
+                # Usage arrives on every chunk; the final value wins.
+                meta = getattr(response, "usage_metadata", None)
+                if meta is not None:
+                    # Gemini bills thinking and the tool-use prompt too
+                    # (R15-CODE-AGENT-004); each count may be None.
+                    usage = LLMUsage(
+                        input_tokens=(getattr(meta, "prompt_token_count", 0) or 0)
+                        + (getattr(meta, "tool_use_prompt_token_count", 0) or 0),
+                        output_tokens=(getattr(meta, "candidates_token_count", 0) or 0)
+                        + (getattr(meta, "thoughts_token_count", 0) or 0),
+                    )
+            if web_search:
+Traceback (most recent call last):
+  File "<string>", line 10, in <module>
+    from services.llm.base import LLMUsage
+ImportError: cannot import name 'LLMUsage' from 'services.llm.base' (/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/llm/base.py)
+computed output_tokens (should include thoughts): 6800
+breach: token ceiling 7000 reached (8000 used)

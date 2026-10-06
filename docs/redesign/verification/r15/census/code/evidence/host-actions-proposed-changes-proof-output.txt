@@ -1,0 +1,11 @@
+P1 {"general":"","bySymbol":{"GLOBAL":"hello"}}
+P2 Wrote the NVDA note {"NVDA":"new line"}
+P3 Saved the screen as "IT value" [{"name":"IT value","universe":"sp500","criteria":[{"field":"pe_ratio","operator":"lt","value":20},{"field":"market_cap","operator":"gt","value":100000000000},{"field":"sector","operator":"eq","value":"Technology"}],"group":null,"combinator":"and"}]
+P4 Wrote 1 screener criterion — running runScreener calls: 0
+P5 diff TCS: ×10 @ ₹3,000
+P5 after [["A",["h-a:10"]],["B",[]]]
+P5 fetch [["http://127.0.0.1:1/portfolio/positions","DELETE"],["http://127.0.0.1:1/agents/actions/ack","POST"]]
+P6 TCS: ×0 @ ₹3,100 | Updated TCS: ×10 @ ₹3,100
+P7 null | Focused Screener
+P7b close describe: Screener panel: not open
+P8 {"INFY":"x"}

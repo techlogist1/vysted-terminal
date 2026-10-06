@@ -1,0 +1,48 @@
+import { describe, expect, it, vi } from "vitest";
+import * as fs from "node:fs";
+const LOG = (...a: unknown[]) => fs.appendFileSync(process.env.G8_LOG as string, a.map((x) => (typeof x === "string" ? x : JSON.stringify(x))).join(" ") + "\n");
+const acks: unknown[] = [];
+vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn(async () => null) }));
+import * as HA from "@/lib/host-actions";
+import { useProposedChangesStore } from "@/store/proposed-changes";
+import { usePortfoliosStore } from "@/store/portfolios";
+import { useAgentAutonomyStore } from "@/store/agent-autonomy";
+
+const holdings = () => usePortfoliosStore.getState().portfolios[0].holdings;
+
+describe("gate8 human accept fails closed (verifier)", () => {
+  it("order-shaped and malformed writes never land; a valid one does", async () => {
+    vi.spyOn(HA, "ackHostAction").mockImplementation((...a: unknown[]) => { acks.push(a); });
+    usePortfoliosStore.setState({ portfolios: [{ id: "default", name: "Portfolio", holdings: [] }], activeId: "default" });
+    useAgentAutonomyStore.setState({ autonomy: "ask" } as never);
+    const cases: Array<[string, Record<string, unknown>]> = [
+      ["buy", { symbol: "RELIANCE.NS", quantity: 10 }],
+      ["sell", { symbol: "TCS.NS", quantity: 5 }],
+      ["place_trade", { symbol: "INFY.NS", side: "buy", quantity: 1 }],
+      ["paper_trade", { symbol: "AAPL", side: "buy", quantity: 1 }],
+      ["execute_trade", { symbol: "MSFT", side: "sell", quantity: 1 }],
+      ["market_order", { symbol: "NVDA", quantity: 3 }],
+      ["portfolio_add_position", { symbol: "INFY.NS", quantity: -5, cost_basis: 1500 }],
+      ["portfolio_add_position", { symbol: "", quantity: 5, cost_basis: 1500 }],
+      ["portfolio_delete_position", { symbol: "HDFCBANK.NS" }],
+      ["portfolio_update_position", { symbol: "WIPRO.NS", quantity: 3, cost_basis: 400 }],
+    ];
+    for (const [name, input] of cases) {
+      const mut = HA.isHostActionMutation(name);
+      const { id, outcome } = useProposedChangesStore.getState().enqueue({ toolCallId: `t-${name}-${Math.random()}`, name, input, batchId: "b", agentId: "copilot", agentName: "Copilot" } as never);
+      const staged = await outcome;
+      const accepted = await useProposedChangesStore.getState().accept(id);
+      const ch = useProposedChangesStore.getState().changes.find((c) => c.id === id)!;
+      LOG("CASE", name, input, "isHostActionMutation=", mut, "enqueue=", staged, "accept=", accepted, "after=", ch.status, ch.detail ?? "", "holdings=", holdings().length);
+      expect(accepted).toBe("failed");
+      expect(holdings()).toHaveLength(0);
+    }
+    const { id, outcome } = useProposedChangesStore.getState().enqueue({ toolCallId: "t-ok", name: "portfolio_add_position", input: { symbol: "INFY.NS", quantity: 5, cost_basis: 1500 }, batchId: "b", agentId: "copilot", agentName: "Copilot" } as never);
+    LOG("CONTROL enqueue=", await outcome, "holdings_before_accept=", holdings().length);
+    expect(holdings()).toHaveLength(0);
+    const acc = await useProposedChangesStore.getState().accept(id);
+    LOG("CONTROL accept=", acc, "holdings=", holdings());
+    expect(acc).toBe("applied");
+    expect(holdings()).toHaveLength(1);
+  });
+});

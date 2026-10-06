@@ -1,0 +1,18 @@
+RAW (candidate ace7dd76) ci_pinned-by-source-probe: own repro: grep importers of addPosition/updatePosition/deletePosition/refresh from @/store/portfolios
+head: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ grep -rnE 'addPosition|updatePosition|deletePosition' src | grep -v node_modules | head; echo; grep -n 'export' src/store/portfolios.ts | head -30
+src/modules/panel-context-publishers.test.tsx:95:  updatePosition: vi.fn(),
+src/modules/panel-context-publishers.test.tsx:96:  deletePosition: vi.fn(),
+src/store/portfolios.test.ts:7: * the agent's portfolio host actions alike (the dead addPosition/updatePosition/
+src/store/portfolios.test.ts:8: * deletePosition/refresh client was removed, R15-CODE-PLATFORM-022). A rejected
+
+20:export type AssetClass = "equity" | "crypto";
+23:export interface Holding {
+33:export interface Portfolio {
+40:export interface HoldingInput {
+70:export const MAX_HOLDING_QUANTITY = 1e12;
+72:export interface HoldingValidation {
+87:export function validateHolding(raw: {
+179:export const usePortfoliosStore = create<PortfoliosState>((set, get) => ({
+283:export function seedDefaultPortfolio(holdings: HoldingInput[]): void {
+exit=0

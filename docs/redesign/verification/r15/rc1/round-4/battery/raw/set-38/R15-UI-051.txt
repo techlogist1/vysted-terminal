@@ -1,0 +1,23 @@
+=== UI-051: BondPricerPanel.tsx currency lines ===
+38: * Display-currency options (R15-DATA-100). Purely a DISPLAY label — the
+39: * pricing arithmetic doesn't depend on currency (there's no day-count or
+123:  // R15-DATA-100: display currency, defaulting to the session region's — an
+124:  // India-first terminal must not hard-prefix "$" on every price. Frontend
+125:  // display only; the pricing request stays currency-free.
+127:  const [displayCurrency, setDisplayCurrency] = useState(() => regionConfig(region).currency);
+267:          <span className="text-charcoal-500 text-micro">Display currency</span>
+271:            data-testid="field-display-currency"
+334:                  {formatMoney(lastResult.clean_price, displayCurrency)}
+358:                value={formatMoney(lastResult.dirty_price, displayCurrency)}
+362:                value={formatMoney(lastResult.accrued_interest, displayCurrency)}
+
+=== UI-051: OptionPricerPanel.tsx currency lines ===
+141:            data-testid={testIdPrefix ? `${testIdPrefix}-${opt.id}` : undefined}
+190:            data-testid={`${testIdPrefix}-${opt.id}`}
+266:  // Display currency, defaulting to the session region's (the Bond pricer's
+267:  // R15-DATA-100 select). Display only; the pricing request stays currency-free.
+269:  const [displayCurrency, setDisplayCurrency] = useState(() => regionConfig(region).currency);
+285:        return `Enter a numeric ${name}.`;
+528:          <span className="text-charcoal-500 text-micro">Display currency</span>
+532:            data-testid="field-display-currency"
+639:                      testId={`option-greek-${key}`}

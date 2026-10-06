@@ -1,0 +1,5 @@
+PASS orig2-reshape: deltas=[' Let', ' me', ' try', ' another', ' way', '.\n\n'] calls=[('fundamentals', {'symbol': 'SIFY'})]
+PASS fresh-nospace-price: deltas=['Checking', '.\n'] calls=[('price_data', {'symbol': 'SIFY'})]
+PASS fresh-callsyntax: deltas=['Checking. '] calls=[('price_data', {'symbol': 'SIFY'})]
+PASS fresh-abandoned-prefix: deltas=['The ', 'price', ' moved; ', '{"', 'note', '": 1}'] calls=[]
+BAD 0

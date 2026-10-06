@@ -1,0 +1,10 @@
+pe < 20 and roe > 15%	{"ok":false,"error":"unexpected character '%'","position":20,"fields":[]}
+roce > 0.2	{"ok":false,"error":"unknown field 'roce' — fields: market_cap, pe_ratio, forward_pe, peg_ratio, price_to_book, price_to_sales, ev_to_ebitda, book_value, dividend_yield, eps, beta, roe, roa, gross_margin, operating_margin, profit_margin, debt_to_equity, curren
+
+min(pe<5,roe)>0.5	{"ok":false,"error":"min() needs a numeric argument, not a boolean expression — wrap the comparison on its own, or combine with 'and'/'or'","position":3,"fields":[]}
+pe_ratio + (roe > 0.1) > 5	{"ok":false,"error":"a boolean expression can't be used in arithmetic — wrap the comparison on its own, or combine with 'and'/'or'","position":9,"fields":[]}
+roe > (pe_ratio < 15)	{"ok":true,"error":null,"position":null,"fields":["pe_ratio","roe"]}
+pe_ratio / 0 > 1	{"ok":true,"error":null,"position":null,"fields":["pe_ratio"]}
+pe_ratio < 20 and	{"ok":false,"error":"unexpected end of formula","position":17,"fields":[]}
+abs(pe_ratio - 15) < 3	{"ok":true,"error":null,"position":null,"fields":["pe_ratio"]}
+	{"ok":false,"error":"empty formula","position":0,"fields":[]}

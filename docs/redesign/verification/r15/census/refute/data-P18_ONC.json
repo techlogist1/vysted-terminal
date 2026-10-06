@@ -1,0 +1,56 @@
+[
+  {
+    "raw_id": "DAT-P18-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real but wrong mechanism and severity. The 104,271,757 is not a stale snapshot. It is yfinance's sharesOutstanding on a single share-class basis: the non-RMB ordinary shares (HK plus ADS-form) divided by 13. The ~115.06M Shanghai STAR RMB shares are excluded (the 10-Q cover lists 115,055,260 RMB shares; 104,271,757 x 13 + 115.06M = 1,470.6M, which is close to the 6/30 balance-sheet count). market_cap is NOT derived from it. The app's 39,687,778,304 = 350.84 x yfinance impliedSharesOutstanding (113,122,161), so the 0.51% market-cap gap is the implied count's 6/30-vs-7/31 as-of lag, not this field. A price x shares cross-check does exist (correctness_gate.py:266-279), but its 25% tolerance does not trip on an 8.5% gap. The residual defect is real: the EquityOverview 'Shares outstanding' row shows a class-restricted count with no basis label, and it does not reconcile with the app's own all-class market cap. That is low severity: a niche multi-class ADS name, and no downstream figure is computed from it.",
+    "evidence": "sidecar/services/yfinance_provider.py:369,394; sidecar/services/correctness_gate.py:52,264-279; src/modules/equity-overview/EquityOverviewPanel.tsx:125; https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm (cover: '1,478,124,405 ordinary shares ... of which 752,892,166 ... held in the form of 57,914,782 American Depositary Shares ... and 115,055,260 were RMB shares', fetched 2026-09-23T01:21:32Z)",
+    "evidence_checked": "Code opened (provider mapping, correctness gate, panel). Live GET :52152/fundamentals/ONC at 2026-09-23T01:20:52Z still returns shares_outstanding 104271757 with status ok. A direct yfinance read via the sidecar venv gave sharesOutstanding 104271757, impliedSharesOutstanding 113122161, marketCap 41638002688 = 368.08 x 113.12M. Re-fetched the pack's cited 10-Q cover (my single allowed pack re-fetch).",
+    "repro_check": "sidecar/.venv/bin/python -c \"import yfinance as yf;i=yf.Ticker('ONC').info;print(i['sharesOutstanding'],i['impliedSharesOutstanding'],i['marketCap'])\" -> 104271757 113122161 41638002688 (market cap on the implied, all-class basis; shares on the ex-RMB class basis)"
+  },
+  {
+    "raw_id": "DAT-P18-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The 'same definition' claim does not hold for insiders. yfinance's insider roster for ONC includes Baker Bros. entities, a 13D filer and Section-16 10%+ group. The 10-Q names Amgen as the largest shareholder, having taken 20.5% in 2020. Baker Bros. alone holds 8.02% per yfinance's own institutional table, which is more than stockanalysis's entire 4.1% insider figure, so the 17.28% vs 4.1% gap is a classification difference (whether 10%+/13D strategic holders count as insiders), not a wrong value. The institutional gap (33.16% vs 52.86%) stays unexplained between two 13F aggregators, and the pack rates its own figure medium confidence. The real, surviving defect: for non-Indian names both fractions are served as status 'ok' with no basis label and no second-source cross-check, because ownership_check is NSE/BSE-only. They also surface under 'Insiders' / 'Insider/promoter holding'. Medium, not high: no filed truth shows the app's numbers wrong.",
+    "evidence": "sidecar/services/yfinance_provider.py:398-399; sidecar/services/ownership_check.py:135-154 (returns None for non-Indian listings); src/modules/equity-overview/EquityOverviewPanel.tsx:141; src/modules/screener/CriterionGroupEditor.tsx:51; https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm (Amgen 'our largest shareholder')",
+    "evidence_checked": "Code opened. Live GET :52152/fundamentals/ONC (2026-09-23T01:20:52Z) returns 0.17277001 / 0.33159, both status ok. yfinance major_holders / institutional_holders / insider_roster_holders read via the sidecar venv: Baker Bros. Advisors 8.02% (8,801,567 ADS) appears in both the institutional table and the insider roster.",
+    "repro_check": "sidecar/.venv/bin/python -c \"import yfinance as yf;t=yf.Ticker('ONC');print(t.major_holders);print(t.institutional_holders.head());print(t.insider_roster_holders.head())\" -> Baker Bros listed as insider-roster holder and as 8.02% institution"
+  },
+  {
+    "raw_id": "DAT-P18-3",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The cited evidence does not show what it claims. The collected /fundamentals response has NO field_meta entry for dividend_per_share_ttm. The 'unavailable / provider did not publish' stamp is on dividend_yield, and the provider deliberately skips this field (_DERIVED_FIELDS, yfinance_provider.py:173-180, 201). The field is not 'structurally unpopulatable'. The research snapshot's derived leg populates it (research/fast.py:207-236 via dividend_history.get_dividend_ttm). That leg already distinguishes the cases the finding says a user cannot tell apart: a fetch failure gets UNAVAILABLE_REASON, an empty history gets INSUFFICIENT_DEPTH_REASON, and a series with depth but no payment in the window gets an affirmed 0.0. ONC's yfinance dividend series is empty, so the app honestly states 'insufficient dividend-history depth to affirm a trailing-12m zero' rather than fabricating a zero. Per the diff rules that is an honest labelled gap, not a finding.",
+    "evidence": "sidecar/services/yfinance_provider.py:167-180,188-215; sidecar/services/research/fast.py:207-236; sidecar/services/dividend_history.py:43-48,98-129",
+    "evidence_checked": "Code opened (provider provenance map, derived-leg threading, dividend TTM derivation). Collected field_meta checked: the dividend_per_share_ttm key is absent. Live GET :52152/fundamentals/ONC confirms value null and field_meta entry None. A yfinance read confirmed ONC's dividends series has length 0 and dividendRate None.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ONC | jq '.field_meta.dividend_per_share_ttm' -> null (no 'provider did not publish' stamp); sidecar/.venv/bin/python -c \"import yfinance as yf;print(len(yf.Ticker('ONC').dividends))\" -> 0 -> INSUFFICIENT_DEPTH path by design"
+  },
+  {
+    "raw_id": "DAT-P18-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Holds for isin and former_name. _enrich_instrument returns early for any non-NSE/BSE instrument, so a US name gets null identity fields with no reason, and the gate is a deliberate ISIN-leak guard (the finding says so). One scope correction: board and listing_date are absent from the resolve/fundamentals schema for EVERY symbol, Indian included. They are product-wide schema gaps, not a US-gating defect, and should not be charged to this slot. Medium stands because of a verified concrete consequence: GET /resolve?q=BeiGene (ONC's name until 2025-05-27) does NOT resolve to ONC and returns unrelated candidates, so the missing former-name lane breaks lookup by the company's widely known prior name.",
+    "evidence": "sidecar/services/symbol_resolver.py:855-878; docs/redesign/verification/r15/battery/collected/P18_ONC.json:19-31",
+    "evidence_checked": "Code opened (the enrichment gate and its docstring). Live GET :52152/resolve?q=BeiGene at ~2026-09-23T01:22Z returned resolved=None, needs_disambiguation=true, candidates ['TNMG','TNMWF'] with no ONC.",
+    "repro_check": "curl -s '127.0.0.1:52152/resolve?q=BeiGene' -> resolved null, candidates TNMG/TNMWF (no ONC); /resolve?q=ONC -> isin/former_name null"
+  },
+  {
+    "raw_id": "DAT-P18-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The mismatch is a horizon (definitional) difference, not a same-definition divergence. yfinance's forwardPE is price / forwardEps, and forwardEps = the '+1y' (next fiscal year, FY2027) consensus of 10.3176 across 17 analysts: 368.08 / 10.3176 = 35.68, matching the live forward_pe 35.675. Stockanalysis's 43.91 implies EPS ~7.99, which fits the current-year '0y' consensus (7.60) or an NTM blend. Two different estimate horizons, so no wrong value. What survives is the labelling point: field_meta marks forward_pe 'ok' with no estimate horizon or consensus provenance, so a user cannot tell why it disagrees ~20% with other sources. A low-severity labelling gap.",
+    "evidence": "sidecar/services/yfinance_provider.py:367; src/modules/equity-overview/EquityOverviewPanel.tsx:91",
+    "evidence_checked": "Code opened. Live GET :52152/fundamentals/ONC gives forward_pe 35.675137, status ok. yfinance earnings_estimate read via the sidecar venv: 0y avg 7.60227, +1y avg 10.31755. info.forwardEps = 10.31755.",
+    "repro_check": "sidecar/.venv/bin/python -c \"import yfinance as yf;t=yf.Ticker('ONC');print(t.info['forwardEps'],t.info['forwardPE']);print(t.earnings_estimate)\" -> forwardEps 10.31755 == +1y avg -> horizon difference"
+  },
+  {
+    "raw_id": "DAT-P18-6",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The central claim is false: that ONC has zero filings visibility and that SEC EDGAR 'is not wired in'. The app ships an SEC EDGAR lane: the /sec/filings router backed by the sec-edgar-mcp subprocess, the 'SEC Filings' panel, and the sec_filings_list / sec_filing_content / sec_insider_transactions agent tools. On the isolated stack it returns ONC's Q2 2026 10-Q (2026-08-05), the 8-Ks carrying the 2026 corporate actions (2026-06-26 AGM, 2026-06-11, 2026-08-26 STAR interim, 2026-08-05 results) and recent Form 4s. The /disclosures/* 502 is the honestly worded NSE/BSE-only lane, and shareholding has no US analogue (the pack agrees). Two low residuals do not rise to this finding: /disclosures/* does not fall through to the SEC lane for US symbols, and the form_type filter omits SC 13D/13G.",
+    "evidence": "sidecar/routers/sec_filings.py:1-23,42; sidecar/models/sec.py:23; src/modules/sec/index.ts:22-37; sidecar/services/agent_tools/catalog.py:575,604,625; sidecar/services/corporate_disclosures.py:385-393; sidecar/services/nse_provider.py:355-360",
+    "evidence_checked": "Code opened (disclosures gate, NSE gate, SEC router/model, SEC panel module, catalog entries). Live GETs on :52152 at 2026-09-23T01:23Z: /sec/status reported available:true; /sec/filings?symbol=ONC returned 15 filings; the 10-Q and 8-K form filters returned the 2026 filings.",
+    "repro_check": "curl -s '127.0.0.1:52152/sec/filings?symbol=ONC&form_type=8-K&limit=5' -> 8-K 2026-08-26, 2026-08-05, 2026-06-26, 2026-06-11, 2026-05-15; form_type=10-Q -> 2026-08-05 first"
+  }
+]

@@ -1,0 +1,15 @@
+=== /history/AAPL ===
+{"detail":"Could not reach the data provider — check your internet connection.","code":"network","action":"Retry once you are back online."}
+HTTP:503
+=== /news ===
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP:502
+=== /quotes/%20%20%20 ===
+{"detail":"Could not reach the data provider — check your internet connection.","code":"network","action":"Retry once you are back online."}
+HTTP:503
+=== /quotes/%24%24%24 ===
+{"detail":"Could not reach the data provider — check your internet connection.","code":"network","action":"Retry once you are back online."}
+HTTP:503
+=== /quotes?symbols=RELIANCE,TCS,AAPL ===
+[{"symbol":"RELIANCE","price":1226.0,"change":7.0,"change_percent":0.5742411812961444,"volume":527677.0,"open":1215.0,"high":1227.2,"low":1214.0,"prev_close":1219.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"bse","freshness":"eod"},{"symbol":"TCS","price":2083.95,"change":6.949999999999818,"change_percent":0.33461723639864316,"volume":126251.0,"open":2059.95,"high":2090.5,"low":2040.0,"prev_close":2077.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"bse","freshness":"eod"}]
+HTTP:200

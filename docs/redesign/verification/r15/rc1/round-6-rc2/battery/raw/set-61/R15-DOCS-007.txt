@@ -1,0 +1,12 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52340
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand && echo '--- stale palette grep (expect none):'; grep -n 'charcoal + warm amber + sage' docs/BLUEPRINT.md; echo '--- theming line'; grep -n 'Theming engine' docs/BLUEPRINT.md; echo '--- FR-030'; sed -n 888p specs/001-agent-native-redesign/spec.md | cut -c1-160; echo '--- UC2/UC4 degrade'; grep -n 'openbb-mcp sidecar hasn' docs/BLUEPRINT.md | cut -c1-120; grep -n 'UC4\|Use Case 4\|^### 4\|MCP.*unavailable\|unavailable' docs/BLUEPRINT.md | sed -n 1,8p | cut -c1-160
+exit=0
+--- stale palette grep (expect none):
+--- theming line
+251:7. Theming engine (dark-only ships; light theme is deferred, see spec.md FR-030)
+--- FR-030
+- **FR-027**: A background run MUST be visible in an agents rail with status and cost-so-far, and
+--- UC2/UC4 degrade
+655:Cmd+K → "Research XYZ" → AI Researcher pulls everything → chart + news in adjacent panels → backtest dividend strate
+660:### Use Case 4: Academic Researcher
+661:Custom AI agent fine-tuned to research domain → workflow pulls SEC + sentiment → outputs to chart → workspace becomes reproducible dissertation methodology.

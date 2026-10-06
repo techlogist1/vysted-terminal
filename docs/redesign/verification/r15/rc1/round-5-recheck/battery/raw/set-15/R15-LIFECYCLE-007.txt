@@ -1,0 +1,3 @@
+command: env -i PATH=/usr/bin:/bin:/usr/sbin:/sbin "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar/.venv/bin/python3" -c "import sys; sys.path.insert(0,'/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar'); from services.searxng_manager import _resolve_docker_binary; print('resolved:', _resolve_docker_binary())"
+resolved: /usr/local/bin/docker
+exit: 0

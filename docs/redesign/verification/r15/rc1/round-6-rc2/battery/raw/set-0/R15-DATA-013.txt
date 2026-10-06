@@ -1,0 +1,37 @@
+
+$ curl :52364/fundamentals/DAL  (exit 0, HTTP 200)
+{
+"eps": 2.0500000000000016,
+"pe_ratio": 5.6044946,
+"net_income_ttm": 10200000.0,
+"shares_outstanding": 5010000.0
+}
+field_meta.eps: {"status": "ok", "provider": "bse", "as_of": "2026-06-30", "reason": "exchange-filed (BSE) figure served; the provider's 8.90 disagrees with it \u2014 not served", "label": "standalone, sum of 4 filed quarters to 2026-06-30", "basis_note": null}
+field_meta.pe_ratio: {"status": "flagged", "provider": "yfinance", "as_of": "2025-03-12T03:58:51+00:00", "reason": "trailing EPS 8.9 disagrees by 77% with the payload's net income / shares outstanding (10,200,000 / 5,010,000 = 2.04); the P/E it implies at the ratio price 49.88 is 24.5 \u2014 the EPS may be from a stale fiscal period; kept, flagged", "label": null, "basis_note": null}
+$ curl :52364/fundamentals/SMR  (exit 0, HTTP 200)
+{
+"eps": 5.58,
+"pe_ratio": 16.675629,
+"net_income_ttm": 247484992.0,
+"shares_outstanding": 18653743.0
+}
+field_meta.eps: {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-03T01:13:16.140161+00:00", "reason": "trailing EPS 5.58 disagrees by 58% with the payload's net income / shares outstanding (247,484,992 / 18,653,743 = 13.27); the P/E it implies at the ratio price 93.05 is 7.0 \u2014 the EPS may be from a stale fiscal period; kept, flagged", "label": null, "basis_note": null}
+field_meta.pe_ratio: {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-01T06:44:22+00:00", "reason": "trailing EPS 5.58 disagrees by 58% with the payload's net income / shares outstanding (247,484,992 / 18,653,743 = 13.27); the P/E it implies at the ratio price 93.05 is 7.0 \u2014 the EPS may be from a stale fiscal period; kept, flagged", "label": null, "basis_note": null}
+$ curl :52364/fundamentals/JNPR  (exit 0, HTTP 200)
+{
+"eps": 0.91,
+"pe_ratio": 296.4835,
+"net_income_ttm": 522289984.0,
+"shares_outstanding": 568998442.0
+}
+field_meta.eps: {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T01:13:16.116724+00:00", "reason": null, "label": null, "basis_note": null}
+field_meta.pe_ratio: {"status": "ok", "provider": "yfinance", "as_of": "2026-10-01T09:59:49+00:00", "reason": null, "label": null, "basis_note": null}
+$ curl IN :52364/fundamentals/DHOOTTRANS  (exit 0, HTTP 200)
+{
+"eps": 21.22,
+"pe_ratio": 68.143265,
+"net_income_ttm": 4330310144.0,
+"shares_outstanding": 204548057.0
+}
+field_meta.eps: {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T01:13:16.139458+00:00", "reason": null, "label": null, "basis_note": null}
+field_meta.pe_ratio: {"status": "ok", "provider": "yfinance", "as_of": "2026-10-01T09:59:58+00:00", "reason": null, "label": null, "basis_note": null}

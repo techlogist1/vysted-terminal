@@ -1,0 +1,6 @@
+=== AGENT-074 (fake-provider in-process, default-provider pricing lane) ===
+{
+  "provider_stored": null,
+  "spend_usd_for_100k_tokens": 0.0,
+  "expected_if_still_buggy_5perM": 0.5
+}

@@ -1,0 +1,9 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52340
+$ curl -s -m 90 '127.0.0.1:52340/disclosures/corporate-actions?symbol=AMAL' | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('count'));[print(a) for a in d.get('actions',d.get('items',[]))[:6]]"
+exit=0
+5
+{'symbol': 'AMAL', 'kind': 'dividend', 'purpose': 'Final Dividend', 'ratio': None, 'amount_per_share': 1.5, 'ex_date': '2026-07-31', 'record_date': '2026-07-31', 'payment_date': '2026-08-19', 'exchange': 'BSE'}
+{'symbol': 'AMAL', 'kind': 'dividend', 'purpose': 'Dividend', 'ratio': None, 'amount_per_share': 1.0, 'ex_date': '2025-08-14', 'record_date': '2025-08-14', 'payment_date': '2025-09-03', 'exchange': 'BSE'}
+{'symbol': 'AMAL', 'kind': 'rights', 'purpose': 'Right Issue of Equity Shares', 'ratio': None, 'amount_per_share': None, 'ex_date': '2023-02-21', 'record_date': '2023-02-21', 'payment_date': None, 'exchange': 'BSE'}
+{'symbol': 'AMAL', 'kind': 'dividend', 'purpose': 'Dividend', 'ratio': None, 'amount_per_share': 0.0, 'ex_date': None, 'record_date': None, 'payment_date': None, 'exchange': 'BSE'}
+{'symbol': 'AMAL', 'kind': 'other', 'purpose': 'E.G.M.', 'ratio': None, 'amount_per_share': None, 'ex_date': None, 'record_date': '2004-09-09', 'payment_date': None, 'exchange': 'BSE'}

@@ -20,17 +20,51 @@ import type {
   RatingsHistoryResponse,
 } from "../../types/analyst";
 
+// R15-DATA-068: pair every per-symbol entry with the client timestamp it was
+// fetched at, so a stale entry (older than CACHE_TTL_MS) is treated as a
+// miss and refetched rather than served forever. TTL expiry is always
+// client-side (`fetchedAt`); `asOf` below additionally surfaces the
+// SERVER's freshness stamp for display, once the sidecar sends one.
+export const ANALYST_RATINGS_CACHE_TTL_MS = 15 * 60 * 1000;
+
+/**
+ * Read an optional `as_of` off an envelope without depending on it being
+ * declared on the response type yet (C16 adds `as_of?: string | null` to
+ * `types/analyst.ts` — this store's TTL/chip work is coded against it ahead
+ * of that landing, so it stays green whether or not the field exists on the
+ * wire yet).
+ */
+function extractAsOf(payload: unknown): string | null {
+  const asOf = (payload as { as_of?: unknown } | null)?.as_of;
+  return typeof asOf === "string" ? asOf : null;
+}
+
+function isFresh(fetchedAt: number): boolean {
+  return Date.now() - fetchedAt < ANALYST_RATINGS_CACHE_TTL_MS;
+}
+
+/** A cached slice entry — `asOf` is the server-stated freshness (C16),
+ *  `null` until the sidecar sends one; `fetchedAt` (client clock) always
+ *  drives the TTL and is the chip's fallback when `asOf` is absent. */
+interface CachedSlice<T> {
+  payload: T;
+  fetchedAt: number;
+  asOf: string | null;
+}
+
 interface AnalystRatingsState {
-  histories: Record<string, RatingsHistoryResponse>;
+  histories: Record<string, CachedSlice<RatingsHistoryResponse>>;
   historyErrors: Record<string, string>;
-  priceTargets: Record<string, PriceTargetHistoryResponse>;
+  priceTargets: Record<string, CachedSlice<PriceTargetHistoryResponse>>;
   priceTargetErrors: Record<string, string>;
-  individuals: Record<string, IndividualAnalystResponse>;
+  individuals: Record<string, CachedSlice<IndividualAnalystResponse>>;
   individualErrors: Record<string, string>;
 
   getHistory: (symbol: string) => Promise<RatingsHistoryResponse | null>;
   getPriceTargets: (symbol: string) => Promise<PriceTargetHistoryResponse | null>;
   getIndividual: (symbol: string) => Promise<IndividualAnalystResponse | null>;
+  /** Bypasses the TTL and refetches this symbol's three slices unconditionally. */
+  refresh: (symbol: string) => Promise<void>;
 
   __resetForTests: () => void;
 }
@@ -49,15 +83,18 @@ export const useAnalystRatingsStore = create<AnalystRatingsState>((set, get) => 
       return null;
     }
     const cached = get().histories[normalized];
-    if (cached) {
-      return cached;
+    if (cached && isFresh(cached.fetchedAt)) {
+      return cached.payload;
     }
     try {
       const payload = await sidecarGet<RatingsHistoryResponse>(
         `/fundamentals/${encodeURIComponent(normalized)}/ratings/history`,
       );
       set((state) => ({
-        histories: { ...state.histories, [normalized]: payload },
+        histories: {
+          ...state.histories,
+          [normalized]: { payload, fetchedAt: Date.now(), asOf: extractAsOf(payload) },
+        },
         historyErrors: { ...state.historyErrors, [normalized]: "" },
       }));
       return payload;
@@ -77,15 +114,18 @@ export const useAnalystRatingsStore = create<AnalystRatingsState>((set, get) => 
       return null;
     }
     const cached = get().priceTargets[normalized];
-    if (cached) {
-      return cached;
+    if (cached && isFresh(cached.fetchedAt)) {
+      return cached.payload;
     }
     try {
       const payload = await sidecarGet<PriceTargetHistoryResponse>(
         `/fundamentals/${encodeURIComponent(normalized)}/ratings/price-target-history`,
       );
       set((state) => ({
-        priceTargets: { ...state.priceTargets, [normalized]: payload },
+        priceTargets: {
+          ...state.priceTargets,
+          [normalized]: { payload, fetchedAt: Date.now(), asOf: extractAsOf(payload) },
+        },
         priceTargetErrors: { ...state.priceTargetErrors, [normalized]: "" },
       }));
       return payload;
@@ -105,15 +145,18 @@ export const useAnalystRatingsStore = create<AnalystRatingsState>((set, get) => 
       return null;
     }
     const cached = get().individuals[normalized];
-    if (cached) {
-      return cached;
+    if (cached && isFresh(cached.fetchedAt)) {
+      return cached.payload;
     }
     try {
       const payload = await sidecarGet<IndividualAnalystResponse>(
         `/fundamentals/${encodeURIComponent(normalized)}/ratings/individual`,
       );
       set((state) => ({
-        individuals: { ...state.individuals, [normalized]: payload },
+        individuals: {
+          ...state.individuals,
+          [normalized]: { payload, fetchedAt: Date.now(), asOf: extractAsOf(payload) },
+        },
         individualErrors: { ...state.individualErrors, [normalized]: "" },
       }));
       return payload;
@@ -125,6 +168,24 @@ export const useAnalystRatingsStore = create<AnalystRatingsState>((set, get) => 
       }));
       return null;
     }
+  },
+
+  refresh: async (symbol) => {
+    const normalized = symbol.trim().toUpperCase();
+    if (!normalized) {
+      return;
+    }
+    set((state) => {
+      const { [normalized]: _h, ...histories } = state.histories;
+      const { [normalized]: _p, ...priceTargets } = state.priceTargets;
+      const { [normalized]: _i, ...individuals } = state.individuals;
+      return { histories, priceTargets, individuals };
+    });
+    await Promise.all([
+      get().getHistory(normalized),
+      get().getPriceTargets(normalized),
+      get().getIndividual(normalized),
+    ]);
   },
 
   __resetForTests: () =>

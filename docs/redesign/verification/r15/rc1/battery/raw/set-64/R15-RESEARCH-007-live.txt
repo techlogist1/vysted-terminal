@@ -1,0 +1,23 @@
+https://www.investors.com/news/technology/nvidia-stock-buy-now/ -> 3 
+https://investors.github.io/pump -> 3 
+https://ir.blogspot.in/post -> 3 
+https://investors.wixsite.com/x -> 3 
+https://ir.netlify.app/x -> 3 
+https://investors.hubpages.com/x -> 3 
+https://ir.firebaseapp.com/x -> 3 
+https://investors.web.app/x -> 3 
+https://ir.azurewebsites.net/x -> 3 
+https://ir.onrender.com/x -> 3 
+https://ir.fly.dev/x -> 3 
+https://ir.glitch.me/x -> 3 
+https://investors.notion.site/x -> 3 
+https://ir.webflow.io/x -> 3 
+https://ir.herokuapp.com/x -> 3 
+https://www.investors.co.uk/news/x -> 3 
+https://ir.co.in/x -> 3 
+https://investors.com.au/x -> 3 
+--- controls (must stay PRIMARY) ---
+https://ir.nvidia.com/x -> 1
+https://investors.infosys.com/x -> 1
+https://investor.apple.com/x -> 1
+https://ir.tatamotors.com/x -> 1

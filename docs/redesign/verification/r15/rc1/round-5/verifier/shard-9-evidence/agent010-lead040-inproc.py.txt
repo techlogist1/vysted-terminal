@@ -1,0 +1,72 @@
+import asyncio, os, socket, sys, threading, time
+sys.path.insert(0, ".")
+mode = sys.argv[1]
+
+async def ticker(stop, lags):
+    while not stop.is_set():
+        t = time.perf_counter(); await asyncio.sleep(0.01); lags.append(time.perf_counter() - t - 0.01)
+
+async def with_lag(coro):
+    stop = asyncio.Event(); lags = []
+    tk = asyncio.create_task(ticker(stop, lags))
+    t = time.perf_counter(); res = await coro; dt = time.perf_counter() - t
+    stop.set(); await tk
+    return res, dt, max(lags) if lags else 0.0
+
+def blackhole():
+    s = socket.socket(); s.bind(("127.0.0.1", 0)); s.listen(50); held = []
+    def run():
+        while True:
+            c, _ = s.accept(); held.append(c)
+    threading.Thread(target=run, daemon=True).start()
+    return s.getsockname()[1]
+
+async def main():
+    from services import symbol_resolver as sr
+    from services.agent_tools.resolve_symbol import _resolve_symbol
+    from services.agent_tools import fundamentals as fu
+    if mode == "a010":
+        real = sr.resolve
+        def slow(q, r): time.sleep(1.0); return real(q, r)
+        sr.resolve = slow
+        res, dt, lag = await with_lag(_resolve_symbol({"query": "infosys", "region": "IN"}))
+        print(f"A010 stub-1s resolver: status={res.get('status')} dt={dt:.2f}s max_loop_lag={lag*1000:.1f}ms")
+        def boom(q, r): raise RuntimeError("resolver exploded")
+        sr.resolve = boom
+        res, dt, lag = await with_lag(_resolve_symbol({"query": "infosys", "region": "IN"}))
+        print(f"A010 raising resolver: ok={res.get('ok')} status={res.get('status')} reason={res.get('reason')!r}")
+        c = await fu._canonicalize("INFY")
+        print(f"A010 raising resolver in _canonicalize: canonical={c.canonical_symbol} hnf={c.honest_not_found}")
+        sr.resolve = real
+        port = blackhole()
+        for k in ("HTTPS_PROXY","https_proxy","HTTP_PROXY","http_proxy","ALL_PROXY"):
+            os.environ[k] = f"http://127.0.0.1:{port}"
+        res, dt, lag = await with_lag(_resolve_symbol({"query": "zqvx obscure widgetry holdings", "region": "US"}))
+        print(f"A010 FRESH hung-proxy live miss: status={res.get('status')} dt={dt:.2f}s max_loop_lag={lag*1000:.1f}ms")
+        res, dt, lag = await with_lag(_resolve_symbol({"query": "qqzz another unknown co", "region": "US"}))
+        print(f"A010 FRESH second miss (cooldown): status={res.get('status')} dt={dt:.2f}s max_loop_lag={lag*1000:.1f}ms")
+        # concurrent 6 distinct misses under hung proxy, fresh cooldown reset
+        sr._live_cooldown_until = 0.0
+        qs = [f"nonexistent co {i} xq" for i in range(6)]
+        res, dt, lag = await with_lag(asyncio.gather(*[_resolve_symbol({"query": q, "region": "US"}) for q in qs]))
+        print(f"A010 FRESH 6 concurrent hung misses: statuses={[r.get('status') for r in res]} dt={dt:.2f}s max_loop_lag={lag*1000:.1f}ms")
+    elif mode in ("l040", "l040b"):
+        import yfinance as yf
+        class Instant:
+            def __init__(self, *a, **k): self.quotes = []
+        yf.Search = Instant
+        qs = ["infosys","tata steel","reliance q4 results","hdfc bank limited results","apple","microsoft corp",
+              "amal","larsen toubro","bajaj finance","nvidia","asian paints","sun pharma"]
+        async def unrelated():
+            await asyncio.sleep(0.05)
+            t = time.perf_counter(); await asyncio.to_thread(lambda: None); return time.perf_counter() - t
+        if mode == "l040":
+            jobs = [sr.resolve_async(q, "IN") for q in qs]
+        else:
+            jobs = [sr.autocomplete_async(q, "US", 8) for q in qs[:6]] + [sr.resolve_async(q, "US") for q in qs[6:]]
+        t = time.perf_counter()
+        out = await asyncio.gather(unrelated(), *jobs, return_exceptions=True)
+        total = time.perf_counter() - t
+        errs = [o for o in out[1:] if isinstance(o, Exception)]
+        print(f"{mode.upper()} cold 12-way: unrelated to_thread wait={out[0]*1000:.1f}ms total={total:.2f}s errors={errs}")
+asyncio.run(main())

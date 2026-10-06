@@ -1,0 +1,18 @@
+CMD: curl -s 'http://127.0.0.1:52356/disclosures/shareholding?symbol=<SYM>' for AMAL, DAL, NAPEROL, JUMBO, ELCIDIN, TCS
+-- AMAL --
+{"symbol":"AMAL","count":104,"patterns":[{"symbol":"AMAL","quarter_end":"2026-06-30","quarter_basis":null,"promoter_percent":71.35,"fii_percent":0.0,"dii_percent":0.03,"institutions_percent":0.03,"public_percent":28.65,"public_basis":"incl. institutions","public_non_institutional_percent":28.62,"employee_trusts_percent":null,"submission_date":"2026-07-05","xbrl_url":"https://www.bseindia.com/XBRLF
+-- DAL --
+{"symbol":"DAL","count":43,"patterns":[{"symbol":"DAL","quarter_end":"2026-06-30","quarter_basis":null,"promoter_percent":70.86,"fii_percent":0.0,"dii_percent":0.0,"institutions_percent":0.0,"public_percent":29.14,"public_basis":"incl. institutions","public_non_institutional_percent":29.14,"employee_trusts_percent":null,"submission_date":"2026-07-17","xbrl_url":"https://www.bseindia.com/XBRLFILES/
+-- NAPEROL --
+{"symbol":"NAPEROL","count":104,"patterns":[{"symbol":"NAPEROL","quarter_end":"2026-06-30","quarter_basis":null,"promoter_percent":70.76,"fii_percent":1.76,"dii_percent":0.01,"institutions_percent":1.77,"public_percent":29.24,"public_basis":"incl. institutions","public_non_institutional_percent":27.47,"employee_trusts_percent":null,"submission_date":"2026-07-21","xbrl_url":"https://www.bseindia.co
+-- JUMBO --
+{"symbol":"JUMBO","count":110,"patterns":[{"symbol":"JUMBO","quarter_end":"2026-06-30","quarter_basis":null,"promoter_percent":42.77,"fii_percent":0.0,"dii_percent":0.0,"institutions_percent":0.0,"public_percent":57.23,"public_basis":"incl. institutions","public_non_institutional_percent":57.23,"employee_trusts_percent":null,"submission_date":null,"xbrl_url":"https://www.bseindia.com/XBRLFILES/SHP
+-- ELCIDIN --
+{"symbol":"ELCIDIN","count":118,"patterns":[{"symbol":"ELCIDIN","quarter_end":"2026-06-30","quarter_basis":null,"promoter_percent":75.0,"fii_percent":0.0,"dii_percent":0.06,"institutions_percent":0.06,"public_percent":25.0,"public_basis":"incl. institutions","public_non_institutional_percent":24.94,"employee_trusts_percent":null,"submission_date":"2026-07-17","xbrl_url":"https://www.bseindia.com/X
+-- TCS --
+{"symbol":"TCS","count":20,"patterns":[{"symbol":"TCS","quarter_end":"2026-06-30","quarter_basis":null,"promoter_percent":71.77,"fii_percent":9.06,"dii_percent":13.47,"institutions_percent":22.53,"public_percent":28.23,"public_basis":"incl. institutions","public_non_institutional_percent":5.69,"employee_trusts_percent":0.0,"submission_date":"2026-07-21","xbrl_url":"https://nsearchives.nseindia.com
+
+CMD: grep -c 'index HTTP 403' <own sidecar log>
+OUTPUT: 0
+
+VERDICT: holds -- AMAL 104, NAPEROL 104, ELCIDIN 118 patterns (exact match to batch-25 cert), DAL 43, JUMBO 110, all source:BSE; TCS (NSE) 20 patterns unaffected; 0 'index HTTP 403' lines in this run's sidecar log (the plain-httpx 403 the entry named is gone).

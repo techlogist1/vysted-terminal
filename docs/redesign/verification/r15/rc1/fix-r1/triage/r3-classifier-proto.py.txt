@@ -1,0 +1,51 @@
+import re
+SRC=re.compile(r"\b(?:sources?|references?|refs?|evidence|findings?|reports?|filings?|disclosures?|announcements?|releases?|transcripts?|presentations?|articles?|news|press|websites?|feeds?|structured|documents?)\b|https?://|www\.",re.I)
+NUM=re.compile(r"^(?:(?:sources?|refs?|references?)\s*#?\s*)?(\d{1,3})(?:\s*[-–—]\s*(\d{1,3}))?$",re.I)
+def tokens(s):
+    i=0
+    while True:
+        a=s.find('[',i)
+        if a<0: return
+        d=0
+        for j in range(a,len(s)):
+            if s[j]=='\n': break
+            d+= s[j]=='['; d-= s[j]==']'
+            if d==0: yield a,j+1; break
+        i=a+1
+def classify(s,a,b):
+    c=s[a+1:b-1]; nxt=s[b:b+1]
+    if nxt in '(:' and nxt: return None
+    if a>0 and s[a-1]==']' and not re.search(r'\[\d{1,3}\]$',s[:a]): return None  # ref-link 2nd half
+    if nxt=='[' and not re.match(r'\[\d',s[b:]): return None  # ref-link 1st half
+    if re.fullmatch(r'\d{1,3}',c): return None
+    members=[m.strip() for m in re.split(r'[,;]',c)]
+    nums=[]
+    for m in members:
+        mm=NUM.match(m)
+        if mm:
+            lo=int(mm.group(1)); hi=int(mm.group(2) or lo); nums+=range(min(lo,hi),max(lo,hi)+1)
+    head=c.split(':',1)[0] if ':' in c else c
+    if nums and (len(nums)>=1 and (all(NUM.match(m) for m in members) or SRC.search(c) or True)): 
+        return ''.join(f'[{n}]' for n in nums)
+    if SRC.search(head): return ''
+    return None
+def net(s):
+    out=[];last=0
+    toks=list(tokens(s))
+    for a,b in toks:
+        if a<last: continue
+        r=classify(s,a,b)
+        if r is None: continue
+        out.append(s[last:a]); out.append(r); last=b
+    out.append(s[last:]); return ''.join(out)
+cases=["a decrease from ₹746.12 million [NSE filing, August 2026].",
+"finance costs at ₹371.36 million [NSE filing, August 2026; 2][3].",
+"yielded no results [Structured: {'ok': True, 'count': 0, 'news': []}]",
+"yielded no results [Structured: {'ok': True, 'news': [{'tags': []}]}].",
+"Revenue ₹4,200 cr [Structured].","Margin 12% [Web evidence; 2].","Margin 12% [Source 2].","Margin 12% [Sources 2, 3].",
+"Order book ₹21,000 cr [exchange disclosures].","margin 10.98% [New findings].","Per [Current report] revenue rose. See [1](https://ex.com/1) and [x].",
+"See [the filing][sec]. Margins fell [9][Web evidence].","Margin 10.98% [Latest evidence][3].","[New findings][2]",
+"Return -22.89% [basis: trailing 52 weeks]. Bharat Dynamics [NSE: BDL] trades at 1155 [1]. [the Company] expects growth [sic].",
+"30.21% below its 52-week high [= (52w high - price) / 52w high].","see [CONFLICT] note below","Allotment of Shares. [PDF] - 2026-09",
+"Revenue grew [FY25].","[Note: consolidated per the annual report].","Held at [2, 3].","[2–4] and [1, 3-5]","[sec]: https://x","- [x] done","per [https://nseindia.com/x]."]
+for c in cases: print(repr(c),'\n  ->',repr(net(c)))

@@ -1,0 +1,3 @@
+Committed pinned test: src/modules/portfolio/PortfolioPanel.test.tsx:93 'the cost input and column say per share (R15-UI-037)'.
+Code check: src/modules/portfolio/metrics.ts:94 (per-share cost basis math unchanged).
+NOT RUN: vitest (role forbids running vitest/pytest suites).

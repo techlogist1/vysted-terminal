@@ -1,0 +1,17 @@
+{
+  "focusedPanel": "portfolio",
+  "capturedAt": 0,
+  "charts": [],
+  "focusedChart": null,
+  "watchlist": {"symbols": ["INFY.NS"], "selected": null},
+  "portfolio": {
+    "positionCount": 0,
+    "totalValue": 0,
+    "activePortfolioId": "default",
+    "activePortfolioName": "Portfolio",
+    "holdings": []
+  },
+  "openPanels": ["portfolio", "watchlist"],
+  "brief": {"phase": "empty"},
+  "viewport": {"width": 1920, "height": 1080}
+}

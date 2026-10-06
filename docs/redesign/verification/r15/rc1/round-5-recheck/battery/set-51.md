@@ -1,0 +1,11 @@
+# batch-11/W3-agent-eval (rc1-battery-23, shard 23)
+
+Candidate `949c3c9fd49d61ecadc9813a8321bcdfd81178bd`, own sidecar `:52363`.
+
+| id | repro run | observed | verdict |
+|---|---|---|---|
+| R15-AGENT-007 | Bounded live re-run of `scripts/agent_eval/run.py` (k=1, 5 of the 16 scenarios, ollama llama3.1:8b, `--max-minutes 14`, under the Ollama lock; see scope note below) | `price-aapl` 64.2s PASS, `fundamentals-aapl` 66.5s PASS, `ask-chart-indicator` 41.4s PASS, `missing-param-portfolio` 42.0s **FAIL** (model called `portfolio_add_position` instead of asking a clarifying question), `macro-us-10y` 24.9s **FAIL** (model printed the tool call as literal JSON text instead of invoking `macro_series`) — `pass^1 = pass^3 = 0.6` over this subset. Both failures are in the exact same scenarios and the exact same failure classes (forbidden-tool-call, JSON-text tool call) the batch-11 certification itself recorded as the model's known failure set, at a comparable pass rate (cert: pass^1 0.689 over 16 scenarios; this bounded run: 0.6 over 5, including the 2 hardest ones by design). The eval harness itself ran live against a real Ollama model through the real sidecar/tool-loop/MCP stack (openbb-mcp hit live for `fundamentals-aapl`) — not a scripted fake — and the grader correctly distinguished pass from fail on live transcripts. | holds |
+
+**Scope note (why bounded, not the full repro):** the certification ran `k=3` across all 16 scenarios on two lanes (ollama + openrouter-free) under a 45+30 minute cap. Re-running that in full does not fit one regression-battery shard carrying 14 other entries under a single shared Ollama lock across many concurrent shards. This run instead exercises k=1 across 5 scenarios chosen to include the harness's own previously-documented failure cases (`missing-param-portfolio`, `macro-us-10y`) alongside straightforward-pass cases, so a regression in the harness, the grader, or the live tool-loop wiring would surface. `test_agent_eval.py`, `test_llm_anthropic.py`, `test_llm_gemini.py`, `test_gemini_multiround.py` are present at their certified paths but were not run (the battery role does not run pytest suites); this is supplementary, not the primary evidence for the verdict above.
+
+COVERAGE: 1/1 ids raw; no raw: none.

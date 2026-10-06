@@ -1,0 +1,92 @@
+[
+  {
+    "raw_id": "DAT-P2-1",
+    "title": "Income statement / balance sheet / cash-flow endpoints for BSE-only NBFC DAL return a different company's financials (Delta Air Lines scale)",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "P2_DAL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/DAL/income (also /balance, /cashflow) -> body.lines report operating_revenue ~INR 41-53 billion, net_income ~INR 1.3-5.0 billion per year (2021-2025), weighted_average_basic_shares_outstanding ~638-660 million. Dynamic Archistructures Ltd (BSE:539681) is a 25 INR-crore NBFC with revenue_ttm 9.97 INR crore, net_profit_ttm 1.02 INR crore and 5,010,000 shares outstanding (confirmed by the app's own /fundamentals and /disclosures/shareholding routes for the same symbol) - i.e. the income/balance/cashflow routes are ~1000x-5000x off on revenue and ~129x off on share count for the same 'DAL' symbol string.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P2_DAL.json calls.income.body (provider=openbb-mcp, periods 2021-12-31..2025-12-31); calls.balance.body; calls.cashflow.body; contrast with calls.fundamentals.body.shares_outstanding=5010000.0 and calls.shareholding.body (same file)",
+    "notes": "The pack (docs/redesign/verification/r15/battery/packs/P2_DAL.json, trap T3) already flags that bare 'DAL' collides with NYSE:DAL (Delta Air Lines) in SEC EDGAR and in the product's own instrument masters. This finding shows the collision is not merely a latent risk but has actually happened inside the live sidecar's openbb-mcp integration: the income/balance/cashflow handlers resolve the bare symbol 'DAL' (US default) instead of routing through the BSE-qualified instrument (539681 / DAL.BO) that the same app's /resolve and /fundamentals endpoints correctly use. Smallest fix shape: the income/balance/cashflow handlers must resolve through the same region-aware instrument lookup (yahoo_symbol/exchange-qualified) that /fundamentals and /disclosures/shareholding already use for this symbol, not a bare ticker string passed straight to openbb-mcp."
+  },
+  {
+    "raw_id": "DAT-P2-2",
+    "title": "TTM EPS overstated ~4.3x (8.9 vs true ~2.05), understating P/E by the same factor",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P2_DAL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/DAL -> body.eps=8.9, body.pe_ratio=5.6044946 (=49.88/8.9). Outside truth: screener.in TTM EPS 2.05 (Jul-2025..Jun-2026 quarters), BSE ComHeaderNew EPS=2.04; true PE is 24.33-24.5 (both screener and BSE agree on PE despite EPS/PE endpoints disagreeing elsewhere).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P2_DAL.json calls.fundamentals.body.eps, .pe_ratio; docs/redesign/verification/r15/battery/packs/P2_DAL.json eps_ttm, pe_ttm",
+    "notes": "Net income TTM (net_income_ttm=10,200,000 INR) matches the pack exactly, so the EPS error is not a numerator problem - it is most likely a share-count or period-window bug specific to the eps field in the yfinance adapter (5,010,000 actual shares vs an EPS that implies ~1.15M shares, or a TTM window that omits/duplicates a quarter). A stock terminal showing PE=5.6 instead of ~24.5 makes an illiquid, thinly-traded NBFC look dramatically cheaper than it is."
+  },
+  {
+    "raw_id": "DAT-P2-3",
+    "title": "revenue_ttm on /fundamentals understated ~3.6x versus outside truth (2.76cr vs 9.97cr) while net_profit_ttm matches exactly",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P2_DAL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/DAL -> body.revenue_ttm=27600000.0 (2.76 INR crore). screener.in TTM revenue (sum of Sep-2025+Dec-2025+Mar-2026+Jun-2026 quarters, screener's own TTM column agrees) = 9.97 INR crore.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P2_DAL.json calls.fundamentals.body.revenue_ttm=27600000.0, .net_income_ttm=10200000.0 (matches pack exactly); docs/redesign/verification/r15/battery/packs/P2_DAL.json revenue_ttm.value=9.97, revenue_ttm.basis",
+    "notes": "Because net_profit_ttm matches the outside source exactly (1.02cr = 1.02cr) but revenue_ttm does not, any derived margin (net margin, operating margin, P/S) computed from these two app fields is badly distorted - the app's own numbers imply a ~37% net margin for a company whose real net margin is ~10%. Smallest fix shape: audit whichever TTM revenue window the yfinance adapter sums for this ticker against the same quarters it correctly used for net income."
+  },
+  {
+    "raw_id": "DAT-P2-4",
+    "title": "52-week low is wrong (46.58 vs the exchange's own 49.88), fabricating a trading range that does not exist",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P2_DAL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/DAL -> body.fifty_two_week_low=46.58, fifty_two_week_high=49.88. BSE HighLow endpoint for scrip 539681 returns Fifty2WkHigh_unadj and Fifty2WkLow_unadj both '49.88 (12/03/2025)' - the scrip printed exactly once in the trailing 52 weeks, so the true range is degenerate (high==low, range=0).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P2_DAL.json calls.fundamentals.body.fifty_two_week_low, .fifty_two_week_high; docs/redesign/verification/r15/battery/packs/P2_DAL.json week52.low.note (quotes BSE HighLow endpoint directly)",
+    "notes": "High matches the exchange record; only the low is fabricated. Any position-in-52w-range, volatility or breakout computation built on this pair will show a false ~6.4% range on a stock that has had zero price movement since March 2025."
+  },
+  {
+    "raw_id": "DAT-P2-5",
+    "title": "ROE, ROCE and debt-to-equity all render null though outside sources publish sourced, dated values for each",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P2_DAL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/DAL -> body.roe=null, body.roa=null, body.debt_to_equity=null, and no roce field exists in the response at all. screener.in publishes ROE -2.57% (FY26), ROCE -1.45% (FY26), Borrowing=0.00 INR crore for 12 consecutive years ('Company is almost debt free').",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P2_DAL.json calls.fundamentals.body.roe, .debt_to_equity (roce absent from schema); docs/redesign/verification/r15/battery/packs/P2_DAL.json roe.value=-2.57, roce.value=-1.45, debt_to_equity.value=0.0",
+    "notes": "These are not exotic fields - they are three of the most basic ratios an investor checks before buying a small-cap. A silent null where a sourced value exists reads to a user as 'unknown' rather than the true, checkable answer."
+  },
+  {
+    "raw_id": "DAT-P2-6",
+    "title": "Promoter pledge is not exposed anywhere in the shareholding API; FII/DII split also collapses to null",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P2_DAL",
+    "repro": "GET http://127.0.0.1:52152/disclosures/shareholding?symbol=DAL -> each pattern row has fields symbol, quarter_end, promoter_percent, fii_percent(null), dii_percent(null), institutions_percent, public_percent, public_basis, public_non_institutional_percent, employee_trusts_percent, submission_date, xbrl_url, source, split_source, split_as_of - there is no pledged_pct field in the schema at all. The company's own Regulation 31 filing explicitly declares pledge=0% for both promoter and public (Declaration rows 7-9, each answered 'No'), and separately reports fii=0.0%, dii=0.0% (Table III categories 1 and 2 are empty).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P2_DAL.json calls.shareholding.body.patterns[0] (field list); docs/redesign/verification/r15/battery/packs/P2_DAL.json shareholding.pledged_pct_of_promoter, shareholding.fii_pct, shareholding.dii_pct",
+    "notes": "The DIFF spec calls promoter pledge 'the single most gameable number in an Indian small-cap' precisely because it is not always zero - for this particular stock it happens to be nil, but the app has no field to show that, so a user has no way to distinguish 'confirmed unpledged' from 'we don't track pledge' for ANY BSE-listed name, including the ones where pledge is high and market-moving."
+  },
+  {
+    "raw_id": "DAT-P2-7",
+    "title": "Results/corporate-actions endpoint hard-fails for BSE-only stocks by routing through NSE",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P2_DAL",
+    "repro": "GET http://127.0.0.1:52152/disclosures/results?symbol=DAL -> HTTP 502, body {\"detail\": \"nse_direct: 'DAL' is not a known NSE instrument\"}. The same symbol resolves cleanly and correctly to BSE:539681 via /resolve, /quotes, /fundamentals and /disclosures/shareholding in the same collection run. BSE's own announcement feed confirms Q1 FY2026-27 results were filed 2026-08-12 (revenue 7.26 INR crore, net profit 5.99 INR crore, EPS 11.96).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P2_DAL.json calls.results_calendar (status 502, body.detail); contrast with calls.resolve_bse_code.body.resolved.exchange='BSE' and calls.shareholding.body.patterns[0].source='BSE' in the same file",
+    "notes": "This is a routing bug, not a missing-data gap: the handler for /disclosures/results appears to always call nse_direct regardless of the resolved exchange, so it 502s for every BSE-only listing (which per the manifest is a meaningful share of the battery, e.g. every group-X/SME-only name) even when BSE itself has the filing on record. Smallest fix shape: branch on the resolved exchange (as /disclosures/shareholding already does) and fall back to a BSE results source instead of unconditionally calling nse_direct."
+  },
+  {
+    "raw_id": "DAT-P2-8",
+    "title": "Dividend yield and trailing-12m dividend render null instead of a confirmed zero",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P2_DAL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/DAL -> body.dividend_yield=null, body.dividend_per_share_ttm=null. screener.in's own 'Dividend Payout %' row is 0.00% for every year Mar-2015 through Mar-2026 (12 consecutive years, no dividend ever declared), which is a sourced, dated 0.0 for both fields, not an unknown.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P2_DAL.json calls.fundamentals.body.dividend_yield, .dividend_per_share_ttm; docs/redesign/verification/r15/battery/packs/P2_DAL.json dividend.paid_trailing_12m_per_share.value=0.0, dividend.yield.value=0.0",
+    "notes": "A null in a UI reads as 'we don't know', while the true, sourced answer is a confirmed zero. Low-stakes for this particular never-paying company, but the same null-vs-zero collapse would misrepresent a company that skipped only its most recent payout."
+  },
+  {
+    "raw_id": "DAT-P2-9",
+    "title": "Stale 556-day-old print is stamped with a fresh-looking as-of date instead of its true last-trade date",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "P2_DAL",
+    "repro": "GET http://127.0.0.1:52152/quotes/DAL?asset_class=equity -> body.timestamp='2026-09-18T00:00:00Z' (market_state=CLOSED, freshness='eod') for price=49.88. GET http://127.0.0.1:52152/fundamentals/DAL -> field_meta.*.as_of='2026-09-19T09:41:13...' for market_cap/pe_ratio/price_to_book, all computed off the same 49.88 print. The exchange's own record (BSE getScripHeaderData) shows this print's true date is Ason='12 Mar 25 | 16:00' - the scrip has not traded since 2025-03-12, 556 days before collection.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P2_DAL.json calls.quote.body.timestamp, calls.fundamentals.body.field_meta.market_cap.as_of; docs/redesign/verification/r15/battery/packs/P2_DAL.json price.last_close.as_of='2025-03-12', traps[0] (T1, 'Stale price presented as live')",
+    "notes": "This is worse than what the pack's own trap T1 already flags for third-party sites (BSE/Moneycontrol/screener at least show the true 12-Mar-2025 date in small print): here the app's quote and fundamentals timestamps read as essentially 'yesterday' and 'this morning', actively relabeling an 18-month-stale tick as fresh rather than merely under-emphasizing its staleness. Any UI trusting these timestamps for a freshness badge or a '+4.99% today' style change indicator would show a false live-market signal. Smallest fix shape: field_meta.as_of (and quote.timestamp) should carry the source print's trade date/time, not the fetch/collection time, whenever freshness='eod' on a name that has not traded since the prior session."
+  }
+]

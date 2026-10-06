@@ -1,0 +1,26 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_003b191d298e4d35825713fa324dac0f", "name": "web_search", "input": {"query": "AAPL stock price rise", "num_results": 1, "category": "news"}}
+{"kind": "tool_result", "tool_call_id": "call_003b191d298e4d35825713fa324dac0f", "name": "web_search", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " cannot"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " accuracy"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " statement"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Is"}
+{"kind": "delta", "text": " there"}
+{"kind": "delta", "text": " anything"}
+{"kind": "delta", "text": " else"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 3159, "output_tokens": 20, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,30 @@
+from services.research.verify import _parse_verdict
+for s in ['UNVERIFIED - no source confirms the 23% operating margin.','UNVERIFIED - evidence does not support the figure','UNVERIFIED - no matching figure',
+ 'Verdict: UNVERIFIED - no source confirms the 23% operating margin.','**Verdict:** UNVERIFIED - no source confirms it.','Answer: UNVERIFIED - evidence does not support the figure.',
+ '[UNVERIFIED] the sources do not confirm this.','The claim is UNVERIFIED; nothing I found confirms the 23% margin.','1. UNVERIFIED - no source confirms',
+ '_UNVERIFIED_ - no source confirms the 23% operating margin.','Verdict: DISAGREE - sources agree on 21% not 23%','Verdict: AGREE - reuters confirms']:
+    print('PV', repr(s), '->', _parse_verdict(s)[0])
+import httpx, openai
+from services.errors import humanize
+def oexc(cls, status, msg):
+    req=httpx.Request('POST','https://x'); resp=httpx.Response(status, request=req, json={'error':{'message':msg}})
+    return cls(msg, response=resp, body={'error':{'message':msg}})
+cases=[('openai', oexc(openai.RateLimitError,429,'You exceeded your current quota, credit balance exhausted')),
+ ('openai', oexc(openai.BadRequestError,400,"This model's maximum context length is 128000 tokens")),
+ ('groq', oexc(openai.APIStatusError,413,'Request too large')),
+ ('ollama', httpx.ConnectError('All connection attempts failed')),
+ ('ollama', httpx.ReadTimeout('timed out')),
+ ('xai', oexc(openai.BadRequestError,400,'Incorrect API key provided: xai-***')),
+ ('xai', oexc(openai.PermissionDeniedError,403,"Your team doesn't have any credits yet")),
+ ('openrouter', oexc(openai.NotFoundError,404,'zzz-nonsense/not-a-model-9000:free is not a valid model ID')),
+ ('groq', oexc(openai.BadRequestError,400,'The model `llama3-70b-8192` has been decommissioned')),]
+for p,e in cases:
+    h=humanize(p,e); d=h if isinstance(h,dict) else getattr(h,'__dict__',h)
+    print('HU', p, type(e).__name__, '->', {k:d.get(k) for k in ('code','message','action')} if isinstance(d,dict) else d)
+try:
+    from google.genai.errors import ClientError
+    for body in [{'error':{'code':400,'status':'INVALID_ARGUMENT','message':'API key not valid. Please pass a valid API key.','details':[{'reason':'API_KEY_INVALID'}]}},
+                 {'error':{'code':400,'status':'INVALID_ARGUMENT','message':'The input token count (1200000) exceeds the maximum number of tokens allowed (1048576).'}}]:
+        e=ClientError(400, body); h=humanize('gemini',e); d=h if isinstance(h,dict) else h.__dict__
+        print('HU gemini ->', {k:d.get(k) for k in ('code','message','action')})
+except Exception as ex: print('gemini err', repr(ex))

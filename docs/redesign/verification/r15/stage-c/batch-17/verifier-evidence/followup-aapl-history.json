@@ -1,0 +1,10 @@
+[
+ {
+  "role": "user",
+  "content": "What is AAPL's market cap?"
+ },
+ {
+  "role": "assistant",
+  "content": "The market capitalization of AAPL is $4.90T (USD 4 trillion). \n\n(Note: The figure was obtained from the `fundamentals` tool and represents the current market capitalization of Apple Inc.)\n\n[tool steps: Using fundamentals]"
+ }
+]

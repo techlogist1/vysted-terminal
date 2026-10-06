@@ -1,0 +1,24 @@
+### unknown tool id
+HTTP 422 {"detail":[{"type":"value_error","loc":["body","tools"],"msg":"Value error, unknown tool ids: ['totally_made_up']; allowed: ['add_chart_drawing', 'add_to_watchlist', 'analyst_history', 'analyst_individual', 'arrange_layout', 'ask_user', 'backtest_summary', 'close_panel', 'compare_symbols', 'compute_greeks', 'corporate_actions', 'corporate_announcements', 'earnings_call_transcript', 'earnings_estimates', 'earnings_history', 'earnings_upcoming', 'exchange_deals', 'financial_statements', 'focus_panel', 'fundamentals', 'get_portfolio', 'get_terminal_state', 'macro_search', 'macro_series', 'market_
+
+### place_order
+HTTP 422 {"detail":[{"type":"value_error","loc":["body","tools"],"msg":"Value error, unknown tool ids: ['place_order']; allowed: ['add_chart_drawing', 'add_to_watchlist', 'analyst_history', 'analyst_individual', 'arrange_layout', 'ask_user', 'backtest_summary', 'close_panel', 'compare_symbols', 'compute_greeks', 'corporate_actions', 'corporate_announcements', 'earnings_call_transcript', 'earnings_estimates', 'earnings_history', 'earnings_upcoming', 'exchange_deals', 'financial_statements', 'focus_panel', 'fundamentals', 'get_portfolio', 'get_terminal_state', 'macro_search', 'macro_series', 'market_over
+
+### submit_order + auto_approve
+HTTP 422 {"detail":[{"type":"value_error","loc":["body","tools"],"msg":"Value error, unknown tool ids: ['auto_approve', 'execute_order', 'submit_order']; allowed: ['add_chart_drawing', 'add_to_watchlist', 'analyst_history', 'analyst_individual', 'arrange_layout', 'ask_user', 'backtest_summary', 'close_panel', 'compare_symbols', 'compute_greeks', 'corporate_actions', 'corporate_announcements', 'earnings_call_transcript', 'earnings_estimates', 'earnings_history', 'earnings_upcoming', 'exchange_deals', 'financial_statements', 'focus_panel', 'fundamentals', 'get_portfolio', 'get_terminal_state', 'macro_sea
+
+### case/space variants
+HTTP 422 {"detail":[{"type":"value_error","loc":["body","tools"],"msg":"Value error, unknown tool ids: [' place_order', 'Place_Order', 'place_order ']; allowed: ['add_chart_drawing', 'add_to_watchlist', 'analyst_history', 'analyst_individual', 'arrange_layout', 'ask_user', 'backtest_summary', 'close_panel', 'compare_symbols', 'compute_greeks', 'corporate_actions', 'corporate_announcements', 'earnings_call_transcript', 'earnings_estimates', 'earnings_history', 'earnings_upcoming', 'exchange_deals', 'financial_statements', 'focus_panel', 'fundamentals', 'get_portfolio', 'get_terminal_state', 'macro_searc
+
+### every data-write tool
+HTTP 201 {"id":"custom:fp-writer","name":"FP","philosophy":"x","system_prompt":"You are a test agent.","tools":["portfolio_add_position","portfolio_update_position","portfolio_delete_position","write_note","add_to_watchlist","remove_from_watchlist","save_layout","save_screen","set_region","write_screener_filters","get_portfolio"],"default_provider":"ollama","default_model":"llama3.1:8b","icon":null,"created_at":1791019677,"updated_at":1791019677}
+
+### PUT smuggle place_order onto writer
+HTTP 422 {"detail":[{"type":"value_error","loc":["body","tools"],"msg":"Value error, unknown tool ids: ['place_order']; allowed: ['add_chart_drawing', 'add_to_watchlist', 'analyst_history', 'analyst_individual', 'arrange_layout', 'ask_user', 'backtest_summary', 'close_panel', 'compare_symbols', 'compute_greeks', 'corporate_actions', 'corporate_announcements', 'earnings_call_transcript', 'earnings_estimates', 'earnings_history', 'earnings_upcoming', 'exchange_deals', 'financial_statements', 'focus_panel', 'fundamentals', 'get_portfolio', 'get_terminal_state', 'macro_search', 'macro_series', 'market_over
+
+### id without prefix
+HTTP 422 {"detail":[{"type":"string_too_short","loc":["body","id"],"msg":"String should have at least 8 characters","input":"copilot","ctx":{"min_length":8}}]}
+
+### extra field
+HTTP 201 {"id":"custom:fp-extra","name":"FP","philosophy":"x","system_prompt":"You are a test agent.","tools":[],"default_provider":"ollama","default_model":"llama3.1:8b","icon":null,"created_at":1791019677,"updated_at":1791019677}
+

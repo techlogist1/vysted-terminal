@@ -1,0 +1,5 @@
+=== R15-AGENT-015: source field-name match ===
+470:        key: "prompt_template",
+
+159:    Config: ``agent_id`` (required), ``prompt_template`` (a ``str.format``-style
+171:    template = config.get("prompt_template") or "{context}"

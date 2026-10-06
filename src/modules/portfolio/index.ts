@@ -3,9 +3,9 @@ import type { VystedModule } from "@/lib/module-registry";
 import { PortfolioPanel } from "./PortfolioPanel";
 
 /**
- * Portfolio module — manual positions from the sidecar SQLite store, with P&L,
- * weight, and basic risk metrics computed client-side. Owned by Teammate B
- * (Phase 1.B).
+ * Portfolio module — multiple NAMED portfolios of manually tracked holdings
+ * (frontend store, persisted in the workspace blob; no broker sync), with P&L,
+ * weight, and concentration computed client-side from live quotes.
  */
 export const portfolioModule: VystedModule = {
   id: "portfolio",

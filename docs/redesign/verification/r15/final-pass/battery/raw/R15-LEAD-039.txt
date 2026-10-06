@@ -1,0 +1,13 @@
+# R15-LEAD-039 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:31+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in RDY TM SONY AAPL; do curl -s -m 100 -w ' @@%{http_code}' "$H/earnings/$s/estimates" | python3 -c "import sys,json;t=sys.stdin.read();b,h=t.rsplit(' @@',1)
+try:
+  d=json.loads(b);print('$s','HTTP',h,'eps_mean',d.get('eps_estimate_mean'),'rev_mean',d.get('revenue_estimate_mean'),'analysts',d.get('estimate_analyst_count'))
+except Exception: print('$s','HTTP',h,b[:200])"; done
+--- output ---
+RDY HTTP 200 eps_mean None rev_mean 84513956800.0 analysts None
+TM HTTP 200 eps_mean None rev_mean 13260840680420.0 analysts 1
+SONY HTTP 200 eps_mean None rev_mean 3163161543320.0 analysts 1
+AAPL HTTP 200 eps_mean 1.98236 rev_mean 113624521680.0 analysts 27
+
+EXIT=0 (5.9s)

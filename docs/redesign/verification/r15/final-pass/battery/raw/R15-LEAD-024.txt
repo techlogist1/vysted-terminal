@@ -1,0 +1,32 @@
+# R15-LEAD-024 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:25:38+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: US' 'http://127.0.0.1:52861/macro/WEO%2FUSA.NGDP_RPCH.A?provider=imf' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');d=json.loads(t[:i]);[print(o['date'][:4],o['value'],o.get('is_projection')) for o in d['observations'] if o['date'][:4]>='2022'];print(t[i:])"
+[exit 0] [0.03s]
+2022 2.524222 False
+2023 2.934535 False
+2024 2.793116 False
+2025 2.11733 True
+2026 2.323695 True
+2027 2.1 True
+2028 2.1 True
+2029 1.880588 True
+2030 1.753132 True
+2031 1.755 True
+
+[http 200 0.001934s]
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN' 'http://127.0.0.1:52861/macro/WEO%2FIND.PCPIPCH.A?provider=imf' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');d=json.loads(t[:i]);[print(o['date'][:4],o['value'],o.get('is_projection')) for o in d['observations'] if o['date'][:4]>='2023'];print(t[i:])"
+[exit 0] [1.30s]
+2023 5.369918 False
+2024 4.639051 False
+2025 2.090859 True
+2026 4.714761 True
+2027 4.0 True
+2028 4.0 True
+2029 4.0 True
+2030 4.0 True
+2031 4.0 True
+
+[http 200 1.282833s]
+

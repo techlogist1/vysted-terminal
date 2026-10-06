@@ -1,0 +1,21 @@
+# R15-CODE-PLATFORM-039 at ace7dd7
+$ grep sidecarRequest buildSearchHeaders call
+src/modules/chat/streaming.ts:12:import { buildSearchHeaders } from "@/lib/search-headers";
+src/modules/chat/streaming.ts:305:    const searchHeaders = await buildSearchHeaders();
+src/lib/sidecar-client.ts:11:import { buildSearchHeaders } from "@/lib/search-headers";
+src/lib/sidecar-client.ts:285:  // (`chat/streaming.ts`) calls `buildSearchHeaders()` directly and keeps the
+src/lib/sidecar-client.ts:289:  const searchHeaders = await buildSearchHeaders({ includeKey: false });
+$ tests
+48:  it("tier_a (default) emits the tier ONLY — no key, no models, no legacy headers", async () => {
+60:  it("tier_a never reads ANY keychain slot, even when a key is stored", async () => {
+67:  it("a custom SearXNG URL rides trimmed under EITHER tier (retrieval is one lane)", async () => {
+75:  it("a blank/whitespace SearXNG URL is omitted, never an empty override", async () => {
+82:  it("tier_b emits the key + the per-stop model map", async () => {
+94:  it("tier_b reflects a swapped per-stop model immediately", async () => {
+103:  it("tier_b without a stored key emits the tier + models but OMITS the key (never empty)", async () => {
+112:  it("tier_b with an empty-string keychain value omits the key", async () => {
+118:  it("a keychain failure on tier_b degrades to key-omitted, never a throw", async () => {
+126:  it("encodeResearchModels emits ordered stop=slug pairs", () => {
+136:  it("includeKey:false omits the key and never reads the keychain, tier/models still ride (R15-CODE-PLATFORM-039)", async () => {
+140:    const headers = await buildSearchHeaders({ includeKey: false });
+148:  it("getOpenrouterApiKey reads the AI-Providers slot and maps empty/miss to null", async () => {

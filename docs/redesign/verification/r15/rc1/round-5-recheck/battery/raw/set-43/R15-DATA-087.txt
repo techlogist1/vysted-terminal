@@ -1,0 +1,18 @@
+CMD: curl GET /macro/CPIAUCSL (no provider)
+HTTP/1.1 422 Unprocessable Content
+date: Sun, 27 Sep 2026 14:38:44 GMT
+server: uvicorn
+content-length: 49
+content-type: application/json
+vary: Origin
+
+{"detail":"provider is required for a series id"}
+CMD: curl GET /macro/CPIAUCSL?provider=fred
+HTTP/1.1 502 Bad Gateway
+date: Sun, 27 Sep 2026 14:38:44 GMT
+server: uvicorn
+content-length: 286
+content-type: application/json
+vary: Origin
+
+{"detail":"FRED needs a free API key for macro data. Get one at fred.stlouisfed.org (API Keys), add it to Vysted as your FRED key, and reload — or switch the series provider to ECB, IMF, or World Bank, which need no key.","code":"provider_error","action":"Retry, or try again later."}

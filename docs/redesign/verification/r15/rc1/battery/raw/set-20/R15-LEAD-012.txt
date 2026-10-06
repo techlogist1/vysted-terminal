@@ -1,0 +1,30 @@
+resolveBuildPython -> python3.13
+[build-python] /tmp/b4v-venvtest/v is Python 3.14, recreating on 3.13.
+node:internal/child_process:1143
+    result.error = new ErrnoException(result.error, 'spawnSync ' + options.file);
+                   ^
+
+<ref *1> Error: spawnSync python3.13 -m venv "/tmp/b4v-venvtest/v" ENOENT
+    at Object.spawnSync (node:internal/child_process:1143:20)
+    at spawnSync (node:child_process:911:24)
+    at execFileSync (node:child_process:954:15)
+    at run ([eval]:4:30)
+    at Module.ensureBuildVenv (file:///private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/scripts/build-python.mjs:65:3)
+    at [eval]:5:5 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'spawnSync python3.13 -m venv "/tmp/b4v-venvtest/v"',
+  path: 'python3.13 -m venv "/tmp/b4v-venvtest/v"',
+  spawnargs: [],
+  error: [Circular *1],
+  status: null,
+  signal: null,
+  output: null,
+  pid: 0,
+  stdout: undefined,
+  stderr: undefined
+}
+
+Node.js v24.15.0
+[build-python] /tmp/b4v-venvtest/v is Python 3.14, recreating on 3.13.
+Python 3.13.13

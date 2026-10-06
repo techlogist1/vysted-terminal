@@ -1,0 +1,4 @@
+PASS [FAB] c-plan-case-c-unfenced: "The price_data tool returned no data for this in this turn.\n\n"
+FAIL [TRUE] t-err-user-position-summary: "I could not load HDFCBANK.NS data. The fundamentals tool returned no data for this in this turn.\n\n"
+PASS [FAB] f-mixed-errored-named-fenced: "The price_data tool returned no data for this in this turn.\n\n"
+BAD 1

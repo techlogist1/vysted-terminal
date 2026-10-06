@@ -1,0 +1,4 @@
+# rc1-battery-22 raw R15-DOCS-009 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ grep -n 'LangGraph' docs/BLUEPRINT.md; grep -in 'langgraph\|langchain' sidecar/requirements.txt; echo ---; grep -rn -i 'langgraph' CHANGELOG.md docs/redesign/DECISIONS*.md docs/BLUEPRINT.md | head
+---
+EXIT=0

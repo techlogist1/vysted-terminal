@@ -1,0 +1,23 @@
+notes
+resolver_masters
+searxng
+workspaces
+custom_agents.db
+data_cache.db
+data_cache.db-shm
+data_cache.db-wal
+delegate_runs.db
+dev-keystore.json
+fundamentals_cache.db
+plugins.db
+portfolio.db
+workflows.db
+== custom_agents.db: custom_agents
+== data_cache.db: cache,meta
+== delegate_runs.db: runs
+== fundamentals_cache.db: fundamentals
+== plugins.db: plugin_configs
+== portfolio.db: positions,sqlite_sequence
+== workflows.db: workflows,schedules
+audit_orders tables:        0
+0

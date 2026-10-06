@@ -1,0 +1,41 @@
+# R15-LEAD-043 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:34:54+0530
+$ python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/scripts/r15/vy.py invoke copilot hi --provider openai --model gpt-4o-mini --mode agent --autonomy ask --no-key --port 52861 --timeout 60 --quiet
+vy: refusing — non-GET calls are only allowed against R15 isolated sidecars (ports 52100-52399)
+[exit 1]
+$ python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/scripts/r15/vy.py invoke copilot hi --provider openai --model gpt-4o-mini --mode agent --autonomy ask --bad-key --port 52861 --timeout 60 --quiet
+vy: refusing — non-GET calls are only allowed against R15 isolated sidecars (ports 52100-52399)
+[exit 1]
+$ curl -s -m 40 -X POST -H 'Content-Type: application/json' http://127.0.0.1:52861/llm/chat -d '{"provider":"groq","model":"llama-3.1-8b-instant","messages":[{"role":"user","content":"hi"}]}' | head -c 1200
+data: {"kind": "error", "message": "No Groq API key is set \u2014 add it in Settings.", "action": "Add your Groq API key in Settings.", "detail": "The api_key client option must be set either by passing api_key to the client or by setting the GROQ_API_KEY environment variable", "code": "auth"}
+
+[exit 0]
+$ curl -s -m 40 -X POST -H 'Content-Type: application/json' http://127.0.0.1:52861/llm/chat -d '{"provider":"openai","model":"gpt-4o-mini","messages":[{"role":"user","content":"hi"}]}' | head -c 1200
+data: {"kind": "error", "message": "No OpenAI API key is set \u2014 add it in Settings.", "action": "Add your OpenAI API key in Settings.", "detail": "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.", "code": "auth"}
+
+[exit 0]
+(vy.py refuses ports outside 52100-52399 by design; the same payload vy builds is sent with curl below)
+$ curl -s -m 60 -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' http://127.0.0.1:52861/agents/copilot/invoke -d '{"prompt":"hi","provider":"openai gpt-4o-mini","model":"","mode":"agent","autonomy":"ask"}' | grep -v heartbeat | head -c 1500
+{"detail":[{"type":"literal_error","loc":["body","provider"],"msg":"Input should be 'anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai' or 'openrouter'","input":"openai gpt-4o-mini","ctx":{"expected":"'anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai' or 'openrouter'"}}]}
+[exit 0]
+$ curl -s -m 60 -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' http://127.0.0.1:52861/agents/copilot/invoke -d '{"prompt":"hi","provider":"groq llama-3.1-8b-instant","model":"","mode":"agent","autonomy":"ask"}' | grep -v heartbeat | head -c 1500
+{"detail":[{"type":"literal_error","loc":["body","provider"],"msg":"Input should be 'anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai' or 'openrouter'","input":"groq llama-3.1-8b-instant","ctx":{"expected":"'anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai' or 'openrouter'"}}]}
+[exit 0]
+$ curl -s -m 60 -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' http://127.0.0.1:52861/agents/copilot/invoke -d '{"prompt":"hi","provider":"openai","model":"gpt-4o-mini","mode":"agent","autonomy":"ask","api_key":"sk-invalid-r15-induced-401"}' | grep -v heartbeat | head -c 1500
+data: {"kind": "error", "message": "The OpenAI API key was rejected \u2014 check it in Settings.", "action": "Re-enter the API key in Settings.", "detail": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-inval**************-401. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}, 'status': 401}", "code": "auth"}
+
+data: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+
+[exit 0]
+(the two 422s above are a shell word-split slip in my loop, not app behaviour; re-sent correctly below)
+$ curl -s -m 60 -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' http://127.0.0.1:52861/agents/copilot/invoke -d '{"prompt":"hi","provider":"openai","model":"gpt-4o-mini","mode":"agent","autonomy":"ask"}' | grep -v heartbeat | head -c 1500
+data: {"kind": "error", "message": "No OpenAI API key is set \u2014 add it in Settings.", "action": "Add your OpenAI API key in Settings.", "detail": "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.", "code": "auth"}
+
+data: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+
+[exit 0]
+$ curl -s -m 60 -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' http://127.0.0.1:52861/agents/copilot/invoke -d '{"prompt":"hi","provider":"groq","model":"llama-3.1-8b-instant","mode":"agent","autonomy":"ask"}' | grep -v heartbeat | head -c 1500
+data: {"kind": "error", "message": "No Groq API key is set \u2014 add it in Settings.", "action": "Add your Groq API key in Settings.", "detail": "The api_key client option must be set either by passing api_key to the client or by setting the GROQ_API_KEY environment variable", "code": "auth"}
+
+data: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+
+[exit 0]

@@ -1,0 +1,32 @@
+    # each other's temp; same directory so ``os.replace`` is a same-filesystem
+    # atomic rename.
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.{id(workspace)}.tmp")
+    bak_tmp = path.with_name(f"{path.name}.{os.getpid()}.{id(workspace)}.bak.tmp")
+    try:
+        tmp.write_text(payload, encoding="utf-8")
+        if path.is_file():
+            if _read_body(path) is None:
+                # Never let an unparseable file replace the last good backup.
+                _quarantine(path)
+            else:
+                shutil.copyfile(path, bak_tmp)
+                os.replace(bak_tmp, _bak_path(path))
+        os.replace(tmp, path)
+    finally:
+        # If a rename failed (e.g. mid-shutdown), don't leak the temp files.
+        for leftover in (tmp, bak_tmp):
+            try:
+                leftover.unlink(missing_ok=True)
+            except OSError:
+                pass
+@router.post("", status_code=200)
+def save_workspace(request: SaveWorkspaceRequest) -> dict[str, str]:
+    """Persist a workspace, overwriting any existing one with the same name."""
+    try:
+        workspace_store.save_workspace(request.name, request.workspace)
+    except OSError as exc:
+        raise _storage_failure("write", exc) from exc
+    except WorkspaceNameError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"status": "saved", "name": request.name.strip()}
+

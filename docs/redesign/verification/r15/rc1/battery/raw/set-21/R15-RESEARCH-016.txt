@@ -1,0 +1,7 @@
+Source check: iter.py:374-383 - the floor fetch guard `if structured.get("disclosures") is None:`
+gates the `gather_floor` CALL, but `_record_web(...)` at line 383 sits inside that same fetch block
+now recording the floor rows on every path where the floor is available (not gated a second time by
+the pre-seeded-snapshot check) - matches VERDICTS.md's certified fix ("fetch only when absent, but
+always record the floor rows once").
+Verdict: holds (source-confirmed, matches VERDICTS.md's live evidence: 5 floor rows recorded where
+pre-fix recorded 0).

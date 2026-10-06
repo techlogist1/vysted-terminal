@@ -1,0 +1,3 @@
+$ grep -n 'D57' src/modules/portfolio/metrics.test.ts
+66:  it("single-currency portfolio: one bucket, mixedCurrencies false (D57)", () => {
+90:  it("mixed-currency portfolio: per-currency subtotals, never a cross-currency sum (D57)", () => {

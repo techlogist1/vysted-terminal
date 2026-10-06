@@ -1,0 +1,166 @@
+[
+  [
+    "POST /agents/actions/ack",
+    "write-or-side-effect"
+  ],
+  [
+    "POST /agents/{agent_id}/invoke",
+    "write-or-side-effect"
+  ],
+  [
+    "POST /agents/{agent_id}/runs",
+    "write-or-side-effect"
+  ],
+  [
+    "POST /backtest/run",
+    "write-or-side-effect"
+  ],
+  [
+    "/brokers/kite/session",
+    "deny"
+  ],
+  [
+    "POST /brokers/kite/static-ip",
+    "write-or-side-effect"
+  ],
+  [
+    "/brokers/{broker_id}/connect",
+    "deny"
+  ],
+  [
+    "/brokers/{broker_id}/disconnect",
+    "deny"
+  ],
+  [
+    "/brokers/{broker_id}/mode",
+    "deny"
+  ],
+  [
+    "/brokers/{broker_id}/orders",
+    "deny"
+  ],
+  [
+    "/brokers/{broker_id}/orders/cancel",
+    "deny"
+  ],
+  [
+    "/brokers/{broker_id}/orders/{proposal_id}/confirm",
+    "deny"
+  ],
+  [
+    "/brokers/{broker_id}/read-only",
+    "deny"
+  ],
+  [
+    "POST /custom-agents",
+    "write-or-side-effect"
+  ],
+  [
+    "PUT /custom-agents/{agent_id}",
+    "write-or-side-effect"
+  ],
+  [
+    "DELETE /custom-agents/{agent_id}",
+    "write-or-side-effect"
+  ],
+  [
+    "POST /llm/chat",
+    "write-or-side-effect"
+  ],
+  [
+    "POST /llm/keys/validate",
+    "write-or-side-effect"
+  ],
+  [
+    "POST /plugins/{plugin_id}/config",
+    "write-or-side-effect"
+  ],
+  [
+    "DELETE /plugins/{plugin_id}/config",
+    "write-or-side-effect"
+  ],
+  [
+    "POST /portfolio/positions",
+    "write-or-side-effect"
+  ],
+  [
+    "PUT /portfolio/positions/{position_id}",
+    "write-or-side-effect"
+  ],
+  [
+    "DELETE /portfolio/positions/{position_id}",
+    "write-or-side-effect"
+  ],
+  [
+    "/runs/{run_id}/answer",
+    "deny"
+  ],
+  [
+    "/runs/{run_id}/cancel",
+    "deny"
+  ],
+  [
+    "/runs/{run_id}/resume",
+    "deny"
+  ],
+  [
+    "/safety/disclaimer-ack",
+    "deny"
+  ],
+  [
+    "/safety/kill-switch",
+    "deny"
+  ],
+  [
+    "/safety/kill-switch/reset",
+    "deny"
+  ],
+  [
+    "/safety/kill-switch/status",
+    "deny"
+  ],
+  [
+    "POST /screener/run/stream",
+    "write-or-side-effect"
+  ],
+  [
+    "/search/searxng/setup",
+    "deny"
+  ],
+  [
+    "/search/searxng/teardown",
+    "deny"
+  ],
+  [
+    "/system/ollama/pull",
+    "deny"
+  ],
+  [
+    "/system/provider-health/reset",
+    "deny"
+  ],
+  [
+    "/system/provider-health/trip",
+    "deny"
+  ],
+  [
+    "POST /workflow/run",
+    "write-or-side-effect"
+  ],
+  [
+    "POST /workflow/save",
+    "write-or-side-effect"
+  ],
+  [
+    "DELETE /workflow/saved/{workflow_id}",
+    "write-or-side-effect"
+  ],
+  [
+    "POST /workspace",
+    "write-or-side-effect"
+  ],
+  [
+    "DELETE /workspace/{name}",
+    "write-or-side-effect"
+  ]
+]

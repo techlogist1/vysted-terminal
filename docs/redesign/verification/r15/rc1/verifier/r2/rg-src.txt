@@ -1,0 +1,88 @@
+src/store/notes.test.ts:10:    useNotesStore.getState().setSymbolNote("aapl", "services margin story");
+src/store/notes.test.ts:12:    expect(useNotesStore.getState().noteFor("AAPL")).toBe("services margin story");
+src/store/notes.test.ts:13:    expect(useNotesStore.getState().noteFor("aapl")).toBe("services margin story");
+src/store/model-catalog.ts:2: * Live model-catalog store.
+src/store/model-catalog.ts:4: * Fetches a provider's LIVE model list from the sidecar's `GET /llm/models`
+src/store/model-selection.ts:55:  // OpenRouter is a BROKER with a live, open-ended catalog (hundreds of models
+src/store/agent-autonomy.ts:15: * Vysted has no brokerage connection, so no host action can place, stage or
+src/modules/equity-overview/metrics.ts:53:      { label: "Gross margin", key: "gross_margin", kind: "fraction" },
+src/modules/equity-overview/metrics.ts:54:      { label: "Operating margin", key: "operating_margin", kind: "fraction" },
+src/modules/equity-overview/metrics.ts:55:      { label: "Net margin", key: "profit_margin", kind: "fraction", headline: true },
+src/app/globals.css:220:    margin-left: 2px;
+src/app/globals.css:246:    margin: 16px 0 8px;
+src/app/globals.css:252:    margin: 16px 0 8px;
+src/app/globals.css:258:    margin: 12px 0 4px;
+src/app/globals.css:261:    margin: 0 0 8px;
+src/app/globals.css:265:    margin: 0 0 8px;
+src/app/globals.css:275:    margin: 2px 0;
+src/app/globals.css:290:    margin: 0 0 8px;
+src/app/globals.css:306:    margin: 0 0 8px;
+src/app/globals.css:321:    margin: 16px 0;
+src/app/page.tsx:73:    // Warm the default provider's LIVE model catalog up front so the model pickers
+src/modules/portfolio/index.ts:7: * (frontend store, persisted in the workspace blob; no broker sync), with P&L,
+src/lib/hardware-fit.ts:11:export type FitVerdict = "green" | "marginal" | "red";
+src/lib/hardware-fit.ts:58:  /** First green (best tool-caller), else first marginal, else null (use cloud). */
+src/lib/hardware-fit.ts:168:    case "marginal":
+src/lib/delegate-runs.test.ts:332:        { tool_call_id: "c-note", name: "write_note", input: { scope: "NVDA", text: "margin" } },
+src/lib/marketplace-lifecycle.test.ts:88:  it("a not-installed persisted plugin is never initialized at load (FR-051 broker-at-boot guard)", async () => {
+src/lib/marketplace-lifecycle.test.ts:89:    persistence.configs.set("broker", {
+src/lib/marketplace-lifecycle.test.ts:90:      pluginId: "broker",
+src/lib/marketplace-lifecycle.test.ts:96:    const plugin = fakePlugin("broker");
+src/modules/chat/ChatSidebar.test.tsx:1090:    // No preceding body block → the gap-cancelling negative margin must be OFF
+src/modules/chat/ChatSidebar.test.tsx:1095:  it("E10: with rendered content the caret keeps its gap-cancelling margin", () => {
+src/modules/chat/SuggestionChips.tsx:34:    prompt: "Compare $AAPL vs $MSFT on growth, margins, and valuation.",
+src/modules/portfolio/PortfolioPanel.tsx:154: * the workspace blob; there is no broker sync. P&L, weight, and concentration
+src/lib/screener-expr.ts:459:  gross_margin: "Gross margin (frac)",
+src/lib/screener-expr.ts:460:  operating_margin: "Operating margin (frac)",
+src/lib/screener-expr.ts:461:  profit_margin: "Net margin (frac)",
+src/modules/chat/ChatSidebar.tsx:260:          negative margin pulled the caret up OVER the message eyebrow
+src/modules/chat/ChatSidebar.tsx:262:          negative margin may only cancel a real gap — never reach into the
+src/modules/chat/ChatSidebar.tsx:553:  // Live model catalog for the active provider — auto-fetched, TTL-cached.
+src/modules/screener/ScreenerPresets.tsx:19: * cockpit). Fraction fields (roe / margins / growth / yield) use fractions
+src/modules/screener/ScreenerPresets.tsx:26:    description: "High ROE + net margin + revenue growth (MRQ YoY), low debt, large cap",
+src/modules/screener/ScreenerPresets.tsx:39:    description: "Low P/E, profitable (ROE > 12%), low leverage",
+src/modules/screener/ScreenerPresets.tsx:63:    description: "Yield > 3%, low leverage, profitable",
+src/modules/screener/ScreenerPresets.tsx:72:    id: "margins",
+src/modules/screener/ScreenerPresets.tsx:73:    label: "High-margin leaders",
+src/modules/screener/ScreenerPresets.tsx:74:    description: "Fat gross + operating margins, strong returns",
+src/modules/screener/ScreenerPresets.tsx:98:    description: "Giants ($200B+) with elite returns + margins",
+src/modules/chat/ProposedChangesReview.tsx:109:      exit={{ opacity: 0, x: 8, height: 0, marginBottom: 0 }}
+src/modules/chat/ProposedChangesReview.tsx:151:      exit={{ opacity: 0, x: 8, height: 0, marginBottom: 0 }}
+src/components/EmptyState.test.tsx:35:      <EmptyState icon={Inbox} headline="No brokers" cta={{ label: "Connect broker", onClick }} />,
+src/components/EmptyState.test.tsx:38:    expect(cta).toHaveTextContent("Connect broker");
+src/components/EmptyState.test.tsx:47:        headline="No brokers"
+src/components/EmptyState.test.tsx:48:        cta={{ label: "Connect broker", onClick: () => {}, primary: true }}
+src/modules/safety/DisclaimerFlow.test.tsx:63:    expect(text).toMatch(/no brokerage connection/i);
+src/modules/safety/DisclaimerFlow.test.tsx:67:    expect(text).not.toMatch(/connecting a broker/i);
+src/modules/safety/DisclaimerFlow.tsx:28:const TOS_BODY = `Vysted Terminal is a data and analysis tool. It does not provide investment advice and is not a registered broker-dealer or investment adviser.
+src/modules/safety/DisclaimerFlow.tsx:32:- Vysted has no brokerage connection. It cannot place, route or simulate orders.
+src/lib/workspace.test.ts:984:            // A removed panel (the broker connect panel) is docked in the blob.
+src/lib/workspace.test.ts:987:              panels: { broker: { contentComponent: "broker-connect-panel" } },
+src/lib/workspace.test.ts:1009:            notes: { general: "thesis notes", bySymbol: { INFY: "margin watch" } },
+src/lib/workspace.test.ts:1026:    expect(useNotesStore.getState().bySymbol.INFY).toBe("margin watch");
+src/lib/workspace.test.ts:1088:                        data: { id: "g1", views: ["chart", "broker"], activeView: "broker" },
+src/lib/workspace.test.ts:1103:                  broker: { id: "broker", contentComponent: "broker-connect-panel" },
+src/lib/workspace.test.ts:1104:                  orders: { id: "orders", contentComponent: "broker-order-entry-panel" },
+src/lib/workspace.test.ts:1127:              notes: { general: "thesis notes", bySymbol: { INFY: "margin watch" } },
+src/lib/workspace.test.ts:1151:      expect(useNotesStore.getState().bySymbol.INFY).toBe("margin watch");
+src/lib/workspace.test.ts:1403:            transcript: [{ role: "user", content: "what is TCS margin", createdAt: 1 }],
+src/lib/workspace.test.ts:1516:        () => useNotesStore.getState().setSymbolNote("NVDA", "watch margins"),
+src/modules/screener/ScreenerPanel.tsx:142:  //   deep_as_of     → "deep fields"  (7d .info deep tier — ROE, margins, growth)
+src/lib/brief-ingest.test.ts:267:    const md = "Revenue grew 23% [2]. Margin contracted [47]. Both held [1] [9].";
+src/lib/brief-ingest.test.ts:269:    expect(out).toBe("Revenue grew 23% [2]. Margin contracted [?]. Both held [1] [?].");
+src/lib/brief-ingest.test.ts:317:    expect(sanitizeCitationMarkers("Margin [3—5].", 4)).toBe("Margin [3][4][?].");
+src/lib/brief-ingest.test.ts:318:    expect(countBrokenCitations("Margin [3—5].", 4)).toBe(1);
+src/lib/brief-ingest.test.ts:322:    expect(sanitizeCitationMarkers("Margin 10.98% [Latest evidence][3].", 5)).toBe(
+src/lib/brief-ingest.test.ts:323:      "Margin 10.98% [?][3].",
+src/lib/brief-ingest.test.ts:339:    expect(bodyCitesWeb("Revenue grew 23.5% on margins of 12.1%.")).toBe(false);
+src/modules/screener/CriterionGroupEditor.tsx:64:    { value: "gross_margin", label: "Gross margin (frac)" },
+src/modules/screener/CriterionGroupEditor.tsx:65:    { value: "operating_margin", label: "Operating margin (frac)" },
+src/modules/screener/CriterionGroupEditor.tsx:66:    { value: "profit_margin", label: "Net margin (frac)" },
+src/components/OnboardingFlow.tsx:9: *     broker for every model — guided, with rough cost shown.
+src/modules/research/brief-blocks.tsx:329:    push("Net margin", formatFractionPercent(num(fund.profit_margin)));
+src/lib/format.ts:153: *  (yields, margins, holdings) where a "+" would read as a change. Non-finite
+src/modules/screener/ScreenerCriteriaBuilder.tsx:55:    { value: "gross_margin", label: "Gross margin (frac)" },
+src/modules/screener/ScreenerCriteriaBuilder.tsx:56:    { value: "operating_margin", label: "Operating margin (frac)" },
+src/modules/screener/ScreenerCriteriaBuilder.tsx:57:    { value: "profit_margin", label: "Net margin (frac)" },
+src/components/SettingsPanel.test.tsx:487:  it("labels OpenRouter plainly — never as a broker", () => {
+src/components/SettingsPanel.test.tsx:489:    expect(screen.queryByText(/OpenRouter \(broker\)/)).toBeNull();

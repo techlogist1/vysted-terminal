@@ -1,0 +1,2 @@
+{"detail":"custom universe is resolved per-request; pass custom_symbols on /screener/run"}
+HTTP 400

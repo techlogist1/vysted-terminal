@@ -1,0 +1,15 @@
+# R15-AGENT-096 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:08+0530
+
+$ git merge-base --is-ancestor c682ab81 HEAD && echo 'closure c682ab81 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure c682ab81 NOT an ancestor'
+[exit 0] [0.02s]
+closure c682ab81 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-AGENT-096\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.31s]
+src/lib/host-actions.test.ts:1463:    // later test in this file (R15-AGENT-096's own tests need the REAL
+src/lib/host-actions.test.ts:1487:  // R15-AGENT-096: a flat group (AND or OR) supersedes the flat `criteria`
+src/lib/host-actions.test.ts:1490:  describe("write_screener_filters / save_screen: a flat group's leaves are what actually runs (R15-AGENT-096)", () => {
+src/store/screener.test.ts:492:    it("applyFilters: a FLAT group supersedes the caller's flat criteria — runScreener must send the group's leaves, not the stale list (R15-AGENT-096)", () => {
+src/store/screener.ts:345:      // R15-AGENT-096: a flat group SUPERSEDES the caller's flat `criteria` —
+

@@ -1,0 +1,14 @@
+=== DATA-037 source ===
+60:def _since_ms(range_: str, ccxt_timeframe: str, now: datetime) -> int:
+61:    """The epoch-ms start of ``range_`` back from ``now``, clamped to :data:`_MAX_BARS`."""
+63:    if range_ == "max":
+65:    elif range_ == "ytd":
+67:    elif range_ in _RANGE_DAYS:
+68:        since = now_ms - _RANGE_DAYS[range_] * _UNIT_MS["d"]
+70:        raise ProviderError(f"unsupported range {range_!r}; supported: {', '.join(_RANGE_DAYS)}")
+124:def get_ohlcv(
+125:    exchange: str, symbol: str, timeframe: str = "1d", range_: str | None = None
+127:    """Return an OHLCV series for ``symbol`` on ``exchange`` covering ``range_``.
+129:    ``range_`` uses the /history vocabulary (``1mo``, ``1y``, ``5y``, ``max`` ...);
+136:    period = range_ or yfinance_provider._TIMEFRAME_MAP.get(timeframe, ("1d", "1y"))[1]
+141:            page = instance.fetch_ohlcv(symbol, ccxt_timeframe, since=cursor, limit=_PAGE_LIMIT)

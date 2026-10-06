@@ -1,0 +1,112 @@
+[
+  {
+    "label": "write-a-note",
+    "prompt": "Write a note on Cochin Shipyard: valuation looks stretched at ~54x trailing P/E; revisit after Q2 results.",
+    "needed_tool": "write_note",
+    "read_only": false,
+    "tool_present": true,
+    "n_tools": 55
+  },
+  {
+    "label": "screen-for",
+    "prompt": "screen for defence stocks with P/E < 40",
+    "needed_tool": "write_screener_filters",
+    "read_only": false,
+    "tool_present": true,
+    "n_tools": 55
+  },
+  {
+    "label": "save-layout",
+    "prompt": "Save my layout as research desk",
+    "needed_tool": "save_layout",
+    "read_only": false,
+    "tool_present": true,
+    "n_tools": 55
+  },
+  {
+    "label": "delete-tcs",
+    "prompt": "Delete TCS from my portfolio",
+    "needed_tool": "portfolio_delete_position",
+    "read_only": false,
+    "tool_present": true,
+    "n_tools": 55
+  },
+  {
+    "label": "i-bought",
+    "prompt": "I bought 10 shares of INFY at 1500",
+    "needed_tool": "portfolio_add_position",
+    "read_only": false,
+    "tool_present": true,
+    "n_tools": 55
+  },
+  {
+    "label": "update-cost-basis",
+    "prompt": "Update my RELIANCE cost basis to 1180",
+    "needed_tool": "portfolio_update_position",
+    "read_only": false,
+    "tool_present": true,
+    "n_tools": 55
+  },
+  {
+    "label": "my-lot-is-actually",
+    "prompt": "My RELIANCE lot is actually 12 shares",
+    "needed_tool": "portfolio_update_position",
+    "read_only": false,
+    "tool_present": true,
+    "n_tools": 55
+  },
+  {
+    "label": "put-25-hdfc",
+    "prompt": "Put 25 HDFC Bank shares in my portfolio",
+    "needed_tool": "portfolio_add_position",
+    "read_only": false,
+    "tool_present": true,
+    "n_tools": 55
+  },
+  {
+    "label": "can-you-log",
+    "prompt": "Can you log that I sold 5 shares of TCS?",
+    "needed_tool": "portfolio_delete_position",
+    "read_only": false,
+    "tool_present": true,
+    "n_tools": 55
+  },
+  {
+    "label": "can-you-record",
+    "prompt": "Can you record that I added 3 more shares of WIPRO?",
+    "needed_tool": "portfolio_add_position",
+    "read_only": false,
+    "tool_present": true,
+    "n_tools": 55
+  },
+  {
+    "label": "offload-sbin",
+    "prompt": "Would you please offload my SBIN stake?",
+    "needed_tool": "portfolio_delete_position",
+    "read_only": false,
+    "tool_present": true,
+    "n_tools": 55
+  },
+  {
+    "label": "knock-out-hdfcbank",
+    "prompt": "Will you knock HDFCBANK out of my portfolio?",
+    "needed_tool": "portfolio_delete_position",
+    "read_only": false,
+    "tool_present": true,
+    "n_tools": 55
+  },
+  {
+    "label": "dividend-yield-itc",
+    "prompt": "What is the dividend yield of ITC?",
+    "control": "read-should-strip",
+    "read_only": true,
+    "n_tools": 42
+  },
+  {
+    "label": "tcs-vs-infy-pe",
+    "prompt": "Is TCS cheaper than INFY on P/E?",
+    "control": "read-should-strip",
+    "read_only": true,
+    "n_tools": 42
+  }
+]

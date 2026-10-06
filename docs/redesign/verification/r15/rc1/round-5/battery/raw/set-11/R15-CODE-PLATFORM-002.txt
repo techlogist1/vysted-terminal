@@ -1,0 +1,4 @@
+json_path: {'extracted': 42}
+sleep: {'value': 'x', 'slept': 0.01}
+compare neq: {'result': True}
+notify: {'notified': True, 'title': 't', 'message': 'hello', 'intent': 'desktop-notification'}

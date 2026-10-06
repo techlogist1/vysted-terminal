@@ -66,39 +66,30 @@ async function _sendOne(intent: DesktopNotificationIntent): Promise<void> {
  *
  * Mount once near the app root (e.g. in `src/app/page.tsx::Page`). The
  * subscription pulls every newly-captured intent off the store, sends
- * the notification, and calls `drainNotifications()` to clear the slice
- * (so re-mounts or store-resets do not re-fire stale intents).
+ * the notification. Intents are taken (returned + cleared) BEFORE the send,
+ * so one appended while a send is awaited stays pending for the next pass,
+ * and re-mounts or store-resets do not re-fire already-sent intents.
  */
 export function useDesktopNotificationBridge(): void {
   useEffect(() => {
     let active = true;
     // Serialize flushes: the bridge is re-entrant (mount flush + every store
-    // subscription fire), and two overlapping async flushes previously both
-    // iterated the same snapshot and double-fired notifications, then both
-    // drained (Phase 9.5). `isFlushing` guards re-entry; `rerun` makes a flush
-    // requested mid-run re-check the store once the in-flight pass finishes.
+    // subscription fire). `isFlushing` guards re-entry; the in-flight pass
+    // keeps taking until the queue is empty, so an intent appended mid-send
+    // is picked up by the same pass.
     let isFlushing = false;
-    let rerun = false;
     const flush = async (): Promise<void> => {
-      if (!active) return;
-      if (isFlushing) {
-        rerun = true;
-        return;
-      }
+      if (!active || isFlushing) return;
       isFlushing = true;
       try {
-        do {
-          rerun = false;
-          const intents = selectPendingNotifications(useWorkflowStore.getState());
+        for (;;) {
+          const intents = useWorkflowStore.getState().takeNotifications();
           if (intents.length === 0) break;
           for (const intent of intents) {
             if (!active) return;
             await _sendOne(intent);
           }
-          if (active) {
-            useWorkflowStore.getState().drainNotifications();
-          }
-        } while (rerun && active);
+        }
       } finally {
         isFlushing = false;
       }

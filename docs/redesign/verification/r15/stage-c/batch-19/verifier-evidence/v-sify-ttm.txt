@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  44.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_ee030d7c959b4ed09895b0160e681055", "name": "financial_statements", "input": {"statement": "income", "period": "annual", "symbol": "SIFY.US"}}
+[  48.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_ee030d7c959b4ed09895b0160e681055", "name": "financial_statements", "ok": true, "error": null}
+[  50.4s] done: {"kind": "done", "usage": {"input_tokens": 2887, "output_tokens": 18, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The terminal's data does not include the TTM revenue for SIFY in USD.
+
+=== ok · 50.4s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 17, 'done': 1} · usage in=2887 out=18 · est $0.00000 · llama3.1:8b

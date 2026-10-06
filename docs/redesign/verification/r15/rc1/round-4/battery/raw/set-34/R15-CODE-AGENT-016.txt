@@ -1,0 +1,8 @@
+agent zz-bad.json: schema violation at <root>: 'philosophy' is a required property
+agent zz-bad.json: schema violation at ['defaultProvider']: 'notaprovider' is not one of ['anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai', 'openrouter']
+agent zz-bad.json: schema violation at ['systemPrompt']: 'test' is too short
+baseline (candidate agents dir) roster: 13 degraded: []
+test dir roster (baseline+zz-bad+zz-openrouter): 14
+zz-openrouter loaded: True
+zz-bad loaded: False
+degraded2: [{'file': 'zz-bad.json', 'reason': "schema violation: <root>: 'philosophy' is a required property; ['defaultProvider']: 'notaprovider' is not one of ['anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai', 'openrouter']; ['systemPrompt']: 'test' is too short"}]

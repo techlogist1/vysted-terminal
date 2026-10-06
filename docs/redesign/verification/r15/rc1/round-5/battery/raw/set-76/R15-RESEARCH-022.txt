@@ -1,0 +1,6 @@
+CMD: python3 /tmp/r22_probe.py (in-process, cwd=sidecar, candidate .venv) — register repro: KeylessSearchBackend(engines={'ddg': stub}) where stub returns one row 'Unusual traffic...' / 'verify you are a human'
+breaker state BEFORE: closed
+EXCEPTION raised (expected fix behavior): SearchError keyless web search has no engine available right now — DuckDuckGo: blocked (challenge page); Brave: unavailable; Mojeek: unavailable. Wait a moment and retry, or add an Exa key / local SearXNG for a d
+reason: rate_limited
+breaker state AFTER: closed
+EXIT=0

@@ -1,0 +1,12 @@
+# probe at ace7dd76 (candidate worktree), run 05:55:38
+$ grep -n 'R15-CODE-FRONTEND-037' src/lib/workspace.test.ts
+454:  it("R15-CODE-FRONTEND-037: empty watchlist round-trips to []; a blob without the key keeps defaults", () => {
+$ grep -n 'watchlist' src/lib/workspace.ts | sed -n 1,10p
+81:   * The user's tracked watchlist. Persisted so a customised watchlist survives
+85:  watchlist?: SymbolEntry[];
+366:    key: "watchlist",
+368:    read: () => ({ watchlist: useSymbolsStore.getState().entries }),
+370:      if (Array.isArray(workspace.watchlist)) {
+371:        useSymbolsStore.getState().setEntries(workspace.watchlist);
+800: * data (portfolios, watchlist, notes, brief, settings, keybindings, research
+1000: * The saved data slices (holdings, watchlist, notes, …) are restored even when

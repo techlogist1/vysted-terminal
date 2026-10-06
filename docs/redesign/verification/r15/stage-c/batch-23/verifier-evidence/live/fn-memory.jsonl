@@ -1,0 +1,19 @@
+{"kind": "delta", "text": "That"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " simple"}
+{"kind": "delta", "text": " calculation"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "000"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "600"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2738, "output_tokens": 19, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

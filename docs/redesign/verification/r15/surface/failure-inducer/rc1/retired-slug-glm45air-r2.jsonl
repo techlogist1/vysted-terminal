@@ -1,0 +1,2 @@
+{"kind": "error", "message": "The requested model is not available on OpenRouter \u2014 pick another model.", "action": "Choose a different model in Settings.", "detail": "Error code: 404 - {'error': {'message': 'This model is unavailable for free. The paid version is available now - use this slug instead: z-ai/glm-4.5-air', 'code': 404}, 'user_id': '<redacted>'}", "code": "model_not_found"}
+{"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}

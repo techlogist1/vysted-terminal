@@ -1,0 +1,2 @@
+notice | Staged for your review, not applied yet: set_chart_symbol BDL. Accept it below to apply.
+auto notices count (should be 0 for staged, since auto does not stage): 1

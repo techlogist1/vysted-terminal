@@ -1,0 +1,5 @@
+status= running
+detail= None
+cost= {'tokens': 0, 'spend_usd': 0.0, 'steps': 0, 'spendUsd': 0.0}
+checkpointMessages= 0
+status= error detail= token ceiling 500 reached (7527 used) cost= {'tokens': 7527, 'spend_usd': 0.0, 'steps': 1, 'spendUsd': 0.0}

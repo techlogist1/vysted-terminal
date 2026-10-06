@@ -1,0 +1,15 @@
+{
+ "tag": "ledger-S2",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_offmachine_s2.md section 4 (LEDGER assembly) in full before touching anything. Run this AFTER all intent-S2A..E items have completed.",
+ "stages": [
+  {
+   "label": "assemble",
+   "model": "sonnet",
+   "effort": "high",
+   "prompt": "Your task spec is PROMPT_offmachine_s2.md section 4. Assemble docs/redesign/verification/r15/census/PROMISE_LEDGER.md from all 23 CENSUS/intent/ledger-*.json files. If it already exists, verify it against the current ledger files and finish/correct it rather than restarting."
+  }
+ ],
+ "items": [
+  {"id": "promise-ledger"}
+ ]
+}

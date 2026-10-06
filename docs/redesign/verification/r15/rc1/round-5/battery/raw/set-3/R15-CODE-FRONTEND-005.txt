@@ -1,0 +1,90 @@
+CMD: grep -n "round-trips chart drawings through workspace JSON" /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/workspace.test.ts
+660:  it("round-trips chart drawings through workspace JSON (Phase 2)", () => {
+--- test body (lines 660-746) ---
+  it("round-trips chart drawings through workspace JSON (Phase 2)", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    useModulesStore.setState({ enabled: { chart: true } });
+
+    const trendline: DrawingSpec = {
+      id: "draw-trend",
+      panelId: "chart-1",
+      symbol: "SPY",
+      timeframe: "1d",
+      kind: "trendline",
+      points: [
+        { time: 1700000000, price: 100 },
+        { time: 1700100000, price: 110 },
+      ],
+      style: { color: "#e9a94d", lineWidth: 1, lineStyle: "solid" },
+      createdAt: 1700000000_000,
+    };
+    const fib: DrawingSpec = {
+      id: "draw-fib",
+      panelId: "chart-2",
+      symbol: "TCS.NS",
+      timeframe: "1wk",
+      kind: "fib-retracement",
+      points: [
+        { time: 1700000000, price: 100 },
+        { time: 1700100000, price: 200 },
+      ],
+      style: { color: "#8fa67c", lineWidth: 1, lineStyle: "dashed" },
+      createdAt: 1700000000_001,
+    };
+    useChartDrawingsStore.getState().addDrawing("chart-1", trendline);
+    useChartDrawingsStore.getState().addDrawing("chart-2", fib);
+
+    const saved = serializeWorkspace("with-drawings");
+
+    // Mutate the live state away…
+    useChartDrawingsStore.setState({ byPanel: {}, views: {} });
+    expect(useChartDrawingsStore.getState().getDrawings("chart-1")).toHaveLength(0);
+
+    // …then reload — drawings come back exactly as saved.
+    deserializeWorkspace(saved);
+    expect(useChartDrawingsStore.getState().getDrawings("chart-1")).toEqual([trendline]);
+    expect(useChartDrawingsStore.getState().getDrawings("chart-2")).toEqual([fib]);
+  });
+
+  it("round-trips each chart panel's view and adopts an older blob's drawings (R15-UI-020)", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    const view = { symbol: "RELIANCE.NS", timeframe: "1h", indicators: ["rsi"], compare: "TCS.NS" };
+    useChartDrawingsStore.getState().setView("chart", view);
+
+    const saved = serializeWorkspace("with-view");
+    useChartDrawingsStore.setState({ views: {} });
+    deserializeWorkspace(saved);
+    expect(useChartDrawingsStore.getState().views["chart"]).toEqual(view);
+
+    // A blob from before drawings carried symbol/timeframe: its drawings belong
+    // to the panel's restored view, or the chart defaults when it has none.
+    const legacyDrawing = {
+      id: "old",
+      panelId: "chart",
+      kind: "horizontal-line",
+      points: [{ time: null, price: 2450 }],
+      style: { color: "#fff", lineWidth: 1 },
+      createdAt: 0,
+    };
+    deserializeWorkspace({
+      name: "old",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      chartViews: { chart: view },
+      chartDrawings: { byPanel: { chart: [legacyDrawing], other: [legacyDrawing] } },
+    } as unknown as SerializedWorkspace);
+    const restored = useChartDrawingsStore.getState();
+    expect(restored.getDrawings("chart")[0]).toMatchObject({
+      symbol: "RELIANCE.NS",
+      timeframe: "1h",
+    });
+    expect(restored.getDrawings("other")[0]).toMatchObject({ symbol: "SPY", timeframe: "1d" });
+
+    // The oldest blobs have no chartViews: the panels open on their defaults.
+    deserializeWorkspace({ name: "older", layout: LAYOUT_A, enabledModules: {} });
+    expect(useChartDrawingsStore.getState().views).toEqual({});
+  });
+
+  it("loadWorkspace without chartDrawings clears any pre-existing drawings", () => {

@@ -1,0 +1,31 @@
+{
+  "single": {
+    "n": 339,
+    "p50_ms": 42.20008850097656,
+    "p99_ms": 350.45918464660684,
+    "p50_ms_excl_first_call": 41.592955589294434,
+    "p99_ms_excl_first_call": 351.37704372405966,
+    "first_call_ms": 80.87611198425293,
+    "throughput_items_per_s": 16.949065121122416
+  },
+  "batched": {
+    "n": 339,
+    "batch_size": 16,
+    "p50_ms": 38.47000002861023,
+    "p99_ms": 140.96274971961975,
+    "throughput_items_per_s": 18.146070328649472,
+    "total_wall_s": 18.6817307472229
+  },
+  "steady_rss_kb_at_midpoint": 886640,
+  "sources": {
+    "single": "agent.predict(state, {qid: qdef}) called once per item, wall-clock time.time() around the call",
+    "batched": "agent.prepare() per item -> laya_mlx.agent.collate_items() -> agent.forward(), batch_size=agent.batch_size (16); system_one/predict only batches multiple QUESTIONS on one shared state, so cross-item batching reuses the package's own lower primitives"
+  },
+  "critic_notes": {
+    "batched_p50_p99_are_amortized": "run_zeroshot.py records batch_wall/len(chunk) for every item in a batch, so batched p50_ms/p99_ms are amortized cost per item, not the latency an item sees; an item in a 16-item batch waits the whole batch wall (~16 x 38.5 = ~616 ms at the p50 batch)",
+    "peak_memory_footprint_bytes": 12180033728,
+    "peak_memory_footprint_source": "<scratch>/laya-measure/time_wrapper.log (/usr/bin/time -l); critic re-run 12177887232 (critic_rerun.json)",
+    "max_rss_bytes": 980615168,
+    "note": "RSS (~935 MiB) understates the process's memory cost; macOS peak memory footprint was ~11.3 GiB on a 16 GiB host. What makes up the footprint (e.g. MLX/Metal buffers) was not verified."
+  }
+}

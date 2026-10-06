@@ -1,0 +1,11 @@
+[   4.1s] done: {"kind": "done", "usage": {"input_tokens": 2743, "output_tokens": 75, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I'm sorry but Vysted has no brokerage connection. I can help research or track it, though! If you'd like, I can look up the current price of SBIN and help you understand its value in your portfolio. Your current portfolio summary is: 
+
+ 0 holdings 
+ Total Value: ₹0 
+
+Would you like to proceed with researching SBIN?
+
+=== ok · 4.1s · events {'delta': 77, 'done': 1} · usage in=2743 out=75 · est $0.00000 · llama3.1:8b

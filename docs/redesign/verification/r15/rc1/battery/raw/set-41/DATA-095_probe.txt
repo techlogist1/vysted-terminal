@@ -1,0 +1,4 @@
+before (should lack the 3): True
+eod_updated_at present after _connect(): True
+seed_updated_at present after _connect(): True
+provider present after _connect(): True

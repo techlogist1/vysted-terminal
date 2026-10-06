@@ -1,0 +1,18 @@
+# R15-RESEARCH-016 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:31+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/t016.py 2>&1 | grep -v Warning
+--- output ---
+provider nse_direct failed for ohlcv, falling through: nse_direct: 'JONJUA' is not a known NSE instrument
+provider nse failed for ohlcv, falling through: nse: 'JONJUA' is not a known NSE instrument
+provider nse_direct failed for quote, falling through: nse_direct: 'JONJUA' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'JONJUA' is not a known NSE instrument
+floor rows 5
+ResearchBrief n_sources 7
+    ResearchSource(url='https://www.bseindia.com/xml-data/corpfiling/AttachHis/a787b858-46c6-4117-b003-8046f7c422e3.pdf', title='Outco
+    ResearchSource(url='https://www.bseindia.com/xml-data/corpfiling/AttachHis/fc4ba00b-3a14-4c83-b178-e3ef1b4f7b73.pdf', title='Unaud
+    ResearchSource(url='https://www.bseindia.com/xml-data/corpfiling/AttachHis/4f9d6d01-421b-4592-926c-318a6411739b.pdf', title='Board
+    ResearchSource(url='https://www.bseindia.com/xml-data/corpfiling/AttachHis/09ec9cc1-92a4-4e53-ae56-177b88eeab05.pdf', title='Board
+    ResearchSource(url='https://www.bseindia.com/xml-data/corpfiling/AttachHis/543f377c-c745-4690-8b2f-134723df7067.pdf', title='Board
+    ResearchSource(url='vysted://price/JONJUA', title='Price for JONJUA', excerpt='Structured price pull via bse.', domain='bse', sour
+
+EXIT=0 (10.7s)

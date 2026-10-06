@@ -1,0 +1,49 @@
+{
+  "run": "R15 RC1 gate round 2",
+  "candidate_sha": "4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2",
+  "collected_at": "2026-09-26",
+  "own_sidecar_port": 52313,
+  "data_dir": "scratchpad/rc1-data-datapack (fresh copy of rc1-seed-data)",
+  "collector": "scripts/r15/collect_battery.py --port 52313 --force, run from a minimal copy tree scratchpad/rc1-pack so the census baseline in docs/redesign/verification/r15/battery/collected/ was never overwritten",
+  "slots_collected": 24,
+  "note_stale_prior_attempt": "docs/redesign/verification/r15/rc1/DATAPACK.md and datapack.json on disk before this run were from an EARLIER RC1 candidate (4097dac4, gate round 1, 2026-09-25) — a different sha than this round's 4c6dfe8c. This file replaces them for the current candidate.",
+  "environment_note": "Own sidecar's background fundamentals_warm cache job hammered Yahoo concurrently with the collector (opens_total climbing, repeated 429s, one observed circuit-open window of 56s during P15 SUMAX). Self-inflicted noise from running the collector against a freshly-booted sidecar with its warm-cache crawler still running; not evidence of a product regression.",
+  "method": {
+    "targeted_check": "For each of the 42 fixed register entries whose repro/evidence names a battery symbol (10 symbols after word-boundary matching: AMAL, DAL, SIFY, DHANBANK, SMR, JNPR, ELCIDIN, SUMAX, VIYASH, CREST), re-ran the entry's own stated repro live against the rc1 candidate sidecar and read field_meta/status/reason, not just the raw value.",
+    "broad_scan": "scratchpad/rc1-pack/redo_diff.py (not committed, scratch tool) flattens the freshly-collected rc1 JSON and looks up every census-time 'match' field (from docs/redesign/verification/r15/battery/diffs/*.json) by its last dotted path segment, comparing the rc1 value against the SAME outside/pack value the census diff recorded. Output: r15/rc1/rediff_out.json.",
+    "broad_scan_limits": "Heuristic mapper only (field paths are prose, not JSON pointers): flagged 'flips' on CSL/JUMBO/SIFY/ONC/etc. were all inspected and are mapper artifacts (pack figures in INR crore vs rc1 raw rupees for revenue_ttm; pack percent-scale vs rc1 decimal-scale for roe/debt_to_equity; 'Financials' vs 'Financial Services' sector-label variants; ONC/JONJUA fields the app correctly serves null/withheld). None of the 13 flagged slots is a genuine value regression once rescaled."
+  },
+  "targeted_fixed_entries": [
+    {"id": "R15-DATA-001", "symbol": "DAL", "field": "income/balance/cashflow region binding", "result": "not directly re-probed this pass (covered indirectly by DATA-006/013 checks on the same symbol, both hold)"},
+    {"id": "R15-DATA-002", "symbol": "SMR", "field": "quotes/SMR bare-ticker session binding", "result": "holds — GET /quotes/SMR resolves to BSE:SMR Jewels (INR, BSE) in the IN session, not NuScale"},
+    {"id": "R15-DATA-003", "symbol": "AMAL", "field": "disclosures/shareholding?symbol=AMAL", "result": "could not confirm either way — BSE index returned 403 Forbidden for every BSE-only shareholding call this run (CSL, SMR, AMAL all failed identically), an environment/upstream block, not symbol-specific"},
+    {"id": "R15-DATA-004", "symbol": "DHANBANK", "field": "held_percent_insiders", "result": "holds — status 'flagged', reason 'unreconciled: exchange shareholding unavailable (insiders != promoter group)', not silently served ok"},
+    {"id": "R15-DATA-005", "symbol": "VERTEX", "field": "shares_outstanding/book_value/price_to_book", "result": "holds — both fields now status 'flagged' with a reason citing the 50% share-count disagreement implied by market_cap/price, not served silently"},
+    {"id": "R15-DATA-006", "symbol": "DAL", "field": "quotes/DAL timestamp/freshness", "result": "holds — timestamp is the true 2025-03-12 stale print, freshness:'stale', market_state CLOSED"},
+    {"id": "R15-DATA-008", "symbol": "SIFY", "field": "revenue_ttm/net_income_ttm/currency", "result": "REGRESSION (partial fix) — see findings"},
+    {"id": "R15-DATA-013", "symbol": "DAL", "field": "eps/pe_ratio", "result": "holds — eps now the correct exchange-filed 2.05 (BSE, status ok); pe_ratio kept the old 5.60 (49.88/8.9) but status 'flagged' with a reason stating the implied true PE (24.5) — an intentional cross-check gate, not a bug"},
+    {"id": "R15-DATA-014", "symbol": "FUSION", "field": "revenue_ttm", "result": "holds — now the NSE exchange-filed figure (17,144.2M) with a reason noting the Yahoo figure (8,582.0M) disagreed and was not served"},
+    {"id": "R15-DATA-017", "symbol": "JNPR", "field": "disclosures/shareholding?symbol=JNPR", "result": "holds — 200 with a real pattern (promoter 85.94%), not the old 502 'not a known NSE/BSE instrument'"},
+    {"id": "R15-DATA-018", "symbol": "VIYASH", "field": "resolve?q=SEQUENT", "result": "holds — resolves to VIYASH, confidence 1.0, former_name:'SEQUENT', rename block present"},
+    {"id": "R15-DATA-022", "symbol": "SMR", "field": "disclosures/shareholding?symbol=SMR", "result": "same BSE 403 environment block as DATA-003 — not independently re-verifiable this run"},
+    {"id": "R15-DATA-052", "symbol": "ELCIDIN", "field": "identity.sector", "result": "holds — sector now 'Financial Services' (was empty), status ok"},
+    {"id": "R15-DATA-057", "symbol": "DHANBANK", "field": "resolve?q=Dhanalakshmi+Bank", "result": "holds — DHANBANK/Dhanlaxmi Bank Limited ranks first; the dead DHAN-RE rights-entitlement line is not in the candidates shown"},
+    {"id": "R15-DATA-058", "symbol": "SIFY", "field": "resolve?q=Sify+Technologies+Ltd+(ADR)", "result": "REGRESSION (partial fix) — see findings"},
+    {"id": "R15-DATA-059", "symbol": "ONC", "field": "resolve?q=BeiGene", "result": "holds — resolves to ONC/BeOne Medicines, former_name:'BeiGene, Ltd.', confidence 0.97"},
+    {"id": "R15-DATA-060", "symbol": "SIFY", "field": "disclosures/shareholding?symbol=SIFY", "result": "holds — 200 with 20-F-derived major shareholders and an explanatory note, not the old 502"},
+    {"id": "R15-LEAD-011", "symbol": "JNPR (index family)", "field": "history/%5ENSEI", "result": "holds — 22 daily bars returned, not the old 0-bar in_eod_only failure"},
+    {"id": "R15-LEAD-015", "symbol": "DHANBANK", "field": "quarterly income statement gap marker", "result": "holds — 2025-09-30 is present in the periods list with an explicit null value, not silently dropped"},
+    {"id": "R15-LEAD-028", "symbol": "AMAL/SMR (BSE scrip-code addressing)", "field": "quotes/506597.BO, history/544774.BO", "result": "holds for the two routes the closure evidence actually certified (quotes, history — both 200 with correct data); a third route, /fundamentals/506597.BO, still 404s — outside this entry's certified scope, noted as a gap, not filed as a regression against this entry"}
+  ],
+  "not_individually_re-verified_this_pass": [
+    "R15-AGENT-022", "R15-AGENT-090", "R15-DATA-015", "R15-DATA-016", "R15-DATA-019",
+    "R15-DATA-023", "R15-DATA-025", "R15-DATA-026", "R15-DATA-027", "R15-DATA-048",
+    "R15-DATA-049", "R15-DATA-050", "R15-DATA-051", "R15-DATA-053", "R15-DATA-054",
+    "R15-DATA-055", "R15-DATA-056", "R15-DATA-076", "R15-DATA-115", "R15-LEAD-004",
+    "R15-LEAD-013", "R15-LEAD-034"
+  ],
+  "broad_scan_flagged_slots_all_explained_as_mapper_artifacts": [
+    "P10 VIYASH", "P14 JONJUA", "P17 SIFY", "P18 ONC", "P1 JNPR", "P3 CHTR",
+    "P5 CSL", "P6 ICON", "P7 JUMBO", "P9 AMAL", "S1 DHOOTTRANS", "S2 SMR", "S3 VERTEX"
+  ]
+}

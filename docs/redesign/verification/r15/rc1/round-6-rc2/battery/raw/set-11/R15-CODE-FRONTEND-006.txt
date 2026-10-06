@@ -1,0 +1,16 @@
+ci_pinned leg: static check of the wiring + test existence at ace7dd76
+$ grep -n "runWorkflow\|consumeSse" src/modules/node-editor/NodeEditorPanel.tsx
+20: * The run goes through `useWorkflowStore.runWorkflow` (the one client for
+413:      await useWorkflowStore.getState().runWorkflow(spec, undefined, {
+$ grep -n runWorkflow src/store/workflow.test.ts
+6:// without a desktop runtime; runWorkflow rides the real shared transport
+222:describe("useWorkflowStore.runWorkflow — SSE consumption", () => {
+250:    const runId = await useWorkflowStore.getState().runWorkflow(_spec(), { focused: "AAPL" });
+263:    // runWorkflow resolves OR shortly after — wait a microtask to be sure.
+290:    const runId = await useWorkflowStore.getState().runWorkflow(_spec());
+310:    await expect(useWorkflowStore.getState().runWorkflow(_spec())).rejects.toThrow(
+323:    await expect(useWorkflowStore.getState().runWorkflow(_spec())).rejects.toThrow(
+340:    await expect(useWorkflowStore.getState().runWorkflow(_spec())).rejects.toThrow(/run-start/);
+
+backend leg of repro: same run as PLATFORM-002 (notify_desktop node output)
+('node-start', 'action.notify_desktop', None, None)

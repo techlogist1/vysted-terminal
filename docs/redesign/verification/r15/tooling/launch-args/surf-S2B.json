@@ -1,0 +1,30 @@
+{
+ "tag": "surf-S2B",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. THEN read docs/redesign/verification/r15/tooling/PROMPT_surface_s2.md in full. A previous attempt at your task may have died to a usage wall or power loss: your sidecar, evidence dir, COVERAGE.json and raw file may already exist - verify and continue, never restart. Before any pnpm/node/cargo command: export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$HOME/.cargo/bin:$PATH.",
+ "stages": [
+  {
+   "label": "drive",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Run the OWNER-DRIVE section of PROMPT_surface_s2.md for group \"{{id}}\". <port> = {{port}}, data dir = <scratchpad>/vysted-iso/seat-{{id}}/data (cp -R <scratchpad>/vysted-iso/data into it per ISO_STACK.md, since this is a normal seeded item, not CLEAN). Write SURFACE/{{id}}/ evidence, SURFACE/{{id}}/COVERAGE.json, and CENSUS/raw/surf-{{id}}.json (raw_id prefix SURF-{{group_prefix}}, area per the finding, empty [] allowed). Stop your sidecar (kill the sleep pid) when done. Return the RESULT object with count = raw findings written."
+  },
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Refute the findings you (or a prior attempt) wrote for group \"{{id}}\". Raw file: docs/redesign/verification/r15/census/raw/surf-{{id}}.json. Output: docs/redesign/verification/r15/census/refute/surf-{{id}}.json. Follow PROMPT_surface_s2.md's REFUTE section (which points to PROMPT_refute.md) exactly, including the trading-scope removed_with_feature handling. If the raw file is [], confirm and write [] as your verdict file. Return the RESULT object."
+  }
+ ],
+ "items": [
+  {
+   "id": "screener",
+   "port": 52219,
+   "group_prefix": "SCREENER"
+  },
+  {
+   "id": "panels-layouts",
+   "port": 52220,
+   "group_prefix": "PANELS-LAYOUTS"
+  }
+ ]
+}

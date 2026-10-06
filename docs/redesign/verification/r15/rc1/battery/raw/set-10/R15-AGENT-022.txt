@@ -1,0 +1,2 @@
+add_position with null cost_basis -> {'__vysted_invalid_args__': 'invalid arguments for portfolio_add_position: missing cost_basis — ask the user for it; do not guess'}
+update_position missing position_id -> {'__vysted_invalid_args__': 'invalid arguments for portfolio_update_position: missing position_id — ask the user for it; do not guess'}

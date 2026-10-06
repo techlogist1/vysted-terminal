@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 0.9s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · inclusionai/ling-3.0-flash-vl:free

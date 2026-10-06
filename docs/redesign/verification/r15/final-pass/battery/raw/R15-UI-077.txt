@@ -1,0 +1,16 @@
+# R15-UI-077 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:50:02+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+I='{"type":"deposit","tenor":1,"tenor_unit":"months","rate":0.041},{"type":"deposit","tenor":3,"tenor_unit":"months","rate":0.043},{"type":"deposit","tenor":6,"tenor_unit":"months","rate":0.044},{"type":"swap","tenor":2,"tenor_unit":"years","rate":0.045},{"type":"swap","tenor":5,"tenor_unit":"years","rate":0.047},{"type":"swap","tenor":10,"tenor_unit":"years","rate":0.050},{"type":"swap","tenor":30,"tenor_unit":"years","rate":0.052}'
+echo '$ POST /quant/yield-curve, default instruments + a duplicate 10Y swap (Origin http://localhost:5173)'
+curl -s -m 60 -D - -X POST "$H/quant/yield-curve" -H 'content-type: application/json' -H 'Origin: http://localhost:5173' -d "{\"valuation_date\":\"2026-05-16\",\"instruments\":[$I,{\"type\":\"swap\",\"tenor\":10,\"tenor_unit\":\"years\",\"rate\":0.051}],\"sample_count\":10}" | grep -i -E '^HTTP|content-type|access-control-allow-origin|detail' | cut -c1-300
+echo; echo -n '$ control without the duplicate: '; curl -s -m 60 -o /dev/null -w '%{http_code}\n' -X POST "$H/quant/yield-curve" -H 'content-type: application/json' -d "{\"valuation_date\":\"2026-05-16\",\"instruments\":[$I],\"sample_count\":10}"
+--- output ---
+$ POST /quant/yield-curve, default instruments + a duplicate 10Y swap (Origin http://localhost:5173)
+HTTP/1.1 400 Bad Request
+content-type: application/json
+access-control-allow-origin: http://localhost:5173
+{"detail":"more than one instrument with pillar May 18th, 2036"}
+
+$ control without the duplicate: 200
+
+EXIT=0 (0.0s)

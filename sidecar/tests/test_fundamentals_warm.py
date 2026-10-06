@@ -1,0 +1,616 @@
+"""Tests for the region-aware India fundamentals warming (R10, D40).
+
+The warm workers must: seed identity+sector rows locally (<1 s, no network),
+sweep only STALE symbols through the v7 batch into the store, pause the deep
+``.info`` crawler while a foreground screen runs, respect the
+``info_priority`` ordering, and start/stop cleanly from the lifespan without
+leaking tasks. No live network — the v7 endpoint rides the MockTransport
+seam and the registry is monkeypatched.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+import sqlite3
+from datetime import UTC, datetime
+from pathlib import Path
+
+import httpx
+import pytest
+
+from models.fundamentals import Fundamentals
+from models.market import Quote
+from models.screener import ScreenerUniverse
+from services import fundamentals_store, fundamentals_warm, provider_health
+from services import yahoo_batch_provider as yb
+from services.errors import ProviderError
+
+
+@pytest.fixture(autouse=True)
+def _isolated(tmp_path: Path) -> None:
+    fundamentals_store.reset_for_tests(tmp_path / "fundamentals_test.db")
+    fundamentals_warm.reset_for_tests()
+    yb.reset_for_tests()
+    yield
+    fundamentals_store.reset_for_tests(None)
+    fundamentals_warm.reset_for_tests()
+    yb.reset_for_tests()
+
+
+def _tiny_universe(symbols: list[str]):
+    def _load(universe_id: str) -> ScreenerUniverse:  # noqa: ARG001
+        return ScreenerUniverse(
+            id="india-all", label="India (NSE + BSE)", symbols=symbols, asset_class="equity"
+        )
+
+    return _load
+
+
+def _v7_row(symbol: str) -> dict[str, object]:
+    return {
+        "symbol": symbol,
+        "longName": f"{symbol} Ltd",
+        "regularMarketPrice": 1250.0,
+        "regularMarketVolume": 100_000,
+        "currency": "INR",
+        "marketCap": 5e12,
+        "trailingPE": 25.0,
+        "sharesOutstanding": 4e9,
+    }
+
+
+def _install_v7(rows: dict[str, dict[str, object]]) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if "getcrumb" in request.url.path:
+            return httpx.Response(200, text="crumb")
+        if request.url.path.endswith("/v7/finance/quote"):
+            requested = (request.url.params.get("symbols") or "").split(",")
+            result = [rows[s] for s in requested if s in rows]
+            return httpx.Response(200, json={"quoteResponse": {"result": result}})
+        return httpx.Response(200, text="ok")
+
+    yb.reset_for_tests(httpx.MockTransport(handler))
+
+
+# ---------------------------------------------------------------------------
+# Pause gate
+# ---------------------------------------------------------------------------
+
+
+def test_screen_bracket_refcounts_overlapping_runs() -> None:
+    assert not fundamentals_warm.foreground_screen_running()
+    fundamentals_warm.screen_started()
+    fundamentals_warm.screen_started()
+    assert fundamentals_warm.foreground_screen_running()
+    fundamentals_warm.screen_finished()
+    # One run still in flight — the crawler must stay paused.
+    assert fundamentals_warm.foreground_screen_running()
+    fundamentals_warm.screen_finished()
+    assert not fundamentals_warm.foreground_screen_running()
+    # Over-release never goes negative.
+    fundamentals_warm.screen_finished()
+    assert not fundamentals_warm.foreground_screen_running()
+
+
+# ---------------------------------------------------------------------------
+# Boot seed (local-only)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_seed_india_store_writes_identity_rows() -> None:
+    touched = await fundamentals_warm.seed_india_store()
+    assert touched > 2000  # the real india-all universe
+    rows = await fundamentals_store.fetch_rows(["RELIANCE.NS"])
+    rel = rows["RELIANCE.NS"]
+    assert rel["exchange"] == "NSE"
+    assert rel["scrip_code"] == "500325"  # joined from the BSE master
+    assert rel["isin"] == "INE002A01018"
+    # The seed carries no tier stamps — identity only.
+    assert rel["v7_updated_at"] is None
+
+
+# ---------------------------------------------------------------------------
+# v7 sweep (stale-only, store-backed)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_sweep_once_fetches_only_stale_symbols(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services import screener_universe_india
+
+    monkeypatch.setattr(
+        screener_universe_india,
+        "load_india_universe",
+        _tiny_universe(["FRESH.NS", "STALE.NS"]),
+    )
+    # FRESH already has live tiers; STALE has never been fetched.
+    await fundamentals_store.upsert_v7(
+        "FRESH.NS",
+        Fundamentals(symbol="FRESH.NS", market_cap=1e12, provider="test"),
+        Quote(
+            symbol="FRESH.NS",
+            price=10.0,
+            change=0.0,
+            change_percent=0.0,
+            volume=1.0,
+            currency="INR",
+            timestamp=datetime.now(tz=UTC),
+            provider="test",
+        ),
+    )
+    requested: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if "getcrumb" in request.url.path:
+            return httpx.Response(200, text="crumb")
+        if request.url.path.endswith("/v7/finance/quote"):
+            symbols = (request.url.params.get("symbols") or "").split(",")
+            requested.extend(symbols)
+            return httpx.Response(
+                200, json={"quoteResponse": {"result": [_v7_row(s) for s in symbols]}}
+            )
+        return httpx.Response(200, text="ok")
+
+    yb.reset_for_tests(httpx.MockTransport(handler))
+
+    throttled = await fundamentals_warm._sweep_once()
+    assert throttled is False
+    assert requested == ["STALE.NS"]
+    row = (await fundamentals_store.fetch_rows(["STALE.NS"]))["STALE.NS"]
+    assert row["market_cap"] == 5e12
+    assert row["shares_outstanding"] == 4e9
+
+
+# ---------------------------------------------------------------------------
+# Deep .info crawler
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_crawl_once_respects_priority_and_pause(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services import screener_universe_india
+
+    monkeypatch.setattr(
+        screener_universe_india,
+        "load_india_universe",
+        _tiny_universe(["BIG.NS", "SMALL.NS"]),
+    )
+    monkeypatch.setattr(fundamentals_warm, "_CRAWL_JITTER_RANGE", (0.0, 0.001))
+    await fundamentals_store.seed_universe(
+        [
+            {"symbol": "BIG.NS", "shares_outstanding": 1.0},
+            {"symbol": "SMALL.NS"},
+        ]
+    )
+    await fundamentals_store.upsert_v7(
+        "BIG.NS",
+        Fundamentals(symbol="BIG.NS", market_cap=9e12, provider="t"),
+        None,
+    )
+
+    fetched: list[str] = []
+
+    async def fake_fund(symbol: str) -> Fundamentals:
+        fetched.append(symbol)
+        return Fundamentals(symbol=symbol, sector="Technology", roe=0.2, provider="yf")
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_fund)
+
+    # Paused while a foreground screen runs: the crawl must NOT finish.
+    fundamentals_warm.screen_started()
+    task = asyncio.create_task(fundamentals_warm._crawl_once())
+    await asyncio.sleep(0.05)
+    assert not task.done()
+    assert fetched == []
+    fundamentals_warm.screen_finished()
+    count = await task
+    assert count == 2
+    # Priority: never-fetched by market cap desc — BIG before SMALL.
+    assert fetched[0] == "BIG.NS"
+    row = (await fundamentals_store.fetch_rows(["BIG.NS"]))["BIG.NS"]
+    assert row["sector"] == "Technology"
+    assert row["sector_source"] == "yf"
+
+
+@pytest.mark.asyncio
+async def test_crawl_failures_rotate_out_and_never_wedge(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Permanently-failing symbols (Yahoo doesn't cover thousands of BSE
+    scrips) must NOT wedge the crawler: a failed fetch stamps the symbol out
+    of the priority head, so the next cycle moves PAST it instead of retrying
+    the same batch forever."""
+    from services import screener_universe_india
+
+    monkeypatch.setattr(
+        screener_universe_india,
+        "load_india_universe",
+        _tiny_universe(["DEAD1.BO", "DEAD2.BO"]),
+    )
+    monkeypatch.setattr(fundamentals_warm, "_CRAWL_JITTER_RANGE", (0.0, 0.001))
+    await fundamentals_store.seed_universe([{"symbol": "DEAD1.BO"}, {"symbol": "DEAD2.BO"}])
+
+    calls: list[str] = []
+
+    async def always_fails(symbol: str) -> Fundamentals:
+        calls.append(symbol)
+        raise RuntimeError("yahoo has never heard of this scrip")
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", always_fails)
+
+    assert await fundamentals_warm._crawl_once() == 0
+    assert sorted(calls) == ["DEAD1.BO", "DEAD2.BO"]
+    rows = await fundamentals_store.fetch_rows(["DEAD1.BO", "DEAD2.BO"])
+    assert all(r["info_failed_at"] is not None for r in rows.values())
+    # The next cycle selects an EMPTY batch — zero re-fetches of the failures.
+    assert await fundamentals_warm._crawl_once() == 0
+    assert len(calls) == 2, "wedge: the crawler re-selected permanently-failing symbols"
+
+
+@pytest.mark.asyncio
+async def test_crawl_rate_limit_does_not_mark_failure_but_generic_error_does(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A throttle (``ProviderError`` ``kind="rate_limited"``) must NOT stamp
+    ``info_failed_at`` — that field drives the 24 h retry rotation, which is
+    for symbols Yahoo genuinely has no data for, not ones merely throttled
+    this cycle; stamping a throttle would silently stall coverage for a
+    whole day. A non-throttle failure still stamps as before."""
+    from services import screener_universe_india
+
+    monkeypatch.setattr(
+        screener_universe_india,
+        "load_india_universe",
+        _tiny_universe(["THROTTLED.NS", "BROKEN.NS"]),
+    )
+    monkeypatch.setattr(fundamentals_warm, "_CRAWL_JITTER_RANGE", (0.0, 0.001))
+    await fundamentals_store.seed_universe([{"symbol": "THROTTLED.NS"}, {"symbol": "BROKEN.NS"}])
+
+    async def flaky(symbol: str) -> Fundamentals:
+        if symbol == "THROTTLED.NS":
+            raise ProviderError("yahoo throttled us", kind="rate_limited")
+        raise RuntimeError("yahoo has never heard of this scrip")
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", flaky)
+
+    assert await fundamentals_warm._crawl_once() == 0
+    rows = await fundamentals_store.fetch_rows(["THROTTLED.NS", "BROKEN.NS"])
+    assert rows["THROTTLED.NS"]["info_failed_at"] is None
+    assert rows["BROKEN.NS"]["info_failed_at"] is not None
+
+
+@pytest.mark.asyncio
+async def test_one_upsert_failure_counts_the_others(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """R15-LIFECYCLE-032: a store write failing for one symbol must not abort
+    the cycle — the other symbols are still counted, and the failure is
+    logged at WARNING, not swallowed at DEBUG."""
+    from services import screener_universe_india
+
+    monkeypatch.setattr(
+        screener_universe_india,
+        "load_india_universe",
+        _tiny_universe(["A.NS", "B.NS", "C.NS"]),
+    )
+    monkeypatch.setattr(fundamentals_warm, "_CRAWL_JITTER_RANGE", (0.0, 0.001))
+    await fundamentals_store.seed_universe([{"symbol": s} for s in ("A.NS", "B.NS", "C.NS")])
+
+    async def fake_fund(symbol: str) -> Fundamentals:
+        return Fundamentals(symbol=symbol, roe=0.2, provider="yf")
+
+    real_upsert = fundamentals_store.upsert_info
+
+    async def flaky_upsert(symbol: str, fundamentals: Fundamentals) -> None:
+        if symbol == "B.NS":
+            raise sqlite3.OperationalError("database is locked")
+        await real_upsert(symbol, fundamentals)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_fund)
+    monkeypatch.setattr(fundamentals_store, "upsert_info", flaky_upsert)
+
+    with caplog.at_level(logging.WARNING, logger=fundamentals_warm.__name__):
+        assert await fundamentals_warm._crawl_once() == 2
+    assert any("1 of 3 symbols failed" in r.getMessage() for r in caplog.records)
+
+
+# ---------------------------------------------------------------------------
+# Lifespan start/stop
+# ---------------------------------------------------------------------------
+
+
+def _quiet_in_boot(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """An IN-region boot with every network lane stubbed; returns the log of
+    ``seed_india_store`` calls (by task name)."""
+    seeds: list[str] = []
+
+    async def _seed() -> int:
+        seeds.append(asyncio.current_task().get_name())
+        await asyncio.sleep(0)
+        return 0
+
+    async def _cycle() -> int:
+        return 0
+
+    monkeypatch.setattr(fundamentals_warm, "get_region", lambda: "IN")
+    monkeypatch.setattr(fundamentals_warm, "seed_india_store", _seed)
+    monkeypatch.setattr(fundamentals_warm, "_sweep_once", _cycle)
+    monkeypatch.setattr(fundamentals_warm, "_crawl_once", _cycle)
+    monkeypatch.setattr(fundamentals_warm, "bhavcopy_refresh_once", _cycle)
+    return seeds
+
+
+@pytest.mark.asyncio
+async def test_start_stop_clean_no_leaked_tasks(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-LIFECYCLE-031: on an IN boot (the only region that schedules the
+    boot seed) stop cancels + awaits every task start spawned, the seed too."""
+    _quiet_in_boot(monkeypatch)
+
+    async def _slow_seed() -> int:
+        await asyncio.sleep(60)
+        return 0
+
+    monkeypatch.setattr(fundamentals_warm, "seed_india_store", _slow_seed)
+    before = asyncio.all_tasks()
+    fundamentals_warm.start_warm_fundamentals()
+    spawned = asyncio.all_tasks() - before
+    assert fundamentals_warm._seed_task in spawned
+    await asyncio.sleep(0.02)
+    assert not fundamentals_warm._seed_task.done()
+    await fundamentals_warm.stop_warm_fundamentals()
+    assert all(t.done() for t in spawned), [t for t in spawned if not t.done()]
+    assert fundamentals_warm._sweep_task is None
+    assert fundamentals_warm._crawl_task is None
+    assert fundamentals_warm._seed_task is None
+
+
+@pytest.mark.asyncio
+async def test_in_boot_seeds_exactly_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-LIFECYCLE-030: start_warm_fundamentals owns the boot seed; the
+    sweep loop's first IN cycle must not run it a second time."""
+    seeds = _quiet_in_boot(monkeypatch)
+    fundamentals_warm.start_warm_fundamentals()
+    await asyncio.sleep(0.05)
+    await fundamentals_warm.stop_warm_fundamentals()
+    assert len(seeds) == 1, seeds
+
+
+@pytest.mark.asyncio
+async def test_boot_window_openbb_call_budget(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-LEAD-025 (measured, not reproduced at the sha): the boot warm paths'
+    openbb-mcp budget. US: start_warm_precompute + start_warm_fundamentals make
+    ZERO openbb tool calls. IN: the only openbb caller is the deep crawler
+    (registry fundamentals, openbb-mcp rank 10), never more than
+    ``_CRAWL_CONCURRENCY`` calls in flight."""
+    from services import (
+        openbb_mcp_provider,
+        screener,
+        screener_universe_india,
+        yfinance_provider,
+    )
+
+    calls: list[str] = []
+    in_flight = peak = 0
+
+    async def spy_call_tool(name: str, arguments: dict[str, object]) -> object:
+        nonlocal in_flight, peak
+        calls.append(f"{name}:{arguments.get('symbol')}")
+        in_flight += 1
+        peak = max(peak, in_flight)
+        try:
+            await asyncio.sleep(0.01)
+        finally:
+            in_flight -= 1
+        raise ProviderError("stub openbb: no rows")
+
+    def yf_fund(symbol: str) -> Fundamentals:
+        return Fundamentals(symbol=symbol, sector="Technology", roe=0.2, provider="yf")
+
+    monkeypatch.setattr(openbb_mcp_provider, "is_available", lambda: True)
+    monkeypatch.setattr(openbb_mcp_provider, "_call_tool", spy_call_tool)
+    monkeypatch.setattr(yfinance_provider, "get_fundamentals", yf_fund)
+
+    # US boot: the arm-only screener warm + the region-idle India workers.
+    monkeypatch.setattr(fundamentals_warm, "get_region", lambda: "US")
+    screener.start_warm_precompute()
+    fundamentals_warm.start_warm_fundamentals()
+    await asyncio.sleep(0.1)
+    await fundamentals_warm.stop_warm_fundamentals()
+    await screener.stop_warm_precompute()
+    assert calls == []
+
+    # IN boot: the real deep crawler over a small universe.
+    symbols = ["A.NS", "B.NS", "C.NS", "D.NS"]
+    real_crawl_once = fundamentals_warm._crawl_once
+    _quiet_in_boot(monkeypatch)
+    monkeypatch.setattr(fundamentals_warm, "_crawl_once", real_crawl_once)
+    monkeypatch.setattr(fundamentals_warm, "_CRAWL_JITTER_RANGE", (0.0, 0.001))
+    monkeypatch.setattr(screener_universe_india, "load_india_universe", _tiny_universe(symbols))
+    await fundamentals_store.seed_universe([{"symbol": s} for s in symbols])
+    fundamentals_warm.start_warm_fundamentals()
+    for _ in range(200):
+        if len({c.split(":", 1)[1] for c in calls}) == len(symbols) and in_flight == 0:
+            break
+        await asyncio.sleep(0.01)
+    await fundamentals_warm.stop_warm_fundamentals()
+    assert {c.split(":", 1)[1] for c in calls} == set(symbols)
+    assert len(calls) <= 2 * len(symbols)  # equity_profile + fundamental_metrics
+    assert peak <= fundamentals_warm._CRAWL_CONCURRENCY == 1
+
+
+@pytest.mark.asyncio
+async def test_start_is_idempotent() -> None:
+    fundamentals_warm.start_warm_fundamentals()
+    first = fundamentals_warm._sweep_task
+    fundamentals_warm.start_warm_fundamentals()
+    assert fundamentals_warm._sweep_task is first
+    await fundamentals_warm.stop_warm_fundamentals()
+
+
+# ---------------------------------------------------------------------------
+# R11 (D54) — bhavcopy EOD wiring
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_bhavcopy_refresh_writes_eod_and_derives_mcap_only_when_v7_stale(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The bhavcopy lane fills EOD price/volume for the NSE universe and
+    derives market cap (close × seeded shares) ONLY where the v7 valuation
+    tier is stale/missing — a fresh v7 mcap is never downgraded."""
+    from datetime import date
+
+    from models.fundamentals import Fundamentals
+    from services import nse_bhavcopy
+    from services.nse_bhavcopy import BhavcopyResult, BhavRow
+
+    # Two store rows: STALECO has only seeded shares (v7 never fetched);
+    # FRESHCO has a FRESH v7 mcap that must survive.
+    await fundamentals_store.seed_fundamentals(
+        [
+            {
+                "symbol": "STALECO.NS",
+                "seed_as_of": 1.0,
+                "shares_outstanding": 1_000_000.0,
+            }
+        ]
+    )
+    await fundamentals_store.upsert_v7(
+        "FRESHCO.NS",
+        Fundamentals(
+            symbol="FRESHCO.NS",
+            market_cap=9e9,
+            shares_outstanding=2_000_000.0,
+            provider="t",
+        ),
+        None,
+    )
+
+    fake = BhavcopyResult(
+        trade_date=date(2026, 7, 8),
+        rows={
+            "STALECO": BhavRow(
+                close=50.0, prev_close=48.0, volume=1000.0, high=None, low=None, series="EQ"
+            ),
+            "FRESHCO": BhavRow(
+                close=100.0, prev_close=99.0, volume=2000.0, high=None, low=None, series="EQ"
+            ),
+        },
+    )
+
+    async def _fake_fetch(max_lookback_days: int = 7):
+        return fake
+
+    monkeypatch.setattr(nse_bhavcopy, "fetch_latest", _fake_fetch)
+
+    def _fake_universe_local(universe_id):
+        from models.screener import ScreenerUniverse
+
+        return ScreenerUniverse(
+            id="nse-all",
+            label="t",
+            symbols=["STALECO.NS", "FRESHCO.NS", "NOTINBHAV.NS"],
+            asset_class="equity",
+        )
+
+    from services import screener_universe_india
+
+    monkeypatch.setattr(screener_universe_india, "load_india_universe", _fake_universe_local)
+
+    updated = await fundamentals_warm.bhavcopy_refresh_once()
+    assert updated == 2  # NOTINBHAV had no bhavcopy row
+
+    rows = await fundamentals_store.fetch_rows(["STALECO.NS", "FRESHCO.NS"])
+    stale = rows["STALECO.NS"]
+    assert stale["quote_price"] == 50.0
+    assert stale["quote_timestamp"] == "2026-07-08"
+    assert stale["market_cap"] == 50.0 * 1_000_000.0  # derived: v7 was missing
+    assert stale["eod_updated_at"] is not None
+    assert stale["v7_updated_at"] is None  # the EOD lane never fakes v7
+
+    fresh = rows["FRESHCO.NS"]
+    assert fresh["quote_price"] == 100.0
+    assert fresh["market_cap"] == 9e9  # fresh v7 mcap kept, not derived-over
+
+
+@pytest.mark.asyncio
+async def test_bhavcopy_refresh_degrades_to_zero_on_unreachable_archive(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import nse_bhavcopy
+
+    async def _fake_fetch(max_lookback_days: int = 7):
+        return None
+
+    monkeypatch.setattr(nse_bhavcopy, "fetch_latest", _fake_fetch)
+    assert await fundamentals_warm.bhavcopy_refresh_once() == 0
+
+
+@pytest.mark.asyncio
+async def test_india_sweep_429s_alone_do_not_open_the_user_circuit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LIFECYCLE-020, the India warm worker: three all-429 sweeps over a
+    12-chunk universe leave the Yahoo circuit user screens read closed."""
+    from services import screener_universe_india
+
+    symbols = [f"S{i:03d}.NS" for i in range(600)]
+    monkeypatch.setattr(screener_universe_india, "load_india_universe", _tiny_universe(symbols))
+
+    async def _no_sleep(_secs: float) -> None:
+        return None
+
+    monkeypatch.setattr(yb.asyncio, "sleep", _no_sleep)
+
+    def all_429(request: httpx.Request) -> httpx.Response:
+        if "getcrumb" in request.url.path:
+            return httpx.Response(200, text="crumb")
+        if request.url.path.endswith("/v7/finance/quote"):
+            return httpx.Response(429, text="Too Many Requests")
+        return httpx.Response(200, text="ok")
+
+    yb.reset_for_tests(httpx.MockTransport(all_429))
+    provider_health.reset_for_tests()
+    try:
+        for _ in range(3):
+            assert await fundamentals_warm._sweep_once() is True
+        assert not provider_health.is_open(provider_health.YAHOO)
+    finally:
+        provider_health.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_fifty_india_sweeps_alone_still_leave_the_circuit_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LIFECYCLE-020, class case: warm 429s carry zero weight, so even 50
+    all-429 sweeps (not just 3) never advance the streak past 0."""
+    from services import screener_universe_india
+
+    symbols = [f"S{i:03d}.NS" for i in range(600)]
+    monkeypatch.setattr(screener_universe_india, "load_india_universe", _tiny_universe(symbols))
+
+    async def _no_sleep(_secs: float) -> None:
+        return None
+
+    monkeypatch.setattr(yb.asyncio, "sleep", _no_sleep)
+
+    def all_429(request: httpx.Request) -> httpx.Response:
+        if "getcrumb" in request.url.path:
+            return httpx.Response(200, text="crumb")
+        if request.url.path.endswith("/v7/finance/quote"):
+            return httpx.Response(429, text="Too Many Requests")
+        return httpx.Response(200, text="ok")
+
+    yb.reset_for_tests(httpx.MockTransport(all_429))
+    provider_health.reset_for_tests()
+    try:
+        for _ in range(50):
+            assert await fundamentals_warm._sweep_once() is True
+        assert not provider_health.is_open(provider_health.YAHOO)
+        assert provider_health.status(provider_health.YAHOO)["consecutive_throttles"] == 0
+    finally:
+        provider_health.reset_for_tests()

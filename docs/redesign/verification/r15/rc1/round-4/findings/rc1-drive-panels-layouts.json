@@ -1,0 +1,14 @@
+[
+  {
+    "key": "rc1-drive-panels-layouts:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "",
+    "title": "IN per-symbol news feed tags off-topic articles as company news for INFY.NS",
+    "repro": "GET /news?symbols=INFY.NS with X-Vysted-Region: IN on the shared sidecar (:52152) returns 15 articles; the top two ('Chainlink Jumped 12% in a Day...', 'Litecoin, Cardano, Stellar, and Chainlink...') are pure-crypto pieces from Yahoo's per-symbol RSS feed (source 'Yahoo! Finance: INFY.NS News') with no mention of Infosys, yet both carry symbols:['INFY.NS']. A relevant Economic Times market-wrap article that does mention Infosys ranks third. Control: GET /news?symbols=AAPL returns only genuinely Apple-relevant articles (evidence 14). This is distinct from the already-fixed R15-DATA-029 (bare-ticker US/ADR mixup, confirmed still fixed in evidence 12/13's correct .NS resolution) -- here the symbol resolves correctly but sidecar/services/news_provider.py's per-symbol Yahoo RSS fetch (~line 97-102) tags every item pulled from that feed URL with the queried symbol without checking the article text mentions the company, so Yahoo's own thin/generic per-symbol feed degrades the News panel and any agent tool reading news for that symbol into showing unrelated crypto content as if it were Infosys news.",
+    "evidence_file": "docs/redesign/verification/r15/surface/panels-layouts/rc1/round-4/13-news-infy-ns-regression.json",
+    "suspected_files": [
+      "sidecar/services/news_provider.py"
+    ]
+  }
+]

@@ -1,0 +1,165 @@
+{
+  "query": "Iconik Sports and Events",
+  "symbol": "ICONIKSPEV",
+  "mode": "DEEP",
+  "depth": "deep",
+  "markdown": "## Iconik Sports and Events (ICONIKSPEV) \u2013 Research Brief\n\n**As of June\u202f10,\u202f2026**\n\n### Price & Volume\n- **Closing price** (BSE): **INR\u202f44.10** on 10\u202fJun\u202f2026 [6].\n- **Five\u2011day volume** (4\u201310\u202fJun): 5,598 \u2192 1,327 \u2192 18,221 \u2192 5,757 \u2192 **70,000** shares; the 10\u202fJun surge is a multi\u2011fold spike [6].\n\n### Financial Highlights (FY ended Mar\u202f2026)\nResults approved by the board on **27\u202fMay\u202f2026** [1][5].\n\n| Period | Revenue (\u20b9 lakh) | Net Profit (\u20b9 lakh) |\n|--------|-----------------|---------------------|\n| Q4 FY26 (Jan\u2013Mar 2026) | 1,835.38 | 114.47 |\n| **Full Year FY26** | **4,550.67** | **433.56** |\n\n*Note:* No EPS, share count, balance\u2011sheet or cash\u2011flow data are available in the filings or news sources [1][7][8].\n\n### Corporate Actions\n- **No dividends, bonus issues, or stock splits** announced in the past 12 months (filings scanned up to 10\u202fJun\u202f2026) [8].\n\n### Recent Board Meetings\nThe only disclosed board meeting (27\u202fMay\u202f2026) covered [1][5]:\n- Approval of audited Q4 & FY26 results.\n- Re\u2011appointment of internal auditor.\n- Change of registered office to Powai, Mumbai [4].\n\nNo other board announcements (e.g., dividends) have been filed [8].\n\n### Data Gaps\nKey metrics \u2013 total outstanding shares, total assets/liabilities, equity, cash\u2011flow, net cash/debt, EPS, PE, market cap \u2013 are **not available in this run** [7][8].\n\n### Key Sources\n[1] Audited financial results Q4 & FY ended 31\u202fMar\u202f2026 \u2013 BSE filing  \n[4] Change in registered office address \u2013 BSE filing  \n[5] Board meeting intimation dated 27\u202fMay\u202f2026 \u2013 BSE filing  \n[6] BSE price & volume data (vysted://price/ICONIKSPEV)  \n[7] Fundamentals snapshot (vysted://fundamentals/ICONIKSPEV) \u2013 all fields null  \n[8] News & filings scan (vysted://news/ICONIKSPEV) \u2013 no dividend/bonus/split found",
+  "sources": [
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/03b8d42e-df4a-4bf2-abbf-924b5ea4493f.pdf",
+      "title": "Audited Financial Results Along With Auditor''s Report For The Quarter And Year Ended 31.03.2026",
+      "excerpt": "BSE \u00b7 Result \u00b7 2026-05-27T15:29:38.070000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/b415eaa2-cbde-4038-893e-00eaa2fe04b6.pdf",
+      "title": "Compliances-Reg.24(A)-Annual Secretarial Compliance",
+      "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-29T18:13:59.297000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/006c69fa-3f32-459c-8c2e-ed3eadb4303d.pdf",
+      "title": "Announcement under Regulation 30 (LODR)-Change in Management",
+      "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-27T15:43:11.133000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/28af3478-98c5-4d4e-a2f6-510ff672a8ad.pdf",
+      "title": "Announcement under Regulation 30 (LODR)-Change in Registered Office Address",
+      "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-27T15:39:45.100000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/4f2aebc7-5340-4653-ba71-56fd757e4744.pdf",
+      "title": "Board Meeting Intimation for Meeting To Be Held On 27.05.2026",
+      "excerpt": "BSE \u00b7 Board Meeting \u00b7 2026-05-23T19:33:40.230000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "vysted://price/ICONIKSPEV",
+      "title": "Price for ICONIKSPEV",
+      "excerpt": "Structured price snapshot via bse gathered this run.",
+      "domain": "bse"
+    },
+    {
+      "url": "vysted://fundamentals/ICONIKSPEV",
+      "title": "Fundamentals for ICONIKSPEV",
+      "excerpt": "Structured fundamentals snapshot via yfinance gathered this run.",
+      "domain": "yfinance"
+    },
+    {
+      "url": "vysted://news/ICONIKSPEV",
+      "title": "News for ICONIKSPEV",
+      "excerpt": "Structured news pull.",
+      "domain": "vysted"
+    }
+  ],
+  "sourceCount": 8,
+  "cost": {
+    "tokens": 0,
+    "spendUsd": 0
+  },
+  "webAvailable": true,
+  "structured": {
+    "resolved": {
+      "ok": true,
+      "query": "Iconik Sports and Events",
+      "region": "IN",
+      "resolved": {
+        "symbol": "ICONIKSPEV",
+        "name": "Iconik Sports And Events Ltd",
+        "exchange": "BSE",
+        "region": "IN",
+        "asset_class": "equity",
+        "yahoo_symbol": "ICONIKSPEV.BO",
+        "confidence": 1
+      },
+      "needs_disambiguation": false,
+      "candidates": [
+        {
+          "symbol": "ICONIKSPEV",
+          "name": "Iconik Sports And Events Ltd",
+          "exchange": "BSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "ICONIKSPEV.BO",
+          "confidence": 1
+        },
+        {
+          "symbol": "CEENIK",
+          "name": "Ceenik Exports India Ltd",
+          "exchange": "BSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "CEENIK.BO",
+          "confidence": 0.705
+        }
+      ]
+    },
+    "price": {
+      "ok": true,
+      "provider": "bse",
+      "data": {
+        "symbol": "ICONIKSPEV",
+        "price": 44.1,
+        "change": 1.009999999999998,
+        "change_percent": 2.343931306567644,
+        "volume": null,
+        "currency": "INR",
+        "market_state": "CLOSED",
+        "timestamp": "2026-06-10T00:00:00Z",
+        "provider": "bse",
+        "freshness": null
+      }
+    },
+    "fundamentals": {
+      "ok": true,
+      "provider": "yfinance",
+      "data": {
+        "symbol": "ICONIKSPEV.NS",
+        "name": null,
+        "sector": null,
+        "industry": null,
+        "currency": null,
+        "market_cap": null,
+        "pe_ratio": null,
+        "forward_pe": null,
+        "peg_ratio": null,
+        "price_to_book": null,
+        "price_to_sales": null,
+        "ev_to_ebitda": null,
+        "book_value": null,
+        "dividend_yield": null,
+        "dividend_per_share": null,
+        "eps": null,
+        "beta": null,
+        "fifty_two_week_high": null,
+        "fifty_two_week_low": null,
+        "fifty_two_week_change": null,
+        "roe": null,
+        "roa": null,
+        "gross_margin": null,
+        "operating_margin": null,
+        "profit_margin": null,
+        "debt_to_equity": null,
+        "current_ratio": null,
+        "quick_ratio": null,
+        "revenue_ttm": null,
+        "net_income_ttm": null,
+        "free_cash_flow": null,
+        "shares_outstanding": null,
+        "revenue_growth": null,
+        "earnings_growth": null,
+        "held_percent_insiders": null,
+        "held_percent_institutions": null,
+        "provider": "yfinance"
+      }
+    }
+  },
+  "createdAt": 1781110893357
+}

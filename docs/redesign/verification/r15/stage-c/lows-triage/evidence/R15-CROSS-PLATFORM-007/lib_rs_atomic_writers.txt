@@ -1,0 +1,17 @@
+--- src-tauri/src/lib.rs:405-412
+    let tmp_path = parent.join(&tmp_name);
+    {
+        let mut f = std::fs::File::create(&tmp_path).map_err(|e| e.to_string())?;
+        f.write_all(contents.as_bytes())
+            .map_err(|e| e.to_string())?;
+        f.flush().map_err(|e| e.to_string())?;
+    }
+    std::fs::rename(&tmp_path, dest).map_err(|e| e.to_string())
+--- :438-444
+    let tmp_path = parent.join(&tmp_name);
+    {
+        let mut f = std::fs::File::create(&tmp_path).map_err(|e| e.to_string())?;
+        f.write_all(&contents).map_err(|e| e.to_string())?;
+        f.flush().map_err(|e| e.to_string())?;
+    }
+    std::fs::rename(&tmp_path, dest).map_err(|e| e.to_string())

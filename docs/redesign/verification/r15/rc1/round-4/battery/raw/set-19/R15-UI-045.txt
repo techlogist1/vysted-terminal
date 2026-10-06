@@ -1,0 +1,69 @@
+--- criteria builder operator-change helper ---
+      </select>
+
+      {isNumericCriterion(criterion) ? (
+        <>
+          <select
+            aria-label="numeric field"
+            className="border-border bg-charcoal-850 rounded-control text-body h-8 min-w-0 truncate border px-2"
+            value={criterion.field}
+            onChange={(e) =>
+              update(index, { ...criterion, field: e.target.value as ScreenerNumericField })
+            }
+          >
+            {numericFields(moneyUnit).map((f) => (
+              <option key={f.value} value={f.value}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="numeric operator"
+            className="border-border bg-charcoal-850 rounded-control text-body h-8 min-w-0 truncate border px-2"
+            value={criterion.operator}
+            onChange={(e) =>
+              update(
+                index,
+                withNumericOperator(
+--- CriterionGroupEditor.tsx ---
+    if (category === "numeric") {
+      onChange({ field: "pe_ratio", operator: "lt", value: 20 });
+    } else if (category === "string") {
+      onChange({ field: "sector", operator: "eq", value: "Technology" });
+    } else {
+      onChange({ field: "sector", operator: "in", value: ["Technology"] });
+    }
+  }
+
+  const category: "numeric" | "string" | "in" = isNumericCriterion(criterion)
+    ? "numeric"
+    : isInCriterion(criterion)
+      ? "in"
+      : "string";
+
+  return (
+    <div
+      data-testid={`leaf-row-${index}`}
+      className="border-border bg-charcoal-900 grid grid-cols-[7rem_9rem_6rem_1fr_auto] items-center gap-2 rounded-none border p-2"
+    >
+      <select
+        aria-label="criterion category"
+        className="border-border bg-charcoal-850 rounded-control text-body h-8 min-w-0 truncate border px-2"
+        value={category}
+        onChange={(e) => onCategoryChange(e.target.value as "numeric" | "string" | "in")}
+      >
+        <option value="numeric">Numeric</option>
+        <option value="string">String</option>
+        <option value="in">Set</option>
+      </select>
+
+--- test files ---
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerCriteriaBuilder.test.tsx
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerCriteriaBuilder.test.tsx:71:  it("R15-UI-045: an operator change carries the typed threshold through", () => {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerCriteriaBuilder.test.tsx:93:  it("R15-UI-045: the nested-group editor keeps the value across an operator change too", () => {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/CriterionGroupEditor.tsx:133:export function withNumericOperator(
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/CriterionGroupEditor.tsx:218:                withNumericOperator(criterion, e.target.value as NumericCriterion["operator"]),
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerCriteriaBuilder.tsx:18:  withNumericOperator,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerCriteriaBuilder.tsx:180:                withNumericOperator(
+
+VERDICT: ci_pinned — UI editor rebuild-on-operator-change is only meaningfully checked via vitest (heavy lane owns test runs). Pinned tests: src/modules/screener/ScreenerCriteriaBuilder.test.tsx:71 'R15-UI-045: an operator change carries the typed threshold through' and :93 'the nested-group editor keeps the value across an operator change too' (covers the case the register's fix explicitly said was NOT written against). Code confirmed: a shared withNumericOperator() helper is used by both ScreenerCriteriaBuilder.tsx and CriterionGroupEditor.tsx (one seam, not two duplicated rebuilds), matching the fix mechanism.

@@ -1,0 +1,1 @@
+R15-DATA-038: pytest tests/test_sec_filings_provider.py::test_dict_of_sections_parses_to_sections tests/test_sec_filings_provider.py::test_filing_level_form4_rows_are_listed -> both PASSED. See pytest-mcp-sec.txt.

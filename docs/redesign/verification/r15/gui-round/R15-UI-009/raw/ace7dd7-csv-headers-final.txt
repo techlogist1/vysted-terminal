@@ -1,0 +1,6 @@
+== vysted-portfolio-portfolio.csv (       2 newlines)
+Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note
+== vysted-screener-nifty50.csv (      18 newlines)
+Symbol,Name,Sector,Industry,Market cap,P/E,Fwd P/E,ROE,D/E,Div yield,Price,1d %,Volume,Currency
+== vysted-watchlist.csv (       7 newlines)
+Symbol,Asset class,Price,Change %,Provider

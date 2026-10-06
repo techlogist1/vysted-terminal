@@ -1,0 +1,29 @@
+{
+ "tag": "ideate-B",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly (you are read-only thinking; ignore its raw-finding shape).",
+ "stages": [
+  {
+   "label": "seat",
+   "model": "fable",
+   "prompt": "Your task spec is the IDEATE section of docs/redesign/verification/r15/tooling/PROMPT_census.md, with <seat-id> = \"{{id}}\" and <seat> = {{seat}}."
+  }
+ ],
+ "items": [
+  {
+   "id": "sellside",
+   "seat": "a sell-side equity analyst covering Indian mid and small caps: builds models, tracks management guidance vs delivery across concalls, writes initiations and results notes on deadline, and is judged on being first and being right"
+  },
+  {
+   "id": "designer",
+   "seat": "a Linear- or Raycast-grade product designer obsessed with keyboard-first flow, latency, progressive disclosure and the feeling that the tool is one step ahead of you; allergic to chatbots bolted onto dashboards"
+  },
+  {
+   "id": "hn-sceptic",
+   "seat": "a sceptical Hacker News commenter who has seen a hundred 'AI for finance' launches: asks what is actually new, what is a wrapper, where the hallucinations hide, why local-first matters, and what would make them star the repo anyway"
+  },
+  {
+   "id": "journalist",
+   "seat": "the technology journalist writing the launch review: needs the one demo that makes readers gasp, the honest limitation paragraph, and the sentence that explains why this exists when Perplexity Finance and screener.in already do"
+  }
+ ]
+}

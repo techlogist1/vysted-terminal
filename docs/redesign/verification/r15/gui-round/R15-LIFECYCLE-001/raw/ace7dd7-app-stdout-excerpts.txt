@@ -1,0 +1,29 @@
+== ace7dd7-app-stdout-check1.log (excerpt)
+[vysted] Python sidecar not up yet on port 64619 after attempt 1/2 (45s); cold PyInstaller extraction may be slow — retrying.
+[openbb-mcp] INFO:     Uvicorn running on http://127.0.0.1:64620 (Press CTRL+C to quit)
+[openbb-mcp] subprocess healthy on 127.0.0.1:64620
+[vysted] Python sidecar did not come up on port 64619
+[sec-edgar-mcp] subprocess did not bind to 127.0.0.1:64621 within 45s x 2 attempts; treating as unavailable. /sec routes will 501. Check the bundled binary for a startup deadlock (Phase 8 finding UC1-sec-edgar-mcp-not-listening; Phase 9 residual: cold-boot bind latency — see BLOCKERS.md).
+[sidecar] 2026-10-03 06:08:14,913 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:64619 (Press CTRL+C to quit)
+== ace7dd7-app-stdout-launchB.log (excerpt)
+[vysted] Python sidecar not up yet on port 54120 after attempt 1/2 (45s); cold PyInstaller extraction may be slow — retrying.
+[openbb-mcp] INFO:     Uvicorn running on http://127.0.0.1:54121 (Press CTRL+C to quit)
+[openbb-mcp] subprocess healthy on 127.0.0.1:54121
+[vysted] Python sidecar did not come up on port 54120
+[sec-edgar-mcp] subprocess did not bind to 127.0.0.1:54122 within 45s x 2 attempts; treating as unavailable. /sec routes will 501. Check the bundled binary for a startup deadlock (Phase 8 finding UC1-sec-edgar-mcp-not-listening; Phase 9 residual: cold-boot bind latency — see BLOCKERS.md).
+[sidecar] 2026-10-03 06:24:31,712 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:54120 (Press CTRL+C to quit)
+[vysted] The data engine stopped (signal 15).
+== ace7dd7-app-stdout-broken.log (excerpt)
+[vysted] The data engine could not start (No such file or directory (os error 2)).
+[openbb-mcp] INFO:     Uvicorn running on http://127.0.0.1:57177 (Press CTRL+C to quit)
+[openbb-mcp] subprocess healthy on 127.0.0.1:57177
+== ace7dd7-app-stdout-launchC.log (excerpt)
+[openbb-mcp] INFO:     Uvicorn running on http://127.0.0.1:57652 (Press CTRL+C to quit)
+[openbb-mcp] subprocess healthy on 127.0.0.1:57652
+[vysted] Python sidecar not up yet on port 57651 after attempt 1/2 (45s); cold PyInstaller extraction may be slow — retrying.
+[sec-edgar-mcp] INFO:     Uvicorn running on http://127.0.0.1:57653 (Press CTRL+C to quit)
+[sec-edgar-mcp] subprocess healthy on 127.0.0.1:57653
+[sidecar] 2026-10-03 06:28:49,149 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:57651 (Press CTRL+C to quit)
+[vysted] Python sidecar healthy on 127.0.0.1:57651
+[vysted] wrote MCP endpoint discovery file "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-round-home-R15-LIFECYCLE-001/Library/Application Support/com.vysted.terminal/mcp-endpoint.json"
+[vysted] The data engine stopped (signal 15).

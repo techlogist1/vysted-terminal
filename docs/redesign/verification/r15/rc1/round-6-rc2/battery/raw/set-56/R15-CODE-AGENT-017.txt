@@ -1,0 +1,7 @@
+# rc1-battery-22 raw R15-CODE-AGENT-017 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ bash /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/p22_017.sh
+{"detail":[{"type":"value_error","loc":["body","id"],"msg":"Value error, custom-agent id must start with 'custom:' (got 'good-agent')","input":"good-agent","ctx":{"error":{}}},{"type":"missing","loc":["body","system_prompt"],"msg":"Field required","input":{"id":"good-agent","name":"Good","philosophy
+inserted bad row
+GET /custom-agents HTTP 200
+[]
+EXIT=0

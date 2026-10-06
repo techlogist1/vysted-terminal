@@ -1,0 +1,32 @@
+RAW rc1-battery-12 @ ace7dd76 live :52352 GET /agents
+http=200
+agents 13
+buffett tools 3 effective_tools 55
+copilot tools 55 effective_tools 55
+dalio tools 4 effective_tools 55
+druckenmiller tools 4 effective_tools 55
+graham tools 3 effective_tools 55
+klarman tools 3 effective_tools 55
+lynch tools 3 effective_tools 55
+marks tools 5 effective_tools 55
+munger tools 3 effective_tools 55
+portfolio_advisor tools 5 effective_tools 55
+researcher tools 21 effective_tools 55
+soros tools 4 effective_tools 55
+strategy_critic tools 4 effective_tools 55
+buffett declared: ['price_data', 'fundamentals', 'news']
+$ raw JSON on disk
+agents/_schema.json 0
+agents/buffett.json 3
+agents/copilot.json 55
+agents/dalio.json 4
+agents/druckenmiller.json 4
+agents/graham.json 3
+agents/klarman.json 3
+agents/lynch.json 3
+agents/marks.json 5
+agents/munger.json 3
+agents/portfolio_advisor.json 5
+agents/researcher.json 21
+agents/soros.json 4
+agents/strategy_critic.json 4

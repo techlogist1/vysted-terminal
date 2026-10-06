@@ -1,0 +1,36 @@
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " can't"}
+{"kind": "delta", "text": " directly"}
+{"kind": "delta", "text": " place"}
+{"kind": "delta", "text": " sell"}
+{"kind": "delta", "text": " orders"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " but"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " track"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " position"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " local"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Do"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": " basis"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " quantity"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " want"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " sell"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 9335, "output_tokens": 35, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": "gpt-4o-mini-2024-07-18"}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.005622}

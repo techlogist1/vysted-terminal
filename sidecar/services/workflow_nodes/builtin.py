@@ -17,10 +17,9 @@ without coupling this module to the engine's error type. Provider errors
 propagate verbatim — the workflow run records them on the node and
 marks downstream nodes failed.
 
-The agent-invoke handler is intentionally tolerant of "no provider key
-configured" — workflows must run end-to-end in CI where no real LLM
-keys exist, so the handler degrades to a sentinel content string rather
-than failing the run.
+The agent-invoke handler raises on any LLM failure (no key, bad agent id,
+401, rate limit, network) so the engine records the node as ``error``;
+it never substitutes placeholder text for the agent's answer.
 """
 
 from __future__ import annotations
@@ -28,10 +27,15 @@ from __future__ import annotations
 import asyncio
 import logging
 from typing import Any
+from urllib.parse import urlsplit
 
+import httpx
+
+from config import get_llm_creds
 from models.agent import AgentContextSnapshot
 from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMErrorEvent
 from services import agent_runtime, indicators, provider_registry
+from services.workflow_engine import CURRENT_NODE, SKIP
 
 logger = logging.getLogger(__name__)
 
@@ -39,9 +43,10 @@ logger = logging.getLogger(__name__)
 #: sidecar for hours. 300s matches the plan brief.
 _SLEEP_MAX_SECONDS = 300.0
 
-#: Truthy strings that ``logic.branch`` recognises when routing a string-valued
-#: condition. Anything else is treated by Python's normal truthiness.
+#: Strings that ``logic.branch`` reads as a boolean (case- and whitespace-
+#: insensitive). Any other string falls back to Python truthiness.
 _TRUTHY_STRINGS = frozenset({"true", "yes", "1", "on"})
+_FALSY_STRINGS = frozenset({"false", "no", "0", "off", ""})
 
 
 # ---------------------------------------------------------------------------
@@ -151,15 +156,14 @@ def _render_template(template: str, context: dict[str, Any]) -> str:
 async def agent_invoke(inputs: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
     """Invoke a first-party agent and aggregate its streamed reply.
 
-    Config: ``agent_id`` (required), ``prompt_template`` (required —
-    a ``str.format``-style template rendered with ``inputs`` as the
-    context dict, so ``{context}`` interpolates ``inputs["context"]``).
-    Optional ``provider`` / ``model`` overrides ride through to the
-    agent runtime; ``api_key`` is read from the env (``VYSTED_<PROV>_API_KEY``)
-    in production. In a CI / no-key environment the agent runtime returns
-    an LLMErrorEvent — this handler still completes by returning a
-    sentinel ``"(no provider key configured)"`` string rather than failing
-    the workflow.
+    Config: ``agent_id`` (required), ``prompt_template`` (a ``str.format``-style
+    template rendered with ``inputs`` as the context dict, so ``{context}``
+    interpolates ``inputs["context"]``; default ``"{context}"``). Optional
+    ``provider`` / ``model`` override the run's. Credentials come only from the
+    run request (``POST /workflow/run`` publishes them via
+    :func:`config.set_request_llm_creds`); the key is used only when the node's
+    provider is the request's. An ``LLMErrorEvent`` or a raised exception fails
+    the node with the real message.
     """
     agent_id = config.get("agent_id")
     if not agent_id:
@@ -167,9 +171,11 @@ async def agent_invoke(inputs: dict[str, Any], config: dict[str, Any]) -> dict[s
     template = config.get("prompt_template") or "{context}"
     # Render the prompt with the inputs dict as the format context.
     prompt = _render_template(str(template), inputs)
-    api_key = config.get("api_key") or inputs.get("api_key")
-    provider = config.get("provider")
-    model = config.get("model")
+    creds = get_llm_creds()
+    provider = config.get("provider") or (creds[0] if creds else None)
+    same_provider = creds is not None and provider == creds[0]
+    model = config.get("model") or (creds[1] if same_provider else None) or None
+    api_key = creds[2] if same_provider else None
     context_snapshot: AgentContextSnapshot | None = None
     if "context_snapshot" in inputs and isinstance(inputs["context_snapshot"], dict):
         try:
@@ -178,33 +184,21 @@ async def agent_invoke(inputs: dict[str, Any], config: dict[str, Any]) -> dict[s
             context_snapshot = None
 
     text_chunks: list[str] = []
-    error_message: str | None = None
-    try:
-        async for event in agent_runtime.invoke_agent(
-            agent_id=str(agent_id),
-            prompt=prompt,
-            context_snapshot=context_snapshot,
-            api_key=api_key,
-            provider=provider,
-            model=model,
-        ):
-            if isinstance(event, LLMDeltaEvent):
-                text_chunks.append(event.text)
-            elif isinstance(event, LLMErrorEvent):
-                error_message = event.message
-            elif isinstance(event, LLMDoneEvent):
-                continue
-    except Exception as exc:  # noqa: BLE001 — degrade gracefully on transport errors
-        error_message = str(exc)
-
-    content = "".join(text_chunks)
-    if not content:
-        # No-key / CI path: return a deterministic sentinel so the run
-        # completes without surfacing an error. The intent is "this ran but
-        # the LLM call was a no-op" — useful in tests and offline demos.
-        if error_message:
-            content = "(no provider key configured)"
-    return {"content": content, "agent_id": str(agent_id), "error": error_message}
+    async for event in agent_runtime.invoke_agent(
+        agent_id=str(agent_id),
+        prompt=prompt,
+        context_snapshot=context_snapshot,
+        api_key=api_key,
+        provider=provider,
+        model=model,
+    ):
+        if isinstance(event, LLMDeltaEvent):
+            text_chunks.append(event.text)
+        elif isinstance(event, LLMErrorEvent):
+            raise RuntimeError(f"ai.agent_invoke ({agent_id}): {event.message}")
+        elif isinstance(event, LLMDoneEvent):
+            continue
+    return {"content": "".join(text_chunks), "agent_id": str(agent_id)}
 
 
 # ---------------------------------------------------------------------------
@@ -213,9 +207,13 @@ async def agent_invoke(inputs: dict[str, Any], config: dict[str, Any]) -> dict[s
 
 
 def _is_truthy(value: Any) -> bool:
-    """Return Python truthiness with a small string-aware override."""
+    """Return Python truthiness, reading boolean-like strings as their boolean."""
     if isinstance(value, str):
-        return value.strip().lower() in _TRUTHY_STRINGS or bool(value.strip())
+        text = value.strip().lower()
+        if text in _TRUTHY_STRINGS:
+            return True
+        if text in _FALSY_STRINGS:
+            return False
     return bool(value)
 
 
@@ -228,9 +226,9 @@ async def logic_branch(inputs: dict[str, Any], config: dict[str, Any]) -> dict[s
     currently informational only. ``mode`` may be ``"truthy"`` (default)
     or ``"gt"`` (greater-than threshold).
 
-    Outputs: ``true_path`` carries the value on a positive condition and is
-    ``None`` otherwise; ``false_path`` is the inverse. Downstream nodes wire
-    to whichever port they want to consume.
+    Outputs: ``true_path`` carries the value on a positive condition and
+    :data:`workflow_engine.SKIP` otherwise; ``false_path`` is the inverse. The
+    engine skips (never runs) a node fed only by the un-taken port.
     """
     value = inputs.get("value")
     mode = config.get("mode", "truthy")
@@ -246,8 +244,8 @@ async def logic_branch(inputs: dict[str, Any], config: dict[str, Any]) -> dict[s
     else:
         condition = _is_truthy(value)
     if condition:
-        return {"true_path": value, "false_path": None}
-    return {"true_path": None, "false_path": value}
+        return {"true_path": value, "false_path": SKIP}
+    return {"true_path": SKIP, "false_path": value}
 
 
 # ---------------------------------------------------------------------------
@@ -342,6 +340,81 @@ async def action_notify_desktop(inputs: dict[str, Any], config: dict[str, Any]) 
         # to know which output to forward into the Tauri notification API.
         "intent": "desktop-notification",
     }
+
+
+# ---------------------------------------------------------------------------
+# action.webhook (R15-AGENT-023)
+# ---------------------------------------------------------------------------
+
+#: ``secret_ref`` -> URL. The URL is a BYOK secret: the renderer reads it from
+#: the OS keychain and registers it here through a request header
+#: (``PUT /workflow/webhooks/{ref}``). Process memory only — never persisted,
+#: logged or echoed; a node config carries the ref alone.
+_WEBHOOK_URLS: dict[str, str] = {}
+
+_WEBHOOK_TIMEOUT_SECONDS = 10.0
+
+
+def _webhook_url_allowed(url: str) -> bool:
+    """https anywhere, or plain http to ``localhost`` only."""
+    try:
+        parts = urlsplit(url)
+    except ValueError:
+        return False
+    if not parts.hostname:
+        return False
+    return parts.scheme == "https" or (parts.scheme == "http" and parts.hostname == "localhost")
+
+
+def register_webhook_url(ref: str, url: str) -> None:
+    """Hold ``url`` for ``ref`` in process memory; ``ValueError`` when not allowed."""
+    if not _webhook_url_allowed(url):
+        raise ValueError("webhook URL must be https:// (or http://localhost)")
+    _WEBHOOK_URLS[ref] = url
+
+
+def webhook_refs() -> list[str]:
+    """The refs with a URL registered (never the URLs)."""
+    return sorted(_WEBHOOK_URLS)
+
+
+class _DropWebhookUrls(logging.Filter):
+    """httpx logs every request URL at INFO; a webhook URL must never reach a log."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        message = record.getMessage()
+        return not any(url in message for url in _WEBHOOK_URLS.values())
+
+
+logging.getLogger("httpx").addFilter(_DropWebhookUrls())
+
+
+async def action_webhook(inputs: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
+    """POST ``{workflow, node, value}`` JSON to the URL registered for ``secret_ref``.
+
+    Raises (node error) when no URL is registered, the transport fails, or the
+    endpoint answers non-2xx. No message carries the URL.
+    """
+    ref = str(config.get("secret_ref") or "")
+    if not ref:
+        raise ValueError("action.webhook: 'secret_ref' is required in config")
+    url = _WEBHOOK_URLS.get(ref)
+    if url is None:
+        raise ValueError(
+            f"action.webhook: no URL is set for {ref!r} — set it on the node in the "
+            "workflow editor (it is loaded from the keychain when the app starts)"
+        )
+    workflow_name, node_id = CURRENT_NODE.get() or ("", "")
+    payload = {"workflow": workflow_name, "node": node_id, "value": inputs.get("value")}
+    try:
+        async with httpx.AsyncClient(timeout=_WEBHOOK_TIMEOUT_SECONDS) as client:
+            response = await client.post(url, json=payload)
+    except httpx.HTTPError as exc:
+        # The exception text can quote the URL; report the class only.
+        raise ValueError(f"action.webhook: delivery failed ({type(exc).__name__})") from None
+    if not response.is_success:
+        raise ValueError(f"action.webhook: endpoint answered HTTP {response.status_code}")
+    return {"status_code": response.status_code}
 
 
 # ---------------------------------------------------------------------------

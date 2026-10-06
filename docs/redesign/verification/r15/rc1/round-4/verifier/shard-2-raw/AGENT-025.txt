@@ -1,0 +1,9 @@
+R15-AGENT-025 @ 68d5573aff9a579af084dcbb124843f2aecff6e8
+code: base.py:50-62 client_timeout (connect 10 s, idle 180 s hosted / 300 s ollama) on adapter clients; agent_runtime.py:1125-1175 _relay_provider heartbeat every 10 s + LLMErrorEvent code provider_idle after idle; agent_runtime.py:1128/1754 planner oneshot timeout=20 s (fix_shape said 15; bounded either way); src/modules/chat/streaming.ts:191-295 STREAM_STALLED frontend watchdog with Retry row. Pins: tests/test_b5_runtime_liveness.py:46,71,86,109; streaming.test.ts:381.
+fresh variant (not the pin's Python-level hang): a REAL socket stub through OpenAIProvider(base_url=stub) + invoke_agent(copilot, mode=ask), heartbeat patched 2 s, idle 10 s:
+ keepalive = 200 + SSE headers then ': keepalive' comment bytes every 1 s forever (bytes keep flowing, so httpx read timeout never fires)
+ partial   = one content delta then silence
+cmd: cd <worktree>/sidecar && PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 ./.venv/bin/python scratchpad/vs2/a025.py
+keepalive ended elapsed 10.5 heartbeats 4 errors [('provider_idle', 10.0)] last ['done'] kinds ['done', 'error', 'heartbeat'] conns {'open': 1, 'closed': 0}
+partial ended elapsed 10.5 heartbeats 4 errors [('provider_idle', 10.0)] last ['done'] kinds ['delta', 'done', 'error', 'heartbeat'] conns {'open': 2, 'closed': 1}
+=> both end with a provider_idle error frame at the idle budget (10.0 s) after heartbeats, then done. Verdict: HOLDS

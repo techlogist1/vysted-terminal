@@ -1,0 +1,86 @@
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": "-to"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "earn"}
+{"kind": "delta", "text": "ings"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " common"}
+{"kind": "delta", "text": " valuation"}
+{"kind": "delta", "text": " metric"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " compares"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " earnings"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "EPS"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " over"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " specific"}
+{"kind": "delta", "text": " period"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " time"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " typically"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " year"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "A"}
+{"kind": "delta", "text": " higher"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " generally"}
+{"kind": "delta", "text": " indicates"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " investors"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " expecting"}
+{"kind": "delta", "text": " strong"}
+{"kind": "delta", "text": " future"}
+{"kind": "delta", "text": " growth"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " while"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " lower"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " may"}
+{"kind": "delta", "text": " suggest"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " low"}
+{"kind": "delta", "text": " expectations"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " und"}
+{"kind": "delta", "text": "erval"}
+{"kind": "delta", "text": "ued"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 1639, "output_tokens": 85, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

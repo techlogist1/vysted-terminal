@@ -1,0 +1,4 @@
+financial_statements | ['_available says how many exist). Use for revenue, margin, debt or cash-flow series over years or quarters;']
+run_custom_backtest | ['stricted grammar (never eval) and executed in the SIMULATED backtest engine. Returns the digest (metrics, bes', "': {'type': 'string'}, 'description': 'Tickers to trade.'}, 'start_date': {'type': 'string', 'description", "t': 100, 'description': 'Fixed share quantity per trade.'}, 'initial_capital': {'type': 'number', 'defaul"]
+arrange_layout | ['\': "For pattern=\'custom\': the panels to place, in order. Each item is a panel name (chart|watchlist|news|']
+publish_brief | ["string'}}}, 'description': 'Cited sources, in [n] order.'}, 'mode': {'type': 'string', 'enum': ['FAST', '"]

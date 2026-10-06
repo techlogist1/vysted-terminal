@@ -1,0 +1,15 @@
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+probe: pinned-test citation (no vitest/pytest suite execution per harness rule)
+
+=== src/lib/use-sidecar-retry.test.ts ===
+25:describe("useRetryOnSidecarReady (R15-UI-015)", () => {
+
+=== src/modules/news/NewsFeedPanel.test.tsx ===
+152:  it("surfaces a SidecarError with its status after ONE request, never a retry loop (R15-UI-015)", async () => {
+
+=== src/modules/sec/SecFilingsPanel.test.tsx ===
+132:  it("R15-UI-015: a failed company search shows the reason instead of nothing", async () => {
+
+=== src/modules/earnings/EarningsCalendarPanel.test.tsx ===
+186:  it("R15-UI-015: a deterministic 502 settles after one attempt and shows the error", async () => {
+

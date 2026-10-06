@@ -1,0 +1,95 @@
+=== R15-CODE-DATA-005: grep for duplicated predicates ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/sidecar/services/dividend_actions.py:60:def is_applicable(symbol: str) -> bool:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/sidecar/services/earnings_quality.py:123:def is_applicable(symbol: str) -> bool:
+---
+---
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/sidecar/services/research/relevance.py:374:def is_india_target(target: ResearchTarget | None) -> bool:
+=== dividend_actions.py is_applicable / _is_blocked ===
+"""Declared-but-unpaid dividend detection (R13 / D57).
+
+The R13 probe found Yahoo's trailing dividend scalars can ANTICIPATE a dividend
+that is declared but whose record date is still in the FUTURE: PFC's
+``trailingAnnualDividendRate`` (18.55) = the trailing-12m PAID history (14.60) +
+a declared FINAL dividend of ₹3.95 whose record date is 2026-07-31. The repo
+maps ``dividend_per_share`` = Yahoo ``dividendRate``; whenever a scalar (or the
+paid history) is stated without separating the declared-not-yet-paid leg,
+"paid" and "declared" collapse into one number and the D56 note mis-attributes
+the gap.
+
+:func:`get_declared_unpaid_dividend` reads the merged NSE+BSE corporate-actions
+lane (:func:`services.corporate_disclosures.get_corporate_actions`, so a
+BSE-only name is covered too; R15-DATA-025) and returns the NEAREST dividend
+whose record/ex date is still in the future — the amount + record date the
+derived semantics leg surfaces as a SEPARATE "declared, not yet paid" fact.
+It NEVER raises into research: any failure becomes ``None`` (absence is honest),
+and a detected block is reported to the shared EXCHANGE circuit breaker
+(mirroring :mod:`services.ownership_check`)."""
+
+    def as_wire(self) -> dict[str, Any]:
+        """The plain dict attached under :data:`DECLARED_KEY`."""
+        return asdict(self)
+
+
+def is_applicable(symbol: str) -> bool:
+    """True when ``symbol`` is an NSE or BSE listing (the corporate-actions lane
+    merges both exchanges).
+
+    Decided on the resolved listing (``.NS``/``.BO``, via
+    :func:`services.witness.is_india_listing`) whose bare ticker is in an India
+    master — never on bare-ticker membership alone, so a US-bound listing is
+    skipped without a network call.
+    """
+    if not is_india_listing(symbol):
+        return False
+    bare = locale.strip_exchange_suffix(symbol)
+    return symbol_resolver.is_nse_symbol(bare) or symbol_resolver.is_bse_symbol(bare)
+
+
+def _ist_today() -> date:
+=== market_cap_witness.py imports ===
+39:from __future__ import annotations
+41:import asyncio
+42:import logging
+43:from dataclasses import asdict, dataclass
+44:from typing import Any
+46:from services.witness import is_india_listing
+100:is_applicable = is_india_listing
+140:    if not is_applicable(symbol):
+153:    "is_applicable",
+=== ownership_check.py imports ===
+39:from __future__ import annotations
+41:import asyncio
+42:import logging
+43:from dataclasses import asdict, dataclass
+44:from typing import Any
+46:from services import provider_health
+47:from services.witness import is_block_error, is_india_listing
+104:is_applicable = is_india_listing
+136:    if not is_applicable(symbol):
+157:    "is_applicable",
+=== range_check.py imports ===
+36:from __future__ import annotations
+38:import asyncio
+39:import logging
+40:from dataclasses import asdict, dataclass
+41:from datetime import UTC, datetime, timedelta
+42:from typing import Any
+44:from services import provider_health
+45:from services.errors import ProviderError
+46:from services.witness import is_block_error, is_india_listing
+127:is_applicable = is_india_listing
+194:    if not is_applicable(symbol):
+257:    if not is_applicable(symbol) or provider_health.is_open(EXCHANGE_HISTORY):
+299:    "is_applicable",
+=== disclosures.py is_india_target ===
+26:from __future__ import annotations
+28:import asyncio
+29:import re
+30:from typing import Any
+32:from services.corporate_disclosures import is_earnings_call_transcript
+33:from services.research.relevance import is_india_target
+34:from services.research.target import ResearchTarget
+120:    return is_india_target(target) and is_disclosure_question(sub_question)
+138:    return is_india_target(target)
+173:    if not is_india_target(target):
+341:    "is_india_target",

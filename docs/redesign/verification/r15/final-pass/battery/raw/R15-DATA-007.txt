@@ -1,0 +1,10 @@
+# R15-DATA-007 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:34+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for a in 0000320193-23-000077 0000320193-26-000020; do echo "\$ GET /sec/filings/$a?identifier=AAPL"; curl -s -m 100 "$H/sec/filings/$a?identifier=AAPL" | python3 -c "import sys,json;d=json.load(sys.stdin);f=d.get('filing',d);print({k:f.get(k) for k in ('accession_number','form_type','filed_date','company_name')} if isinstance(f,dict) else d)"; done
+--- output ---
+$ GET /sec/filings/0000320193-23-000077?identifier=AAPL
+{'accession_number': None, 'form_type': '10-Q', 'filed_date': '2023-08-04', 'company_name': 'Apple Inc.'}
+$ GET /sec/filings/0000320193-26-000020?identifier=AAPL
+{'accession_number': None, 'form_type': '10-Q', 'filed_date': '2026-07-31', 'company_name': 'Apple Inc.'}
+
+EXIT=0 (3.7s)

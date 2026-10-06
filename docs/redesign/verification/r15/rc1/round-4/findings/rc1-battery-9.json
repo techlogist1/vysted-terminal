@@ -1,0 +1,16 @@
+[
+  {
+    "key": "rc1-battery-9:1",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-RESEARCH-017",
+    "title": "ULTRA's heavy-loop exception no longer falls back to a real single-pass DEEP brief — it now returns an honest ok:false failure with no brief",
+    "repro": "In-process, candidate sha 1006c6da694ede5776c3dabbd27b305aeb56b5ad, sidecar/services/research/iter.run_heavy_research(query, target=<bound India ResearchTarget KAYNES.NS>, bound=True, angles=3, tool_call=<stub>, llm_call=<stub>, budget=BudgetGuard(...)) with services.research.disclosures.gather_floor patched (unittest.mock.patch.object) to raise RuntimeError. Then mirrored deep_research.py's own except-wrap around that exact call (deep_research.py:296-298: `except Exception as exc: return _loop_failed(\"heavy\", exc)`), which is the real user-facing code path (services/agent_tools/deep_research.py _run_loop -> run_deep_brief).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/battery/raw/set-23/R15-RESEARCH-017.txt",
+    "suspected_files": [
+      "sidecar/services/research/iter.py:990",
+      "sidecar/services/agent_tools/deep_research.py:296-298",
+      "sidecar/services/agent_tools/deep_research.py:325-334"
+    ]
+  }
+]

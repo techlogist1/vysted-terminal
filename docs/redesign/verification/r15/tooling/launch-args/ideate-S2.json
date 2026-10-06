@@ -1,0 +1,34 @@
+{
+ "tag": "ideate-S2",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_offmachine_s2.md section 5 (IDEATION seats) in full before touching anything (read-only thinking / derivation; no raw-finding shape, no refute stage).",
+ "stages": [
+  {
+   "label": "seat",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Your task spec is PROMPT_offmachine_s2.md section 5, item \"{{id}}\". {{note}}"
+  }
+ ],
+ "items": [
+  {
+   "id": "sellside",
+   "note": "<seat-id> = \"sellside\"; <seat> = a sell-side equity research analyst at a boutique Indian brokerage covering small/mid caps."
+  },
+  {
+   "id": "designer",
+   "note": "<seat-id> = \"designer\"; <seat> = a product designer obsessed with boring, correct, fast tools."
+  },
+  {
+   "id": "journalist-json",
+   "model": "sonnet",
+   "effort": "medium",
+   "note": "Derive invent/ideas/journalist.json from the existing journalist.md - structure only, no new ideas."
+  },
+  {
+   "id": "bloomberg-md",
+   "model": "sonnet",
+   "effort": "medium",
+   "note": "Derive invent/ideas/bloomberg.md from the existing bloomberg.json - structure only, no new ideas."
+  }
+ ]
+}

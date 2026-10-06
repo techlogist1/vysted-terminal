@@ -1,0 +1,6 @@
+SIFY income {"ok": true, "symbol": "SIFY", "statement": "income", "currency": "INR", "note": null, "periods": ["2026-03-31", "2025-03-31", "2024-03-31", "2023-03-31", "2022-03-31"], "lines_sample": []}
+
+WIT income {"ok": true, "symbol": "WIT", "statement": "income", "currency": "INR", "note": null, "periods": ["2026-03-31", "2025-03-31", "2024-03-31", "2023-03-31", "2022-03-31"], "lines_sample": []}
+
+INFY cashflow {"ok": true, "symbol": "INFY.NS", "statement": "cashflow", "currency": "USD", "note": null, "periods": ["2026-03-31", "2025-03-31", "2024-03-31", "2023-03-31", "2022-03-31"], "lines_sample": []}
+

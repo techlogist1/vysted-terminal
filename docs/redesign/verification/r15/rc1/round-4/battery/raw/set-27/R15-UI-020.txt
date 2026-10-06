@@ -1,0 +1,13 @@
+=== R15-UI-020: ci_pinned ===
+Vitest suite is owned by the heavy lane (never run here per role instructions).
+Pinned test: src/lib/workspace.test.ts (chartViews round-trip: RELIANCE.NS view persisted + restored).
+135:      chartViews: {},
+709:    const view = { symbol: "RELIANCE.NS", timeframe: "1h", indicators: ["rsi"], compare: "TCS.NS" };
+731:      chartViews: { chart: view },
+736:      symbol: "RELIANCE.NS",
+741:    // The oldest blobs have no chartViews: the panels open on their defaults.
+1221:        symbol: "RELIANCE.NS",
+1278:  chartViews: true,
+1413:      watchlist: [{ symbol: "RELIANCE", assetClass: "equity" }],
+1454:    expect(first.watchlist?.map((e) => e.symbol)).toEqual(["RELIANCE", "INFY"]);
+1489:      chartViews: [

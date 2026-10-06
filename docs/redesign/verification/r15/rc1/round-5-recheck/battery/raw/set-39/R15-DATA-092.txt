@@ -1,0 +1,10 @@
+Entry: R15-DATA-092 (batch-9, W5-frontend-shell)
+Repro per register: Settings Region section says "Defaults to United States" / "only affects number formatting" though real default is India and region actually drives resolver market, calendar, macro/news providers and screener universe (pre-fix copy was false).
+No GUI/no vitest available to this battery role -> ci_pinned for the copy-text claim (the entry's own stated repro).
+Pinned committed tests:
+  src/lib/region.test.ts:5  comment "R15-DATA-092: the default region is India, not REGIONS[0] (US) — a copy or ..."
+  src/components/SettingsPanel.test.tsx:471 it("Region & locale states the actual default and what region controls (R15-DATA-092)")
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/lib/region.test.ts:5:// R15-DATA-092: the default region is India, not REGIONS[0] (US) — a copy or
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/components/SettingsPanel.test.tsx:471:  it("Region & locale states the actual default and what region controls (R15-DATA-092)", () => {
+--- Adjacent live note (not the repro; region default value from sidecar) ---
+sidecar reachable

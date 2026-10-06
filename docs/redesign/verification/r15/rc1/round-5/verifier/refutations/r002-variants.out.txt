@@ -1,0 +1,8 @@
+'unverified - no source confirms the margin' -> unverified
+'__UNVERIFIED__ - no source confirms it' -> agree
+'`UNVERIFIED` - no source confirms it' -> unverified
+'"UNVERIFIED" - no source confirms it' -> unverified
+'Unverified: no source confirms it' -> unverified
+'*UNVERIFIED* - no source confirms it' -> unverified
+'_DISAGREE_ - sources confirm 21% not 23%' -> disagree
+'UNVERIFIED — no source confirms it' -> unverified

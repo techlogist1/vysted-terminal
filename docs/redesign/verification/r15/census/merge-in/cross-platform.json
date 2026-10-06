@@ -1,0 +1,202 @@
+[
+ {
+  "raw_id": "HYG-1",
+  "title": "Windows/Linux CI has not run since 2026-05-30: branch 004 is 655 commits ahead of main and the 3-OS workflows only trigger on push:main / pull_request",
+  "severity": "medium",
+  "area": "cross-platform",
+  "subsystem": "ci",
+  "repro": "git log --oneline main..HEAD | wc -l -> 655; gh run list -> newest run 2026-05-30 (main); gh pr list --state all -> only PRs #1/#2 (merged May); branch 004-r4-experience-rebuild is pushed but has no PR, so no windows-latest/ubuntu-latest job has ever built or tested it",
+  "evidence": ".github/workflows/test.yml:3-6, .github/workflows/build.yml:3-6, .github/workflows/lint.yml:3-6 (push: branches [main] + pull_request only; no workflow_dispatch); gh run list (latest 2026-05-30T19:08Z); git merge-base main HEAD = cfcf5be 2026-05-31",
+  "notes": "Every static cross-platform claim in this sweep is unverified because the only machine that ran the code since May is this Mac; the CLAUDE.md standard 'builds stay green on Windows, macOS, Linux' is currently unobserved for ~4 months of work (new sidecar deps, curl_cffi --collect-all, new tests). HYG-2 is a proven red Windows pytest that is already waiting. Smallest fix: open a draft PR from the branch (or add workflow_dispatch + a branch push trigger) to get a 3-OS baseline BEFORE the ROG Windows session, so that session starts from a known list instead of discovering build breaks by hand.",
+  "cheap_fix": true,
+  "source_file": "hygiene-cross-platform.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "All three workflows trigger only on push to main and pull_request (no workflow_dispatch, no branch trigger); the newest run is 2026-05-30 on main, the only PRs are #1/#2 merged in May, and the branch is 655 commits past its merge-base, so no windows-latest/ubuntu-latest job has built or tested it. Every static cross-platform claim in this sweep is therefore unobserved."
+  }
+ },
+ {
+  "raw_id": "HYG-2",
+  "title": "pytest fixture read with platform-default encoding raises UnicodeDecodeError on Windows (cp1252), turning the windows-latest test job red",
+  "severity": "medium",
+  "area": "cross-platform",
+  "subsystem": "sidecar/tests",
+  "repro": "python3 -c \"open('sidecar/tests/fixtures/saksoft_outcome_pages.json','rb').read().decode('cp1252')\" -> UnicodeDecodeError: 'charmap' codec can't decode byte 0x9d in position 871. On Windows Python 3.13 (UTF-8 mode off, CI sets no PYTHONUTF8), Path.read_text() with no encoding uses cp1252, so the test's fixture load raises before any assertion",
+  "evidence": "sidecar/tests/test_search_extract.py:463-464 (fixture.read_text() no encoding); sidecar/tests/fixtures/saksoft_outcome_pages.json (139 non-ASCII bytes, en-dashes); .github/workflows/test.yml:77-81 (plain pytest, no PYTHONUTF8); 12 further bare .read_text() calls in tests/ (test_nse_provider.py:27-31, test_corporate_disclosures.py:33-36, test_bse_provider.py:297-298, test_no_tradesa.py:168) are ASCII-only today so latent",
+  "notes": "Production sidecar code is disciplined here (every open()/read_text()/resources.open() in services/ passes encoding='utf-8'); the tests are not. Consequence: the first 3-OS CI run of this branch (HYG-1) fails on Windows for a reason unrelated to product code, and the next non-ASCII fixture (any Indian filing with an en-dash or rupee sign) adds another. Fix: add encoding='utf-8' to the 13 test reads, or set env PYTHONUTF8: '1' on the pytest step (one line, covers future fixtures).",
+  "cheap_fix": true,
+  "source_file": "hygiene-cross-platform.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "_saksoft_pages() calls fixture.read_text() with no encoding, the fixture has 139 non-ASCII bytes and fails cp1252 decode at byte 0x9d, the test job runs on windows-latest with Python 3.13 and a plain pytest step with no PYTHONUTF8, and nothing skips the tests that use it (test_search_extract.py:471,562). The first Windows run of this branch goes red on a test-only defect."
+  }
+ },
+ {
+  "raw_id": "HYG-3",
+  "title": "Hardware-fit has no Windows branch: every Windows machine is reported as exactly 8 GiB RAM / 4.4 GiB budget, and the onboarding local-model recommendation is scored against that fiction",
+  "severity": "medium",
+  "area": "cross-platform",
+  "subsystem": "sidecar/hardware-fit",
+  "repro": "cd sidecar && ./.venv/bin/python -c \"import platform; from services import hardware_fit as h; platform.system=lambda:'Windows'; print(h.detect_device(force=True).to_dict())\" -> ramGib 8.0, gpuBudgetGib 4.4 regardless of the real machine (this Mac has more); GET /system/local-model-recommendation then picks/rejects candidates on that constant",
+  "evidence": "sidecar/services/hardware_fit.py:203-219 (Darwin -> _detect_macos, Linux -> _detect_linux, else _detect_fallback), sidecar/services/hardware_fit.py:182-197 (_detect_fallback: ram = 8 * _GIB hardcoded), sidecar/services/hardware_fit.py:124-132 (non-Apple: 55% of RAM, dedicated VRAM never detected on Windows or Linux), sidecar/services/hardware_fit.py:86-95 (to_dict emits ramGib with no estimated/provenance flag), sidecar/routers/system.py:106-140",
+  "notes": "Windows is the operator's primary dev rig and the likeliest non-Mac user platform. A 4 GB laptop is told it has 8 GB (over-recommends a model that will thrash); a 32 GB RTX box is told 8 GB CPU-only (under-recommends, steers to cloud keys). The value is presented as measured, so the user cannot tell. Fix: a _detect_windows via ctypes GlobalMemoryStatusEx (about 15 lines, no new dependency; psutil is not installed), and mark fallback profiles with an estimated flag the UI shows. Dedicated-GPU VRAM (nvidia-smi / DXGI) is a separate, larger follow-up that also affects Linux.",
+  "source_file": "hygiene-cross-platform.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "detect_device routes anything not Darwin/Linux to _detect_fallback, which hardcodes ram = 8 GiB and a 55% CPU budget; to_dict emits it as ramGib with no estimated flag, and /system/local-model-recommendation picks the onboarding model from it. psutil is not installed, so there is no other RAM source on Windows. Linux reads /proc/meminfo correctly but, like Windows, never detects dedicated VRAM."
+  }
+ },
+ {
+  "raw_id": "HYG-4",
+  "title": "The deterministic layout modes (Fundamental / Technical / Macro / Compare / Reset) are reachable only from the macOS native menu; Windows and Linux have no equivalent entry point",
+  "severity": "medium",
+  "area": "cross-platform",
+  "subsystem": "src-tauri/menu + src/lib/menu-bridge",
+  "repro": "On Windows/Linux: install_layout_menu is compiled out, so vysted://menu-layout is never emitted and applyLayoutMode (clear the grid, tile exactly that mode's panels) has no caller. The only non-Mac route is the chat '/layout <name>' slash, which enqueues arrange_layout through the proposed-changes gate and the additive, viewport-fit-downgraded fitLayoutTemplate path, the behaviour the menu bridge was written to avoid ('Bug-4: Fundamental was collapsing to a single brief panel')",
+  "evidence": "src-tauri/src/lib.rs:344-350 (#[cfg(target_os = \"macos\")] install_layout_menu, doc: 'Windows/Linux keep their existing chrome untouched'), src-tauri/src/lib.rs:495-500, src/lib/menu-bridge.ts:4-13 and :33 (sole applyLayoutMode caller), src/modules/chat/ChatSidebar.tsx:667-672 (/layout -> enqueueSlashChange('arrange_layout')), src/lib/host-actions.ts:1038-1047 (fitLayoutTemplate)",
+  "notes": "This is a product surface that exists only on macOS by construction, not by accident of testing. Fix: expose the five modes as command-palette commands that call applyLayoutMode / resetToDefaultLayout directly (platform-neutral, works in every webview), and keep the native menu as macOS sugar that dispatches the same commands. A Settings reset button exists (SettingsPanel.tsx:1593) but only for Reset.",
+  "source_file": "hygiene-cross-platform.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "install_layout_menu and its call are both #[cfg(target_os = \"macos\")], menu-bridge.ts is the only caller of applyLayoutMode, and the command palette exposes panels/agents/actions/symbols but no layout modes. Off-Mac the only route is /layout, which enqueues arrange_layout through the gate and the additive fit-downgraded path, and its argument names (research-cockpit, single-focus) differ from the menu labels (Fundamental, Technical). The Mac-only scope is a documented choice (lib.rs:344-347), but it still leaves Windows/Linux without the deterministic modes."
+  }
+ },
+ {
+  "raw_id": "HYG-5",
+  "title": "Kill-switch global shortcut registers Ctrl+Super+Shift+K (all three modifiers) on every OS, not the documented Cmd/Ctrl+Shift+K; on Windows it is Ctrl+Win+Shift+K",
+  "severity": "low",
+  "area": "cross-platform",
+  "subsystem": "src-tauri/kill_switch",
+  "repro": "Press Ctrl+Shift+K on Windows/Linux, or Cmd+Shift+K on macOS -> nothing fires. The registered chord is Shift|Super|Control+K: global-hotkey 0.7.0 HotKey::new keeps both bits, and the Windows backend maps SUPER->MOD_WIN and CONTROL->MOD_CONTROL into one RegisterHotKey call",
+  "evidence": "src-tauri/src/kill_switch.rs:34-39 (Modifiers::SHIFT | Modifiers::SUPER | Modifiers::CONTROL), src-tauri/src/kill_switch.rs:20,30,75 (docs and log say Cmd/Ctrl+Shift+K); ~/.cargo/registry/src/*/global-hotkey-0.7.0/src/hotkey.rs:87-99,108-114 and src/platform_impl/windows/mod.rs:77-96; user-facing promise at src/modules/safety/DisclaimerFlow.tsx:45, src/store/safety.ts:14, docs/SAFETY_ARCHITECTURE.md:119,240",
+  "notes": "A wrong-chord bug on all three OSes, surfaced here because the intent was a per-OS 'CmdOrCtrl'. On Linux Wayland, global-shortcut registration also fails (logged, non-fatal, kill_switch.rs:76-79). Low severity because the kill switch currently gates only broker adapters (subscribers are registered in services/broker_base.py:103,251,345; nothing else subscribes), which the trading removal deletes. Fix alongside that decision: either delete the shortcut with trading, or if the kill switch is kept for agent autonomy, use #[cfg(target_os = \"macos\")] Modifiers::SUPER, else Modifiers::CONTROL (one line) plus a unit test on the modifier set.",
+  "cheap_fix": true,
+  "source_file": "hygiene-cross-platform.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The chord bug is real: kill_switch_shortcut() sets SHIFT|SUPER|CONTROL, HotKey::new keeps all bits, and the Windows backend ORs MOD_WIN and MOD_CONTROL into one RegisterHotKey call, so the documented Cmd/Ctrl+Shift+K never matches on any OS. Correction: the shortcut is dormant on every OS whatever chord is registered, because nothing in src/ listens for kill-switch:requested (safety.ts:15-17 says the listener was removed with the kill-switch UI). What the kill switch gates: in the sidecar only BrokerAdapter subscribes and checks is_fired (broker_base.py:103,251,345). It gates no agent-autonomy or other control-plane action, so it goes with the trading removal unless it is deliberately repurposed."
+  }
+ },
+ {
+  "raw_id": "HYG-6",
+  "title": "Note .md mirror filenames strip only / and \\ from a free-text symbol, so Windows-illegal names (NSE:RELIANCE, CON, anything with :*?\"<>|) fail silently",
+  "severity": "low",
+  "area": "cross-platform",
+  "subsystem": "src/modules/notes",
+  "repro": "On Windows, type 'NSE:RELIANCE' (the TradingView convention) in the notes symbol chip -> filename 'NSE:RELIANCE.md' -> the ':' addresses an NTFS alternate data stream or fails with ERROR_INVALID_NAME in write_text_atomic -> persistNoteMd swallows the error, so the canonical .md never lands; Export .md/.png/.pdf with the same scope shows a raw OS error. A symbol named CON/NUL/AUX/PRN/COM1 hits the reserved-device-name trap",
+  "evidence": "src/modules/notes/notes-persistence.ts:67-72 (replace(/[/\\\\]/g,'_') only; empty catch), src/modules/notes/NotesPanel.tsx:220 (exportBaseName, same partial sanitiser), src/modules/notes/NotesPanel.tsx:424-433 (SymbolChipInput: free text, trim + toUpperCase only), src/lib/export-artifact.ts:85,102 and notes-persistence.ts:68 (`${dir}/...` string joins produce mixed separators on Windows, echoed to the user in 'Saved <path>')",
+  "notes": "No data loss: the workspace blob remains the primary note store. The consequence is a promise (SC-032 durable .md file per note) that quietly does not hold on Windows for some symbols, and two copies of the same sanitiser that can drift apart. Fix: one shared safeFilename() that maps [<>:\"/\\\\|?*\\x00-\\x1f] to '_', trims trailing dots/spaces and suffixes reserved device names; used by both call sites.",
+  "cheap_fix": true,
+  "source_file": "hygiene-cross-platform.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "persistNoteMd and NotesPanel's exportBaseName each replace only / and \\, SymbolChipInput commits free text (trim + upper-case only), and the Rust write_text_atomic passes the path to File::create/rename without validating it. So 'NSE:RELIANCE' or 'CON' produce an invalid or ADS-addressed Windows filename, and persistNoteMd's empty catch swallows the failure. The workspace blob still holds the note, so no data is lost."
+  }
+ },
+ {
+  "raw_id": "HYG-7",
+  "title": "The atomic-rename writers have no Windows sharing-violation retry, and the Rust version leaks its temp file when the rename fails",
+  "severity": "low",
+  "area": "cross-platform",
+  "subsystem": "sidecar/workspace_store + src-tauri/lib.rs",
+  "repro": "On Windows, os.replace / std::fs::rename -> MoveFileExW(REPLACE_EXISTING) fails with WinError 5/32 when the destination is open without FILE_SHARE_DELETE, for example by Defender or the Search indexer scanning the file just written, or by a concurrent read. Workspace autosave then returns an unhandled 500 (a lost autosave if it was the newest one); a note or export write rejects and leaves '<name>.tmp.<pid>' behind",
+  "evidence": "sidecar/services/workspace_store.py:85-94 (os.replace, no retry; the tmp is cleaned in finally), sidecar/routers/workspace.py:53-60 (catches only WorkspaceNameError), src-tauri/src/lib.rs:297-309 and :328-341 (std::fs::rename, no retry, no tmp cleanup on error)",
+  "notes": "The workspace writer was made atomic specifically because concurrent debounced autosaves corrupted JSON (workspace_store.py:72-79); on Windows the fix trades torn files for intermittent PermissionError. Rare, but it lands on the most-written file in the app. Fix: retry the replace 3-5 times with about 50 ms backoff on PermissionError/ERROR_SHARING_VIOLATION in both writers, and remove the tmp on rename failure in the Rust commands.",
+  "cheap_fix": true,
+  "source_file": "hygiene-cross-platform.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "save_workspace calls os.replace once with no retry (it does clean its temp in finally), and the POST route catches only WorkspaceNameError, so a Windows PermissionError from a concurrent reader or scanner becomes a 500. Both Rust atomic writers rename once and return early on error with no temp cleanup, which leaks '<name>.tmp.<pid>'. Rare but real on Windows."
+  }
+ },
+ {
+  "raw_id": "HYG-8",
+  "title": "MCP supervisors mutate the process environment (set_var/remove_var) from two parallel threads while the GUI and runtime threads are live, which is unsafe on POSIX",
+  "severity": "low",
+  "area": "cross-platform",
+  "subsystem": "src-tauri/openbb_mcp + sec_edgar_mcp",
+  "repro": "design: lib.rs spawns openbb_mcp::spawn and sec_edgar_mcp::spawn on two threads at once; each calls std::env::set_var/remove_var. glibc setenv can reallocate environ while another thread (GTK/WebKitGTK on Linux, tokio workers) runs getenv, which is undefined behaviour and a rare boot-time crash. Rust 2024 made set_var unsafe for exactly this reason; the crate is on edition 2021, so it compiles silently",
+  "evidence": "src-tauri/src/lib.rs:470-485 (parallel threads), src-tauri/src/openbb_mcp.rs:58-60,95-96, src-tauri/src/sec_edgar_mcp.rs:57-59,95-96, src-tauri/Cargo.toml:6 (edition = \"2021\")",
+  "notes": "Windows is unaffected (env access is locked), and macOS/Linux crashes are low-probability. The mechanism exists only to hand the ports to the main sidecar, which is spawned afterwards. Fix: drop the global mutation and pass VYSTED_*_MCP_PORT/HOST with .env(...) on the main sidecar's tauri-plugin-shell Command in start_main_sidecar, reading the ports from the already-managed OpenbbMcpPort/SecEdgarMcpPort state (0 -> omit). This also removes the 'join both threads before the sidecar spawn' ordering constraint (lib.rs:482-485).",
+  "cheap_fix": true,
+  "source_file": "hygiene-cross-platform.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The global env mutation is real: openbb_mcp.rs and sec_edgar_mcp.rs call set_var/remove_var from two threads spawned in parallel during setup, on edition 2021 where the call is not unsafe. Correction: the two MCP threads racing each other is not the hazard, because std's env functions are synchronised with each other. The Rust docs say the hazard is concurrent reads through non-std getenv (glibc, GTK/WebKit, libc internals). That narrows the risk to C-level readers running at setup time on Linux/macOS; Windows is safe. The fix shape (pass the ports with .env(...) on the sidecar Command) stands."
+  }
+ },
+ {
+  "raw_id": "HYG-9",
+  "title": "Hardcoded macOS glyphs in UI hints (⌘K, ⌘B, ⌘↵, ⌘⌫) on every OS, bypassing the platform-aware formatBinding",
+  "severity": "low",
+  "area": "cross-platform",
+  "subsystem": "src/app + src/modules/chat",
+  "repro": "On Windows the header shows a <kbd>⌘K</kbd> chip and tooltips 'Hide agent panel (⌘B)', 'Accept all (⌘↵)'. A Windows user pressing Win+K opens the OS Cast/Connect flyout. The labels also ignore user rebinding in Settings",
+  "evidence": "src/app/page.tsx:233, src/app/page.tsx:250-252, src/modules/chat/ProposedChangesReview.tsx:51,59, src/components/SettingsPanel.tsx:1720; the correct helper already exists at src/store/keybindings.ts:281-290 (isMacPlatform) and :328-350 (formatBinding renders Ctrl+K off-Mac)",
+  "notes": "Functional rather than cosmetic: the hint names a key that does not exist on the platform. The bindings themselves match correctly per OS (keybindings.ts:363-385). Fix: render formatBinding(getBinding('<action>').keys) at the four sites.",
+  "cheap_fix": true,
+  "source_file": "hygiene-cross-platform.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "page.tsx:233 and :251 hardcode ⌘B/⌘K and ProposedChangesReview.tsx:51,59 hardcode ⌘↵/⌘⌫, while formatBinding already renders Ctrl+ off-Mac. The handlers accept metaKey || ctrlKey (ChatSidebar.tsx:554), so the bindings work and only the labels are wrong. SettingsPanel.tsx:1720 names the palette '⌘K', a minor label-only case."
+  }
+ },
+ {
+  "raw_id": "HYG-10",
+  "title": "Sidecar build scripts create the venv from whatever python/python3 is on PATH, with no version check; CI pins 3.13",
+  "severity": "low",
+  "area": "cross-platform",
+  "subsystem": "scripts/ensure-*",
+  "repro": "Fresh Windows: `python` is the Microsoft Store App Execution Alias stub (opens the Store, exit 9009), so `python -m venv` fails with an opaque error. Linux/older macOS: python3 may be 3.11/3.12, which builds a sidecar on a different interpreter than CI (setup-python 3.13) and CLAUDE.md's stated Python 3.13. An existing venv is never re-validated. Separately, `pnpm ci-local` calls bare `python`, which does not exist on this Mac (`which python` -> not found) or stock Ubuntu",
+  "evidence": "scripts/ensure-sidecar.mjs:96-100, scripts/ensure-openbb-mcp-sidecar.mjs:108, scripts/ensure-sec-edgar-mcp-sidecar.mjs:98, .github/workflows/test.yml:39-41, package.json scripts.ci-local",
+  "notes": "This will be the first thing the Windows verification session hits. Fix: on win32 use `py -3.13` (the launcher), on POSIX try python3.13 then python3; after venv creation assert `sys.version_info[:2] == (3, 13)` and fail with a clear message. In ci-local, use the sidecar venv's interpreter.",
+  "cheap_fix": true,
+  "source_file": "hygiene-cross-platform.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "All three ensure scripts create the venv with bare 'python' (win32) or 'python3', with no version check, and never re-validate an existing venv, while CI pins 3.13. ci-local calls bare 'python' twice (for the ruff and requirements-dev installs), and 'python' does not resolve in a non-interactive shell on this Mac."
+  }
+ },
+ {
+  "raw_id": "HYG-11",
+  "title": "Linux without a Secret Service provider has no credential fallback: release keychain calls error, BYOK keys cannot be saved, and onboarding reappears on every launch",
+  "severity": "low",
+  "area": "cross-platform",
+  "subsystem": "src-tauri/keychain",
+  "repro": "Linux release build on a session with no org.freedesktop.secrets provider (minimal window managers, WSLg, some KDE setups): keyring sync-secret-service errors -> keychain_set rejects (no provider key can be stored) and keychain_get rejects -> onboarding.refresh's catch sets seen:false -> the onboarding flow shows on every boot. A debug build on the same machine waits 140 s in keychain_migrate (a macOS SecurityAgent workaround) because every read errors",
+  "evidence": "src-tauri/Cargo.toml:35 (only the sync-secret-service backend on Linux), src-tauri/src/keychain.rs:62-89 (os_keychain, no fallback), src-tauri/src/keychain.rs:216-224,280-286 (140 s idle wait, not cfg-gated to macOS), src/store/onboarding.ts:38-54 (a non-secret onboarding flag stored in the secret store), src/lib/keychain.ts:46-54 (app-meta flags documented as non-secrets but kept in the keychain)",
+  "notes": "GNOME/KDE desktops normally provide the service, hence low. Two cheap parts: keep non-secret app-meta flags (onboarding, ToS timestamps) out of the OS secret store (the workspace blob or a data-dir file), and cfg-gate the 140 s wait to target_os = \"macos\". The larger decision is whether Linux gets an explicit 'secret store unavailable' error state in KeyEntryDialog rather than a raw invoke rejection.",
+  "source_file": "hygiene-cross-platform.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Linux has only the sync-secret-service keyring backend, and os_keychain passes every non-NoEntry error straight through. The onboarding flag is stored in the secret store and refresh() maps any rejection to seen:false, so with no Secret Service provider, onboarding (and BYOK key save) fails on every launch. The debug-build 140 s idle wait is not cfg-gated to macOS. It happens once, because migrate_at then sets migrated=true (keychain.rs:197), and it affects dev builds only."
+  }
+ },
+ {
+  "raw_id": "HYG-12",
+  "title": "On Windows the whole data dir, including regenerable SQLite caches, goes to Roaming AppData",
+  "severity": "low",
+  "area": "cross-platform",
+  "subsystem": "src-tauri/lib.rs data dir",
+  "repro": "Tauri app_data_dir resolves to %APPDATA%\\com.vysted.terminal (Roaming). The sidecar writes data_cache.db (+ -wal/-shm) and fundamentals_cache.db there (54 MB total on this Mac today). On domain-joined or roaming-profile Windows machines Roaming is synced at logon and logoff, and folder redirection can place it on a network share where SQLite WAL is unsafe",
+  "evidence": "src-tauri/src/lib.rs:116-134 (resolve_data_dir -> app.path().app_data_dir()), src-tauri/src/lib.rs:142-151, sidecar/config.py:544-549 (single data dir for everything); du of ~/Library/Application Support/com.vysted.terminal = 54M (data_cache.db, fundamentals_cache.db, searxng/, exports/)",
+  "notes": "This is a cheap decision now and a migration later. Fix shape: keep user state (portfolio, notes, workspaces, audit log) in app_data_dir and pass app_local_data_dir (%LOCALAPPDATA%) as a second --cache-dir for the regenerable caches. Same split on Linux (XDG data vs cache). No effect on macOS behaviour.",
+  "source_file": "hygiene-cross-platform.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "resolve_data_dir uses app.path().app_data_dir(), which on Windows is FOLDERID_RoamingAppData/com.vysted.terminal (dirs::data_dir -> known_folder_roaming_app_data). The sidecar puts everything, including data_cache.db and fundamentals_cache.db, under that single --data-dir, and there is no separate cache dir."
+  }
+ }
+]

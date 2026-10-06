@@ -1,0 +1,8 @@
+cycle 1 req-window cpu=1.04 s wall=19 s
+cycle 1 idle-gap cpu=.16 s over 41 s
+cycle 2 req-window cpu=.31 s wall=3 s
+cycle 2 idle-gap cpu=.19 s over 57 s
+cycle 3 req-window cpu=.29 s wall=4 s
+cycle 3 idle-gap cpu=.51 s over 56 s
+cycle 4 req-window cpu=.39 s wall=4 s
+cycle 4 idle-gap cpu=1.14 s over 56 s

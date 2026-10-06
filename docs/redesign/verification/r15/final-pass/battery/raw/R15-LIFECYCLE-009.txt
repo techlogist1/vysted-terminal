@@ -1,0 +1,11 @@
+# R15-LIFECYCLE-009 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:30+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+curl -s -m 30 -w ' [%{http_code}]' "$H/portfolio/positions" | head -c 300; echo; grep -n 'R15-LIFECYCLE-009\|v0.8.0' src/lib/workspace.test.ts | head -5
+--- output ---
+[] [200]
+1687:// ── one-time import of the pre-blob positions ledger (R15-LIFECYCLE-009) ───
+1689:describe("legacy positions import (R15-LIFECYCLE-009)", () => {
+1690:  /** v0.8.0 rows, as `GET /portfolio/positions` returns them. */
+
+EXIT=0 (0.0s)

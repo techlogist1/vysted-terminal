@@ -1,0 +1,20 @@
+CMD: grep thought_signature capture in gemini.py + LLMToolUseEvent fields
+86:                signature = (tc.get("provider_meta") or {}).get("thought_signature")
+88:                    part["thought_signature"] = base64.b64decode(signature)
+177:                            signature = getattr(part, "thought_signature", None)
+183:                                    {"thought_signature": base64.b64encode(signature).decode()}
+---LLMToolUseEvent---
+149:class LLMToolUseEvent(BaseModel):
+150-    """Provider invoked a tool; the host resolves the call."""
+151-
+152-    kind: Literal["tool_use"] = "tool_use"
+153-    tool_call_id: str
+154-    name: str
+155-    input: dict[str, Any] = Field(default_factory=dict)
+156-    #: Provider state the next round must echo back on this call (Gemini's
+157-    #: base64 ``thought_signature``). Runtime-internal: never on the SSE wire.
+158-    provider_meta: dict[str, Any] | None = Field(default=None, exclude=True)
+159-
+---function_call rebuild---
+79:                    "function_call": {
+173:                        fc = getattr(part, "function_call", None)

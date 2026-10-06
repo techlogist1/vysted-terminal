@@ -1,0 +1,19 @@
+snapshot_date 2026-09-24 count 503
+MMC absent
+FI absent
+ANSS absent
+CTLT absent
+DAY absent
+DFS absent
+HES absent
+HOLX absent
+IPG absent
+JNPR absent
+K absent
+MRO absent
+WBA absent
+CTRA absent
+WYNN present
+BXP present
+NVR present
+UDR present

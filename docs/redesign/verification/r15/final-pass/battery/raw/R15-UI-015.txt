@@ -1,0 +1,9 @@
+# R15-UI-015 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+echo "\$ GET /macro/DGS10?provider=fred (keyless)"; curl -s -m 60 -w ' [http %{http_code}]' "$H/macro/DGS10?provider=fred" | head -c 400; echo; cd "$C"; grep -n 'settles after one attempt when the engine answered' src/lib/use-sidecar-retry.test.ts
+--- output ---
+$ GET /macro/DGS10?provider=fred (keyless)
+{"detail":"FRED needs a free API key for macro data. Get one at fred.stlouisfed.org (API Keys), add it to Vysted as your FRED key, and reload — or switch the series provider to ECB, IMF, or World Bank, which need no key.","code":"provider_error","action":"Retry, or try again later."} [http 502]
+26:  it("settles after one attempt when the engine answered (a keyless 502)", async () => {
+
+EXIT=0 (0.0s)

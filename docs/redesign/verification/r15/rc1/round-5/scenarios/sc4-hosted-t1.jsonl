@@ -1,0 +1,72 @@
+{"kind": "tool_use", "tool_call_id": "call_641822bb28b44e5a981113140c23d76b", "name": "financial_statements", "input": {"symbol": "DAL", "statement": "income", "period": "annual"}}
+{"kind": "tool_use", "tool_call_id": "call_3bad03ddef8b4f5190af4e6b261bf821", "name": "fundamentals", "input": {"symbol": "DAL"}}
+{"kind": "tool_result", "tool_call_id": "call_641822bb28b44e5a981113140c23d76b", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_3bad03ddef8b4f5190af4e6b261bf821", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "delta", "text": "For"}
+{"kind": "delta", "text": " Delta"}
+{"kind": "delta", "text": " Air"}
+{"kind": "delta", "text": " Lines"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "DAL"}
+{"kind": "delta", "text": "):\n\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Most"}
+{"kind": "delta", "text": " Recent"}
+{"kind": "delta", "text": " Fiscal"}
+{"kind": "delta", "text": " Year"}
+{"kind": "delta", "text": " Revenue"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "FY"}
+{"kind": "delta", "text": " ending"}
+{"kind": "delta", "text": " March"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "31"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "07"}
+{"kind": "delta", "text": " crore"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Net"}
+{"kind": "delta", "text": " Income"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " same"}
+{"kind": "delta", "text": " fiscal"}
+{"kind": "delta", "text": " year"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "66"}
+{"kind": "delta", "text": " crore"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "a"}
+{"kind": "delta", "text": " loss"}
+{"kind": "delta", "text": ")\n\n"}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " details"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " other"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " metrics"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 16196, "output_tokens": 68, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.014987}

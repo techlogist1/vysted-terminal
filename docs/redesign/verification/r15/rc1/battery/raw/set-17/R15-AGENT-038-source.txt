@@ -1,0 +1,63 @@
+    def wall_seconds(self, _now: float | None = None) -> float:
+        """Elapsed wall-clock seconds since construction (monotonic)."""
+        now = _now if _now is not None else time.monotonic()
+        return max(now - self._start, 0.0)
+
+    def breach(self, _now: float | None = None) -> str | None:
+        """Return the FIRST breached ceiling's reason, or ``None`` if under.
+
+        Checked in a stable order (tokens → spend → wall-clock → steps) so the
+        reason is deterministic for a given accumulated state. A ``None`` ceiling
+        is never breached. ``max_steps=N`` breaches once N rounds are done: the
+        runtime then stops before dispatching round N's tools, so a run makes at
+        most N provider rounds, and a round N that answers still ends ``done``.
+        The returned string is the human-readable abort reason persisted as the
+        run's ``detail`` (SC-008 demands a STATED reason).
+        """
+        if self.max_tokens is not None and self._tokens >= self.max_tokens:
+            return f"token ceiling {self.max_tokens} reached ({self._tokens} used)"
+        if self.max_spend_usd is not None and self._spend_usd >= self.max_spend_usd:
+            return (
+                f"spend ceiling ${self.max_spend_usd:.4f} reached "
+                f"(${self._spend_usd:.4f} estimated)"
+            )
+        wall = self.wall_seconds(_now)
+        if self.max_wall_seconds is not None and wall >= self.max_wall_seconds:
+            return f"wall-clock ceiling {self.max_wall_seconds:g}s reached ({wall:.1f}s elapsed)"
+        if self.max_steps is not None and self._steps >= self.max_steps:
+            return f"step ceiling {self.max_steps} reached ({self._steps} taken)"
+        return None
+
+    def cost(self) -> dict[str, float | int]:
+                run_id,
+                status="paused",
+                detail="waiting for your answer",
+                question=question,
+                checkpoint=_checkpoint(),
+                output=_output(),
+            )
+            return
+
+        failure = breach_reason if halted else agent_error
+        if failure is not None:
+            # SC-008 — abort with the stated reason + a resumable checkpoint.
+            runs_store.update_run(
+                run_id,
+                status="error",
+                detail=failure,
+                checkpoint=_checkpoint(),
+                output=_output(),
+            )
+            return
+
+        # A turn that ended with its final answer is done, even when that last
+        # round touched a ceiling (R15-AGENT-038); the detail says so.
+        runs_store.update_run(
+            run_id,
+            status="done",
+            detail=f"completed ({breach_reason} on the final round)"
+            if breach_reason
+            else "completed",
+            checkpoint=_checkpoint(),
+            output=_output(),
+        )

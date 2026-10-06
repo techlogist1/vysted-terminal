@@ -1,0 +1,7 @@
+shared52152 IN {'symbol': 'PTC.NS', 'name': 'PTC India Limited', 'currency': 'INR'}
+shared52152 US {'symbol': 'PTC', 'name': 'PTC Inc.', 'currency': 'USD'}
+own52606 IN {'symbol': 'PTC.NS', 'name': 'PTC India Limited', 'currency': 'INR', 'market_cap': 45907931136.0, 'pe_ratio': 9.027357, 'provider': 'yfinance'}
+own52606 US {'symbol': 'PTC', 'name': 'PTC Inc.', 'currency': 'USD', 'market_cap': 14986885120.0, 'pe_ratio': 13.409708, 'provider': 'yfinance'}
+seed fundamentals_cache.db row (candidate-built keyless snapshot): PTC|PTC India Limited|INR|155.09|INR|yfinance|info 2026-09-26 16:02:03|v7 2026-09-26 16:02:03
+POST /screener/run {"universe":"sp500","criteria":[]} on :52606 (region IN): coverage "spans INR, USD"; row PTC name "PTC India Limited" currency INR price 155.09
+code: services/screener.py _enrich _one(): provider_registry.get_fundamentals(key) with no region -> _effective_region defers an ambiguous bare ticker to the session region (IN) -> PTC.NS; then fundamentals_store.upsert_info(key="PTC", ...) stores PTC India under the S&P 500 key.

@@ -1,0 +1,5 @@
+sidecar/routers/screener.py:177:    :func:`services.screener.default_universe_for_region`; the panel adopts
+sidecar/routers/screener.py:180:    return {"universe": screener.default_universe_for_region()}
+sidecar/services/screener.py:54:universe (:func:`default_universe_for_region`), and a later run from another
+sidecar/services/screener.py:1322:    _warm_universe = default_universe_for_region()
+sidecar/services/screener.py:1440:    "default_universe_for_region",

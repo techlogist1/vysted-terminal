@@ -1,0 +1,50 @@
+=== R15-UI-048: a fresh chart panel (no persisted view) opens on the SETTINGS chart default, not the hardcoded SPY/1d ===
+cmd: no live/in-process path (TS logic; vitest is the heavy lane's). grep for the settings slice + pinned test.
+91:  chartDefaults: ChartDefaults;
+118:  chartDefaults: {
+152:    chartDefaults: {
+153:      ...DEFAULT_SETTINGS.chartDefaults,
+154:      indicators: [...DEFAULT_SETTINGS.chartDefaults.indicators],
+174:/** Parse a persisted/imported `chartDefaults` field; anything malformed (an
+238:      chartDefaults: {
+288:    const chartDefaults =
+289:      "chartDefaults" in bundle
+290:        ? parseChartDefaults(bundle.chartDefaults, current.chartDefaults)
+
+  // instead of the hard-coded SPY/1d seed.
+  const [restored] = useState(() => useChartDrawingsStore.getState().views[panelId]);
+  const [chartDefaultsAtMount] = useState(() => useSettingsStore.getState().chartDefaults);
+  const [symbolInput, setSymbolInput] = useState(restored?.symbol ?? chartDefaultsAtMount.symbol);
+  const [symbol, setSymbol] = useState(restored?.symbol ?? chartDefaultsAtMount.symbol);
+  // The region of the listing a host command picked (R15-DATA-002) — a ticker
+  // shared across markets (AMAL: BSE/NASDAQ) fetches the picked company's data,
+  // not the session-default region's. Absent for a manually typed or
+  // sync-broadcast symbol, which carry no picked-listing context.
+  const [symbolRegion, setSymbolRegion] = useState<string | undefined>(undefined);
+  const [timeframe, setTimeframe] = useState<Timeframe>(() => {
+    if (restored && isTimeframe(restored.timeframe)) {
+      return restored.timeframe;
+    }
+    return isTimeframe(chartDefaultsAtMount.timeframe)
+      ? chartDefaultsAtMount.timeframe
+      : (DEFAULT_CHART_TIMEFRAME as Timeframe);
+  });
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(restored?.indicators ?? chartDefaultsAtMount.indicators),
+  );
+
+278:  it("a fresh panel (no persisted view) opens on the settings chart default (R15-UI-048)", async () => {
+279-    useSettingsStore
+280-      .getState()
+281-      .setChartDefaults({ symbol: "TCS.NS", timeframe: "1h", indicators: ["ema"] });
+282-    historyMock.mockResolvedValue(makeSeries("TCS.NS"));
+283-    render(<ChartPanel />);
+284-    await waitFor(() => {
+285-      expect(historyMock).toHaveBeenCalledWith("TCS.NS", "1h", undefined, "equity", undefined);
+286-    });
+287-  });
+288-
+289-  it("a persisted per-panel view still wins over the settings default (R15-UI-020)", async () => {
+290-    useSettingsStore
+
+VERDICT: ci_pinned. settings.ts carries a persisted chartDefaults slice (symbol/timeframe/indicators); ChartPanel.tsx:278-290 reads chartDefaultsAtMount for a fresh panel; certified only via ChartPanel.test.tsx "a fresh panel (no persisted view) opens on the settings chart default (R15-UI-048)" -- test present, mechanism unchanged, not re-run.

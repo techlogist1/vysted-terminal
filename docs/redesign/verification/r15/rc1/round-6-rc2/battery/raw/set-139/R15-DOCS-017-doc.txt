@@ -1,0 +1,29 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ sed -n 369,392p docs/CURRENT_STATE.md; grep -c . sidecar/services/screener_universes/sp500.json; python3 -c "import json;d=json.load(open('sidecar/services/screener_universes/sp500.json'));print(type(d).__name__, len(d.get('symbols',d)) if isinstance(d,dict) else len(d))"
+exit=0
+- **`screener.py` + `screener_universes/` + `screener_universe_india.py`** —
+  fan-out filter engine. Universes: `sp500` (full S&P 500 — 503 symbols, a
+  static snapshot dated 2026-09-24), `nifty50` (50), `crypto-top50` (50,
+  reseeded from the bundled snapshot on cache expiry — a live "refresh from
+  ccxt" worker still does **not exist**), `nse-all` (every NSE master row as
+  `SYMBOL.NS` — 3,506 symbols: EQ 2,584 + ETF 351 + SM 571, SM = NSE Emerge),
+  `bse-all` (BSE master rows with STATUS == "Active" as `SYMBOL.BO` — 5,042
+  symbols), `india-all` (the union of the two, NSE listing preferred when a
+  symbol is dual-listed — 5,891 symbols), `custom`. The three India
+  universes resolve from the same bundled resolver-master JSON the symbol
+  resolver reads (offline, deterministic). Criteria support **nested AND/OR**
+  via `CriterionGroup` (`models/screener.py`, `combinator: "and"|"or"`) — OR-
+  grouping is no longer reserved/unimplemented.
+- **`services/macro/`** — four in-process providers (FRED requires
+  `FRED_API_KEY`; ECB/IMF/world-bank keyless). Hand-curated `_FEATURED` catalogs;
+  full catalog browsing deferred. `fred-mcp-server` turned out to be Node.js →
+  pivoted to in-process `fredapi`.
+- **`services/quant/`** — in-process QuantLib (Tier-3: quality over bundle size).
+  Options (BS/binomial/MC; **MC Greeks not computed**), Greeks, bonds, yield
+  curve (synthetic `VYSTED-IBOR`, not SOFR/ESTR). `monte_carlo.py`
+  (Asian/barrier) is **not wired to any endpoint**.
+- **`indicators.py`** — pure pandas/numpy, **49 indicators + volume_profile**
+  (50). Frontend never computes an indicator; the sidecar does.
+- **`data_cache.py`** — generic SQLite TTL cache, **TTL-per-`get`**, stale rows
+512
+dict 503

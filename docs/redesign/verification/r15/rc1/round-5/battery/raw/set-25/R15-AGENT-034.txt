@@ -1,0 +1,15 @@
+CMD: POST /agents/copilot/runs {prompt:'test', budget:{}, options:{provider:'ollama', model:'llama3.1:8b'}}
+{"runId":"2d234d363506418ea1c7cd8b7d254e76","run_id":"2d234d363506418ea1c7cd8b7d254e76"}
+RID=
+--- GET /runs/ ---
+
+--- cancel it ---
+{"detail":"Not Found"}
+--- maxSteps:0 validation ---
+{"detail":[{"type":"greater_than","loc":["body","budget","maxSteps"],"msg":"Input should be greater than 0","input":0,"ctx":{"gt":0}}]}
+HTTP_STATUS=422
+(continuing R15-AGENT-034 probe — fixed run id parse)
+--- GET /runs/2d234d363506418ea1c7cd8b7d254e76 ---
+{"id":"2d234d363506418ea1c7cd8b7d254e76","agent_id":"copilot","agent_name":"Vysted Copilot","mode":"delegate","status":"running","cost":{"tokens":0,"spend_usd":0.0,"steps":0,"spendUsd":0.0},"budget":{"max_tokens":120000,"max_spend_usd":1.0,"max_wall_seconds":600.0,"max_steps":12,"maxTokens":120000,"maxSpendUsd":1.0,"maxWallSeconds":600.0,"maxSteps":12},"provider":"ollama","model":"llama3.1:8b","plan":null,"activity":[],"detail":null,"question":null,"created_at":1790497806,"updated_at":1790497806,"transcript":[],"checkpoint_messages":0,"answer":null,"brief":null,"host_actions":[],"agentId":"copilot","agentName":"Vysted Copilot","createdAt":1790497806,"updatedAt":1790497806,"checkpointMessages":0,"hostActions":[]}
+--- cancel it ---
+{"cancelled":true}

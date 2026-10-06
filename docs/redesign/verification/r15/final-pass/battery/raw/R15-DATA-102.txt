@@ -1,0 +1,36 @@
+# R15-DATA-102 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:25+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- test_filed_growth_states_mrq_yoy_and_never_overr sidecar/tests/test_b7_exchange_financials.py | head -3; test -f sidecar/tests/test_b7_exchange_financials.py || echo 'MISSING sidecar/tests/test_b7_exchange_financials.py'
+[exit 0] [0.00s]
+183:def test_filed_growth_states_mrq_yoy_and_never_overrides_an_annual_basis() -> None:
+
+
+$ grep -n -F -- test_served_growth_states_its_mrq_yoy_basis sidecar/tests/test_fundamentals.py | head -3; test -f sidecar/tests/test_fundamentals.py || echo 'MISSING sidecar/tests/test_fundamentals.py'
+[exit 0] [0.01s]
+49:    # test_served_growth_states_its_mrq_yoy_basis below.)
+57:def test_served_growth_states_its_mrq_yoy_basis(
+
+
+$ grep -n -F -- test_row_to_pair_growth_without_a_recorded_basis sidecar/tests/test_fundamentals_store.py | head -3; test -f sidecar/tests/test_fundamentals_store.py || echo 'MISSING sidecar/tests/test_fundamentals_store.py'
+[exit 0] [0.00s]
+516:def test_row_to_pair_growth_without_a_recorded_basis_states_none() -> None:
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-DATA-102\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+sidecar/tests/test_fundamentals_tool.py:184:    does (R15-DATA-102: the model no longer defaults it — this fixture used to
+Binary file sidecar/tests/__pycache__/test_fundamentals_store.cpython-313-pytest-9.0.3.pyc matches
+Binary file sidecar/tests/__pycache__/test_fundamentals_tool.cpython-313-pytest-9.0.3.pyc matches
+Binary file sidecar/tests/__pycache__/test_fundamentals.cpython-313-pytest-9.0.3.pyc matches
+sidecar/tests/test_growth_check.py:174:    # basis is no longer the D55 default (R15-DATA-102: the producer states it,
+sidecar/tests/test_b7_exchange_financials.py:180:# --- R15-DATA-102: the filed growth states its own basis -------------------------
+sidecar/tests/test_fundamentals_store.py:388:    """R15-DATA-102: a seed row whose growth is NULL states no growth basis
+sidecar/tests/test_fundamentals_store.py:517:    """R15-DATA-102: a row carrying growth but no recorded basis (an ``.info``
+sidecar/tests/test_fundamentals.py:46:    # R15-DATA-102: the fake serves no growth figure, so no growth basis is
+sidecar/tests/test_fundamentals.py:60:    """D55 / R15-DATA-102: when Yahoo serves its MRQ-YoY growth scalars, the
+

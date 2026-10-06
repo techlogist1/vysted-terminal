@@ -1,0 +1,21 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.1s] heartbeat: {"kind": "heartbeat"}
+[  40.1s] heartbeat: {"kind": "heartbeat"}
+[  50.1s] heartbeat: {"kind": "heartbeat"}
+[  60.1s] heartbeat: {"kind": "heartbeat"}
+[  70.1s] heartbeat: {"kind": "heartbeat"}
+[  80.1s] heartbeat: {"kind": "heartbeat"}
+[  90.1s] heartbeat: {"kind": "heartbeat"}
+[ 100.1s] heartbeat: {"kind": "heartbeat"}
+[ 110.1s] heartbeat: {"kind": "heartbeat"}
+[ 120.1s] heartbeat: {"kind": "heartbeat"}
+[ 130.1s] heartbeat: {"kind": "heartbeat"}
+[ 140.1s] heartbeat: {"kind": "heartbeat"}
+[ 150.1s] heartbeat: {"kind": "heartbeat"}
+[ 160.1s] heartbeat: {"kind": "heartbeat"}
+[ 170.1s] heartbeat: {"kind": "heartbeat"}
+[ 180.1s] error: {"kind": "error", "message": "Could not reach OpenAI \u2014 check your network.", "action": "Check your internet connection and try again.", "detail": "", "code": "network"}
+[ 180.1s] done: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+=== ASSISTANT TEXT ===
+

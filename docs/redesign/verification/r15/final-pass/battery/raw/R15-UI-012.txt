@@ -1,0 +1,18 @@
+# R15-UI-012 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+echo '$ POST /agents/nope/invoke'; curl -s -m 20 -w '\nHTTP %{http_code}\n' -X POST "$H/agents/nope/invoke" -H 'content-type: application/json' -d '{"prompt":"hi","provider":"ollama"}'
+echo '$ POST /agents/copilot/invoke {}'; curl -s -m 20 -w '\nHTTP %{http_code}\n' -X POST "$H/agents/copilot/invoke" -H 'content-type: application/json' -d '{}'
+cd "$C"; grep -n 'extractSidecarDetail' src/modules/chat/streaming.ts; grep -n "a non-2xx string detail reaches onError\|a 422 field-error array reaches onError" src/modules/chat/streaming.test.ts
+--- output ---
+$ POST /agents/nope/invoke
+{"detail":"unknown agent: 'nope'"}
+HTTP 404
+$ POST /agents/copilot/invoke {}
+{"detail":[{"type":"missing","loc":["body","prompt"],"msg":"Field required","input":{}}]}
+HTTP 422
+14:  extractSidecarDetail,
+333:      throw new SidecarError(response.status, extractSidecarDetail(parsed, fallback));
+484:  it("a non-2xx string detail reaches onError as the sentence, not the JSON body", async () => {
+492:  it("a 422 field-error array reaches onError as 'field: msg'", async () => {
+
+EXIT=0 (0.0s)

@@ -19,7 +19,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { usePanelContextBus } from "@/store/panel-context";
-import { DEFAULT_SYMBOLS, useSymbolsStore } from "@/store/symbols";
+import { defaultSymbolsForRegion, useSymbolsStore } from "@/store/symbols";
+
+// The fixtures below are written against the US watchlist; the app default is
+// IN (R15-UI-076), so seed the US list explicitly.
+const US_SYMBOLS = defaultSymbolsForRegion("US");
 
 // --- shared mocks ---------------------------------------------------------
 
@@ -38,7 +42,7 @@ vi.mock("@/lib/sidecar-client", async () => {
 vi.mock("@/modules/watchlist/api", () => ({
   WATCHLIST_CRYPTO_EXCHANGE: "binance",
   fetchWatchlistQuotes: vi.fn(async () =>
-    DEFAULT_SYMBOLS.map((entry) => ({
+    US_SYMBOLS.map((entry) => ({
       entry,
       quote: {
         symbol: entry.symbol,
@@ -57,9 +61,11 @@ vi.mock("@/modules/watchlist/api", () => ({
 
 vi.mock("@/modules/news/api", () => ({
   fetchNews: vi.fn(async () => []),
+  fetchNewsSourcesStatus: vi.fn(async () => ({ newsapi: "absent" })),
 }));
 
 vi.mock("@/modules/equity-overview/api", () => ({
+  autocompleteSymbols: vi.fn(async () => []),
   loadEquityOverview: vi.fn(async (symbol: string) => ({
     symbol,
     quote: {
@@ -106,7 +112,7 @@ beforeEach(() => {
   publishSpy = vi.fn(realPublish) as ReturnType<typeof vi.fn> & PublishFn;
   // Replace publish with a spy so we can count calls.
   usePanelContextBus.setState({ publish: publishSpy });
-  useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
+  useSymbolsStore.setState({ entries: [...US_SYMBOLS] });
 });
 
 afterEach(() => {
@@ -146,7 +152,7 @@ describe("WatchlistPanel publisher", () => {
     };
     expect(latest.source).toBe("watchlist");
     expect(latest.kind).toBe("selection");
-    expect(latest.payload.symbols).toEqual(DEFAULT_SYMBOLS.map((e) => e.symbol));
+    expect(latest.payload.symbols).toEqual(US_SYMBOLS.map((e) => e.symbol));
     expect(latest.payload.selectedSymbol).toBeNull();
   });
 
@@ -209,7 +215,7 @@ describe("EquityOverviewPanel publisher", () => {
     const { EquityOverviewPanel } = await import("@/modules/equity-overview/EquityOverviewPanel");
     render(<EquityOverviewPanel />);
     const calls = publishSpy.mock.calls.filter(
-      (c) => (c[0] as { source: string }).source === "equity",
+      (c) => (c[0] as { source: string }).source === "equity-overview",
     );
     expect(calls.length).toBeGreaterThan(0);
     const initial = calls[0]?.[0] as {
@@ -227,7 +233,7 @@ describe("EquityOverviewPanel publisher", () => {
       await Promise.resolve();
     });
     const after = publishSpy.mock.calls.filter(
-      (c) => (c[0] as { source: string }).source === "equity",
+      (c) => (c[0] as { source: string }).source === "equity-overview",
     );
     const latest = after[after.length - 1]?.[0] as {
       payload: { ticker: string | null; loadedSections: string[] };
@@ -236,13 +242,33 @@ describe("EquityOverviewPanel publisher", () => {
     expect(latest.payload.loadedSections).toContain("quote");
   });
 
+  it("is found under the dockview id PanelHost focuses (R15-AGENT-052)", async () => {
+    const { EquityOverviewPanel } = await import("@/modules/equity-overview/EquityOverviewPanel");
+    const { equityOverviewModule } = await import("@/modules/equity-overview");
+    const { captureTerminalState, focusedSymbolFromBus } =
+      await import("@/modules/chat/context-provider");
+    // The singleton panel id dockview opens (and PanelHost focuses).
+    const id = equityOverviewModule.panels[0]!.id;
+    render(<EquityOverviewPanel api={{ id }} />);
+    fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: "INFY" } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Load/i }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    usePanelContextBus.getState().setFocusedSource(id);
+    const bus = usePanelContextBus.getState();
+    expect(focusedSymbolFromBus(bus.lastEventBySource, bus.focusedSource)).toBe("INFY");
+    expect(captureTerminalState().focusedSymbol).toBe("INFY");
+  });
+
   it("does not trigger an infinite re-render loop", async () => {
     const { EquityOverviewPanel } = await import("@/modules/equity-overview/EquityOverviewPanel");
     render(<EquityOverviewPanel />);
     await act(async () => {
       await Promise.resolve();
     });
-    expectBoundedPublishCount("equity");
+    expectBoundedPublishCount("equity-overview");
   });
 });
 
@@ -309,9 +335,9 @@ describe("publisher cleanup", () => {
     await act(async () => {
       await Promise.resolve();
     });
-    expect(usePanelContextBus.getState().lastEventBySource.equity).toBeDefined();
+    expect(usePanelContextBus.getState().lastEventBySource["equity-overview"]).toBeDefined();
     unmount();
-    expect(usePanelContextBus.getState().lastEventBySource.equity).toBeUndefined();
+    expect(usePanelContextBus.getState().lastEventBySource["equity-overview"]).toBeUndefined();
   });
 
   it("portfolio unregisters its source on unmount", async () => {

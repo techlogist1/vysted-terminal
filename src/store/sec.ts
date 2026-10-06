@@ -49,14 +49,14 @@ interface SearchResponse {
 // Frozen empty references — stable identities for the selectors
 // ---------------------------------------------------------------------------
 
-const EMPTY_FILINGS: Readonly<FilingsListResponse> = Object.freeze({
+export const EMPTY_FILINGS: Readonly<FilingsListResponse> = Object.freeze({
   cik: "",
   company_name: "",
   symbol: null,
   filings: [],
 });
 
-const EMPTY_INSIDER: Readonly<InsiderTransactionsResponse> = Object.freeze({
+export const EMPTY_INSIDER: Readonly<InsiderTransactionsResponse> = Object.freeze({
   cik: "",
   issuer_name: "",
   transactions: [],
@@ -77,6 +77,8 @@ interface SecState {
   filingsByIdentifier: Record<string, FilingsListResponse>;
   filingsStatus: SecLoadStatus;
   filingsError: string | null;
+  /** The original filings failure (a `SidecarError` keeps its status). */
+  filingsCause: unknown;
 
   /** Map accession -> full filing detail. */
   filingDetailByAccession: Record<string, FilingDetail>;
@@ -93,6 +95,8 @@ interface SecState {
   /** Recent company-search results. */
   searchResults: ReadonlyArray<SearchResultRow>;
   searchStatus: SecLoadStatus;
+  /** The last search failure's reason (R15-UI-015) — `null` while idle/loading/ok. */
+  searchError: string | null;
 
   // Actions
   setActiveIdentifier: (identifier: string | null) => void;
@@ -110,11 +114,11 @@ interface SecState {
 // Cache key helpers
 // ---------------------------------------------------------------------------
 
-function filingsKey(identifier: string, formType: FilingFormType | undefined): string {
+export function filingsKey(identifier: string, formType: FilingFormType | undefined): string {
   return `${identifier.toUpperCase()}::${formType ?? "all"}`;
 }
 
-function insiderKey(identifier: string, form: "3" | "4" | "5" | undefined): string {
+export function insiderKey(identifier: string, form: "3" | "4" | "5" | undefined): string {
   return `${identifier.toUpperCase()}::${form ?? "all"}`;
 }
 
@@ -122,11 +126,23 @@ function insiderKey(identifier: string, form: "3" | "4" | "5" | undefined): stri
 // Store
 // ---------------------------------------------------------------------------
 
-export const useSecStore = create<SecState>((set) => ({
+/** Bumped per `loadFilings` call; a response commits only if still the newest. */
+let filingsGeneration = 0;
+/** Bumped per `loadFilingDetail` call (R15-CODE-FRONTEND-017/R15-UI-015): a
+ *  slower response for a filing the user has since navigated away from must
+ *  not reopen it or overwrite the current one's status/error. */
+let filingDetailGeneration = 0;
+/** Bumped per `loadInsider` call — same race class as `filingDetailGeneration`. */
+let insiderGeneration = 0;
+/** Bumped per `searchCompanies` call — same race class again. */
+let searchGeneration = 0;
+
+export const useSecStore = create<SecState>((set, get) => ({
   activeIdentifier: null,
   filingsByIdentifier: {},
   filingsStatus: "idle",
   filingsError: null,
+  filingsCause: null,
 
   filingDetailByAccession: {},
   filingDetailStatus: "idle",
@@ -139,6 +155,7 @@ export const useSecStore = create<SecState>((set) => ({
 
   searchResults: EMPTY_SEARCH,
   searchStatus: "idle",
+  searchError: null,
 
   setActiveIdentifier: (identifier) => {
     set({ activeIdentifier: identifier });
@@ -146,7 +163,11 @@ export const useSecStore = create<SecState>((set) => ({
 
   loadFilings: async (identifier, formType) => {
     if (!identifier) return;
-    set({ filingsStatus: "loading", filingsError: null });
+    // Only the newest request commits its status (R15-CODE-FRONTEND-017); the
+    // caller owns `activeIdentifier`, so a late response for the previous
+    // symbol can no longer revert the panel to it.
+    const generation = ++filingsGeneration;
+    set({ filingsStatus: "loading", filingsError: null, filingsCause: null });
     try {
       const params: Record<string, string | number | undefined> = {
         limit: 40,
@@ -161,37 +182,49 @@ export const useSecStore = create<SecState>((set) => ({
         params.form_type = formType;
       }
       const response = await sidecarGet<FilingsListResponse>("/sec/filings", params);
+      if (generation !== filingsGeneration) return;
       const key = filingsKey(identifier, formType);
       set((state) => ({
         filingsByIdentifier: { ...state.filingsByIdentifier, [key]: response },
         filingsStatus: "ready",
         filingsError: null,
-        activeIdentifier: identifier,
       }));
     } catch (err: unknown) {
+      if (generation !== filingsGeneration) return;
       const message = err instanceof Error ? err.message : "filings fetch failed";
-      set({ filingsStatus: "error", filingsError: message });
+      set({ filingsStatus: "error", filingsError: message, filingsCause: err });
     }
   },
 
   loadFilingDetail: async (accession, identifier) => {
     if (!accession) return;
+    // Only the newest request commits status/error (R15-CODE-FRONTEND-017 /
+    // R15-UI-015) — a slower response for a filing the user has since
+    // navigated away from must not reopen it or clobber the current one's
+    // status. The caller (`setActiveAccession`) owns `activeAccession`.
+    const generation = ++filingDetailGeneration;
     set({ filingDetailStatus: "loading", filingDetailError: null });
+    // R15-LEAD-010: the listed row's form type is the sidecar's lookup hint —
+    // a heavy Form 4 filer's 10-K sits far outside its unfiltered recent list.
+    const formType = Object.values(get().filingsByIdentifier)
+      .flatMap((list) => list.filings)
+      .find((filing) => filing.accession === accession)?.form_type;
     try {
       const detail = await sidecarGet<FilingDetail>(
         `/sec/filings/${encodeURIComponent(accession)}`,
-        { identifier },
+        { identifier, form_type: formType },
       );
       set((state) => ({
         filingDetailByAccession: {
           ...state.filingDetailByAccession,
           [accession]: detail,
         },
-        filingDetailStatus: "ready",
-        filingDetailError: null,
-        activeAccession: accession,
+        ...(generation === filingDetailGeneration
+          ? { filingDetailStatus: "ready" as const, filingDetailError: null }
+          : {}),
       }));
     } catch (err: unknown) {
+      if (generation !== filingDetailGeneration) return;
       const message = err instanceof Error ? err.message : "filing-detail fetch failed";
       set({ filingDetailStatus: "error", filingDetailError: message });
     }
@@ -203,6 +236,9 @@ export const useSecStore = create<SecState>((set) => ({
 
   loadInsider: async (identifier, form) => {
     if (!identifier) return;
+    // Same race class as `loadFilingDetail` (R15-CODE-FRONTEND-017): only the
+    // newest request commits status/error.
+    const generation = ++insiderGeneration;
     set({ insiderStatus: "loading", insiderError: null });
     try {
       const params: Record<string, string | number | undefined> = { limit: 50 };
@@ -216,10 +252,12 @@ export const useSecStore = create<SecState>((set) => ({
       const key = insiderKey(identifier, form);
       set((state) => ({
         insiderByIdentifier: { ...state.insiderByIdentifier, [key]: response },
-        insiderStatus: "ready",
-        insiderError: null,
+        ...(generation === insiderGeneration
+          ? { insiderStatus: "ready" as const, insiderError: null }
+          : {}),
       }));
     } catch (err: unknown) {
+      if (generation !== insiderGeneration) return;
       const message = err instanceof Error ? err.message : "insider fetch failed";
       set({ insiderStatus: "error", insiderError: message });
     }
@@ -227,24 +265,30 @@ export const useSecStore = create<SecState>((set) => ({
 
   searchCompanies: async (query) => {
     const trimmed = query.trim();
+    const generation = ++searchGeneration;
     if (!trimmed) {
-      set({ searchResults: EMPTY_SEARCH, searchStatus: "idle" });
+      set({ searchResults: EMPTY_SEARCH, searchStatus: "idle", searchError: null });
       return;
     }
-    set({ searchStatus: "loading" });
+    set({ searchStatus: "loading", searchError: null });
     try {
       const response = await sidecarGet<SearchResponse>("/sec/filings/search", {
         q: trimmed,
         limit: 10,
       });
-      set({ searchResults: response.results, searchStatus: "ready" });
-    } catch {
-      set({ searchResults: EMPTY_SEARCH, searchStatus: "error" });
+      if (generation !== searchGeneration) return;
+      set({ searchResults: response.results, searchStatus: "ready", searchError: null });
+    } catch (err: unknown) {
+      if (generation !== searchGeneration) return;
+      // R15-UI-015: keep the reason (was a bare `catch {}`) so the panel can
+      // say why the dropdown never opened, instead of showing nothing.
+      const message = err instanceof Error ? err.message : "company search failed";
+      set({ searchResults: EMPTY_SEARCH, searchStatus: "error", searchError: message });
     }
   },
 
   clearSearch: () => {
-    set({ searchResults: EMPTY_SEARCH, searchStatus: "idle" });
+    set({ searchResults: EMPTY_SEARCH, searchStatus: "idle", searchError: null });
   },
 
   __resetForTests: () => {
@@ -253,6 +297,7 @@ export const useSecStore = create<SecState>((set) => ({
       filingsByIdentifier: {},
       filingsStatus: "idle",
       filingsError: null,
+      filingsCause: null,
       filingDetailByAccession: {},
       filingDetailStatus: "idle",
       filingDetailError: null,
@@ -262,12 +307,18 @@ export const useSecStore = create<SecState>((set) => ({
       insiderError: null,
       searchResults: EMPTY_SEARCH,
       searchStatus: "idle",
+      searchError: null,
     });
   },
 }));
 
 // ---------------------------------------------------------------------------
 // Stable-identity selectors
+//
+// These read via getState() and do NOT subscribe — call sites must not use
+// them inside a component render (R15-CODE-DATA-014). Prefer
+// `useSecStore((s) => s.filingsByIdentifier[filingsKey(...)] ?? EMPTY_FILINGS)`
+// directly, as SecFilingsPanel/InsiderTradingTable now do.
 // ---------------------------------------------------------------------------
 
 /** Select the filings response for an identifier+form, or the frozen empty. */

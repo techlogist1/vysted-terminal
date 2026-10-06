@@ -1,0 +1,120 @@
+[
+ {
+  "id": "safety-disclaimer-flow",
+  "area": "onboarding",
+  "surface": "First-launch ToS / disclaimer flow",
+  "entry": "src/modules/safety/DisclaimerFlow.tsx:47 (FirstLaunchTosDialog), :132 (BrokerFirstConnectDialog), :228 (DisclaimerFlow)",
+  "states": [
+   "first-launch-unacked",
+   "acked",
+   "broker-first-connect-warning"
+  ],
+  "drive": "browser",
+  "notes": "GET /safety/disclaimer-status, POST /safety/disclaimer-ack. DisclaimerFlow.test.tsx exists. Gate: FIRST_LAUNCH_TOS_ACCOUNT keychain namespace (store/safety.ts:56).",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/20-onboarding-replay.json (T1_before_ack, T1_after_ack, T4.relaunch, T5); EVIDENCE.md §2",
+  "state_scores": {
+   "first-launch-unacked": "ok (renders first, blocks onboarding; banner shows above it)",
+   "acked": "ok (keychain_set broker:_meta:first-launch-tos; relaunch shows nothing)",
+   "keychain-denied (extra state)": "broken - no TOS, no onboarding, unhandled rejection (live repro of COD-safety-audit-12)",
+   "broker-first-connect-warning": "removed_with_feature (trading out 23 Sep) - not driven",
+   "content": "broken - body describes the removed trading product (SURF-ONBOARDING-STRANGER-4)"
+  }
+ },
+ {
+  "id": "onboarding-flow",
+  "area": "onboarding",
+  "surface": "First-run onboarding wizard",
+  "entry": "src/components/OnboardingFlow.tsx:103",
+  "states": [
+   "welcome(:182)",
+   "cloud(:195, CloudStep :338)",
+   "local(:198, LocalStep :439)",
+   "done(:208, DoneStep :648)"
+  ],
+  "drive": "browser",
+  "notes": "LocalStep surfaces hardware-fit + Ollama recommendation (lib/hardware-fit.ts, GET /system/hardware,/local-model-recommendation,/ollama/status, POST /ollama/pull) — a real model pull is long-running/state-changing, do not trigger it against the live sidecar.",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/20-onboarding-replay.json (T1_after_ack, T2, T2_after_close, T3, T4); http-log.jsonl K01-K09; EVIDENCE.md §2-3",
+  "state_scores": {
+   "welcome(:182)": "ok render; copy claims web research keyless + 'nothing leaves this computer' (SURF-ONBOARDING-STRANGER-2, -3)",
+   "cloud(:195)": "broken - a fake key validates ok:true and reaches DoneStep 'OpenRouter is connected' (SURF-ONBOARDING-STRANGER-1); empty/whitespace key correctly disabled",
+   "local(:198)": "ok for daemon-running + model-installed (real M1 Pro, 'Use qwen3:8b'); daemon-down and download/pull states NOT TESTED (shared Ollama never stopped; a real pull is state-changing)",
+   "done(:208)": "ok (marks app-meta:onboarding-complete; copy per path)",
+   "skip": "ok (marker 'skip', no re-show on relaunch)",
+   "escape/outside-click": "ok (prevented)"
+  }
+ },
+ {
+  "id": "onboarding-banner",
+  "area": "onboarding",
+  "surface": "First-run 'add your AI key' banner",
+  "entry": "src/components/OnboardingBanner.tsx:21",
+  "states": [
+   "hidden(probed=false OR hasAnyKey OR dismissed)",
+   "shown(no key in keychain)"
+  ],
+  "drive": "browser",
+  "notes": "Driven by real keychain probe (store/provider-keys.ts), not a one-shot flag — disappears the moment any key is saved.",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/20-onboarding-replay.json (T1_before_ack, T2_after_close, T3_banner_after_local_setup, T5)",
+  "state_scores": {
+   "shown(no key in keychain)": "ok",
+   "hidden(hasAnyKey)": "ok after a cloud key is saved (even a fake one)",
+   "after local-model setup": "wrong - still shown (live repro of COD-frontend-panels-agent-shell-11)",
+   "keychain denied": "shown alone, with TOS+onboarding silently absent",
+   "copy": "'nothing leaves this machine' (SURF-ONBOARDING-STRANGER-3)"
+  }
+ },
+ {
+  "id": "hardware-fit-check",
+  "area": "onboarding",
+  "surface": "Local-model hardware-fit scoring (onboarding LocalStep + Settings FitRow)",
+  "entry": "src/lib/hardware-fit.ts; src/components/SettingsPanel.tsx:680 (FitRow)",
+  "states": [
+   "fits",
+   "marginal",
+   "does-not-fit"
+  ],
+  "drive": "api",
+  "notes": "GET /system/hardware,/system/local-model-recommendation. FitRow is a pure presentational row over a ScoredModel — headless-testable given a fixed ScoredModel fixture.",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/http-log.jsonl B02,B03; 20-onboarding-replay.json T3.localText; src/lib/hardware-fit.ts:169-178",
+  "state_scores": {
+   "fits": "ok (3 installed models green; recommendation qwen3:8b rendered in LocalStep)",
+   "does-not-fit": "ok via /system/hardware referenceCandidates (red, 'can't hold a usable context')",
+   "marginal": "NOT TESTED - unreachable on this 16 GB M1 Pro without a fixture device"
+  }
+ },
+ {
+  "id": "x-keyless-first-message",
+  "area": "onboarding",
+  "surface": "(extra, not in skeleton) the stranger's first composer turn on the keyless default lane",
+  "entry": "src/modules/chat/ChatSidebar.tsx:782-806 (provider gate), store/llm-providers.ts:135 (default ollama), store/model-selection.ts:31 (qwen2.5:7b)",
+  "drive": "api",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/A1-keyless-default-qwen25.*, A2-ollama-model-not-pulled.*, A3-fake-openrouter-key-first-message.*, A4-donestep-research-nvda-qwen3.*",
+  "state_scores": {
+   "ollama up, default model present": "partial - answers after 182 s but mis-states Zomato as uncovered (SURF-ONBOARDING-STRANGER-5)",
+   "ollama up, model absent": "ok-ish frame, no pull hint (COD-error-layer-2-2)",
+   "ollama down": "code-read only (validateProvider false -> onboarding re-opens)",
+   "cloud key missing": "code-read only (status line)",
+   "cloud key fake (after onboarding)": "auth 401 frame, honest",
+   "DoneStep 'research NVDA' on qwen3:8b": "ok - brief auto-published, 463 s"
+  }
+ },
+ {
+  "id": "x-first-cockpit-data",
+  "area": "onboarding",
+  "surface": "(extra) first-launch cockpit data, keyless, clean profile",
+  "entry": "src/config/default-layout.ts; src/store/symbols.ts:21-27; src/modules/chart/ChartPanel.tsx:80",
+  "drive": "api",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/http-log.jsonl C01-C10, S01-S03, R01-R05",
+  "state_scores": {
+   "quotes/history/crypto/news/screener keyless": "ok",
+   "default symbols vs IN region": "wrong (SURF-ONBOARDING-STRANGER-6)",
+   "renamed stock by old name": "broken (SURF-ONBOARDING-STRANGER-5)"
+  }
+ }
+]

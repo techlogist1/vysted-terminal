@@ -1,0 +1,552 @@
+data: {"kind": "thinking", "text": "The"}
+
+data: {"kind": "thinking", "text": " user"}
+
+data: {"kind": "thinking", "text": " wants a"}
+
+data: {"kind": "thinking", "text": " custom backtest"}
+
+data: {"kind": "thinking", "text": " on CI"}
+
+data: {"kind": "thinking", "text": "PL"}
+
+data: {"kind": "thinking", "text": "A with"}
+
+data: {"kind": "thinking", "text": " specific parameters. Let"}
+
+data: {"kind": "thinking", "text": " me run"}
+
+data: {"kind": "thinking", "text": " it."}
+
+data: {"kind": "tool_use", "tool_call_id": "call_24f522f108ed4a8b916ac628", "name": "run_custom_backtest", "input": {"entry": "sma(20) > sma(50)", "exit": "rsi(14) > 70", "symbols": ["CIPLA"], "start_date": "2025-01-02", "end_date": "2026-06-30", "initial_capital": 100000, "position_size": 10, "walk_forward_slices": 1}}
+
+data: {"kind": "thinking", "text": "Let"}
+
+data: {"kind": "thinking", "text": " me"}
+
+data: {"kind": "thinking", "text": " syn"}
+
+data: {"kind": "thinking", "text": "thesize the results"}
+
+data: {"kind": "thinking", "text": "."}
+
+data: {"kind": "delta", "text": "Back"}
+
+data: {"kind": "delta", "text": "test run"}
+
+data: {"kind": "delta", "text": " dispatched"}
+
+data: {"kind": "delta", "text": " on"}
+
+data: {"kind": "delta", "text": " CI"}
+
+data: {"kind": "delta", "text": "PL"}
+
+data: {"kind": "delta", "text": "A. Here"}
+
+data: {"kind": "delta", "text": " are"}
+
+data: {"kind": "delta", "text": " the metrics"}
+
+data: {"kind": "delta", "text": ":\n\n##"}
+
+data: {"kind": "delta", "text": " CI"}
+
+data: {"kind": "delta", "text": "PLA Custom"}
+
+data: {"kind": "delta", "text": " Backtest \u2014"}
+
+data: {"kind": "delta", "text": " SMA"}
+
+data: {"kind": "delta", "text": "("}
+
+data: {"kind": "delta", "text": "20)\u2192"}
+
+data: {"kind": "delta", "text": "SMA"}
+
+data: {"kind": "delta", "text": "(50"}
+
+data: {"kind": "delta", "text": ") golden"}
+
+data: {"kind": "delta", "text": " cross in,"}
+
+data: {"kind": "delta", "text": " RSI"}
+
+data: {"kind": "delta", "text": "(14)>"}
+
+data: {"kind": "delta", "text": "70 out"}
+
+data: {"kind": "delta", "text": "\n\n**"}
+
+data: {"kind": "delta", "text": "Setup"}
+
+data: {"kind": "delta", "text": ":**"}
+
+data: {"kind": "delta", "text": " 2025"}
+
+data: {"kind": "delta", "text": "-01"}
+
+data: {"kind": "delta", "text": "-02"}
+
+data: {"kind": "delta", "text": " \u2192 202"}
+
+data: {"kind": "delta", "text": "6-06"}
+
+data: {"kind": "delta", "text": "-30"}
+
+data: {"kind": "delta", "text": " \u00b7 10"}
+
+data: {"kind": "delta", "text": " shares/tr"}
+
+data: {"kind": "delta", "text": "ade \u00b7 \u20b9"}
+
+data: {"kind": "delta", "text": "1,"}
+
+data: {"kind": "delta", "text": "00,000"}
+
+data: {"kind": "delta", "text": " capital"}
+
+data: {"kind": "delta", "text": " \u00b7 1 slice"}
+
+data: {"kind": "delta", "text": "\n\n###"}
+
+data: {"kind": "delta", "text": " Performance"}
+
+data: {"kind": "delta", "text": " Summary"}
+
+data: {"kind": "delta", "text": "\n|"}
+
+data: {"kind": "delta", "text": " Metric | Value"}
+
+data: {"kind": "delta", "text": " |\n|---|"}
+
+data: {"kind": "delta", "text": "---|\n|"}
+
+data: {"kind": "delta", "text": " Total Return"}
+
+data: {"kind": "delta", "text": " | +"}
+
+data: {"kind": "delta", "text": "1.23"}
+
+data: {"kind": "delta", "text": "% |\n| Annual"}
+
+data: {"kind": "delta", "text": "ized"}
+
+data: {"kind": "delta", "text": " Return | +"}
+
+data: {"kind": "delta", "text": "0.88"}
+
+data: {"kind": "delta", "text": "% |\n|"}
+
+data: {"kind": "delta", "text": " Sharpe Ratio"}
+
+data: {"kind": "delta", "text": " | "}
+
+data: {"kind": "delta", "text": "0.31"}
+
+data: {"kind": "delta", "text": " |\n| Sort"}
+
+data: {"kind": "delta", "text": "ino Ratio"}
+
+data: {"kind": "delta", "text": " | 0."}
+
+data: {"kind": "delta", "text": "43 |\n"}
+
+data: {"kind": "delta", "text": "| Cal"}
+
+data: {"kind": "delta", "text": "mar Ratio"}
+
+data: {"kind": "delta", "text": " | 0."}
+
+data: {"kind": "delta", "text": "23 |\n"}
+
+data: {"kind": "delta", "text": "| Max"}
+
+data: {"kind": "delta", "text": " Drawdown | \u2212"}
+
+data: {"kind": "delta", "text": "3.82"}
+
+data: {"kind": "delta", "text": "% |\n| Win"}
+
+data: {"kind": "delta", "text": " Rate | "}
+
+data: {"kind": "delta", "text": "75% ("}
+
+data: {"kind": "delta", "text": "3 of 4"}
+
+data: {"kind": "delta", "text": " closed"}
+
+data: {"kind": "delta", "text": ") |\n"}
+
+data: {"kind": "delta", "text": "| Trade"}
+
+data: {"kind": "delta", "text": " Count | 4"}
+
+data: {"kind": "delta", "text": " ("}
+
+data: {"kind": "delta", "text": "1"}
+
+data: {"kind": "delta", "text": " still"}
+
+data: {"kind": "delta", "text": " open) |\n"}
+
+data: {"kind": "delta", "text": "| Best"}
+
+data: {"kind": "delta", "text": " Trade | +"}
+
+data: {"kind": "delta", "text": "\u20b91,"}
+
+data: {"kind": "delta", "text": "290.58"}
+
+data: {"kind": "delta", "text": " |\n| Worst"}
+
+data: {"kind": "delta", "text": " Trade | \u2212"}
+
+data: {"kind": "delta", "text": "\u20b92"}
+
+data: {"kind": "delta", "text": ",06"}
+
+data: {"kind": "delta", "text": "6.32"}
+
+data: {"kind": "delta", "text": " |\n\n###"}
+
+data: {"kind": "delta", "text": " Trade Ledger"}
+
+data: {"kind": "delta", "text": "\n|"}
+
+data: {"kind": "delta", "text": " # | Entry"}
+
+data: {"kind": "delta", "text": " | Exit"}
+
+data: {"kind": "delta", "text": " | Entry"}
+
+data: {"kind": "delta", "text": " \u20b9"}
+
+data: {"kind": "delta", "text": " | Exit"}
+
+data: {"kind": "delta", "text": " \u20b9 | P"}
+
+data: {"kind": "delta", "text": "&L |"}
+
+data: {"kind": "delta", "text": " Reason"}
+
+data: {"kind": "delta", "text": " |\n|---"}
+
+data: {"kind": "delta", "text": "|---|---"}
+
+data: {"kind": "delta", "text": "|---|---"}
+
+data: {"kind": "delta", "text": "|---|---"}
+
+data: {"kind": "delta", "text": "|\n| 1"}
+
+data: {"kind": "delta", "text": " | "}
+
+data: {"kind": "delta", "text": "2025"}
+
+data: {"kind": "delta", "text": "-03"}
+
+data: {"kind": "delta", "text": "-13"}
+
+data: {"kind": "delta", "text": " | 2025"}
+
+data: {"kind": "delta", "text": "-07-28"}
+
+data: {"kind": "delta", "text": " | 146"}
+
+data: {"kind": "delta", "text": "3.36"}
+
+data: {"kind": "delta", "text": " | 157"}
+
+data: {"kind": "delta", "text": "0.43"}
+
+data: {"kind": "delta", "text": " | +"}
+
+data: {"kind": "delta", "text": "1"}
+
+data: {"kind": "delta", "text": ",0"}
+
+data: {"kind": "delta", "text": "70.66"}
+
+data: {"kind": "delta", "text": " | R"}
+
+data: {"kind": "delta", "text": "SI >"}
+
+data: {"kind": "delta", "text": " 70 |\n"}
+
+data: {"kind": "delta", "text": "| "}
+
+data: {"kind": "delta", "text": "2 | 202"}
+
+data: {"kind": "delta", "text": "5-07-"}
+
+data: {"kind": "delta", "text": "29 | 202"}
+
+data: {"kind": "delta", "text": "5-10-"}
+
+data: {"kind": "delta", "text": "20 | 157"}
+
+data: {"kind": "delta", "text": "5.57"}
+
+data: {"kind": "delta", "text": " | 163"}
+
+data: {"kind": "delta", "text": "7.46"}
+
+data: {"kind": "delta", "text": " | +"}
+
+data: {"kind": "delta", "text": "618.87"}
+
+data: {"kind": "delta", "text": " | R"}
+
+data: {"kind": "delta", "text": "SI > 70"}
+
+data: {"kind": "delta", "text": " |\n| "}
+
+data: {"kind": "delta", "text": "3 | "}
+
+data: {"kind": "delta", "text": "2025-10"}
+
+data: {"kind": "delta", "text": "-28"}
+
+data: {"kind": "delta", "text": " | 2026"}
+
+data: {"kind": "delta", "text": "-05"}
+
+data: {"kind": "delta", "text": "-06"}
+
+data: {"kind": "delta", "text": " | 156"}
+
+data: {"kind": "delta", "text": "9.67"}
+
+data: {"kind": "delta", "text": " | 136"}
+
+data: {"kind": "delta", "text": "3.04"}
+
+data: {"kind": "delta", "text": " | \u2212"}
+
+data: {"kind": "delta", "text": "2,066"}
+
+data: {"kind": "delta", "text": ".32 |"}
+
+data: {"kind": "delta", "text": " RSI > "}
+
+data: {"kind": "delta", "text": "70 |\n| "}
+
+data: {"kind": "delta", "text": "4 | 202"}
+
+data: {"kind": "delta", "text": "6-05-"}
+
+data: {"kind": "delta", "text": "11 | 202"}
+
+data: {"kind": "delta", "text": "6-05-"}
+
+data: {"kind": "delta", "text": "14 | 130"}
+
+data: {"kind": "delta", "text": "6.20"}
+
+data: {"kind": "delta", "text": " | 143"}
+
+data: {"kind": "delta", "text": "5.26"}
+
+data: {"kind": "delta", "text": " | +"}
+
+data: {"kind": "delta", "text": "1,290"}
+
+data: {"kind": "delta", "text": ".58"}
+
+data: {"kind": "delta", "text": " | R"}
+
+data: {"kind": "delta", "text": "SI > 70"}
+
+data: {"kind": "delta", "text": " |\n| "}
+
+data: {"kind": "delta", "text": "5 | 202"}
+
+data: {"kind": "delta", "text": "6-05-"}
+
+data: {"kind": "delta", "text": "15 | **"}
+
+data: {"kind": "delta", "text": "open"}
+
+data: {"kind": "delta", "text": "** |"}
+
+data: {"kind": "delta", "text": " 1433"}
+
+data: {"kind": "delta", "text": ".53"}
+
+data: {"kind": "delta", "text": " | \u2014"}
+
+data: {"kind": "delta", "text": " | \u2014 | \u2014"}
+
+data: {"kind": "delta", "text": " |\n\n###"}
+
+data: {"kind": "delta", "text": " Read"}
+
+data: {"kind": "delta", "text": "-through"}
+
+data: {"kind": "delta", "text": "\nMod"}
+
+data: {"kind": "delta", "text": "est positive"}
+
+data: {"kind": "delta", "text": " return but"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " strategy"}
+
+data: {"kind": "delta", "text": " under"}
+
+data: {"kind": "delta", "text": "performs"}
+
+data: {"kind": "delta", "text": " a simple buy"}
+
+data: {"kind": "delta", "text": "-and-h"}
+
+data: {"kind": "delta", "text": "old benchmark"}
+
+data: {"kind": "delta", "text": " over"}
+
+data: {"kind": "delta", "text": " this"}
+
+data: {"kind": "delta", "text": " window \u2014 the"}
+
+data: {"kind": "delta", "text": " position"}
+
+data: {"kind": "delta", "text": " sizing"}
+
+data: {"kind": "delta", "text": " is tiny"}
+
+data: {"kind": "delta", "text": " (10 shares "}
+
+data: {"kind": "delta", "text": "\u2248 \u20b9"}
+
+data: {"kind": "delta", "text": "1.4"}
+
+data: {"kind": "delta", "text": "k not"}
+
+data: {"kind": "delta", "text": "ional against"}
+
+data: {"kind": "delta", "text": " \u20b9"}
+
+data: {"kind": "delta", "text": "1L"}
+
+data: {"kind": "delta", "text": " capital"}
+
+data: {"kind": "delta", "text": "), so"}
+
+data: {"kind": "delta", "text": " returns"}
+
+data: {"kind": "delta", "text": " are capital"}
+
+data: {"kind": "delta", "text": "-eff"}
+
+data: {"kind": "delta", "text": "iciency-th"}
+
+data: {"kind": "delta", "text": "rott"}
+
+data: {"kind": "delta", "text": "led."}
+
+data: {"kind": "delta", "text": " The single"}
+
+data: {"kind": "delta", "text": " big loser"}
+
+data: {"kind": "delta", "text": " (trade"}
+
+data: {"kind": "delta", "text": " 3) nearly"}
+
+data: {"kind": "delta", "text": " wiped"}
+
+data: {"kind": "delta", "text": " out the three"}
+
+data: {"kind": "delta", "text": " winners; the"}
+
+data: {"kind": "delta", "text": " RSI>"}
+
+data: {"kind": "delta", "text": "70 exit"}
+
+data: {"kind": "delta", "text": " let"}
+
+data: {"kind": "delta", "text": " that"}
+
+data: {"kind": "delta", "text": " one run"}
+
+data: {"kind": "delta", "text": " down"}
+
+data: {"kind": "delta", "text": " quite"}
+
+data: {"kind": "delta", "text": " a bit"}
+
+data: {"kind": "delta", "text": " before triggering"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " suggesting"}
+
+data: {"kind": "delta", "text": " the exit"}
+
+data: {"kind": "delta", "text": " rule"}
+
+data: {"kind": "delta", "text": " is a profit"}
+
+data: {"kind": "delta", "text": "-taking trigger"}
+
+data: {"kind": "delta", "text": ", not a"}
+
+data: {"kind": "delta", "text": " draw"}
+
+data: {"kind": "delta", "text": "down guard"}
+
+data: {"kind": "delta", "text": ". The"}
+
+data: {"kind": "delta", "text": " current"}
+
+data: {"kind": "delta", "text": " open"}
+
+data: {"kind": "delta", "text": " position is"}
+
+data: {"kind": "delta", "text": " the "}
+
+data: {"kind": "delta", "text": "5th trade"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " entered"}
+
+data: {"kind": "delta", "text": " mid"}
+
+data: {"kind": "delta", "text": "-May at"}
+
+data: {"kind": "delta", "text": " ~"}
+
+data: {"kind": "delta", "text": "143"}
+
+data: {"kind": "delta", "text": "3.\n\n"}
+
+data: {"kind": "delta", "text": "Want"}
+
+data: {"kind": "delta", "text": " me to widen"}
+
+data: {"kind": "delta", "text": " the position"}
+
+data: {"kind": "delta", "text": " size,"}
+
+data: {"kind": "delta", "text": " add a"}
+
+data: {"kind": "delta", "text": " stop-loss to"}
+
+data: {"kind": "delta", "text": " the exit rule"}
+
+data: {"kind": "delta", "text": ", or compare"}
+
+data: {"kind": "delta", "text": " against"}
+
+data: {"kind": "delta", "text": " buy"}
+
+data: {"kind": "delta", "text": "-and-hold CI"}
+
+data: {"kind": "delta", "text": "PLA over"}
+
+data: {"kind": "delta", "text": " the same window?"}
+
+data: {"kind": "done", "usage": {"input_tokens": 10810, "output_tokens": 624, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop"}
+

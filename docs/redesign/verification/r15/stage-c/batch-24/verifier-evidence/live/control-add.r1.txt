@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  40.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_cd76e73f99484019a6e27f0010436a24", "name": "portfolio_add_position", "input": {"purchased_at": "", "quantity": 10, "symbol": "TCS", "asset_class": "equity", "cost_basis": 3200, "note": ""}}
+[  40.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_cd76e73f99484019a6e27f0010436a24", "name": "portfolio_add_position", "ok": true, "error": null}
+[  43.4s] research_step: {"kind": "research_step", "tool_call_id": "call_cd76e73f99484019a6e27f0010436a24", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position TCS. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  43.4s] done: {"kind": "done", "usage": {"input_tokens": 2943, "output_tokens": 36, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I proposed adding 10 shares of TCS at ₹3,200 to your portfolio for review. Please accept this change in the proposal bar if you're okay with it.
+
+=== ok · 43.4s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 36, 'research_step': 1, 'done': 1} · usage in=2943 out=36 · est $0.00000 · llama3.1:8b

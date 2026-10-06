@@ -1,0 +1,15 @@
+# R15-DATA-103 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:07+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+from services.fundamentals_store import row_to_pair
+base={'symbol':'CCC.NS','quote_price':100.0,'quote_change':None,'quote_change_percent':None}
+for lab,row in (('no currency col',dict(base)),('row currency=INR',dict(base,currency='INR'))):
+    try:
+        f,q=row_to_pair(row); print(lab+':',{'change':getattr(q,'change',None),'change_percent':getattr(q,'change_percent',None),'currency':getattr(q,'currency',None)} if q else ('quote None',))
+    except Exception as e: print(lab,'ERR',type(e).__name__,e)
+PY
+--- output ---
+no currency col: {'change': None, 'change_percent': None, 'currency': 'USD'}
+row currency=INR: {'change': None, 'change_percent': None, 'currency': 'INR'}
+
+EXIT=0 (0.2s)

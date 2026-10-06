@@ -1,0 +1,50 @@
+ src/modules/portfolio/PortfolioPanel.tsx | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+diff --git a/src/modules/portfolio/PortfolioPanel.tsx b/src/modules/portfolio/PortfolioPanel.tsx
+index 2571aa8d..2729cbba 100644
+--- a/src/modules/portfolio/PortfolioPanel.tsx
++++ b/src/modules/portfolio/PortfolioPanel.tsx
+@@ -189,6 +189,9 @@ export function PortfolioPanel() {
+   // designed for). `quotesNonce` lets the banner's Retry re-run the fetch.
+   const [quotesError, setQuotesError] = useState(false);
+   const [quotesNonce, setQuotesNonce] = useState(0);
++  // Guards the interval tick below against piling a new fan-out on top of one
++  // still in flight (mirrors WatchlistPanel's inFlightRef, WatchlistPanel.tsx:182-251).
++  const quoteFetchInFlightRef = useRef(false);
+   // R15-UI-009: the CSV export now writes a real file via the Rust
+   // atomic-write path — surface the saved path (or a write failure) since
+   // there is no browser download UI to confirm it landed.
+@@ -223,6 +226,7 @@ export function PortfolioPanel() {
+   const quotesKey = holdings.map((h) => `${h.symbol}:${h.assetClass}`).join(",");
+   useEffect(() => {
+     let cancelled = false;
++    quoteFetchInFlightRef.current = true;
+     // fetchPositionQuotes([]) resolves to an empty map, so an emptied portfolio
+     // clears its quotes via the async path — no synchronous setState in-effect.
+     void fetchPositionQuotes(holdings.map((h) => ({ symbol: h.symbol, assetClass: h.assetClass })))
+@@ -240,6 +244,11 @@ export function PortfolioPanel() {
+         if (!cancelled) {
+           setQuotesError(true);
+         }
++      })
++      .finally(() => {
++        if (!cancelled) {
++          quoteFetchInFlightRef.current = false;
++        }
+       });
+     return () => {
+       cancelled = true;
+@@ -254,7 +263,12 @@ export function PortfolioPanel() {
+     if (!hasHoldings) {
+       return;
+     }
+-    const timer = setInterval(() => setQuotesNonce((n) => n + 1), QUOTE_REFRESH_MS);
++    const timer = setInterval(() => {
++      // Skip this tick while the previous fan-out hasn't settled, so a slow
++      // symbol can't pile up overlapping full-portfolio fetches.
++      if (quoteFetchInFlightRef.current) return;
++      setQuotesNonce((n) => n + 1);
++    }, QUOTE_REFRESH_MS);
+     return () => clearInterval(timer);
+   }, [hasHoldings]);
+ 

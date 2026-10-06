@@ -1,0 +1,10 @@
+$ POST /quant/yield-curve dup 10Y swap
+HTTP/1.1 400 Bad Request
+date: Sat, 03 Oct 2026 01:12:06 GMT
+server: uvicorn
+content-length: 67
+content-type: application/json
+access-control-allow-origin: http://localhost:5173
+vary: Origin
+
+{"detail":"more than one instrument with pillar October 5th, 2036"}

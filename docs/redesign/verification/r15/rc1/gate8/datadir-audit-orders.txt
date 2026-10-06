@@ -1,0 +1,26 @@
+# data dir: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-gate8
+notes
+resolver_masters
+searxng
+workspaces
+custom_agents.db
+data_cache.db
+data_cache.db-shm
+data_cache.db-wal
+delegate_runs.db
+dev-keystore.json
+fundamentals_cache.db
+plugins.db
+portfolio.db
+workflows.db
+# audit_log.db present?
+"/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-gate8/audit_log.db": No such file or directory (os error 2)
+## workflows.db: workflows,schedules
+## custom_agents.db: custom_agents
+## portfolio.db: positions,sqlite_sequence
+## delegate_runs.db: runs
+## plugins.db: plugin_configs
+## data_cache.db: cache,meta
+## fundamentals_cache.db: fundamentals
+# tables matching order|audit|broker|kill|margin across all DBs:
+(end)

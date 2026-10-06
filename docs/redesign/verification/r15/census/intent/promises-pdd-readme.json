@@ -1,0 +1,2126 @@
+[
+  {
+    "pid": "INT-PD-1",
+    "promise": "The Product Design Decisions doc is RATIFIED for the R4 session-3 build; every teammate obeys it so the result is ONE coherent look, not six interpretations.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md intro",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-2",
+    "promise": "When the design doc and the reference screenshots disagree, the screenshot wins and the doc gets corrected.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md intro",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-3",
+    "promise": "When the design doc and a UI-rigor skill default disagree, the design doc wins (skills supply execution rigor, never taste).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md intro",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-4",
+    "promise": "The redesigned app must read as warm near-black with no blue, replacing the prior cold-zinc OKLCH hue 264 + cool-indigo accent (#7e88e8).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md intro",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-5",
+    "promise": "The redesigned app uses a single muted amber accent, not the prior cool-indigo.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md intro",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-6",
+    "promise": "Controls must 'breathe' at comfortable sizing (composer, pills, header) instead of the prior shrunken scale (h-8/12px composer, 9.6px pills, h-9 header).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md intro",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-7",
+    "promise": "The design language is renamed 'Warm Graphite' (formerly 'Cold Instrument'); the words clay, espresso, and warm instrument must not appear anywhere in it.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md intro",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-8",
+    "promise": "The deep background reads warm near-black with no blue, matching measured reference values (Perplexity #181614, Cursor #121108, R-B >= +4).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a70",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-9",
+    "promise": "The panel/card surface color is warm graphite, approximately #1a1814.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a70",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-10",
+    "promise": "Raised input/card surfaces are warm and clearly delineated from the panel background (#43413d / #453e35).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a70",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-11",
+    "promise": "The only saturated accent color in the app is a single muted amber, modeled on Cursor's dominant #c08030 cluster.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a70",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-12",
+    "promise": "The Warm Graphite neutral ramp uses OKLCH hue approximately 70-80, chroma <= 0.008, with perceptually-even steps, and every value is warm (R >= G >= B).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-13",
+    "promise": "The charcoal-* token names stay unchanged across the reskin so the ~92 files referencing them require zero code edits -- only the token values change.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-14",
+    "promise": "Token charcoal-950 = #0e0d0b, used for the app root well (deepest surface).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-15",
+    "promise": "Token charcoal-925 = #131210, used for the header fascia and tab strip.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-16",
+    "promise": "Token charcoal-900 = #1a1814, used for the panel/card surface (the anchor color).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-17",
+    "promise": "Token charcoal-875 = #211e19, used for popover / active-tab / hover surfaces.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-18",
+    "promise": "Token charcoal-850 = #29251f, used for raised inset surfaces (input fill, node background).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-19",
+    "promise": "Token charcoal-800 = #312c25, used for muted/secondary surfaces.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-20",
+    "promise": "Token charcoal-700 = #39332b, used for borders, inputs, and dividers.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-21",
+    "promise": "Token charcoal-600 = #4a443a, used for strong borders and disabled-state foreground.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-22",
+    "promise": "Token charcoal-500 = #79736a, the tertiary text color for faint labels, kbd hints, and process/meta lines.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-23",
+    "promise": "Token charcoal-400 = #a8a095, the secondary/muted-foreground text color.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-24",
+    "promise": "Token charcoal-300 = #d3cec5, a secondary-bright text color.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-25",
+    "promise": "Token charcoal-200 = #e9e4dc, a bright secondary / chart text color.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-26",
+    "promise": "Token charcoal-100 = #f5f2ec, the primary text/foreground color (warm near-white).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-27",
+    "promise": "Token lume = #f7f5f0, the peak near-white used for active-tab text and peak readouts.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-28",
+    "promise": "Tokens brass-* and sage-* are aligned to the Warm Graphite ramp as quiet secondary neutrals.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-29",
+    "promise": "The accent ramp uses OKLCH hue approximately 65-75 (amber/gold), restrained -- never neon, never pure orange.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-30",
+    "promise": "The accent color is used on at most ~5% of pixels and on at most one or two interactive elements at a time.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-31",
+    "promise": "The accent color is never used as a background wash, a gradient, or a glow.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-32",
+    "promise": "Token amber-200 = #f0d8ac, used for faint tint / selection fill.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-33",
+    "promise": "Token amber-300 = #e9bd80, used for hover-bright state and accent text on dark surfaces.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-34",
+    "promise": "Token amber-400 = #d89a4e, the brand/primary/default accent color.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-35",
+    "promise": "Token amber-500 = #c0802f, used for pressed/active-sash/selected states (matches Cursor's fill).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-36",
+    "promise": "Token amber-600 = #875720, used for deep borders and dense accent usage.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-37",
+    "promise": "Per FR-030, the amber/charcoal token values, globals.css's --accent-rgb (and every fallback hex), and chart-theme.ts's ACCENT_CORAL* constants + chart neutrals must all change together in one commit, or the chart canvas visually drifts from the chrome.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-38",
+    "promise": "Signal colors are unchanged and are the only other saturated colors in the app, reserved for P&L only: positive #3fbf6f, negative #e5544b, warning #e0a13a.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-39",
+    "promise": "The warning color stays visibly yellower than the brand amber and appears only as a labelled badge (e.g. STALE/PAPER), so it never reads as the accent color.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-40",
+    "promise": "The ambient radial-gradient glow behind the body in globals.css is removed entirely -- the canvas renders as a flat warm field with no ambient glow.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a73",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-41",
+    "promise": "The only allowed shadow-like effects are a 1px hard accent border, the inset active-tab tick, and a quiet 1px bezel with no blur.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a73",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-42",
+    "promise": "No box-shadow/filter/drop-shadow with blur radius greater than 1px is used as a halo or bloom anywhere, no gradient is used as ambient light/fill on chrome/cards/canvas, and nothing is named glow/halo/bloom/neon/ambient.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a73",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-43",
+    "promise": "Text hierarchy is expressed only via weight, opacity, and spacing -- never via color -- and the UI shows three visibly distinct text tiers.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a74",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-44",
+    "promise": "The primary text tier is charcoal-100 (#f5f2ec) at weight 400-510, used for content such as brief prose, answers, prices, and headings.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a74",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-45",
+    "promise": "The secondary text tier is charcoal-300/400 at weight 400, used for supporting labels, table secondaries, and descriptions.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a74",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-46",
+    "promise": "The tertiary text tier is charcoal-500 (#79736a), often smaller, used for process/meta text such as 'Read...', 'Thought...', timestamps, kbd hints, and source domains.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a74",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-47",
+    "promise": "Headings are distinguished by size and weight (font-weight-heading 590), never by color.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a74",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-48",
+    "promise": "Accent text (amber-300) is reserved for the active/selected affordance only, never for general emphasis.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a74",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-49",
+    "promise": "Minimum interactive text size anywhere in the app is 12px; primary inputs are 14px; only dense data tables stay at 13px.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-50",
+    "promise": "Control heights follow a fixed scale: small = 32px, medium = 40px, large = 48px.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-51",
+    "promise": "The header/top bar targets a height of 48px (h-12) with a larger brand mark and comfortable gap, up from the prior 36px (h-9).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-52",
+    "promise": "The composer input targets a minimum height of ~52px for multiline text, 14px font size, px-4/py-3 padding, and rounded-lg corners.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-53",
+    "promise": "The composer toolbar (mode/model/send controls) targets 12px pill text with pill height h-8 and px-3 padding.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-54",
+    "promise": "The send button targets size-10 (40px), up from the prior size-8 (32px).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-55",
+    "promise": "The command palette (Cmd+K) targets max-width 2xl, a 14px h-12 input, 14px rows at py-2.5, and 11px tracked group headers.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-56",
+    "promise": "The ticker search/Load control targets width >= 32 (w-32+), height h-9, and 14px text.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-57",
+    "promise": "Pills/chips/capsules target a minimum of text-xs (12px), px-2.5/py-1 padding, and rounded-md corners.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-58",
+    "promise": "Data provenance badges target py-0.5 padding and text-[11px] size.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-59",
+    "promise": "dockview tabs target 12px text, a modest bump from the prior 11px.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-60",
+    "promise": "Mention/slash pickers target 13-14px text with py-2 rows, up from the prior 11.2px.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-61",
+    "promise": "Spacing in new/changed code draws only from the token scale (component padding from {8,12,16}, section gaps from {16,24,32}); no raw off-scale Tailwind values (e.g. px-[7px], gap-2.5) are allowed.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-62",
+    "promise": "Dense data tables and numeric grids stay at 13px body size with their existing row rhythm -- the 'breathe' sizing increase applies only to composer, palette, header, buttons, pills, empty states, and the brief-reading column.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-63",
+    "promise": "Structural borders are 1px charcoal-700; fine dividers use the --hairline token (zinc at ~14% opacity).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a76",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-64",
+    "promise": "Radius follows a fixed scale: --radius-control 0.25rem for small controls, --radius-panel 0.375rem for cards/panels, with the composer and palette allowed a slightly larger rounded-lg (0.5rem).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a76",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-65",
+    "promise": "Elevation is expressed only as a luminance step plus a 1px border, never a blurred shadow (e.g. a popover sits on charcoal-875 with a charcoal-700 border).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a76",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-66",
+    "promise": "UI chrome uses a clean sans (Inter-class) typeface over a mono data face, with clear weight contrast: body 400, labels 510, headings 590.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a77",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-67",
+    "promise": "Numeric values use tabular figures and a slashed zero.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a77",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-68",
+    "promise": "Brief-reading prose uses a 1.6 line-height (--leading-prose) and a comfortable reading measure.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a77",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-69",
+    "promise": "Every empty state in the app is a designed, composed placeholder centered in its panel (quiet icon, headline, one calm caption line, optional single CTA) -- never a bare 'No data.' text node and never a spinner used as the empty state.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a78",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-70",
+    "promise": "Empty states ship as one shared EmptyState component (icon/headline/hint/cta props) reused across every previously-dead-text surface, including analyst tables, broker connect, and the screener universe picker.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a78",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-71",
+    "promise": "The composer's empty state additionally shows 'teach-the-agent' suggestion chips (Perplexity-style 'try this' capsules) below the input.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a78",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-PD-72",
+    "promise": "Active pills / selected tabs use amber text or an amber tick while the fill stays a neutral luminance step; only a primary CTA gets an amber FILL with dark (charcoal-950) text, and at most one amber-filled element is visible at a time.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a79",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-73",
+    "promise": "The focus ring is 1px amber-400 with a 1px offset; selection highlight uses amber at 30% opacity.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a79",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-74",
+    "promise": "Scrollbars use a quiet warm-neutral rail whose thumb brightens to amber at ~55% opacity on hover.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a79",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-75",
+    "promise": "Icons use the lucide set at ~1.5-1.75 stroke width, sized to their control, tertiary tint by default and primary tint on hover.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a79",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-76",
+    "promise": "Motion keeps the existing timing tiers (micro 120ms / default 180ms / entrance 240ms / exit 160ms), honors reduced-motion preferences, and introduces no new motion vocabulary.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a79",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-77",
+    "promise": "A redesigned surface passes design acceptance only when, compared to its reference at equal zoom: the background reads warm not blue; controls are at reference generosity; three text tiers are visible; accent appears on 0-2 elements and is amber, never neon; there is no glow anywhere; and empty states look intentional.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a710",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-78",
+    "promise": "Every tabular/numeric surface (equity-overview statements, screener, analyst, earnings, SEC, portfolio, watchlist) renders through one shared DataTable component (src/components/DataTable.tsx) -- no more per-panel hand-rolled <table> markup.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-79",
+    "promise": "All numeric table cells are right-aligned with tabular-nums figures and are formatted exclusively through the single src/lib/format.ts suite (formatMoney, formatCompactMoney, formatPercent, formatPrice, formatUnit) -- never a per-panel formatter and never an unsuffixed raw number.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-80",
+    "promise": "Table header rows use text-micro (11px), weight 510, charcoal-400, uppercase, px-3/py-1.5 padding; sortable headers add an aria-sort attribute plus a quiet caret, and the active sort key is the only amber affordance in the table.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-81",
+    "promise": "Table body rows use text-body (13px) at weight 400 with px-3/py-1.5 padding as one consistent rhythm across every dense table; primary values are charcoal-100, supporting values charcoal-400, and subtotals/meta charcoal-500.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-82",
+    "promise": "Financial statement tables show explicit period columns (e.g. TTM, FY2025, FY2024) as first-class, right-aligned headers.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-83",
+    "promise": "Grouped table sections (e.g. Valuation, Profitability, Financial Health) use a dedicated section-header row style, not ad-hoc spacing.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-84",
+    "promise": "Missing table values render as an em dash (charcoal-600); a row or section that is wholly null collapses to a single muted note instead of a wall of dashes.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-85",
+    "promise": "Tables never expose raw snake_case field names to the user -- labels always come from a curated map such as FIELD_GROUPS.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-86",
+    "promise": "Notes is a real editor built on the already-installed Tiptap v3 with a visible formatting toolbar (h-12, gap-4 groups) covering Headings (H1/H2/H3), Inline (bold/italic/code), Lists (bullet/numbered/task), Blocks (blockquote/link), and [[wikilink]].",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a712",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-87",
+    "promise": "Each Notes toolbar button reflects active formatting state via editor.isActive(x) as an amber active indicator (text/tick, not a fill).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a712",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-88",
+    "promise": "Notes renders live markdown in a locked type scale (.notes-prose: h2=18px, body=13px, code=mono) rather than Tailwind's default 16px prose.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a712",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-89",
+    "promise": "Notes popovers (slash menu, wikilink menu) use a 1px charcoal-700 border with no shadow-lg (no-glow rule); menu rows are h-9 with a text-caption title and a text-micro hint.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a712",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-90",
+    "promise": "Notes preserves markdown/PNG/PDF export, atomic persistence, wikilinks, and slash commands.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a712",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-91",
+    "promise": "Generic empty/dead surfaces (palette no-results, sparse tables, disconnected panels) use the shared EmptyState component's standard stack, plus a dense 'secondary' variant for inline/secondary panels.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a713",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-92",
+    "promise": "Hero empty states (chat dock, first-run composer) fill the entire column with a centered identity block plus a distributed suggestion-chip set occupying the remaining height, targeting under 20% unused vertical space versus the Perplexity reference -- never a small block floating via justify-center in a tall column.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a713",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-93",
+    "promise": "The composer input and send button read as one unit: input min-h-[52px]/text-sm(14px)/rounded-lg with p-4/gap-3 form padding, and a size-10 (40px) rounded-full send button with amber fill and a charcoal-950 glyph as the one primary CTA.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a714",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-94",
+    "promise": "The composer input reserves a left inset (pl-11) so a persona/agent indicator never overlaps the placeholder text, and the placeholder color is tertiary (charcoal-500).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a714",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-95",
+    "promise": "The composer's control toolbar (mode/lens/provider/model) sits at h-9 with gap-2; labels are tertiary (charcoal-500) and values are secondary, staying dense but on the defined scale.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a714",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-96",
+    "promise": "The command palette groups results under defined headers (Recent/Suggested when the query is empty; Agents/Actions/Panels/Symbols when a query is present) using a shared .group-heading-style.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a715",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-97",
+    "promise": "Palette rows follow an icon / truncating title / truncating muted description / right kbd-or-group layout; text always truncates with an ellipsis and never hard-clips past the panel edge at any width.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a715",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-98",
+    "promise": "The command palette is max-w-2xl with rows at py-2.5 and a sans (not mono) text-body input.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a715",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-99",
+    "promise": "An empty-query command palette shows EmptyState-style recent items plus suggested actions rather than dumping the full agent list, while still keeping the fixed-query symbol filter.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a715",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-100",
+    "promise": "The only allowed type-scale sizes in new/changed code are text-micro 11px, text-caption 12px, text-body 13px, text-panel-title 15px, text-section 18px, text-overview 22px, and text-hero 28px, at weights body 400 / label 510 / heading 590, with a hard minimum interactive text size of 12px.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a716",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-101",
+    "promise": "The only allowed spacing steps in new/changed code are 2/4/6/8/12/16/24/32/48/64 (--spacing-*), with component padding drawn only from {6,8,12} and section gaps only from {16,24,32}.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a716",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-102",
+    "promise": "Control heights in changed code are constrained to small=32/medium=36-40/large=48 with send=size-10, and no h-7/h-8 chrome buttons are allowed (dense data selectors may stay dense but must remain on-scale).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a716",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-103",
+    "promise": "Radius in changed code is constrained to radius-control 4px / radius-panel 6px, with the composer and palette permitted rounded-lg 8px.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a716",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-104",
+    "promise": "A binary off-scale audit must return zero matches in every changed file for: arbitrary text-[...] sizes, off-grid spacing utilities (2.5/3.5/7/10/11), arbitrary rounded-[...] radii, raw hex colors in components, and any shadow-md/lg/xl/2xl/drop-shadow/blur- utility.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a716",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-105",
+    "promise": "A utility class that is referenced but never defined (e.g. a stale .group-heading-style) is treated as a defect, since Tailwind gives no warning for it.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a716",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-106",
+    "promise": "Vysted Terminal is an open-source, AI-native, local-first, bring-your-own-keys desktop finance terminal with Bloomberg-level data coverage and agent-assisted operation.",
+    "source": "README.md#top",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-107",
+    "promise": "Vysted Terminal has no account, no hosted backend, and no telemetry -- data and secrets stay on the user's machine.",
+    "source": "README.md#top",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-108",
+    "promise": "The redesign reframes Vysted into an agent-native finance workspace: a hybrid of a dense pro command-station and an agent-first assistant that drives the terminal for the user.",
+    "source": "README.md#top",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-PD-109",
+    "promise": "Asking the agent to 'research NVDA' lands a visual, cited brief in the cockpit -- a metric-card grid, a key-metrics table, and a written valuation analysis -- alongside a live research trace.",
+    "source": "README.md#top (hero screenshot caption)",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-PD-110",
+    "promise": "Vysted Terminal is a Tauri desktop app with three cooperating local processes over loopback only: a Rust core, a Next.js static-export frontend, and a Python FastAPI sidecar, plus two bundled MCP subprocesses (OpenBB fundamentals/macro, SEC EDGAR filings).",
+    "source": "README.md#Overview",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-111",
+    "promise": "The cockpit ships a multi-panel dockview layout including Chart (50 server-computed indicators + drawing tools), Watchlist, News (RSS + optional NewsAPI, sentiment), Portfolio, Equity Overview, Macro, SEC Filings, Earnings, Analyst Ratings, Screener, Quant (QuantLib), Backtest, and a Node Editor/workflow surface.",
+    "source": "README.md#Overview",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-112",
+    "promise": "The AI copilot runs a real agentic tool-use loop in the sidecar: the model calls read/host-action tools to pull data and drive the terminal.",
+    "source": "README.md#Overview",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-113",
+    "promise": "Vysted ships 13 first-party agents (a terminal-aware copilot plus 12 investor personas) in addition to user-authored custom agents.",
+    "source": "README.md#Overview",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-114",
+    "promise": "Vysted supports BYOK across 7 LLM providers: Anthropic, OpenAI, Gemini, Groq, Ollama, DeepSeek, and xAI.",
+    "source": "README.md#Overview",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-115",
+    "promise": "Vysted offers read-only broker connect: genuine Kite Connect OAuth plus read-only account/positions/P&L for Kite, Dhan, and Angel One.",
+    "source": "README.md#Overview",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-116",
+    "promise": "A \u00a76.5 execution-safety layer (paper-default, kill-switch, append-only audit log) exists in code, but order execution is not enabled.",
+    "source": "README.md#Overview",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-117",
+    "promise": "Vysted has a plugin platform: one serializable VystedPlugin contract with six capabilities (data, panels, commands, agents, nodes, control plane) making the terminal extensible.",
+    "source": "README.md#Overview",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-118",
+    "promise": "Vysted proxies bundled MCP data servers AND re-exposes its own capabilities as MCP tools for external agents such as Claude Desktop and Claude Code.",
+    "source": "README.md#Overview",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-119",
+    "promise": "Vysted is green on every machine-checkable gate (pnpm ci-local, 619 vitest tests, 942 pytest tests, \u00a76.5 9/9 safety audit) and is broadly tested.",
+    "source": "README.md#Overview",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-120",
+    "promise": "Live UX, populated visuals, and any BYOK/live-broker round-trip are documented as operator-verified only, not CI-verified, because the test harness cannot drive the webview with real data.",
+    "source": "README.md#Overview",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-121",
+    "promise": "Vysted currently ships unsigned with no release pipeline, and its version strings sit at 0.8.0 pending a release cut.",
+    "source": "README.md#Overview",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-122",
+    "promise": "Vysted works the moment it's opened -- no account, no key, and no setup are required.",
+    "source": "README.md#Powering the AI",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-123",
+    "promise": "Live quotes, charts, news, screeners, and web research (keyless, via DuckDuckGo) all run out of the box with zero configuration.",
+    "source": "README.md#Powering the AI",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-124",
+    "promise": "A first-run flow offers two ways to turn on the AI agent and deep research, switchable anytime afterward from Settings.",
+    "source": "README.md#Powering the AI",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-PD-125",
+    "promise": "The 'Private & free' onboarding path fit-scores the user's machine and sets up a local model that runs entirely through Ollama -- no key, no cost, fully offline, though slower and less capable than the cloud option.",
+    "source": "README.md#Powering the AI",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-126",
+    "promise": "The 'Most power' onboarding path uses a single OpenRouter key to broker every top model (Claude, GPT, Gemini, DeepSeek, Kimi, etc.); a typical research run is described as costing only cents, and the default model is fast, cheap, and non-thinking so research never stalls.",
+    "source": "README.md#Powering the AI",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-127",
+    "promise": "Regardless of which AI path is chosen, keys live only in the OS keychain, never touch disk, and there is no Vysted server for them to reach -- the app only calls the data/LLM providers the user configures.",
+    "source": "README.md#Powering the AI",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-128",
+    "promise": "macOS builds (Apple Silicon / M-series) are distributed as a .dmg via GitHub Releases; an Intel build is not yet published.",
+    "source": "README.md#Download & install",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-129",
+    "promise": "Because the app is open-source and unsigned, macOS Gatekeeper blocks first launch; the README documents a 3-step 'Open Anyway' workaround and notes that right-click-to-Open no longer works on macOS 15+.",
+    "source": "README.md#Download & install",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-130",
+    "promise": "On first launch the app starts its local data/AI engine with a one-time ~30-90 second warm-up while the bundled engine unpacks, after which the cockpit populates; everything runs on 127.0.0.1 with no pre-installed runtime required.",
+    "source": "README.md#Download & install",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-131",
+    "promise": "Documented local-development prerequisites are Node.js 24+, pnpm 10+, a stable Rust toolchain, C/C++ build tools, and Python 3.13+.",
+    "source": "README.md#Prerequisites",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-132",
+    "promise": "Windows local development requires Visual Studio Build Tools 2022 with the 'Desktop development with C++' workload and the WebView2 Runtime.",
+    "source": "README.md#Prerequisites",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-133",
+    "promise": "The documented local-dev bootstrap is `pnpm install` then `pnpm tauri dev`; the first `pnpm tauri dev` run builds the Python sidecar binaries via PyInstaller (a one-time ~1-2 minute step, skipped on later runs unless sidecar source changes).",
+    "source": "README.md#Local Development",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-134",
+    "promise": "`pnpm ci-local` (lint + format + typecheck + clippy + ruff + tests) and `node scripts/smoke-test-sidecars.mjs` (spawn each sidecar binary, probe /health and MCP bind) are the documented gates to run before any release tag.",
+    "source": "README.md#Local Development",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-135",
+    "promise": "The project is free for personal, academic, and open-source use under AGPL-3.0; commercial use requires a paid license per COMMERCIAL_LICENSE.md.",
+    "source": "README.md#License",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-136",
+    "promise": "Phases 0-10 (data layer, charting, AI copilot, node editor + backtest, broker read-only + \u00a76.5 safety, macro/research/QuantLib, integrations hub) are merged to main; the agent-native redesign is being specified and its build follows operator review.",
+    "source": "README.md#Status",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-137",
+    "promise": "A single capability catalog (sidecar/services/agent_tools/catalog.py) is the one source of truth from which TOOL_SCHEMAS, the custom-agent allow-list, and the external MCP surface all derive.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-138",
+    "promise": "Every registered, agent-intended tool handler has a schema entry, closing the earlier '~11 handlers unreachable' gap; the catalog defines 27 internal capabilities.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-139",
+    "promise": "Gemini multi-round tool use is fixed by threading the tool name onto the tool-result message.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-140",
+    "promise": "The custom-agent tool allow-list (KNOWN_TOOL_IDS) is derived from the capability catalog with 0 unresolvable tools.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-141",
+    "promise": "The external MCP tool surface is projected from the capability catalog (26 tools), sharing names/schemas with the internal copilot and deriving readOnlyHint from read_only, under a standing parity audit (SC-004).",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-142",
+    "promise": "A single `news` MCP tool now serves both the internal copilot and the external MCP surface.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-143",
+    "promise": "Plugin manifest-to-instance id/version matching and requiredHostVersion checks are implemented: a mismatched plugin is rejected at load and the rejection is surfaced to the user.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-144",
+    "promise": "PluginConfig secret resolution is keychain-backed (FR-054/SC-015).",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-145",
+    "promise": "The frontend's shell:allow-open Tauri capability is granted, so in-app 'open in browser' calls (Kite OAuth login, SEC filings) work.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-146",
+    "promise": "Boot-path panics are hardened with a port-0 sentinel and a temp-dir fallback so the app no longer panics with no window on a boot-path failure.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-147",
+    "promise": "A keyless AI provider must be reachable before the first agent call, so the shipped default no longer silently fails by routing to an absent local Ollama install.",
+    "source": "docs/CURRENT_STATE.md \u00a70",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-148",
+    "promise": "A four-mode agent spine (Ask / Edit-panel / Build / Delegate, keyboard-switchable via Option+1-4) makes the agent a co-equal primary surface alongside the hand-driven cockpit.",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-149",
+    "promise": "Every agent-proposed mutation routes through a diff/accept trust gate; the four host-action tools (open_panel, set_chart_symbol, add_to_watchlist, propose_order -- the catalog's only write-capable capabilities) never auto-apply (SC-003).",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-150",
+    "promise": "Onboarding offers both the keyboard-driven cockpit and the agent-first path ('offer-both') rather than forcing the user into one.",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-151",
+    "promise": "A minimal-dark 'cold-instrument' shell with re-valued design tokens (mirrored in chart-theme.ts), a teaching command palette, and status chrome ship as part of the P2 redesign (FR-033).",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-152",
+    "promise": "A plugin marketplace is the primary extensibility model: brokers, data sources, panels, and agents are all install/enable/configure/remove entries (src/lib/marketplace.ts).",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-153",
+    "promise": "First-party data plugins (yfinance + news) are pre-installed keyless; no broker adapter is registered at boot by default (bootstrap_default_adapters is no longer called from the app lifespan, FR-051/SC-013); Kite is the reference broker plugin.",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-154",
+    "promise": "MCP serves as an extension framework for external tools (FR-025): statically-imported compiled-in plugins are governed by the marketplace, while genuinely external plugin loading goes through the stdio-MCP path.",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-155",
+    "promise": "A provider-shaped data registry (provider_registry.py) resolves data by standard model key plus a preference order rather than a fixed asset-class chain, and every result carries its serving provider as provenance (FR-035/040).",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-156",
+    "promise": "A BYOK credentials hub renders each provider's configuration form generically from its marketplace entry's credentialFields, with zero per-source custom UI (SC-007).",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-157",
+    "promise": "News is now a first-party data plugin (plugins/vysted-news) with an optional NewsAPI key sent as the X-Vysted-Newsapi-Key header from the keychain (FR-036).",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-158",
+    "promise": "Granular broker reads are real: GET /brokers/{id}/positions, /holdings, and /margins return distinct shapes via a positions_info/holdings_info/margins_info adapter seam (Kite implements it; other brokers fall back to the account summary), each result labeled with provenance so paper/synthetic values are badged (FR-041/042/SC-012); the routes remain GET-only.",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-159",
+    "promise": "Durable Delegate runs execute detached, survive the launching connection, and are bounded by a BudgetGuard (tokens/spend/wall-clock/steps) whose first ceiling breach aborts the run with a stated reason and a resumable checkpoint (SC-008); the agents rail shows live cost-so-far.",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-160",
+    "promise": "Cursor-grade settings and remappable keybindings persist in the workspace blob (FR-038/039/SC-011).",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-161",
+    "promise": "Through the P1-P3 redesign, all \u00a76.5 and Tier-1 LOCKED files remain byte-for-byte untouched, the \u00a76.5 safety audit stays 9/9, and the broker read surface adds no write/execution path.",
+    "source": "docs/CURRENT_STATE.md \u00a70.5",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-162",
+    "promise": "Everything Vysted persists lives under the OS app-data directory plus the OS keychain -- there is no other storage surface.",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-163",
+    "promise": "The cockpit ships approximately 18 first-party modules, including a manual SQLite-backed Portfolio panel and an Agent Builder.",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-164",
+    "promise": "The copilot's tool-use loop iterates up to 6 rounds per agent invocation.",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-165",
+    "promise": "Of the 7 supported LLM provider ids, only 5 adapters actually exist (DeepSeek and xAI ride the OpenAI adapter via a base-url override).",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-166",
+    "promise": "A full \u00a76.5-safety-gated order execution machine (propose to confirm to place, kill switch, append-only audit log, position limits) exists in code but is paper-only by hard default and has never been live-validated.",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-167",
+    "promise": "Of the plugin platform, only three plugins actually load (example, openbb-mcp, tradesa-v2); seven broker plugins exist in the tree but are not wired, and there is no filesystem or marketplace loader yet at this baseline.",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-168",
+    "promise": "As an MCP server, Vysted re-exposes its own endpoints as MCP tools for external clients such as Claude Desktop and Claude Code.",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-169",
+    "promise": "The auto-updater is configured but produces no artifacts; distribution at this baseline is 'download the CI artifact.'",
+    "source": "docs/CURRENT_STATE.md \u00a71",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-170",
+    "promise": "The Tauri Rust core owns the OS surface: windowing, keychain, the global kill-switch shortcut, sidecar lifecycle, and dynamic port assignment.",
+    "source": "docs/CURRENT_STATE.md \u00a72",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-171",
+    "promise": "The Next.js frontend is served as a static export by the core -- there is no Node server at runtime.",
+    "source": "docs/CURRENT_STATE.md \u00a72",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-172",
+    "promise": "The two MCP subprocesses are spawned on parallel threads and joined before the main sidecar spawns, so their port env vars are settled first; the entire MCP handshake is an environment variable, with no IPC negotiation.",
+    "source": "docs/CURRENT_STATE.md \u00a72",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-173",
+    "promise": "The frontend learns the sidecar's port via a Tauri command and polls /health with backoff (a 120-second deadline) before declaring the connection ready.",
+    "source": "docs/CURRENT_STATE.md \u00a72",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-174",
+    "promise": "If an MCP subprocess fails to spawn, it degrades gracefully (registers as unavailable / port 0) rather than panicking -- openbb falls back to yfinance and the SEC router responds 501.",
+    "source": "docs/CURRENT_STATE.md \u00a72",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-175",
+    "promise": "The main-sidecar readiness check is fire-and-forget logging -- nothing blocks the UI on sidecar readiness, so the frontend tolerates a not-yet-up sidecar.",
+    "source": "docs/CURRENT_STATE.md \u00a72",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-176",
+    "promise": "The main-sidecar spawn, app-data-dir resolution, and directory creation all use an unwrap-or-panic pattern, so any failure there panics the whole app at boot with no UI shown.",
+    "source": "docs/CURRENT_STATE.md \u00a72",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-177",
+    "promise": "The sidecar is one FastAPI app assembled from 24 router modules, exposing approximately 107 HTTP routes plus one WebSocket and one mounted MCP sub-app.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-178",
+    "promise": "The sidecar's CORS policy is fully permissive (wildcard), justified by the assumption that the process binds loopback only, though that bind is enforced by the launcher script rather than by the FastAPI app itself.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-179",
+    "promise": "Server-Sent Events (text/event-stream) is the standard streaming convention for /llm/chat, /agents/{id}/invoke, /backtest/run, and /workflow/run.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-180",
+    "promise": "The version reported by GET /health is derived from the running FastAPI app's version attribute rather than a separately hardcoded string.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-181",
+    "promise": "Two runtime-extension aggregator modules from earlier releases are live no-op stubs kept only for release-stamp parity -- they do nothing at request time.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-182",
+    "promise": "GET /quotes and /crypto endpoints are thread-offloaded so they don't block the event loop, but GET /history/{symbol} runs its provider call synchronously on the request thread -- a real event-loop-blocking asymmetry.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-183",
+    "promise": "HTTP response caching is implemented per-router rather than centrally.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-184",
+    "promise": "The documented sidecar endpoint surface spans market data, fundamentals, news, macro, SEC filings, earnings, screener, portfolio CRUD, quant pricing, backtest, workflow, agents, custom agents, LLM chat/key validation, broker read/connect/order routes, Kite OAuth exchange, safety (audit log, kill switch, disclaimers, static-IP status), a read-only Tradesa V2 mirror, plugin config, workspace persistence, and MCP status/JSON-RPC.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-185",
+    "promise": "GET /sec/status is the only /sec route that responds when the sec-edgar-mcp subprocess is down; every other /sec/* route returns 501 while the subprocess is unbound.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-186",
+    "promise": "POST /screener/run returns 502 on a universe-resolution failure and 400 for an unknown screener id.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-187",
+    "promise": "Manual portfolio positions support full CRUD (create/read/update/delete) backed by SQLite, returning 201/204/404 as appropriate.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-188",
+    "promise": "A broker session that has expired responds with HTTP 419 as the client's reconnect cue.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-189",
+    "promise": "Broker order routes implement a propose-then-confirm-then-place flow backed by an in-memory pending-proposals store.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-190",
+    "promise": "The real Kite OAuth exchange (POST /brokers/kite/session) performs the genuine generate_session call (SHA-256 checksum plus a call to Kite's /session/token endpoint).",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-191",
+    "promise": "The audit-log endpoint supports tailing and CSV export, with a result-count limit between 1 and 5000.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-192",
+    "promise": "The kill-switch endpoints support fire/reset/status, and a reset requires an explicit acknowledged=true flag.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-193",
+    "promise": "The static-IP-status endpoint is advisory only -- it never blocks any action.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-194",
+    "promise": "The 14 Tradesa V2 mirror routes are GET-only by an audit-enforced invariant, with credentials passed via request headers.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-195",
+    "promise": "Plugin configuration and workspace state are each persisted via dedicated SQLite-backed endpoints, with the workspace blob stored as opaque JSON.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-196",
+    "promise": "Status endpoints report readiness for both the Vysted MCP server and the openbb-mcp subprocess.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-197",
+    "promise": "A single dispatch module (provider_registry.py) routes every data request by asset class: crypto to ccxt (hardcoded default exchange 'binance'), equity to yfinance, fundamentals/statements/ratings to openbb-mcp when bundled else yfinance, and macro to openbb-mcp only, else an explicit provider error.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-198",
+    "promise": "The yfinance-backed equity provider rewrites the ticker BRK.B to BRK-B and divides yfinance's dividend-yield figure by 100 to convert a percentage into a fraction -- documented as a silent-corruption risk if the upstream format ever changes -- and reads only the single most-recent recommendation row for its aggregate analyst rating.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-199",
+    "promise": "The crypto provider backs /crypto/* using ccxt (sync REST) and ccxt.pro (async WebSocket) across the bybit, binance, kraken, and coinbase exchanges.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-200",
+    "promise": "Richer fundamentals/macro data is available via the openbb-mcp subprocess when it is bundled with a given build; whether that binary actually ships in a given build is documented as unverifiable from the service code alone.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-201",
+    "promise": "The news provider combines always-on RSS feeds (Yahoo, MarketWatch, per-symbol Yahoo) with an optional BYOK NewsAPI key, performs no caching, and re-fetches live on every request.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-202",
+    "promise": "Sentiment scoring uses the VADER lexicon rather than a finance-tuned model (a deliberate choice to avoid bundling torch), and is documented in its own code as coarse and explicitly not finance-grade.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-203",
+    "promise": "The earnings provider infers fiscal period from calendar month as a best-effort, UI-only heuristic, and approximates EPS standard deviation as (high minus low) divided by 4.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-204",
+    "promise": "Extended analyst-ratings data has no individual analyst names (the firm name is used as the label) and no real price-target timeline (often a single synthetic 'Consensus' anchor row), because the underlying yfinance data provides neither -- this degeneracy is documented as an honest, deliberate limitation.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-205",
+    "promise": "SEC filings coverage is limited to a narrow set of form types (10-K, 10-Q, 8-K, DEF 14A, and Forms 3/4/5) served via the sec-edgar-mcp subprocess, with extractors written defensively against upstream shape drift.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-206",
+    "promise": "The screener's built-in universes are sp500 (only the top 100 names by market cap, labeled as such), nifty50 (50 names), and crypto-top50 (50 names, whose documented 'refresh from ccxt' worker does not actually exist), plus a custom universe; screener criteria are AND-only, with OR-grouping reserved for later.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-207",
+    "promise": "Macro data draws from four in-process providers (FRED, requiring an API key; ECB, IMF, and World Bank, all keyless), backed by hand-curated 'featured' catalogs -- full catalog browsing is deferred.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-208",
+    "promise": "Quant pricing runs in-process QuantLib for options (Black-Scholes/binomial/Monte Carlo, though Monte Carlo Greeks are not computed), Greeks, bonds, and a yield curve built on a synthetic index rather than real SOFR/ESTR data; a separate Monte Carlo module for Asian/barrier options exists in code but is not wired to any endpoint.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-209",
+    "promise": "The indicators service computes 49 technical indicators plus a volume-profile indicator (50 total) in pure pandas/numpy on the sidecar -- the frontend never computes an indicator itself.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-210",
+    "promise": "The generic SQLite TTL data cache does not auto-evict stale rows, and several high-traffic surfaces (news, quotes/history/fundamentals through the registry, all quant pricing) are notably left uncached.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-211",
+    "promise": "A documented list of 'richer later' data hooks remains unimplemented: openbb-mcp earnings/analyst enrichment, a ccxt crypto-top50 refresh worker, individual analyst names/accuracy tracking, real price-target timelines, full SEC form coverage, a full macro catalog, surface-vol/yield-curve data, and HTTP wiring for path-dependent Monte Carlo pricing.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-212",
+    "promise": "The plugin contract (types/plugin.ts) is a deliberately framework-free, serializable contract of four fixed sections (identity, lifecycle, a six-boolean capabilities object, and optional getters); a panel's component reference is a string id resolved host-side so the contract stays serializable, and capability negotiation checks only the boolean flag, never the method's presence.",
+    "source": "docs/CURRENT_STATE.md \u00a73.4",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-213",
+    "promise": "The plugin runtime discovers plugins, loads them while honoring a persisted enabled:false flag, collects contributions through a flag-gated dispatcher (a buggy getter puts the plugin into an 'errored' state and returns an empty list rather than crashing), and polls each plugin's health every 30 seconds.",
+    "source": "docs/CURRENT_STATE.md \u00a73.4",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-214",
+    "promise": "At this baseline, exactly three bundled plugins actually load (example, openbb-mcp, tradesa-v2); because the contract stays serializable, their React panel components ride a static companion map, and only tradesa-v2 currently ships any panels through it.",
+    "source": "docs/CURRENT_STATE.md \u00a73.4",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-215",
+    "promise": "Per-plugin configuration is persisted sidecar-side in SQLite, never in browser storage.",
+    "source": "docs/CURRENT_STATE.md \u00a73.4",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-216",
+    "promise": "Plugin secret resolution via PluginConfig.secrets is effectively a no-op at this baseline (the default resolver returns an empty object); plugins fetch credentials out-of-band instead.",
+    "source": "docs/CURRENT_STATE.md \u00a73.4",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-217",
+    "promise": "The plugin capabilities for contributing agents and contributing nodes are unexercised by any bundled plugin at this baseline -- first-party AI agents load through a separate sidecar JSON path instead.",
+    "source": "docs/CURRENT_STATE.md \u00a73.4",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-218",
+    "promise": "Seven broker plugins under plugins/brokers/ each export a full plugin contract but are not registered in the bundled-plugins list and are not imported anywhere under the frontend source -- they exist only as contract-conformance test fixtures, and broker execution bypasses the plugin subsystem entirely.",
+    "source": "docs/CURRENT_STATE.md \u00a73.4",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-219",
+    "promise": "Only Dhan, Angel One, and Kite broker adapters are registered by default; fully-implemented Alpaca, Interactive Brokers, OANDA, and ccxt-execution adapters are never registered and are therefore dead at runtime.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-220",
+    "promise": "The Kite Connect OAuth flow is genuinely end-to-end: the user pastes an API key/secret, the login page opens in the system browser, the user manually pastes back the redirect URL or bare request token (a deliberate v1 choice, since the registered redirect has no Rust loopback listener), and the sidecar then performs the real session-generation exchange to obtain a daily access token.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-221",
+    "promise": "The Kite access token expires daily around 6am IST, and that expiry maps to an HTTP 419 response as the client's reconnect cue.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-222",
+    "promise": "Kite's api_secret crosses to the sidecar only for the OAuth exchange itself and is never stored or echoed back.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-223",
+    "promise": "At this baseline, the granular /positions, /holdings, and /margins broker endpoints all return the same account-summary shape as /account, because no adapter yet defines the granular per-endpoint methods.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-224",
+    "promise": "In paper mode, or when no live broker client is connected, a 'connected' broker returns a synthetic fixed account balance with empty positions -- fabricated data, not real holdings.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-225",
+    "promise": "Paper trading is the hard default with no constructor path to a live mode (only an explicit runtime mode switch can move it), every order-placement call short-circuits to a synthetic paper result while in paper mode, and Kite's live order-placement path -- while implemented, with hardcoded order variety and product type covering only cash equity -- has never been exercised against a real live order.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-226",
+    "promise": "A one-shot, non-raising outbound IP check exists for the Kite/SEBI static-IP requirement, but order placement does not pre-block on an IP mismatch -- it is an advisory banner only, and the panel always compares against a null configured IP.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-227",
+    "promise": "The \u00a76.5 execution-safety layer enforces eight non-negotiable safeguards across the sidecar, Rust core, and frontend, verified by a dedicated end-to-end test suite that passed 9 of 9 audits (58 tests total combined with the Tradesa V2 read-only audits).",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-228",
+    "promise": "Safety guarantee: paper mode is the hard broker default, with no constructor path that flips it to live.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-229",
+    "promise": "Safety guarantee: every order requires human confirmation, because the order-placement method is private with a single caller that enforces confirmation.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-230",
+    "promise": "Safety guarantee: position-size limits are enforced before any call reaches the broker.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-231",
+    "promise": "Safety guarantee: the order audit log is append-only at the database level, via SQLite triggers that abort on UPDATE or DELETE plus a read-only reader connection.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-232",
+    "promise": "Safety guarantee: the global kill switch acknowledges in under 2 seconds, with p50/p95/max acknowledgment latency instrumented.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-233",
+    "promise": "Safety guarantee: there is an AI-order gate -- no tool exists that lets the AI place, submit, or execute an order; the AI can only propose one.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-234",
+    "promise": "Safety guarantee: a read-only mode is enforced and re-checked at both the propose and confirm stages of order placement.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-235",
+    "promise": "Safety guarantee: layered disclaimers exist -- keychain-stored terms-of-service and per-broker acknowledgments, plus a sidecar in-memory per-session acknowledgment.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-236",
+    "promise": "The safety layer's defense-in-depth pattern combines a type/structure gate, a database-level invariant, and a grep-time CI audit, each layer designed to catch a different failure mode.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-237",
+    "promise": "The order-placement private method is documented as being enforced by naming convention only (not true language-level privacy), and an existing docstring's claim of name-mangled enforcement is itself inaccurate -- the real enforcement is a grep-based CI gate.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-238",
+    "promise": "Two safety-related modules' docstrings claim the append-only trigger raises OperationalError, while the actual and test-asserted exception type is sqlite3.IntegrityError.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-239",
+    "promise": "Kill-switch fired state does not survive a sidecar restart, since it is held only in an in-process singleton -- a crash or restart silently un-halts the kill switch, leaving only the audit-log entry as a durable trace.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-240",
+    "promise": "The kill switch blocks new order placements and forces read-only mode, but does not cancel already-open orders -- cancel-all is left as an unimplemented responsibility for broker subclasses.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-241",
+    "promise": "The live audit-log tail in the UI works via 2-second polling rather than a push mechanism.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-242",
+    "promise": "Ten specific files are Tier-1 LOCKED for the safety model and require a formal safety-audit re-run to change: the safety and broker TypeScript type files, the safety/broker/audit-log/kill-switch/broker-base Python models and services, the Rust kill-switch module, the plugin contract, and the safety end-to-end test suite.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-243",
+    "promise": "The kill-switch reset function is entirely untested, so a naming-convention drift there could permanently lock the kill switch with nothing catching it in CI; the invalid-order-type rejection path of order proposal is likewise untested.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-244",
+    "promise": "The two bundled MCP subprocesses ship as separate PyInstaller binaries with their own Python virtual environments, because the OpenBB dependency tree strictly pins FastAPI/uvicorn versions incompatible with the main sidecar's versions.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-245",
+    "promise": "Both MCP subprocesses are spawned exclusively via the Rust shell-sidecar API, never via Python's subprocess.Popen, specifically to avoid a Windows deadlock combining PyInstaller's onefile bootloader, anyio, and process-handle inheritance.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-246",
+    "promise": "Each MCP subprocess's provider integration is a REST proxy rather than an MCP passthrough, exposing the same interface shape a plain data provider would, so swapping the registry's data source is a one-line change.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-247",
+    "promise": "The sidecar's MCP client wrapper supports both HTTP and stdio transports with lazy sessions, reconnect-on-error, and a race-guard counter, but only the HTTP path has a real consumer today -- the stdio path is dead code reserved for future filesystem plugins.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-248",
+    "promise": "Vysted's MCP server is a real FastMCP 3.x server mounted at /mcp over the Streamable-HTTP transport, exposing 11 tools at this baseline: quote/history/fundamentals/news/macro-series lookups, list_agents, invoke_agent (which collapses a streamed agent reply into one string), list_workspaces, get_workspace, run_workflow, and list_workflows.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-249",
+    "promise": "Every MCP server tool is architected as a thin protocol-adapter shim calling the sidecar's own HTTP endpoint through an in-process transport, so there is zero business-logic duplication between the REST and MCP surfaces.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-250",
+    "promise": "Every MCP tool response is returned as a dictionary, since the FastMCP framework rejects bare list responses.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-251",
+    "promise": "The MCP server has no authentication, relying entirely on its localhost-only bind; connecting an external client such as Claude Desktop requires a manual copy-paste configuration flow.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-252",
+    "promise": "MCP subprocess cold-bind time is documented as roughly 34 seconds in isolation on Apple Silicon, worse under concurrent disk-I/O contention during startup extraction, mitigated by a raised wait budget rather than a root fix (the true fix, an --onedir packaging change, is deferred).",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-253",
+    "promise": "At this baseline there is a documented doc/code drift on the MCP protocol version string (2025-06-18 in code versus 2025-11-25 in the TypeScript types) and on the MCP tool count (the integration doc said 9 tools while the code shipped 11).",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-254",
+    "promise": "There is no /sec-edgar-mcp/status route, which is asymmetric with the existing /openbb-mcp/status route.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-255",
+    "promise": "The MCP smoke-test gate TCP-probes that each subprocess's port is bound, but does not verify that any endpoint actually returns real data (e.g. that the agents list is non-empty).",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-256",
+    "promise": "The frontend is a Next.js 16 static export with no Node server at runtime; SSR safety depends on the panel host rendering a loading placeholder until modules register client-side, since the dockview layout library is not SSR-safe.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-257",
+    "promise": "The app is dark-theme only, with no light-theme toggle; light theme is documented as deferred to a later release.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-258",
+    "promise": "The dockview panel-component registry does a flat merge of component ids across modules, so two modules that reuse the same component id will silently collide, with the later one winning and no guard against it.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-259",
+    "promise": "The default panel layout places Chart over Equity Overview on the left, Watchlist/News/Portfolio stacked on the right, and an AI Assistant column on the far right.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-260",
+    "promise": "18 first-party frontend modules are hard-listed in one central module registry file, and plugins bridge into that same registry rather than a second, separate one.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-261",
+    "promise": "The workspace blob persists layout, enabled modules, chart drawings, the default data provider, and the watchlist as one opaque JSON object that the sidecar never validates; adding a new field requires manually updating four separate call-sites in lockstep.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-262",
+    "promise": "Workspace restore is defensive: an unknown panel-component reference falls back to the default layout instead of throwing, the enabled-modules map rolls back if a restore throws partway through, and there are guards against React StrictMode/hot-reload double-invocation.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-263",
+    "promise": "Workspace autosave is debounced by 1.5 seconds, and a failed autosave is silently swallowed with no user-visible error.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-264",
+    "promise": "At this baseline, design token names are historical rather than literal (e.g. the amber-named tokens render a coral color, the charcoal-named tokens render an espresso color), a convention kept so that 80+ files can be reskinned by re-valuing the token file alone.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-265",
+    "promise": "Because the chart canvas library cannot read CSS custom properties, its color palette is hand-mirrored in a separate TypeScript file; a reskin that updates the CSS tokens but not that file causes the chart canvas to visually drift from the surrounding chrome -- three color values, including a forbidden cyan, had previously drifted this way undetected.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-266",
+    "promise": "The sidecar-connection status is computed in the frontend's app-level store but is not surfaced anywhere in the header UI.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-267",
+    "promise": "The default watchlist ships as 6 symbols (SPY, QQQ, BTC-USDT, ETH-USDT, NVDA, AAPL), which differs from a separately documented 7-symbol 'canonical visual protocol' used elsewhere for screenshots.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-268",
+    "promise": "Command-palette (Cmd+K) search is substring-match only, with no fuzzy matching, no result ranking, and no recent-items history.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-269",
+    "promise": "The Chart panel offers lightweight-charts candlesticks, an 8-step timeframe selector, a 50-indicator multi-select computed entirely server-side, 10 drawing tools with a serializable per-panel drawing store, a comparison overlay whose failures are silently swallowed, and three cross-chart synchronization slices (crosshair, range, symbol).",
+    "source": "docs/CURRENT_STATE.md \u00a73.9",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-270",
+    "promise": "Canvas-interactive chart gestures (drawing, panning, zooming) are gated by the charting library on browser-trusted input events, so automated tools that synthesize untrusted events cannot exercise or visually regression-test these features -- only the underlying data models and toolbar wiring can be tested that way.",
+    "source": "docs/CURRENT_STATE.md \u00a73.9",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-271",
+    "promise": "The Equity Overview panel fans out 6 parallel API calls and degrades gracefully if any subset of them fails.",
+    "source": "docs/CURRENT_STATE.md \u00a73.9",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-272",
+    "promise": "The Watchlist panel polls quotes every 5 seconds.",
+    "source": "docs/CURRENT_STATE.md \u00a73.9",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-273",
+    "promise": "The News panel auto-retries with exponential backoff, which self-heals through the sidecar's roughly 30-second cold-boot window.",
+    "source": "docs/CURRENT_STATE.md \u00a73.9",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-274",
+    "promise": "The Portfolio panel computes profit-and-loss entirely client-side, with documented handling for zero-cost-basis positions.",
+    "source": "docs/CURRENT_STATE.md \u00a73.9",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-275",
+    "promise": "The Screener panel sorts results client-side, pinning null values last.",
+    "source": "docs/CURRENT_STATE.md \u00a73.9",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-276",
+    "promise": "The Backtest panel offers a schema-driven parameter form, a streamed run result, and an 'Open in Strategy Critic' action that drops a ready-made command into the chat composer -- documented as an end-to-end-unverified use case.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-PD-277",
+    "promise": "The Node Editor uses a modern graph-editing library with drag-and-drop from a node palette to the canvas, unions built-in nodes with any plugin-contributed nodes, and keeps node configuration schemas host-side so the contract stays serializable.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-278",
+    "promise": "A second, separate workflow-state store exists with a desktop-notification-intent slice that has no code dispatching it -- it is effectively dead and unwired.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-279",
+    "promise": "The Agent Builder panel provides sidecar-backed CRUD for custom agents, with an enforced naming prefix for custom agent ids.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-280",
+    "promise": "The Chat sidebar is the most cross-cutting frontend surface, touching 6 or more stores; its default agent is the terminal-aware copilot, plain text input routes to that agent, a persona-chip roster is clickable, and a raw escape-hatch command bypasses agent routing entirely.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-281",
+    "promise": "The chat sidebar maps specific copilot tool calls to live UI mutations (setting the chart symbol, opening a panel, adding a watchlist entry), while a propose-order tool call only ever surfaces a review chip that opens the \u00a76.5 confirmation dialog rather than mutating anything directly.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-282",
+    "promise": "The BYOK key used for a given chat call is resolved from the invoked agent's own default provider setting, not the global UI default, and is read from the keychain on demand.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-283",
+    "promise": "A default-model-per-provider lookup hardcodes a single model choice for each LLM provider, which can drift out of date as providers release new models.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-284",
+    "promise": "The Integrations panel drives every broker/data connection through one shared connection dialog component, and Kite's OAuth flow runs in the sidecar rather than in the Rust core.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-285",
+    "promise": "13 first-party agents ship as JSON definitions, discovered at import time and validated against a versioned JSON schema, with the exact count of 13 hard-asserted by three separate automated tests.",
+    "source": "docs/CURRENT_STATE.md \u00a73.11",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-286",
+    "promise": "The 13 first-party agents are 12 named investor personas (Buffett, Graham, Lynch, Munger, Marks, Klarman, Dalio, Druckenmiller, Soros, Researcher, Portfolio Advisor, Strategy Critic) plus the terminal-aware copilot router.",
+    "source": "docs/CURRENT_STATE.md \u00a73.11",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-287",
+    "promise": "Each persona's system prompt is roughly 1.5 to 4 kilobytes, and only the copilot and researcher personas deviate from the default LLM provider used by the rest.",
+    "source": "docs/CURRENT_STATE.md \u00a73.11",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-288",
+    "promise": "Custom agents are created, read, updated, and deleted through a dedicated sidecar-backed store with an enforced id naming prefix.",
+    "source": "docs/CURRENT_STATE.md \u00a73.11",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-289",
+    "promise": "At this baseline, the custom-agent tool allow-list lists only 5 tool ids, while first-party agents legitimately use additional tools that a custom agent has no way to select; two of those additional tool ids also pass custom-agent validation despite not actually existing in the tool-schema catalog, so allow-listing them never resolves to a working tool -- a documented, unfixed inconsistency at this baseline.",
+    "source": "docs/CURRENT_STATE.md \u00a73.11",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-290",
+    "promise": "Three PyInstaller onefile binaries are built fresh from a clean checkout for every release, with no binary committed to the repository, at approximately 89MB, 49MB, and 81MB respectively for the main sidecar and the two MCP subprocess binaries.",
+    "source": "docs/CURRENT_STATE.md \u00a73.12",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-291",
+    "promise": "The build's PyInstaller bundle-inclusion flags are each tied to a real historical shipped-and-crashed regression, and the build-ensure scripts are staleness-aware, automatically rebuilding a binary that is older than its source.",
+    "source": "docs/CURRENT_STATE.md \u00a73.12",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-292",
+    "promise": "The full local CI-parity command mirrors the CI pipeline byte-for-byte (install, ensure sidecars are built, lint, format check, typecheck, Rust format, Rust lint, Python lint, frontend unit tests, Rust tests, Python tests), but it does not run the sidecar smoke test or a full Tauri build.",
+    "source": "docs/CURRENT_STATE.md \u00a73.12",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-293",
+    "promise": "A separate smoke-test script spawns each built sidecar binary, polls its health endpoint, TCP-probes the MCP bind, and tree-kills the process on exit -- catching a class of startup failure that the unit-test suite cannot see because it never runs the actual binary.",
+    "source": "docs/CURRENT_STATE.md \u00a73.12",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-294",
+    "promise": "Distribution is unsigned end-to-end (no code signing or notarization), the auto-updater produces no signed release artifacts, and no release/publish workflow exists -- CI only runs on push/PR and uploads short-lived build artifacts.",
+    "source": "docs/CURRENT_STATE.md \u00a73.12",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-295",
+    "promise": "Version strings across the app's package manifests and the sidecar's own version constant are stuck at 0.8.0 despite several subsequent phases having merged, and whether that is an intentional pre-release freeze or an oversight is documented as unverified.",
+    "source": "docs/CURRENT_STATE.md \u00a73.12",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-296",
+    "promise": "The copilot's agentic tool-use loop resolves the agent spec and provider/model, coerces conversation history to the last 10 turns, and loops on tool calls up to a hard cap of 6 rounds per invocation.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-297",
+    "promise": "Errors inside the tool-use loop never crash the response stream -- a structured 'tool not available' message is surfaced instead, and the model can recover and continue.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-298",
+    "promise": "A single provider-neutral tool-schema catalog is projected natively into three different LLM providers' tool-call formats, and every provider adapter must strip the internal tool-routing parameter before forwarding a request to that provider's SDK, or the call breaks.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-299",
+    "promise": "Adding a new agent tool requires three things to all be done together -- a registered handler, a tool-schema catalog entry, and inclusion in at least one agent's allow-list -- or the tool remains invisible to every model.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-300",
+    "promise": "The frontend captures a structured snapshot of terminal state (focused symbol, timeframe, indicators, watchlist, portfolio, open panels) and sends it with every agent call, surfaced to the model both as a system-prompt preamble and via two on-demand pull tools, with an explicit instruction that the model must call a tool rather than invent figures.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-301",
+    "promise": "Host-action tool calls (opening a panel, changing the chart symbol, adding a watchlist entry, proposing an order) return a synthetic success from the sidecar, while the actual UI mutation happens frontend-side in response to the streamed tool-call event rather than to that synthetic result.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-302",
+    "promise": "The propose-order tool never places an order -- it always returns an 'awaiting user review' result to trigger the \u00a76.5 confirmation dialog, and is deliberately not named with a place/submit-style prefix so the safety test suite's grep check does not need to special-case it.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-303",
+    "promise": "The terminal-aware copilot persona has the broadest tool allow-list of any agent, including every host-action tool.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-304",
+    "promise": "Provider/model resolution is a synchronous, stateless factory across the supported provider ids, and API keys are never held by an adapter between calls -- they are passed in on every call and read from the OS keychain on the frontend side.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-305",
+    "promise": "At this baseline, roughly 11 registered tool handlers (a full set of quant-pricing tools plus extended earnings/analyst/SEC tools and a macro-search tool) have no entry in the tool-schema catalog and are therefore unreachable through the LLM tool loop, even though they are callable directly over REST.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-306",
+    "promise": "The shipped default agent routes to a small local Ollama model that may not be installed on the user's machine; without a running Ollama daemon the default agent fails on its very first call unless the user overrides the provider, and this is also the agent doing the heaviest tool orchestration on the smallest model.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-307",
+    "promise": "At this baseline, Gemini's multi-round tool use is documented as likely broken, because the runtime omits the tool name field the Gemini API needs to pair a tool result back to its call, while single-text Gemini calls and the OpenAI-family/Anthropic adapters are unaffected.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-308",
+    "promise": "Live copilot answers are proven in automated tests only against a mocked LLM provider; a real answer requires a live BYOK key, and the different providers are documented with different confidence levels for actually working end-to-end (Anthropic/OpenAI/Groq higher, Gemini/Ollama lower).",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-309",
+    "promise": "None of the three local SQLite stores have a database-migration mechanism -- all three use a create-if-not-exists pattern, so adding a column to an existing installed database would not migrate existing rows.",
+    "source": "docs/CURRENT_STATE.md \u00a76",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-310",
+    "promise": "BYOK secrets never touch disk, localStorage, or cookies; the only frontend code path to a secret goes through the keychain wrapper via a Tauri command, and the app's provider-key store tracks only a presence state (configured/missing/unknown), never the secret value itself.",
+    "source": "docs/CURRENT_STATE.md \u00a76",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-311",
+    "promise": "BYOK is effectively usable only inside the Tauri desktop shell -- outside it, reading a secret always resolves to 'unknown' with no browser-storage fallback, by design.",
+    "source": "docs/CURRENT_STATE.md \u00a76",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-312",
+    "promise": "The persisted watchlist and default data-provider selection ride the workspace blob and survive an app relaunch.",
+    "source": "docs/CURRENT_STATE.md \u00a77",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-313",
+    "promise": "The visual reskin from an earlier phase builds successfully, but every panel's actual rendered appearance is documented as verified only by an operator's own eyeball, not by any automated check.",
+    "source": "docs/CURRENT_STATE.md \u00a77",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-314",
+    "promise": "The root cause of a subprocess startup deadlock affecting the two MCP-adjacent binaries is worked around at the process-supervisor level, but is documented as not actually fixed.",
+    "source": "docs/CURRENT_STATE.md \u00a77",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-315",
+    "promise": "Static type-checker debt, accessibility gaps, and known Linux dependency advisories are tracked as open, known technical debt in a separate blockers document.",
+    "source": "docs/CURRENT_STATE.md \u00a77",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-316",
+    "promise": "The stated redesign thesis is to keep the sidecar, the safety layer, the panels, the persistence model, the Kite read path, and the copilot tool loop; rebuild the shell into an agent-first experience; promote MCP from plumbing to an extension framework; and close the copilot's catalog/provider gaps that quietly cap what the agent can do today.",
+    "source": "docs/CURRENT_STATE.md \u00a78",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-PD-317",
+    "promise": "Every panel, data source, command, agent, node-editor block, and control-plane action that a third party adds to the terminal flows through the single, stable plugin contract.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#top",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-318",
+    "promise": "The v0.3.0 plugin contract defines six capabilities a plugin can contribute (data, panels, commands, agents, nodes, control plane), lifecycle hooks (initialize, shutdown, healthCheck), and negotiation flags making every capability optional.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#What ships in v0.3.0",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-319",
+    "promise": "The plugin runtime discovers, instantiates, supervises, and surfaces plugins through their full lifecycle.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#What ships in v0.3.0",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-320",
+    "promise": "A Plugin Manager UI shows each loaded plugin's state, health, metadata, and provides an enable/disable toggle.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#What ships in v0.3.0",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-321",
+    "promise": "Two reference plugins exercise the plugin contract end-to-end and serve as the recommended starting point for new plugin authors.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#What ships in v0.3.0",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-322",
+    "promise": "Plugins ship exclusively via bundled-import loading under plugins/<id>/ in the repo; filesystem-installed plugins, plugin signing, and an online marketplace are explicitly out of scope until v1.0 or later.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#What ships in v0.3.0",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-323",
+    "promise": "A plugin manifest's id and version must exactly match the exported plugin instance's id and version; the runtime asserts this at load time and refuses to start a plugin whose manifest disagrees with its instance.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#The manifest",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-324",
+    "promise": "The runtime calls a capability getter (e.g. getPanels) only when the matching capabilities flag is true; a plugin that sets a flag without implementing the matching getter transitions that plugin to an error state while its other declared capabilities continue to work.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Capability negotiation",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-325",
+    "promise": "The example reference plugin proves capability negotiation end-to-end: it sets exactly two capability flags, contributes one data source and one command, and the runtime never invokes the panel/agent/node getters on it.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Capability negotiation",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-326",
+    "promise": "Plugin lifecycle states are discovered, initializing, active, stopping, and stopped, with an error state reachable from any lifecycle hook throwing.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Lifecycle",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-327",
+    "promise": "The runtime polls each active plugin's health check every 30 seconds and retains the most recent 20 samples per plugin so the manager UI can display a health trend.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Lifecycle",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-328",
+    "promise": "Per-plugin configuration (the enabled flag, plugin-private settings, granted secret ids) is persisted by the sidecar rather than by browser storage, backed in production by a SQLite-stored sidecar endpoint.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Persistence",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-329",
+    "promise": "Tauri's WebView does not expose localStorage or sessionStorage to plugins, so any plugin-specific data beyond basic config must follow the same sidecar-persistence pattern rather than reaching for browser storage.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Persistence",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-330",
+    "promise": "Plugins needing Python dependencies compatible with the main sidecar's pinned versions add them directly to the sidecar's requirements and expose a service/router; plugins with incompatible pinned dependencies instead ship as their own separate PyInstaller onefile subprocess binary, spawned by the Tauri Rust core rather than by Python's subprocess.Popen (which deadlocks on Windows for FastAPI-based onefile binaries).",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Bundling",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-331",
+    "promise": "Vysted exposes its data and agent surface as MCP tools via a FastMCP application mounted at /mcp over the Streamable-HTTP transport, consumable by external MCP clients including Claude Desktop (via the mcp-remote bridge) and Claude Code (natively).",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#MCP plugins",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-332",
+    "promise": "Vysted's sidecar also acts as an MCP client, wrapping the official MCP Python SDK to connect to external MCP servers over stdio or Streamable-HTTP, with the openbb-mcp plugin as the reference consumer routing OpenBB's tool surface through that wrapper.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#MCP plugins",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-333",
+    "promise": "TypeScript-side plugin tests use vitest to cover capability negotiation, lifecycle transitions, and custom logic; Python-side plugin tests use pytest with monkeypatched providers; the sidecar test suite mocks every external network call, and plugin authors are expected to follow the same no-live-API-calls-in-tests rule.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Testing",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-334",
+    "promise": "By v0.6.5, four distinct plugin architectural patterns are documented and available for new authors to copy: an in-process data-source plugin, a sidecar-provider plugin, an MCP-subprocess plugin, and a trading-system wrapper plugin.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Plugin patterns",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-335",
+    "promise": "A trading-system wrapper plugin is observation-only (read-only) by default; any write capability would be added later only under formal \u00a76.5 safety-layer review.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Plugin patterns",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-336",
+    "promise": "A trading-bot wrapper plugin's read-only guarantee is enforced by three independent layers: no insert/update/delete/upsert-style methods on the provider's public surface (audit-tested by introspecting the class), no non-GET routes anywhere under its router prefix (audit-tested by walking the router's route table), and a control-plane-disabled capability flag so the runtime refuses to execute any command against it even if one existed.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Plugin patterns",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-337",
+    "promise": "A trading-bot wrapper plugin's credential flow mirrors the BYOK LLM pattern: the frontend reads the credential from the OS keychain at plugin initialization, passes it in a request header on every fetch over the loopback-only connection, and the sidecar never logs, echoes, or persists that credential beyond the current request's process memory.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Plugin patterns",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-338",
+    "promise": "Every trading-bot wrapper plugin must expose a connection-status enum with at least six distinct states (healthy, connecting, unauthenticated, bot-offline, an upstream-error state, and partial), render dedicated UI for each state, never crash the terminal on an outage, never enter a retry loop, and always surface a clear, actionable reason to the user.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Plugin patterns",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-PD-339",
+    "promise": "Plugins that contribute panels ship a sibling module exporting a panel-id-to-component map, which the host reads and merges into the synthesized module -- keeping the locked, serializable plugin contract itself free of any React types.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Plugin patterns",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-340",
+    "promise": "The documented plugin-contract roadmap, explicitly out of scope for v0.3.0, includes filesystem-installed plugins, signed plugins, an online plugin marketplace (v2.0+), agent/node-editor consumers for the plugin registries, and a future Tauri-spawned subprocess pattern to resolve a known OpenBB Windows hang.",
+    "source": "docs/PLUGIN_DEVELOPMENT.md#Roadmap",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-PD-341",
+    "promise": "Vysted speaks the Model Context Protocol on both sides: as a server exposing its own data and agent surface to external MCP clients, and as a client connecting to external MCP servers such as openbb-mcp-server.",
+    "source": "docs/MCP_INTEGRATION.md#top",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-342",
+    "promise": "An external MCP client can reach Vysted's MCP surface two ways -- a loopback HTTP endpoint on the running app, or a stdio entrypoint that spawns the sidecar binary directly -- and both expose the identical tool set.",
+    "source": "docs/MCP_INTEGRATION.md#Connecting an external MCP client",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-343",
+    "promise": "Once the sidecar is confirmed healthy, the Tauri core writes a small discovery file (with a documented per-OS path) containing the sidecar port, the MCP endpoint URL, and the protocol version, so an external client never has to scrape console log output to find the endpoint.",
+    "source": "docs/MCP_INTEGRATION.md#1. Loopback HTTP endpoint",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-344",
+    "promise": "If the app fails to boot or find a free port, no discovery file is written at all, so a stale discovery file can never point at a dead port.",
+    "source": "docs/MCP_INTEGRATION.md#1. Loopback HTTP endpoint",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-345",
+    "promise": "Vysted's MCP server binds to 127.0.0.1 only, inheriting the sidecar's broader no-remote-surface posture.",
+    "source": "docs/MCP_INTEGRATION.md#1. Loopback HTTP endpoint",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-346",
+    "promise": "The same sidecar binary doubles as a stdio MCP server when launched with a dedicated flag -- it then speaks JSON-RPC over stdin/stdout instead of binding a network port, and the normal port argument is ignored in that mode.",
+    "source": "docs/MCP_INTEGRATION.md#2. stdio entrypoint",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-347",
+    "promise": "In stdio mode, passing a data-directory argument lets the process resolve the same SQLite stores and saved workspaces the running desktop app uses, and the process disables its own stdin-EOF shutdown watchdog and suppresses its startup banner since stdout is reserved for JSON-RPC.",
+    "source": "docs/MCP_INTEGRATION.md#2. stdio entrypoint",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-PD-348",
+    "promise": "The data and analysis MCP tools are projected directly from the single internal capability catalog rather than being a hand-maintained duplicate; only the agent, workspace, and workflow tools are hand-written and MCP-only.",
+    "source": "docs/MCP_INTEGRATION.md#Tools exposed",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-PD-349",
+    "promise": "The catalog-projected MCP tool set covers price data, fundamentals, news, the screener, macro series and search, earnings (upcoming/history/estimates), analyst ratings (history/individual/price-target history), SEC filings (list/content/insider transactions), options pricing, Greeks, bond pricing, yield-curve values, and broker portfolio reads.",
+    "source": "docs/MCP_INTEGRATION.md#Tools exposed",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-350",
+    "promise": "Hand-written, MCP-only tools let an external client list first-party and custom agents, invoke an agent and get back its aggregated reply (collapsing a streamed response into one string), and list/fetch saved workspaces and list/run saved workflows.",
+    "source": "docs/MCP_INTEGRATION.md#Tools exposed",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-351",
+    "promise": "Because Claude Desktop's config file does not accept HTTP MCP servers directly, connecting it to Vysted requires the mcp-remote bridge package to translate between Claude Desktop's stdio expectation and Vysted's HTTP transport; once configured, Vysted's tools appear in Claude Desktop's slash-command picker.",
+    "source": "docs/MCP_INTEGRATION.md#Claude Desktop",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-PD-352",
+    "promise": "Claude Code supports HTTP MCP servers natively, so Vysted can be added with a single CLI command, after which its tools are addressable with a namespaced tool prefix inside a Claude Code session.",
+    "source": "docs/MCP_INTEGRATION.md#Claude Code",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-PD-353",
+    "promise": "The MCP connection can be verified without any MCP client at all, either via a raw JSON-RPC 'initialize' request over curl (expecting a 200 OK) or via a plain GET to a status endpoint that reports readiness, live tool count, the mount path, and the protocol version.",
+    "source": "docs/MCP_INTEGRATION.md#Testing the connection",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-PD-354",
+    "promise": "Vysted's MCP server has no authentication at all -- it relies entirely on its localhost-only bind, so by design any process on the same host can reach it; exposing it beyond localhost is documented as the user's own responsibility to secure via a reverse proxy.",
+    "source": "docs/MCP_INTEGRATION.md#Authentication",
+    "kind": "guarantee"
+  }
+]

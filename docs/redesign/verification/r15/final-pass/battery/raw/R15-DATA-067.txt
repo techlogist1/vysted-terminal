@@ -1,0 +1,11 @@
+# R15-DATA-067 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:19:29+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: US'  'http://127.0.0.1:52861/earnings/upcoming?days=60' | grep -oE '"fiscal_period":[^,}]*' | sort | uniq -c
+[exit 0] [4.05s]
+  10 "fiscal_period":null
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: US'  'http://127.0.0.1:52861/earnings/AAPL/estimates' | head -c 1500
+[exit 0] [0.48s]
+{"symbol":"AAPL","fiscal_period":null,"eps_estimate_mean":1.98236,"eps_estimate_median":null,"eps_estimate_high":2.07,"eps_estimate_low":1.93,"eps_estimate_stddev":null,"estimate_analyst_count":27,"revenue_estimate_mean":113624521680.0,"revenue_estimate_median":null,"revenue_estimate_high":117219700000.0,"revenue_estimate_low":112248100000.0,"revenue_analyst_count":27,"currency":"USD","revenue_currency":"USD","provider":"yfinance","as_of":"2026-10-03T11:49:34.122055Z"}
+[http 200 0.467586s]

@@ -1,0 +1,11 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  24.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_3611a31f4a2a4a68811acc39b2e11e1a", "name": "financial_statements", "input": {"period": "annual", "statement": "income", "symbol": "WIT"}}
+[  37.1s] heartbeat: {"kind": "heartbeat"}
+[  47.1s] heartbeat: {"kind": "heartbeat"}
+[  58.1s] done: {"kind": "done", "usage": {"input_tokens": 6656, "output_tokens": 50, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Based on the income statement for symbol WIT (Wipro), Wipro's total revenue in the latest fiscal year was ₹92,624 crore and its net income was ₹13,197 crore, both in Indian Rupees (INR).
+
+=== ok · 58.1s · events {'heartbeat': 4, 'tool_use': 1, 'delta': 49, 'done': 1} · usage in=6656 out=50 · est $0.00000 · llama3.1:8b

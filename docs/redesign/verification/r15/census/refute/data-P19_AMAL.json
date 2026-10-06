@@ -1,0 +1,47 @@
+[
+  {
+    "raw_id": "DAT-P19-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The core defect is real. With no header or with the default IN region, the bare ticker AMAL binds to BSE Amal Ltd even though /resolve returns two confidence-1.0 candidates with needs_disambiguation=false. The frontend sends only the global settings region (sidecar-client.ts:172-174), and getQuote/getFundamentals pass only the symbol (sidecar-client.ts:267, :294), so a panel cannot address NASDAQ:AMAL in an IN session. Two corrections. First, a region override does exist: every data route honours the X-Vysted-Region header through _RegionMiddleware and config.get_region (app.py:308-310, config.py:65-77), and with 'X-Vysted-Region: US' both /quotes/AMAL and /fundamentals/AMAL return correct Amalgamated data. What is missing is a per-instrument override, not any override at all. Second, the numbers are not unlabelled: /fundamentals names 'Amal Ltd' and Basic Materials in INR, and the equity panel renders fundamentals.name and quote.currency (EquityOverviewPanel.tsx:993-1002). The user sees another company's correct data under its own name. That is a silent wrong bind with no chooser (high), not the wrong-company-numbers-as-true mixing that DAT-P9-1 shows (critical).",
+    "evidence": "sidecar/routers/quotes.py:52-61, sidecar/routers/fundamentals.py:54-82, :88-112, sidecar/services/provider_registry.py:288-302, :448, :473, sidecar/services/symbol_resolver.py:424-445, sidecar/services/resolution_policy.py:26-35, sidecar/config.py:25-77, sidecar/app.py:308-310, sidecar/routers/resolve.py:55-110, src/lib/sidecar-client.ts:154-174, :267, :294, :306, src/modules/equity-overview/EquityOverviewPanel.tsx:839, :993-1002",
+    "evidence_checked": "Opened the routers, registry, resolver region_hint, resolution policy, region middleware/config, the frontend sidecar client and the equity panel header. Ran live repros against :52152 on 2026-09-23 ~01:35Z.",
+    "repro_check": "curl /quotes/AMAL (no header) -> 718.2 INR, provider bse. curl -H 'X-Vysted-Region: US' /quotes/AMAL -> 47.29 USD yfinance. curl -H 'X-Vysted-Region: US' /fundamentals/AMAL -> name 'Amalgamated Financial Corp.', mcap 1.414e9, pe 12.61, pb 1.69, 52w 51.59/25.13. curl /resolve?q=AMAL -> resolved BSE Amal Ltd, needs_disambiguation false, candidates BSE (1.0) and US (1.0)."
+  },
+  {
+    "raw_id": "DAT-P19-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "critical",
+    "reason": "The missing region guard is real, but the cited surface is the wrong one. The /disclosures REST routes have no frontend caller (grep of src/ finds none). The routes and their agent tools are documented India-only (disclosures.py:1, catalog.py:657, :688), and for them 'AMAL' can only mean the BSE listing. The concrete wrong-company leak sits in research. ownership_check.is_applicable decides by bare-ticker NSE/BSE master membership, not by the bound instrument's region (ownership_check.py:94-104), and is_applicable('AMAL') is True. For a US-bound AMAL, the /fundamentals symbol comes back as 'AMAL' with held_percent_insiders 0.386, so fast.py:343-355 fetches Amal Ltd's BSE shareholding. semantics.py:560-575 then surfaces 'Promoter group (exchange filing)' 71.35% as a fact for Amalgamated and raises a false ownership conflict. Wrong money-relevant data is shown as true, so critical holds. The fix belongs in the applicability gate (use the bound instrument's region or exchange), not only in the REST routes.",
+    "evidence": "sidecar/routers/disclosures.py:1-17, :44-114, sidecar/services/agent_tools/disclosure_tools.py:33-90, sidecar/services/agent_tools/catalog.py:656-698, sidecar/services/ownership_check.py:94-104, :119-155, sidecar/services/research/fast.py:340-356, :394, sidecar/services/research/semantics.py:535-592, :1091-1097",
+    "evidence_checked": "Opened the disclosures router, the disclosure agent tools and their catalog descriptions, ownership_check, the research FAST ownership fan-out and the semantics ownership leg. Grepped src/ for /disclosures callers and found none. Called is_applicable in-process. Ran live repros on :52152. The full research drive was not run; the path was confirmed from code plus the live inputs to each gate.",
+    "repro_check": "curl -H 'X-Vysted-Region: US' /disclosures/shareholding?symbol=AMAL -> promoter 71.35, source BSE, xbrl 506597. curl -H 'X-Vysted-Region: US' /fundamentals/AMAL -> symbol 'AMAL', held_percent_insiders 0.386. sidecar/.venv python: ownership_check.is_applicable('AMAL') -> True, so the research ownership leg would attach Amal Ltd's SHP to Amalgamated."
+  },
+  {
+    "raw_id": "DAT-P19-3",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The field is not unreachable. The app's US earnings surface serves it: /earnings/upcoming?watchlist=AMAL returns scheduled_date 2026-10-22 for 'Amalgamated Financial Corp.', which matches the pack's next_earnings_date, and /earnings/AMAL/history and /earnings/AMAL/estimates return real USD rows. /disclosures/results is documented as an NSE-only results calendar (disclosures.py:74-76) and has no frontend caller. Its message, that 'AMAL' is not a known NSE instrument, is literally true of NASDAQ:AMAL. The research consumer already wraps it as a soft, non-fatal miss (research/disclosures.py:185-203). The Indian listing's NSE gap is DAT-P9-2's finding, not this one.",
+    "evidence": "sidecar/routers/disclosures.py:74-92, sidecar/routers/earnings.py:47-130, sidecar/services/research/disclosures.py:185-203; outside truth https://stockanalysis.com/stocks/amal/statistics/ (pack latest_results.next_earnings_date 2026-10-22)",
+    "evidence_checked": "Opened the disclosures and earnings routers and the research results-calendar wrapper. Grepped src/ for /disclosures callers and found none. Ran live repros on :52152 on 2026-09-23 ~01:36Z.",
+    "repro_check": "curl /disclosures/results?symbol=AMAL -> 502 'not a known NSE instrument' (reproduced). curl -H 'X-Vysted-Region: US' '/earnings/upcoming?days=60&watchlist=AMAL' -> 200, AMAL 'Amalgamated Financial Corp.' scheduled_date 2026-10-22, USD."
+  },
+  {
+    "raw_id": "DAT-P19-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The gap is real. The Fundamentals model has dividend_per_share and dividend_yield with no declared, record, ex or pay date (models/fundamentals.py:73-74). No router or catalog tool serves splits, bonus, buyback or AGM corporate actions. The only record_date lane reads the NSE corporate-actions feed (dividend_actions.py:12-13), so for a US name no declared-dividend date exists anywhere. Correction: dividend_per_share_ttm is not structurally null. The research FAST path fills it from paid history with an honest paid, affirmed-zero or unavailable label (fast.py:206-230). It is null only on the plain /fundamentals REST response.",
+    "evidence": "sidecar/models/fundamentals.py:73-74, :106-111, sidecar/services/research/fast.py:206-230, sidecar/services/dividend_actions.py:12-13, :49-55, :110-130; grep of sidecar/routers/*.py and services/agent_tools/catalog.py for splits/corporate_action/buyback/bonus (no route or tool)",
+    "evidence_checked": "Opened the Fundamentals model, the FAST dividend TTM threading and dividend_actions, and grepped routers and the capability catalog. Code-only; no live corporate-action route exists to repro.",
+    "repro_check": "grep -n -i 'splits|corporate.action|buyback|bonus' sidecar/routers/*.py -> no route. grep of catalog.py -> only dividend_yield screener fields."
+  },
+  {
+    "raw_id": "DAT-P19-5",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "The finding holds as stated. The model carries only the scalars fifty_two_week_high, fifty_two_week_low and fifty_two_week_change, with no date for either leg (models/fundamentals.py:77-79). FieldMeta.as_of is documented as the provider's info fetch time. A live US-region fetch shows the 52w high, the 52w low and market_cap all stamped with the same fetch instant. The values themselves are correct (51.59 / 25.13), so low is the right severity.",
+    "evidence": "sidecar/models/fundamentals.py:77-79, FieldMeta docstring (as_of = the provider's info fetch time)",
+    "evidence_checked": "Opened the Fundamentals model and FieldMeta, grepped services and models for any 52w date field (none), and ran a live repro on :52152.",
+    "repro_check": "curl -H 'X-Vysted-Region: US' /fundamentals/AMAL -> field_meta.fifty_two_week_high.as_of == fifty_two_week_low.as_of == market_cap.as_of == '2026-09-23T01:36:52.351602+00:00'."
+  }
+]

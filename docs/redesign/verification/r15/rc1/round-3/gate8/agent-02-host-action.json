@@ -1,0 +1,12 @@
+{
+  "tool_call_id": "call_771354bb53844e8bb140a7746164f70b",
+  "name": "portfolio_add_position",
+  "input": {
+    "cost_basis": 480,
+    "note": "",
+    "purchased_at": "2026-09-26",
+    "quantity": 4,
+    "symbol": "MSFT",
+    "asset_class": "equity"
+  }
+}

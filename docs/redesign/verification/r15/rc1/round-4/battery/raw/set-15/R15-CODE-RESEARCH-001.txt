@@ -1,0 +1,34 @@
+109:def _clamp(value: Any, lo: int, hi: int, default: int) -> int:
+222:        max_wall_seconds=max(60, wall - cross_reserve),
+310:                budget=BudgetGuard(max_steps=6, max_wall_seconds=_CROSS_CHECK_RESERVE_SECS),
+450:    wall_seconds: Any = None,
+465:        wall_seconds: Wall-clock budget, clamped to ``[30, max(300, the
+487:    rounds_i = _clamp(rounds, 1, 5, profile.rounds)
+488:    wall = _clamp(wall_seconds, 30, max(300, profile.wall_seconds), profile.wall_seconds)
+101:    wall_seconds: int
+128:        wall_seconds=0,
+149:        wall_seconds=180,
+169:        wall_seconds=360,
+--- schema description in catalog for run_deep_brief wall_seconds ---
+151-#: advertise a ceiling below a profile's own wall (R15-CODE-RESEARCH-001).
+152-_RESEARCH_WALL_DESCRIPTION = (
+153:    f"30-{max(300, *(p.wall_seconds for p in PROFILES.values()))} seconds "
+154-    "(deep/heavy only). Omit it: each depth sets its own budget (deep "
+155:    f"{PROFILES[DEPTH_DEEP].wall_seconds}, heavy {PROFILES[DEPTH_ULTRA].wall_seconds})."
+156-)
+157-_MACRO_PROVIDERS = ["fred", "ecb", "imf", "world-bank"]
+--
+491-                        "description": "1-5 (deep/heavy only).",
+492-                    },
+493:                    "wall_seconds": {
+494-                        "type": "integer",
+495-                        "description": _RESEARCH_WALL_DESCRIPTION,
+--
+1856-    and per-invocation reads are in-memory, both exempt. ``research`` declares
+1857-    no budget here: the runtime computes its outer guard from the call's own
+1858:    ``wall_seconds``/depth args.
+1859-    """
+1860-    cap = CAPABILITY_CATALOG.get(tool_id)
+ultra profile wall_seconds 360
+deep profile wall_seconds 180
+_clamp(360, 30, max(300, PROFILES[DEPTH_ULTRA].wall_seconds), PROFILES[DEPTH_ULTRA].wall_seconds) = 360

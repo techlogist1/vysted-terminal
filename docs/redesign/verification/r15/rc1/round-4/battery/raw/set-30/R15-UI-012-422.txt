@@ -1,0 +1,1 @@
+{"detail":[{"type":"missing","loc":["body","prompt"],"msg":"Field required","input":{}}]}

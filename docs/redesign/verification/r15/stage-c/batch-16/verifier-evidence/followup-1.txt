@@ -1,0 +1,9 @@
+
+=== ASSISTANT TEXT ===
+The fundamentals tool returned no data for this in this session.
+
+{
+    "market_cap": 3440000000000
+}
+
+=== ok · 36.7s · events {'heartbeat': 3, 'delta': 15, 'done': 1} · usage in=7531 out=31 · est $0.00000 · llama3.1:8b

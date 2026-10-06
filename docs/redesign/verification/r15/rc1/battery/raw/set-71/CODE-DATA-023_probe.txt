@@ -1,0 +1,29 @@
+--- comments ---
+"""Full-market India screener universes from the bundled resolver masters (R10, D40).
+
+Resolves the three India universe ids the contracts commit added to
+``models/screener.py``:
+
+  - ``nse-all``   — every NSE master row (EQ + ETF + SM/NSE Emerge) as
+    ``SYMBOL.NS``.
+  - ``bse-all``   — BSE master rows with STATUS == "Active" as ``SYMBOL.BO``
+    (the liquidity ``group`` is retained in the per-symbol meta).
+  - ``india-all`` — the union, NSE listing preferred: a BSE row whose SYMBOL
+    "nifty50",
+    "crypto-top50",
+    "custom",
+    # R10 (D40): full-market India universes resolved from the bundled resolver
+    # masters — nse-all (EQ + ETF + SM/NSE Emerge rows), bse-all (Active
+    # scrips), india-all (union, NSE listing preferred on dual-listings).
+    "nse-all",
+    "bse-all",
+    "india-all",
+--- live counts ---
+Traceback (most recent call last):
+  File "<string>", line 5, in <module>
+    print(u, len(syms))
+             ~~~^^^^^^
+TypeError: object of type 'ScreenerUniverse' has no len()
+nse-all 3506
+bse-all 5042
+india-all 5891

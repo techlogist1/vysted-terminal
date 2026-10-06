@@ -1,0 +1,71 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_c445013c17b948a9a29c5a61f4af90cd", "name": "portfolio_update_position", "input": {"symbol": "WIPRO", "asset_class": "equity", "cost_basis": 170, "note": "", "position_id": "", "purchased_at": "", "quantity": -4}}
+{"kind": "tool_result", "tool_call_id": "call_c445013c17b948a9a29c5a61f4af90cd", "name": "portfolio_update_position", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " staged"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " update"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " proposal"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": " bar"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " accept"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " proceed"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " change"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " proposed"}
+{"kind": "delta", "text": " update"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " will"}
+{"kind": "delta", "text": " only"}
+{"kind": "delta", "text": " take"}
+{"kind": "delta", "text": " effect"}
+{"kind": "delta", "text": " after"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " questions"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " further"}
+{"kind": "delta", "text": " assistance"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " feel"}
+{"kind": "delta", "text": " free"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " ask"}
+{"kind": "delta", "text": "!"}
+{"kind": "research_step", "tool_call_id": "call_c445013c17b948a9a29c5a61f4af90cd", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_update_position WIPRO. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+{"kind": "done", "usage": {"input_tokens": 2957, "output_tokens": 62, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

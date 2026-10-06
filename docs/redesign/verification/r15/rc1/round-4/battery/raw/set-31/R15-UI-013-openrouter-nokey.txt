@@ -1,0 +1,2 @@
+curl -s --max-time 10 -X POST http://127.0.0.1:52352/llm/keys/validate -H 'Content-Type: application/json' -d '{"provider":"openrouter","api_key":""}'
+{"ok":false,"reason":"not_configured","detail":"No API key is set for OpenRouter."}EXIT:0

@@ -1,0 +1,68 @@
+CMD: read CURRENT_STATE.md near the write-surface description + count non-read_only capabilities in CAPABILITY_CATALOG
+10:> exit 0, 619 vitest, 942 pytest, §6.5 9/9) and **unproven on most
+17:## 0.x Trading removed (D81, 23 Sep 2026)
+21:> capability that no longer exists.** D81 (operator Tier-4 sign-off, 23 Sep 2026) removed trading from the product permanently: no broker
+78:>   — the write surface is the catalog's 19 host actions (`open_panel`/
+80:>   layout writers/`set_region`; no order action exists, D81) — none auto-apply
+89:>   were removed with trading (D81). MCP-as-framework for external
+100:>   broker reads that shipped here (FR-042/SC-012) were removed with trading (D81).
+111:> trading, D81.)
+129:  read/host-action tools, and the loop iterates up to 6 rounds. 13 first-party
+138:  was removed permanently (D81, 23 Sep 2026). See §0.x above. The prose below
+139:  the removal notice describes the broker layer as it existed before D81;
+144:  unaffected by D81 since it never placed an order through Vysted); the seven
+145:  broker plugins that used to exist in the tree are gone (D81), not merely
+161:there is no kill-switch shortcut any more, D81). The Next.js frontend is a
+226:deleted with trading (D81); no global-shortcut plugin is registered any more.
+311:| —                   | _(none — the broker and safety routes were removed, D81, 23 Sep 2026)_                     | No broker, order or kill-switch route exists     | see §0.x                                                                   |
+434:fixtures are gone outright, D81 — not merely unwired.)
+436:### 3.5 Broker layer — removed (D81, 23 Sep 2026)
+443:### 3.6 Safety architecture — now the agent-write model (D81, 23 Sep 2026)
+448:remains — the proposed-changes trust gate over the 19 surviving host actions
+582:host-actions.ts` — 19 host actions total), staged through the diff/accept
+586:  no order kind any more (D81). BYOK key resolved from the **agent's**
+591:  integration any more (D81); the surviving entries are data/agent plugins.
+610:gone — D81). Worse, `news`/`macro` pass custom validation but **are not keys
+682:host-actions.ts` — 19 host actions total) are per-invocation closures that
+690:any more — no broker connection exists to place one against (D81).
+704:`propose_order` tool exists any more (D81):
+717:| `open_panel` / `set_chart_symbol` / `add_to_watchlist` / the tracked-portfolio, note, screen and layout writers / `set_region`                                                                                                 | host actions (19 total)                                              | yes (runtime-resolved)                                      |
+745:removed permanently with trading (D81, 23 Sep 2026) — see §0.x and
+751:   JSDoc examples are BLOCKED-FOR-OPERATOR, not reopened by D81.
+---
+count: 19
+['add_chart_drawing', 'add_to_watchlist', 'arrange_layout', 'close_panel', 'focus_panel', 'open_company_overview', 'open_panel', 'portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position', 'publish_brief', 'remove_from_watchlist', 'save_layout', 'save_screen', 'set_chart_indicators', 'set_chart_symbol', 'set_region', 'write_note', 'write_screener_filters']
+CMD: read CURRENT_STATE.md lines 70-95 (write-surface + gate claim)
+> The user-facing redesign (P1/P2/P3) has now landed on the branch (not `main`).
+> Full per-FR/SC accounting + gate results: **`docs/redesign/P1_P3_BUILD_REPORT.md`**.
+> Deltas that supersede the baseline below:
+>
+> - **P1 — agent-centric experience (US1–US4).** A four-mode agent spine
+>   (Ask / Edit-panel / Build / Delegate, ⌥1–4) with the agent as a co-equal
+>   primary surface alongside the hand-driven cockpit. **Every agent-proposed
+>   mutation routes through a diff/accept trust gate** (`src/store/proposed-changes.ts`)
+>   — the write surface is the catalog's 19 host actions (`open_panel`/
+>   `set_chart_symbol`/`add_to_watchlist`/the tracked-portfolio, note, screen and
+>   layout writers/`set_region`; no order action exists, D81) — none auto-apply
+>   under ASK autonomy (SC-003). Offer-both onboarding preserves the keyboard
+>   cockpit.
+> - **P2 — framework + visual + marketplace (US5–US7, US10).** Minimal-dark
+>   "cold-instrument" shell (re-valued tokens; `chart-theme.ts` mirrors them),
+>   teaching command palette + status chrome (FR-033). The **plugin marketplace
+>   is the primary extensibility model**: data, panels, agents are all
+>   install/enable/configure/remove entries (`src/lib/marketplace.ts`). First-party
+>   pre-installed (yfinance + news keyless); the broker entries that shipped here
+>   were removed with trading (D81). MCP-as-framework for external
+>   tools (FR-025; static-import compiled-in plugins are governed here, genuinely-
+>   external load is the stdio-MCP path).
+> - **P3 — data + durable agents (US8/US9, FR-033–042).** The **provider-shaped
+>   data registry** (`provider_registry.py`) resolves by standard model key +
+>   preference order (not the asset-class chain); every result carries its serving
+>   provider as provenance (FR-035/040). A **BYOK credentials hub** is the
+---proposed-changes.ts auto-accept logic---
+ugrep: warning: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/lib/proposed-changes.ts: No such file or directory
+
+Doc line at ~78-80: "none auto-apply under ASK autonomy (SC-003)" -- correctly SCOPED to ASK
+(the original defect claimed "every mutation waits in the diff/accept gate" unconditionally
+while AUTO auto-applies non-order kinds). Catalog count matches doc's stated "19 host actions"
+exactly (list printed above). Doc no longer claims 4 write-capable tools.

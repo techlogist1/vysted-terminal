@@ -1,0 +1,11 @@
+No API/GUI-reachable repro (frontend Zustand store logic, no HTTP surface).
+Static source check of candidate src/store/llm-providers.ts:92-105 promoteKeyedProvider:
+  - returns false if id === current default, or current default requiresKey !== false (keyed default never displaced)
+  - probes readiness of current default via probeReadiness(); if ready (readiness.ok) returns false (never displaces a working local lane)
+  - else promotes: set({ defaultProviderId: id }); return true
+This exactly matches the certified fix shape and batch-8 VERDICTS.md behavior
+("Default ollama with unpulled gemma3:4b: saving OpenRouter key promoted it (true)";
+ "Default ollama with working llama3.1:8b: false, default stayed ollama").
+Pinned test: src/store/llm-providers.test.ts describe("promoteKeyedProvider (R15-UI-049)") — 3 cases,
+not rerun here (vitest suites owned by the heavy lane per task rules).
+VERDICT: ci_pinned (src/store/llm-providers.test.ts)

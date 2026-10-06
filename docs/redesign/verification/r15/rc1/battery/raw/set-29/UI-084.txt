@@ -1,0 +1,1 @@
+=== UI-084: agent dock max width cap ===

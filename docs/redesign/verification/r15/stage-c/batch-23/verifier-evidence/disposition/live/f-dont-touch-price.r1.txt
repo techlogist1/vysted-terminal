@@ -1,0 +1,14 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_0484089bcf4f4f4eaec4a6534b0bd473", "name": "price_data", "input": {"symbol": "INFY.NS"}}
+[  38.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_0484089bcf4f4f4eaec4a6534b0bd473", "name": "price_data", "ok": true, "error": null}
+[  48.1s] heartbeat: {"kind": "heartbeat"}
+[  58.1s] heartbeat: {"kind": "heartbeat"}
+[  68.1s] heartbeat: {"kind": "heartbeat"}
+[  69.2s] done: {"kind": "done", "usage": {"input_tokens": 6994, "output_tokens": 15, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+INFY.NS's current price is ₹1000.2.
+
+=== ok · 69.2s · events {'heartbeat': 6, 'tool_use': 1, 'tool_result': 1, 'delta': 14, 'done': 1} · usage in=6994 out=15 · est $0.00000 · llama3.1:8b

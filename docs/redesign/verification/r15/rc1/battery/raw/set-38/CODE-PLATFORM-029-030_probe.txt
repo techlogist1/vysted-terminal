@@ -1,0 +1,27 @@
+Traceback (most recent call last):
+  File "<string>", line 100, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "<string>", line 96, in main
+    req3 = BacktestRequest(strategyId='zz_b3', symbols=['ZZTEST'], startDate='2026-01-01', endDate='2026-01-03', initialCapital=100000.0, feeModel=BacktestFeeModel(commission_bps=0, slippage_bps=0))
+                                                                                                                                                   ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/.venv/lib/python3.13/site-packages/pydantic/main.py", line 263, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+pydantic_core._pydantic_core.ValidationError: 1 validation error for BacktestFeeModel
+commission_bps
+  Extra inputs are not permitted [type=extra_forbidden, input_value=0, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+CODE-PLATFORM-029 totalReturn: -4e-05
+CODE-PLATFORM-029 trades: 1
+CODE-PLATFORM-029 final equity: timestamp='2026-01-04T00:00:00Z' equity=99996.0 drawdown_pct=-4e-05
+CODE-PLATFORM-030 totalReturn: -2e-05
+CODE-PLATFORM-030 trades: [('buy', 10.0, -2.0)]

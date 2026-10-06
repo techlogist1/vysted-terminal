@@ -1,0 +1,16 @@
+# R15-DATA-050 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:05:42+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in JONJUA DAL ELCIDIN CHTR; do echo -n "$s results: "; curl -s -m 100 -H "X-Vysted-Region: IN" -w ' HTTP=%{http_code}\n' "$H/disclosures/results?symbol=$s" -o /tmp/fb2r.json; python3 -c "
+import json;d=json.load(open('/tmp/fb2r.json'));e=d.get('events') or d.get('items') or d.get('results') or []
+print(' count',len(e),'sources',d.get('sources'),'coverage',d.get('coverage'),'first',{k:e[0].get(k) for k in ('date','purpose','title') if e and e[0].get(k)})"; done
+--- output ---
+JONJUA results:  HTTP=200
+ count 10 sources ['BSE'] coverage covered first {'date': '2026-09-07', 'purpose': 'General'}
+DAL results:  HTTP=200
+ count 10 sources ['BSE'] coverage covered first {'date': '2026-08-12', 'purpose': 'General'}
+ELCIDIN results:  HTTP=200
+ count 10 sources ['NSE', 'BSE'] coverage covered first {'date': '2026-08-13', 'purpose': 'Results'}
+CHTR results:  HTTP=200
+ count 4 sources ['BSE'] coverage covered first {'date': '2026-05-29', 'purpose': 'General'}
+
+EXIT=0 (1.8s)

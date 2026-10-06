@@ -1,0 +1,594 @@
+{
+ "catalog": [
+  {
+   "id": "price_data",
+   "domain": "quotes",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "resolve_symbol",
+   "domain": "quotes",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "compare_symbols",
+   "domain": "quotes",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "fundamentals",
+   "domain": "fundamentals",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "financial_statements",
+   "domain": "fundamentals",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "news",
+   "domain": "news",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "market_overview",
+   "domain": "news",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "web_search",
+   "domain": "research",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "research",
+   "domain": "research",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "screener_run",
+   "domain": "screener",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "macro_series",
+   "domain": "macro",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "macro_search",
+   "domain": "macro",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "earnings_upcoming",
+   "domain": "earnings",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "earnings_history",
+   "domain": "earnings",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "earnings_estimates",
+   "domain": "earnings",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "analyst_history",
+   "domain": "analyst",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "analyst_individual",
+   "domain": "analyst",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "price_target_history",
+   "domain": "analyst",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "sec_filings_list",
+   "domain": "filings",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "sec_filing_content",
+   "domain": "filings",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "sec_insider_transactions",
+   "domain": "filings",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "corporate_announcements",
+   "domain": "filings",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "shareholding_pattern",
+   "domain": "filings",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "corporate_actions",
+   "domain": "filings",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "exchange_deals",
+   "domain": "filings",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "earnings_call_transcript",
+   "domain": "earnings",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "price_option",
+   "domain": "quant",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "compute_greeks",
+   "domain": "quant",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "price_bond",
+   "domain": "quant",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "yield_curve_value",
+   "domain": "quant",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "option_chain",
+   "domain": "quant",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "backtest_summary",
+   "domain": "workflows",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "run_custom_backtest",
+   "domain": "workflows",
+   "read_only": true,
+   "kind": "read_handler"
+  },
+  {
+   "id": "get_terminal_state",
+   "domain": "terminal",
+   "read_only": true,
+   "kind": "per_invocation"
+  },
+  {
+   "id": "get_portfolio",
+   "domain": "portfolio",
+   "read_only": true,
+   "kind": "per_invocation"
+  },
+  {
+   "id": "read_notes",
+   "domain": "workspace",
+   "read_only": true,
+   "kind": "per_invocation"
+  },
+  {
+   "id": "ask_user",
+   "domain": "agents",
+   "read_only": true,
+   "kind": "per_invocation"
+  },
+  {
+   "id": "open_panel",
+   "domain": "terminal",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "set_chart_symbol",
+   "domain": "charts",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "open_company_overview",
+   "domain": "terminal",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "set_chart_indicators",
+   "domain": "indicators",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "add_chart_drawing",
+   "domain": "charts",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "add_to_watchlist",
+   "domain": "portfolio",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "close_panel",
+   "domain": "terminal",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "focus_panel",
+   "domain": "terminal",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "arrange_layout",
+   "domain": "terminal",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "publish_brief",
+   "domain": "research",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "write_screener_filters",
+   "domain": "screener",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "portfolio_add_position",
+   "domain": "portfolio",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "portfolio_update_position",
+   "domain": "portfolio",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "portfolio_delete_position",
+   "domain": "portfolio",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "write_note",
+   "domain": "workspace",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "remove_from_watchlist",
+   "domain": "portfolio",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "save_layout",
+   "domain": "workspace",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "save_screen",
+   "domain": "screener",
+   "read_only": false,
+   "kind": "host_action"
+  },
+  {
+   "id": "set_region",
+   "domain": "terminal",
+   "read_only": false,
+   "kind": "host_action"
+  }
+ ],
+ "mcp": [
+  {
+   "name": "price_data",
+   "readOnlyHint": true
+  },
+  {
+   "name": "resolve_symbol",
+   "readOnlyHint": true
+  },
+  {
+   "name": "compare_symbols",
+   "readOnlyHint": true
+  },
+  {
+   "name": "fundamentals",
+   "readOnlyHint": true
+  },
+  {
+   "name": "financial_statements",
+   "readOnlyHint": true
+  },
+  {
+   "name": "news",
+   "readOnlyHint": true
+  },
+  {
+   "name": "market_overview",
+   "readOnlyHint": true
+  },
+  {
+   "name": "web_search",
+   "readOnlyHint": true
+  },
+  {
+   "name": "research",
+   "readOnlyHint": true
+  },
+  {
+   "name": "screener_run",
+   "readOnlyHint": true
+  },
+  {
+   "name": "macro_series",
+   "readOnlyHint": true
+  },
+  {
+   "name": "macro_search",
+   "readOnlyHint": true
+  },
+  {
+   "name": "earnings_upcoming",
+   "readOnlyHint": true
+  },
+  {
+   "name": "earnings_history",
+   "readOnlyHint": true
+  },
+  {
+   "name": "earnings_estimates",
+   "readOnlyHint": true
+  },
+  {
+   "name": "analyst_history",
+   "readOnlyHint": true
+  },
+  {
+   "name": "analyst_individual",
+   "readOnlyHint": true
+  },
+  {
+   "name": "price_target_history",
+   "readOnlyHint": true
+  },
+  {
+   "name": "sec_filings_list",
+   "readOnlyHint": true
+  },
+  {
+   "name": "sec_filing_content",
+   "readOnlyHint": true
+  },
+  {
+   "name": "sec_insider_transactions",
+   "readOnlyHint": true
+  },
+  {
+   "name": "corporate_announcements",
+   "readOnlyHint": true
+  },
+  {
+   "name": "shareholding_pattern",
+   "readOnlyHint": true
+  },
+  {
+   "name": "corporate_actions",
+   "readOnlyHint": true
+  },
+  {
+   "name": "exchange_deals",
+   "readOnlyHint": true
+  },
+  {
+   "name": "earnings_call_transcript",
+   "readOnlyHint": true
+  },
+  {
+   "name": "price_option",
+   "readOnlyHint": true
+  },
+  {
+   "name": "compute_greeks",
+   "readOnlyHint": true
+  },
+  {
+   "name": "price_bond",
+   "readOnlyHint": true
+  },
+  {
+   "name": "yield_curve_value",
+   "readOnlyHint": true
+  },
+  {
+   "name": "option_chain",
+   "readOnlyHint": true
+  },
+  {
+   "name": "run_custom_backtest",
+   "readOnlyHint": true
+  },
+  {
+   "name": "list_agents",
+   "readOnlyHint": null
+  },
+  {
+   "name": "invoke_agent",
+   "readOnlyHint": null
+  },
+  {
+   "name": "list_workspaces",
+   "readOnlyHint": null
+  },
+  {
+   "name": "get_workspace",
+   "readOnlyHint": null
+  },
+  {
+   "name": "run_workflow",
+   "readOnlyHint": null
+  },
+  {
+   "name": "list_workflows",
+   "readOnlyHint": null
+  },
+  {
+   "name": "save_workflow",
+   "readOnlyHint": null
+  },
+  {
+   "name": "list_runs",
+   "readOnlyHint": null
+  }
+ ],
+ "internal_tool_ids": [
+  "price_data",
+  "resolve_symbol",
+  "compare_symbols",
+  "fundamentals",
+  "financial_statements",
+  "news",
+  "market_overview",
+  "web_search",
+  "research",
+  "screener_run",
+  "macro_series",
+  "macro_search",
+  "earnings_upcoming",
+  "earnings_history",
+  "earnings_estimates",
+  "analyst_history",
+  "analyst_individual",
+  "price_target_history",
+  "sec_filings_list",
+  "sec_filing_content",
+  "sec_insider_transactions",
+  "corporate_announcements",
+  "shareholding_pattern",
+  "corporate_actions",
+  "exchange_deals",
+  "earnings_call_transcript",
+  "price_option",
+  "compute_greeks",
+  "price_bond",
+  "yield_curve_value",
+  "option_chain",
+  "backtest_summary",
+  "run_custom_backtest",
+  "get_terminal_state",
+  "get_portfolio",
+  "read_notes",
+  "ask_user",
+  "open_panel",
+  "set_chart_symbol",
+  "open_company_overview",
+  "set_chart_indicators",
+  "add_chart_drawing",
+  "add_to_watchlist",
+  "close_panel",
+  "focus_panel",
+  "arrange_layout",
+  "publish_brief",
+  "write_screener_filters",
+  "portfolio_add_position",
+  "portfolio_update_position",
+  "portfolio_delete_position",
+  "write_note",
+  "remove_from_watchlist",
+  "save_layout",
+  "save_screen",
+  "set_region"
+ ],
+ "mcp_tool_ids_catalog": [
+  "price_data",
+  "resolve_symbol",
+  "compare_symbols",
+  "fundamentals",
+  "financial_statements",
+  "news",
+  "market_overview",
+  "web_search",
+  "research",
+  "screener_run",
+  "macro_series",
+  "macro_search",
+  "earnings_upcoming",
+  "earnings_history",
+  "earnings_estimates",
+  "analyst_history",
+  "analyst_individual",
+  "price_target_history",
+  "sec_filings_list",
+  "sec_filing_content",
+  "sec_insider_transactions",
+  "corporate_announcements",
+  "shareholding_pattern",
+  "corporate_actions",
+  "exchange_deals",
+  "earnings_call_transcript",
+  "price_option",
+  "compute_greeks",
+  "price_bond",
+  "yield_curve_value",
+  "option_chain",
+  "run_custom_backtest"
+ ]
+}

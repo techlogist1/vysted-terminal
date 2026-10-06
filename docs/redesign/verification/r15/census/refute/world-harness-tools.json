@@ -1,0 +1,38 @@
+[
+  {
+    "raw_id": "WLD-harness-tools-1",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds as stated. _grant_first_party_hands unions the full default_grant projection (every internal capability) into every first-party spec, so copilot/researcher/buffett each carry 50 tools serialised at ~8.8k tokens (chars/4) every round; the only subsetting is the read-intent strip, and no adapter defers or trims tools (no defer_loading/tool-search anywhere in services/). Against the Ollama default num_ctx 16384 that is over half the local window before prompt, history or results. Impact on selection accuracy is inferred from published thresholds, not measured here, but the budget cost is concrete.",
+    "evidence": "sidecar/services/agent_runtime.py:189-216, sidecar/services/agent_tools/catalog.py:1531-1540, sidecar/services/agent_runtime.py:1280-1305, sidecar/services/llm/ollama.py:47, sidecar/services/llm/ollama.py:133-150",
+    "evidence_checked": "Opened the grant, default_grant, read-intent gate and Ollama num_ctx/tool-build code at HEAD f763a44; re-ran the in-process count; grepped services/ for defer_loading|tool_search|max_tools (no hits). World threshold quotes (OpenAI/Anthropic docs) not re-fetched.",
+    "repro_check": "sidecar/.venv/bin/python -c 'ar.get_agent(a).tools; len(json.dumps(openai_tools(tools)))//4' -> copilot 50 tools/8806 tok (+2741 prompt), researcher 50/8806, buffett 50/8806; classify_intent(\"what is the pe of reliance?\") -> read (37-tool path)."
+  },
+  {
+    "raw_id": "WLD-harness-tools-2",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds. There is no agent scenario runner, grader or pass^k anywhere in scripts/ or sidecar/tests (scripts/r15/collect_battery.py is a data-route battery, not an agent eval; ci-local runs only unit suites). The Anthropic fixture feeds a pre-filled input on content_block_start while the adapter reads input only from that event, so the real-protocol {} args bug passes CI exactly as described.",
+    "evidence": "sidecar/tests/test_research_fast.py:3, sidecar/tests/test_llm_anthropic.py:159-176, sidecar/services/llm/anthropic.py:224-231, scripts/r15/collect_battery.py:1-15, package.json:20",
+    "evidence_checked": "Opened the cited test header, Anthropic fixture and adapter event mapping; find for *eval*/*golden*/*scenario* outside venvs (only verification docs); grep for pass^k/grader/rubric in scripts/sidecar/tests/src (none); read ci-local script.",
+    "repro_check": "find . -iname '*eval*' -o -iname '*scenario*' (excluding venvs/node_modules) -> only docs/redesign/verification artifacts; prior probe scratch wld-tools/anth_stream_probe.py present, not re-run."
+  },
+  {
+    "raw_id": "WLD-harness-tools-3",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Every link in the chain verified: cost_basis is required but the description never says to ask; the host-action handler returns ok/awaiting_user_review/dispatched without validating args; positionBody coerces a non-number cost_basis to 0; the sidecar PositionInput accepts cost_basis ge=0 so a zero basis persists; the review-card title drops the cost when falsy; auto-apply excludes only kind 'order', so data-write lands unreviewed under AUTO. The three recorded local-lane runs show null / invented 1000 / 0. Kept at high rather than critical because under the default ask autonomy a human accept is still required, but the card hides the missing price.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:1308-1334, sidecar/services/agent_runtime.py:1190-1220, src/lib/host-actions.ts:762-775, src/lib/host-actions.ts:1262-1266, src/lib/host-actions.ts:1332-1352, src/store/proposed-changes.ts:118, sidecar/models/portfolio.py:36-39, /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/wld-tools/cost-basis-run{1,2,3}.jsonl",
+    "evidence_checked": "Opened every cited file:line at HEAD f763a44 plus sidecar/models/portfolio.py PositionInput (cost_basis Field ge=0 allows 0); grepped the three recorded event logs for the portfolio_add_position inputs. Did not re-drive the LLM (logs already exist, $0 lane).",
+    "repro_check": "grep '\"cost_basis\"' wld-tools/cost-basis-run{1,2,3}.jsonl -> null (symbol SUMAX.NS), 1000 (symbol 'Sumax Enterprises'), 0 (symbol 'Sumax Enterprises'); matches the finding."
+  },
+  {
+    "raw_id": "WLD-harness-tools-4",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Code side holds: the Gemini stream loop reads only function_call name/id/args, LLMToolUseEvent has no slot for a signature, the runtime metadata carries only id/name/input, and _split_system_and_contents rebuilds function_call parts from name+args, so thought_signature (present on types.Part in google-genai 2.5.0) is always dropped; list_models exposes every generateContent model so Gemini 3 is selectable. Google's docs (fetched copies) state signatures are required for function calling on Gemini 3. Not live-tested (no Gemini key), so the Gemini-3 hard failure is documented, not observed; on the 2.5 default it is a continuity degradation.",
+    "evidence": "sidecar/services/llm/gemini.py:67-83, sidecar/services/llm/gemini.py:145-163, sidecar/services/llm/gemini.py:205-228, sidecar/models/llm.py:146-152, sidecar/services/agent_runtime.py:1530-1540, https://ai.google.dev/gemini-api/docs/generate-content/thinking.md.txt (line 645), https://ai.google.dev/gemini-api/docs/gemini-3.md.txt (line 226)",
+    "evidence_checked": "Opened the adapter, event model and runtime reconstruction; grep 'thought' in gemini.py (no hits); checked google-genai version and Part.model_fields in the sidecar venv; verified the quoted doc lines in the scratch copies wld-tools/g_generate-content_thinking.md:644-645 and g_gemini-3.md:226. No live Gemini call.",
+    "repro_check": "sidecar/.venv/bin/python -c \"from google.genai import types; 'thought_signature' in types.Part.model_fields\" -> 2.5.0 True; live 2-round Gemini 3 invoke NOT RUN (no key, < $0.01 if funded)."
+  }
+]

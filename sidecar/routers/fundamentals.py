@@ -8,15 +8,18 @@ awaits the resulting coroutine.
 Phase 6 (Teammate E) extends the surface with three additional ratings
 endpoints — history / price-target-history / individual — backed by
 :mod:`services.analyst_ratings_extended` and routed through the shared
-:mod:`services.data_cache` (TTL 6h).
+:mod:`services.data_cache` (TTL 6h). The statement and aggregate-rating
+routes ride the same cache, keyed on the resolved listing (R15-DATA-096).
 """
 
 from __future__ import annotations
 
-import logging
+from datetime import UTC, datetime
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header
 
+from config import get_region
 from models.analyst_extended import (
     IndividualAnalystResponse,
     PriceTargetHistoryResponse,
@@ -26,47 +29,220 @@ from models.fundamentals import (
     AnalystRating,
     BalanceSheet,
     CashFlowStatement,
+    CompanyNarrative,
+    FieldMeta,
     Fundamentals,
     IncomeStatement,
 )
-from services import analyst_ratings_extended, data_cache, provider_registry
+from routers._cached import cached as _cached
+from services import (
+    analyst_ratings_extended,
+    company_narrative,
+    correctness_gate,
+    exchange_financials,
+    identity_crosscheck,
+    provider_registry,
+    resolution_policy,
+    symbol_resolver,
+)
 from services.errors import ProviderError
-
-logger = logging.getLogger(__name__)
+from services.yfinance_provider import _yahoo_symbol
 
 router = APIRouter(prefix="/fundamentals", tags=["fundamentals"])
 
 _TTL_RATINGS = 6 * 60 * 60  # 6 hours
 
 
+def _listing_key(symbol: str, what: str) -> str:
+    """A cache key on the listing the symbol resolves to in the active region."""
+    return f"fundamentals:{_yahoo_symbol(symbol.strip().upper())}:{what}"
+
+
+async def _identity_note(symbol: str, fundamentals: Fundamentals) -> str | None:
+    """R13 ledger #8 (bounded, additive): flag a resolver/provider identity
+    disagreement on the plain REST surface.
+
+    Today the SAME cross-check (:mod:`services.identity_crosscheck`, D67) only
+    rides research briefs — ``/resolve`` can say "CDG Petchem Ltd" (the
+    bundled master's canonical name) while ``/fundamentals`` says "Jujhar
+    Logistics Limited" (the provider's, post-rename) with nothing reconciling
+    them for a caller that only hits this endpoint. Resolves ``symbol`` via
+    the SAME policy ``/resolve`` uses (:mod:`services.symbol_resolver` +
+    :mod:`services.resolution_policy` — called, never reimplemented) and
+    defers to :func:`identity_crosscheck.identity_conflict` for the
+    similarity judgement + note text. Returns ``None`` (never raises) when
+    the provider carried no name, the symbol did not bind, or the names
+    agree — an identity cross-check must never break the endpoint it rides.
+    """
+    if not fundamentals.name:
+        return None
+    try:
+        resolution = await symbol_resolver.resolve_async(symbol, get_region())
+    except Exception:  # noqa: BLE001 — a resolver failure must not break /fundamentals
+        return None
+    decision = resolution_policy.decide(resolution)
+    if decision.outcome != "bound" or decision.instrument is None:
+        return None
+    conflict = identity_crosscheck.identity_conflict(
+        canonical_name=decision.instrument.name,
+        provider_name=fundamentals.name,
+        provider=fundamentals.provider,
+        symbol=symbol,
+    )
+    return conflict["note"] if conflict else None
+
+
 @router.get("/{symbol}")
 async def get_fundamentals(symbol: str) -> Fundamentals:
-    """Return valuation ratios and a company profile for ``symbol``."""
-    return await provider_registry.get_fundamentals(symbol)
+    """Return valuation ratios and a company profile for ``symbol``.
+
+    A provider failure is mapped by the app's one ``ProviderError`` handler
+    (429 throttled, 404 no such instrument, 503 unreachable, else 502).
+
+    R13 ledger #8 (bounded): the response additively carries ``identity_note``
+    (:func:`_identity_note`) when the resolver's canonical name and this
+    provider's company name materially disagree — e.g. an exchange rename the
+    provider has not caught up with. ``None`` when they agree; never a swap.
+
+    R15: the served values then pass the network witnesses
+    (:func:`correctness_gate.apply_witnesses`) — an Indian listing's ownership
+    fractions are reconciled against the exchange shareholding filing and flagged
+    (never replaced) where they disagree. ``basis`` is the company's filed
+    accounting basis (R15-DATA-054), ``None`` when no filing says.
+    An Indian listing no provider covers is built from its exchange filings
+    (R15-FINAL-005).
+    """
+    try:
+        fundamentals = await provider_registry.get_fundamentals(symbol)
+    except ProviderError as exc:
+        # An NSE Emerge (SME) name no provider covers: built from the exchange
+        # filings here, never on the registry's crawler path (R15-FINAL-005).
+        fundamentals = await provider_registry.get_fundamentals_from_filings(symbol, exc)
+    fundamentals = await correctness_gate.apply_witnesses(fundamentals)
+    fundamentals.identity_note = await _identity_note(symbol, fundamentals)
+    fundamentals.basis = await exchange_financials.filed_basis(fundamentals.symbol)
+    if fundamentals.field_meta is not None:
+        # The provider stamped ``basis`` "unavailable" (it never publishes one);
+        # the exchange filings read above are its real provenance (R15-DATA-054).
+        fundamentals.field_meta["basis"] = FieldMeta(
+            status="ok" if fundamentals.basis else "unavailable",
+            provider="exchange-filings",
+            as_of=datetime.now(UTC).isoformat(),
+            reason=None if fundamentals.basis else "no NSE/BSE filing states a basis",
+        )
+    return fundamentals
+
+
+# ---------------------------------------------------------------------------
+# AI narrative — LLM-written, numerically-verified company overview
+# ---------------------------------------------------------------------------
+#
+# BYOK credentials arrive in HEADERS (read-only GET path, never the body):
+#   X-LLM-Provider   — one of the seven provider ids (anthropic, openai, …)
+#   X-LLM-Model      — provider-specific model id
+#   X-LLM-Api-Key    — the BYOK key, read from the OS keychain by the renderer
+#
+# The sidecar CANNOT read the keychain; the renderer forwards the secret per
+# request. It is held in memory for the call only — never logged, echoed, or
+# persisted. Loopback transport only. Missing credentials are NOT an error: the
+# service returns a 200 with summary=None + a reason so the panel renders a quiet
+# "AI narrative unavailable" state rather than a failure banner.
+
+LlmProviderHeader = Annotated[
+    str | None,
+    Header(alias="X-LLM-Provider", description="BYOK LLM provider id for the narrative."),
+]
+LlmModelHeader = Annotated[
+    str | None,
+    Header(alias="X-LLM-Model", description="Provider-specific model id."),
+]
+LlmApiKeyHeader = Annotated[
+    str | None,
+    Header(alias="X-LLM-Api-Key", description="BYOK key — held in memory for the call only."),
+]
+RegionHeader = Annotated[
+    str | None,
+    Header(alias="X-Vysted-Region", description="Optional market region hint for the quote."),
+]
+
+
+@router.get("/{symbol}/narrative")
+async def get_company_narrative(
+    symbol: str,
+    provider: LlmProviderHeader = None,
+    model: LlmModelHeader = None,
+    api_key: LlmApiKeyHeader = None,
+    region: RegionHeader = None,
+) -> CompanyNarrative:
+    """Return an LLM-written, numerically-verified narrative for ``symbol``.
+
+    Every number in the returned prose has been matched against the real
+    fundamentals/quote the panel renders; hallucinated figures are redacted and
+    listed in ``unverified_claims``. Always 200 — no key / no model / no data
+    yields ``summary=None`` + a ``reason`` for a graceful empty state.
+    """
+    return await company_narrative.generate_narrative(
+        symbol,
+        provider=provider,
+        model=model,
+        api_key=api_key,
+        region=region,
+    )
 
 
 @router.get("/{symbol}/income")
-async def get_income_statement(symbol: str) -> IncomeStatement:
-    """Return the income statement excerpt for ``symbol``."""
-    return await provider_registry.get_income_statement(symbol)
+async def get_income_statement(
+    symbol: str, period: provider_registry.StatementPeriod = "annual"
+) -> IncomeStatement:
+    """Return the income statement excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
+    statement, _ = await _cached(
+        _listing_key(symbol, f"income:{period}"),
+        _TTL_RATINGS,
+        IncomeStatement,
+        lambda: provider_registry.get_income_statement(symbol, period=period),
+    )
+    return statement
 
 
 @router.get("/{symbol}/balance")
-async def get_balance_sheet(symbol: str) -> BalanceSheet:
-    """Return the balance sheet excerpt for ``symbol``."""
-    return await provider_registry.get_balance_sheet(symbol)
+async def get_balance_sheet(
+    symbol: str, period: provider_registry.StatementPeriod = "annual"
+) -> BalanceSheet:
+    """Return the balance sheet excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
+    statement, _ = await _cached(
+        _listing_key(symbol, f"balance:{period}"),
+        _TTL_RATINGS,
+        BalanceSheet,
+        lambda: provider_registry.get_balance_sheet(symbol, period=period),
+    )
+    return statement
 
 
 @router.get("/{symbol}/cashflow")
-async def get_cash_flow(symbol: str) -> CashFlowStatement:
-    """Return the cash-flow statement excerpt for ``symbol``."""
-    return await provider_registry.get_cash_flow(symbol)
+async def get_cash_flow(
+    symbol: str, period: provider_registry.StatementPeriod = "annual"
+) -> CashFlowStatement:
+    """Return the cash-flow statement excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
+    statement, _ = await _cached(
+        _listing_key(symbol, f"cashflow:{period}"),
+        _TTL_RATINGS,
+        CashFlowStatement,
+        lambda: provider_registry.get_cash_flow(symbol, period=period),
+    )
+    return statement
 
 
 @router.get("/{symbol}/ratings")
 async def get_analyst_rating(symbol: str) -> AnalystRating:
     """Return aggregated analyst ratings and price targets for ``symbol``."""
-    return await provider_registry.get_analyst_rating(symbol)
+    rating, as_of = await _cached(
+        _listing_key(symbol, "ratings"),
+        _TTL_RATINGS,
+        AnalystRating,
+        lambda: provider_registry.get_analyst_rating(symbol),
+    )
+    rating.as_of = as_of
+    return rating
 
 
 # ---------------------------------------------------------------------------
@@ -78,18 +254,13 @@ async def get_analyst_rating(symbol: str) -> AnalystRating:
 async def get_ratings_history(symbol: str) -> RatingsHistoryResponse:
     """Return every recorded rating change for ``symbol`` (newest-first)."""
     normalized = symbol.strip().upper()
-    cache_key = f"ratings:{normalized}:history"
-    cached = await data_cache.get(cache_key, _TTL_RATINGS)
-    if isinstance(cached, dict):
-        try:
-            return RatingsHistoryResponse.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("ratings: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await analyst_ratings_extended.get_ratings_history(normalized)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    response, as_of = await _cached(
+        f"ratings:{_yahoo_symbol(normalized)}:history",  # the resolved listing
+        _TTL_RATINGS,
+        RatingsHistoryResponse,
+        lambda: analyst_ratings_extended.get_ratings_history(normalized),
+    )
+    response.as_of = as_of
     return response
 
 
@@ -97,18 +268,13 @@ async def get_ratings_history(symbol: str) -> RatingsHistoryResponse:
 async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
     """Return price-target changes for ``symbol`` (newest-first)."""
     normalized = symbol.strip().upper()
-    cache_key = f"ratings:{normalized}:price-targets"
-    cached = await data_cache.get(cache_key, _TTL_RATINGS)
-    if isinstance(cached, dict):
-        try:
-            return PriceTargetHistoryResponse.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("ratings: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await analyst_ratings_extended.get_price_target_history(normalized)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    response, as_of = await _cached(
+        f"ratings:{_yahoo_symbol(normalized)}:price-targets",  # the resolved listing
+        _TTL_RATINGS,
+        PriceTargetHistoryResponse,
+        lambda: analyst_ratings_extended.get_price_target_history(normalized),
+    )
+    response.as_of = as_of
     return response
 
 
@@ -116,16 +282,11 @@ async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
 async def get_individual_analysts(symbol: str) -> IndividualAnalystResponse:
     """Return per-firm currently-active forecasts for ``symbol``."""
     normalized = symbol.strip().upper()
-    cache_key = f"ratings:{normalized}:individual"
-    cached = await data_cache.get(cache_key, _TTL_RATINGS)
-    if isinstance(cached, dict):
-        try:
-            return IndividualAnalystResponse.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("ratings: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await analyst_ratings_extended.get_individual_analysts(normalized)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    response, as_of = await _cached(
+        f"ratings:{_yahoo_symbol(normalized)}:individual",  # the resolved listing
+        _TTL_RATINGS,
+        IndividualAnalystResponse,
+        lambda: analyst_ratings_extended.get_individual_analysts(normalized),
+    )
+    response.as_of = as_of
     return response

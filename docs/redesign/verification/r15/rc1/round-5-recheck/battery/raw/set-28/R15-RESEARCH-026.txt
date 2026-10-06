@@ -1,0 +1,29 @@
+=== R15-RESEARCH-026: metric cards state an unknown currency instead of defaulting the format to USD-shaped ===
+cmd: no live/in-process path (TS logic; vitest is the heavy lane's). grep for the pinned test + source.
+334:    // USD wears its own symbol too (R15-RESEARCH-026: a bare figure read
+335-    // identically to an unknown currency).
+336-    const usd = structured("equity", {});
+337-    const usdByLabel = Object.fromEntries(
+338-      (deriveMetrics(usd)?.items ?? []).map((i) => [i.label, i.value]),
+339-    );
+340-    expect(usdByLabel["Market cap"]).toBe("$2.00B");
+341-    expect(usdByLabel["Revenue"]).toBe("$500M");
+342-  });
+343-
+344:  it("an unknown currency is stated, never defaulted (R15-RESEARCH-026)", () => {
+345-    const unknown = structured("equity", {
+346-      price: undefined,
+347-      fundamentals: {
+348-        ok: true,
+349-        provider: "yfinance",
+350-        data: fundamentals({ currency: null }),
+351-      },
+352-    });
+353-    const byLabel = Object.fromEntries(
+354-      (deriveMetrics(unknown)?.items ?? []).map((i) => [i.label, i.value]),
+355-    );
+356-    expect(byLabel["Market cap"]).toBe("2.00B · currency unknown");
+
+source (src/modules/research/brief-blocks.tsx withCode / currency handling):
+
+VERDICT: ci_pinned. certified only via src/modules/research/brief-blocks.test.ts "an unknown currency is stated, never defaulted (R15-RESEARCH-026)" -- test present.

@@ -1,0 +1,19 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_db7ca2ef6ee345ec8ea91c8d8cb4474f", "name": "financial_statements", "input": {"symbol": "SIFY", "statement": "income"}}
+[  37.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_db7ca2ef6ee345ec8ea91c8d8cb4474f", "name": "financial_statements", "ok": true, "error": null}
+[  47.3s] heartbeat: {"kind": "heartbeat"}
+[  57.3s] heartbeat: {"kind": "heartbeat"}
+[  71.8s] done: {"kind": "done", "usage": {"input_tokens": 6716, "output_tokens": 102, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The trailing twelve month revenue for SIFY in USD is unavailable. 
+
+I could not find the information you requested. The tool results do not carry any information about SIFY's trailing twelve month revenue in USD. Therefore, I must state that this figure is unavailable.
+
+However, if we look at the last available period (2026-03-31), the revenue for SIFY is ₹2,684 cr.
+
+I used the `financial_statements` tool to fetch the income statement of SIFY.
+
+=== ok · 71.8s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 103, 'done': 1} · usage in=6716 out=102 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,207 @@
+## docs/BROKER_INTEGRATIONS.md
+cce7b007 docs(r15): remove trading from docs/README/BLUEPRINT/SAFETY_ARCHITECTURE (D81)
+## docs/SAFETY_ARCHITECTURE.md
+252a7e51 docs(d81): correct SAFETY_ARCHITECTURE §3-5 and drop leftover trading mentions
+cce7b007 docs(r15): remove trading from docs/README/BLUEPRINT/SAFETY_ARCHITECTURE (D81)
+## docs/screenshots/v0.5.0/safety-audit/
+cce7b007 docs(r15): remove trading from docs/README/BLUEPRINT/SAFETY_ARCHITECTURE (D81)
+## docs/superpowers/plans/2026-05-16-phase-4-5-mega-sprint.md
+## sidecar/models/audit_log.py
+3d037351 refactor(sidecar): remove trading layer - brokers, orders, kill switch, audit log (D81)
+## sidecar/models/broker.py
+3d037351 refactor(sidecar): remove trading layer - brokers, orders, kill switch, audit log (D81)
+## sidecar/models/safety.py
+3d037351 refactor(sidecar): remove trading layer - brokers, orders, kill switch, audit log (D81)
+## sidecar/routers/safety.py
+3d037351 refactor(sidecar): remove trading layer - brokers, orders, kill switch, audit log (D81)
+## sidecar/services/action_ledger.py
+b8b60bc3 fix(agent): the runtime mints tool-call ids and acks are consumed once (R15-AGENT-046)
+e3cb581d fix(agent): add the non-terminal staged host-action ack (R15-AGENT-080 C1)
+## sidecar/services/agent_runtime.py
+51464b15 fix(agent-runtime): judge a fence left open at end of stream whole (R15-LEAD-036)
+4bc0bd3e fix(agent-runtime): short-name aliases and fail-safe rule 2c for the figure guard (R15-LEAD-030)
+4ee83499 fix(agent): send no tools when the user's turn says not to call any (R15-LEAD-035)
+1841b22e fix(agent): recognise CommonMark tilde and long fences in the citation guard (R15-LEAD-036)
+26dc3aab fix(agent): judge acknowledgements by provenance, name errored subjects by company name (R15-LEAD-030)
+c430fca8 fix(agent): a figure-less dump streamed while a call is pending is dropped (R15-LEAD-030)
+a8070bba fix(agent): an errored call unseats a history-seeded ok tool (R15-LEAD-030)
+6870c19a fix(agent): ground streamed figures by provenance, not shape (R15-LEAD-030)
+705c3626 fix(agent-runtime): an all-errored turn replaces a JSON dump, not any bracket (R15-LEAD-030)
+abbb8644 fix(agent-runtime): judge a colon intro with its result paragraph; name errored tools (R15-LEAD-030)
+24bff097 fix(agent): a lead-in cites only an exact tool id or one a tool noun follows (R15-LEAD-030)
+03a0d0ce fix(agent): name the tools earlier turns ran in a system line (R15-LEAD-033)
+629cbab2 fix(agent): a backticked tool id followed by a result verb is a citation (R15-LEAD-030)
+0dbf9e72 fix(agent): keep the history's tool-step trailer from the provider (R15-LEAD-033)
+2d63253f fix(agent): a tool called this round is not citable until its result is in (R15-LEAD-030)
+cd6517b3 fix(agent): "fetched X using <tool>" cites the tool; a bare "and" parts only right before one (R15-LEAD-030)
+90c62da0 fix(agent): a sourcing lead-in cites its tool; a bare "and" parts clauses only before one (R15-LEAD-030)
+dbd26a7a fix(agent): decide tool citations by attribution, clause by clause (R15-LEAD-030)
+4b6acb6b fix(agent-runtime): trace tool citations across turns, humanised names and next-line dumps (R15-LEAD-030)
+50399b67 fix(agent-runtime): replace a citation of a tool that returned nothing ok and drop its dump (R15-LEAD-030)
+f421d73e fix(agent-runtime): a share qualifier before 'shares' is not the counted noun in the ratio guard (R15-AGENT-090)
+4daf6507 fix(agent-runtime): read the depositary context off the sentence as written (R15-AGENT-090 review)
+596ae9e9 fix(agent-runtime): a function word after a count is not a counted noun (R15-AGENT-090)
+c675ea80 fix(agent-runtime): mark a count of a plural noun as not a share ratio (R15-AGENT-090)
+15c3be63 fix(fundamentals): lead the result with ads_ratio so the window cap keeps it; log a guard replacement (R15-AGENT-090)
+01dea8bb fix(agent-runtime): decide the ADR ratio claim by number markers, not wording (R15-AGENT-090)
+71da3b9a fix(agent): recognise a depositary-ratio claim by term, cue and quantity (R15-AGENT-090)
+e85f8b01 fix(agent-eval): stream a tool_result event per dispatched call and fail errored trials (R15-CODE-AGENT-033)
+e02073bd fix(agent): an N to M / N:M beside "ADR" is a ratio claim only with a ratio cue (R15-AGENT-090)
+b24a0860 fix(agent): replace an untraced ADR-ratio claim in the relayed prose (R15-AGENT-090)
+88bbdaaf fix(agent): tell every first-party agent an unsourced fact is unavailable (R15-AGENT-090)
+9fd04d06 fix(agent): coerce an exact numeric/boolean string arg before schema validation (R15-AGENT-093)
+d4741bc6 fix(rc1): financial_statements carries its reporting currency and the model reads money lines as displays (rc1-scenarios:5)
+23f2ab34 fix(rc1): project fundamentals and compare_symbols money to displays for the model (rc1-scenarios:5)
+6737c16f fix(agent-runtime): split invoke_agent into run prep, round consumption, tool dispatch and end-of-turn phases (R15-CODE-AGENT-009)
+9f935831 fix(agent-runtime): extract tool-surface, native-search and planner pre-pass from invoke_agent (R15-CODE-AGENT-009)
+8609ad11 fix(llm): count, price and cap native web searches per run (R15-AGENT-049)
+17edff28 fix(llm): price the foreground turn on the done frame (R15-AGENT-082)
+8c35eb1a fix(agent): resolve renamed tool ids through catalog aliases (R15-LIFECYCLE-025)
+38a1a02a fix(llm): one adapter-option allowlist in services.llm for /llm/chat and the agent path (R15-CODE-AGENT-005)
+1c79ad41 fix(research): the research tool returns the brief and the runtime publishes it verbatim (R15-CODE-AGENT-008)
+9c62d823 fix(agent): runtime mints every tool-call id so a stale ack never grounds a later call (R15-AGENT-046)
+69057cdc fix(agents): a skipped agent JSON surfaces on /health as agents_degraded (R15-LIFECYCLE-014)
+be8c7905 fix(llm): base URLs and the agent schema provider enum derive from model_registry (R15-CODE-AGENT-007, R15-CODE-AGENT-016)
+a1bdd9fd fix(runs): offer ask_user by delegate mode, not by agent grant (R15-CODE-AGENT-011)
+25daa810 feat(runs): plan a compound delegate task before it runs and stream its steps (R15-AGENT-039)
+979eefa4 feat(runs): wire the delegate pause plane to an ask_user capability (R15-CODE-AGENT-011)
+03499cb7 fix(runs): checkpoint a delegate run as {prompt, turns} in order (R15-AGENT-036)
+325465a0 fix(runs): a budget breach stops the turn before its tools run (R15-AGENT-037, R15-AGENT-038, R15-AGENT-074)
+26ea55c3 fix(research): the FAST auto-publish forwards a host domain and published_at (R15-RESEARCH-024, C4 runtime half)
+b8b60bc3 fix(agent): the runtime mints tool-call ids and acks are consumed once (R15-AGENT-046)
+5e03442e fix(agent): fold older turns into a summary instead of a silent 10-message window (R15-AGENT-040)
+dd5d747f fix(agent): notes readable by the agent via __notes__ and read_notes (R15-AGENT-020)
+85551726 fix(agent): the preamble renders the focused chart, not charts[0] (R15-AGENT-051)
+9b678194 fix(agent): bound provider and planner waits with idle timeouts, heartbeats and a stall watchdog (R15-AGENT-025)
+dcea43e3 fix(agent): a truncated or empty answer is an error frame or notice, never success (R15-AGENT-026)
+ad99214b fix(agent): name staged host actions in an end-of-turn notice (R15-AGENT-033)
+e23a5d5c fix(chat): runtime notices are typed by kind, not matched by copy (R15-AGENT-031, R15-UI-054)
+8833512e fix(agent): bound what enters a window-bound model's context (R15-AGENT-008)
+121dba3d fix(agent): open an agent-started backtest in the backtest panel (R15-AGENT-011)
+a829922d fix(llm): round-trip Gemini thought signatures on multi-round tool turns (R15-AGENT-006)
+e533f3f3 fix(llm): drop xAI native search and search_parameters (R15-LEAD-008)
+1b5a5e5e docs(r15-b3): correct native-search comments after the per-model gate; fix a garbled comment
+e3cb581d fix(agent): add the non-terminal staged host-action ack (R15-AGENT-080 C1)
+11ef9dfd fix(agent): parse JSON-string array/object tool args before yield (R15-AGENT-024)
+b744065d fix(agent): validate tool args in the runtime; never yield an invalid host action (R15-AGENT-022)
+796fff05 fix(agent): drop capped-round tool calls and close honestly (R15-AGENT-003)
+cac929d8 fix(agent): strip write tools only on a positive read cue (R15-AGENT-019)
+a23bd512 fix(agent): fence third-party tool text in the model-facing message (R15-AGENT-021)
+e10aff56 fix(research): model reads research money only as scaled displays (R15-AGENT-001)
+75c1947f fix(agent): cancel the in-flight tool task when the stream closes (R15-AGENT-002)
+3d037351 refactor(sidecar): remove trading layer - brokers, orders, kill switch, audit log (D81)
+043850c2 fix(llm): gate OpenAI-direct native search per model; repair gpt-5.x reasoning_effort tool 400
+## sidecar/services/agent_tools.py
+## sidecar/services/agent_tools/catalog.py
+a9a91430 fix(data): get_filing falls back to periodic-form lists past the unfiltered ceiling (R15-LEAD-010)
+5f7be1e2 fix(data): option chain with exchange open interest (R15-DATA-079)
+de815a4a fix(host-actions): add_chart_drawing host action and hand-action inventory (R15-AGENT-084)
+8464a0ce fix(disclosures): earnings_call_transcript read capability (R15-RESEARCH-030)
+dfb9fea2 fix(catalog): derive internal/mcp projections, drop dead Capability knobs (R15-CODE-AGENT-013)
+8c35eb1a fix(agent): resolve renamed tool ids through catalog aliases (R15-LIFECYCLE-025)
+963991a5 fix(layout): one plan per template id, fed by config/layout_templates.json (R15-AGENT-055)
+221a574b fix(layout): the agent's default arrange resets the layout only (R15-AGENT-056)
+a1bdd9fd fix(runs): offer ask_user by delegate mode, not by agent grant (R15-CODE-AGENT-011)
+979eefa4 feat(runs): wire the delegate pause plane to an ask_user capability (R15-CODE-AGENT-011)
+7ae5117b fix(sec): forward the form hint and try a small filing window first (R15-LEAD-010)
+e7128795 feat(disclosures): one bulk/block/SAST lane with a route and the exchange_deals capability (R15-DATA-024)
+b1af4017 feat(disclosures): merged NSE+BSE corporate actions with a route and the corporate_actions capability (R15-DATA-025)
+711fed86 feat(agent-tools): declare read_notes (per-invocation, scope) so the agent can read its notes (R15-AGENT-020)
+2cd76798 feat(agent-tools): financial_statements capability, annual or quarterly, newest 8 periods (R15-DATA-026)
+23a17dfe fix(agent-tools): drop the stale shareholding note; the description names the FII/DII split and pledge (R15-AGENT-060)
+2369a919 fix(research): deep-research wall clamps to the profile's own ceiling; schema drops the stale default (R15-CODE-RESEARCH-001)
+3c14b577 fix(agent-tools): price_data states its 90-bar cut with bar counts and window_start (R15-AGENT-062)
+b309864a fix(agent-tools): market_overview reports a news outage as headlines_error (R15-AGENT-058)
+8833512e fix(agent): bound what enters a window-bound model's context (R15-AGENT-008)
+121dba3d fix(agent): open an agent-started backtest in the backtest panel (R15-AGENT-011)
+cf186ad5 fix(search): give web_search its own timeout hint (R15-RESEARCH-008 C6)
+d296716d fix(agent): enumerate set_chart_indicators keys from the indicator registry (R15-AGENT-054)
+b744065d fix(agent): validate tool args in the runtime; never yield an invalid host action (R15-AGENT-022)
+a23bd512 fix(agent): fence third-party tool text in the model-facing message (R15-AGENT-021)
+3d037351 refactor(sidecar): remove trading layer - brokers, orders, kill switch, audit log (D81)
+## sidecar/services/audit_log.py
+3d037351 refactor(sidecar): remove trading layer - brokers, orders, kill switch, audit log (D81)
+## sidecar/services/broker_base.py
+3d037351 refactor(sidecar): remove trading layer - brokers, orders, kill switch, audit log (D81)
+## sidecar/services/brokers/
+3d037351 refactor(sidecar): remove trading layer - brokers, orders, kill switch, audit log (D81)
+## sidecar/services/disclaimer_session.py
+3d037351 refactor(sidecar): remove trading layer - brokers, orders, kill switch, audit log (D81)
+## sidecar/services/kill_switch.py
+3d037351 refactor(sidecar): remove trading layer - brokers, orders, kill switch, audit log (D81)
+## sidecar/services/static_ip_detector.py
+3d037351 refactor(sidecar): remove trading layer - brokers, orders, kill switch, audit log (D81)
+## sidecar/tests/test_no_trading_surface.py
+cf95fb48 fix(portfolio): delete the dead ledger write routes and writers (R15-CODE-PLATFORM-021)
+f3aba53c test(gate8): read ProposedChangeKind from the kinds list it derives from
+ca78a48d test(sidecar): add Gate-8 no-trading-surface test (D81)
+## sidecar/tests/test_safety_end_to_end.py
+3d037351 refactor(sidecar): remove trading layer - brokers, orders, kill switch, audit log (D81)
+0112a0c9 test(safety): kill-switch benchmark capture is opt-in; full pytest leaves the tree clean
+## src-tauri/src/kill_switch.rs
+5d45a0ae refactor(tauri): remove the kill-switch shortcut and global-shortcut plugin (D81)
+## src/lib/host-actions.ts
+f053f472 fix(chart): carry the picked listing's region into the chart (R15-DATA-002)
+de815a4a fix(host-actions): add_chart_drawing host action and hand-action inventory (R15-AGENT-084)
+c3bba8ad fix(equity-overview): open_company_overview spotlights a real metric and says what it did (R15-AGENT-081)
+963991a5 fix(layout): one plan per template id, fed by config/layout_templates.json (R15-AGENT-055)
+221a574b fix(layout): the agent's default arrange resets the layout only (R15-AGENT-056)
+b7f7023f fix(research): the brief ingest keeps a source's published_at and provider (R15-RESEARCH-024)
+de535ab7 fix(agent): resolve add_to_watchlist equities through GET /resolve (R15-AGENT-044)
+98311dfb fix(agent): report every dropped screener criterion in the label, diff and ack (R15-AGENT-043)
+1431e5b0 fix(agent): typed pre-image and session Undo for applied agent data writes (R15-AGENT-041)
+e6ea8bb3 fix(screener): save_screen saves the agent's recipe and run:true runs it (R15-CODE-FRONTEND-009)
+7f8c4523 fix(portfolio): publish holding ids and refuse an ambiguous lot (R15-AGENT-042)
+124b3160 fix(host-actions): parse each action once into a bound intent shared by describe and apply (R15-CODE-FRONTEND-011)
+b69800c7 fix(portfolio): normalizeHolding rejects non-positive quantity and negative cost (R15-DATA-088)
+f37543da fix(portfolio): stop syncing agent writes to the write-only sidecar ledger (R15-CODE-FRONTEND-012)
+ab844996 fix(backtest): open_panel(backtest, run_id) loads the agent's run into the panel (R15-AGENT-011)
+6ac0cf66 fix(host-actions): set_chart_indicators applies known keys and reports dropped ones (R15-AGENT-054)
+bf09fe88 fix(host-actions): no fabricated cost basis on an agent portfolio add (R15-AGENT-022)
+bd5e11e5 fix(host-actions): write_note and save_layout follow the catalog's arg semantics (R15-CODE-FRONTEND-003, R15-CODE-FRONTEND-014)
+b747a309 fix(agent): AUTO applies only panel, chart and watchlist changes (R15-AGENT-080, R15-CODE-FRONTEND-008)
+8f8f5f34 fix(equity-overview): carry the picked listing's region on every leg (R15-DATA-002)
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)
+## src/lib/keychain.ts
+d4c00cdc feat(workflow): unattended schedules and a keychain-held webhook action (R15-AGENT-023)
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)
+## src/modules/broker-connect/
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)
+## src/modules/broker-connect/kite-static-ip-banner.tsx
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)
+## src/modules/chat/ProposedChangesReview.tsx
+1e5b32fd fix(release): wire the design-token audit into lint, move 4 hits onto the R9 grid (R15-RELEASE-007)
+1431e5b0 fix(agent): typed pre-image and session Undo for applied agent data writes (R15-AGENT-041)
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)
+## src/modules/safety/
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)
+0c63d465 chore(license): relicense core to PolyForm Strict 1.0.0
+## src/modules/safety/DisclaimerFlow.tsx
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)
+0c63d465 chore(license): relicense core to PolyForm Strict 1.0.0
+## src/modules/safety/OrderConfirmationDialog.tsx
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)
+## src/store/agent-autonomy.ts
+f10fb8ce docs(current-state): quote AUTO_APPLIED_KINDS, drop stale screener/registry claims (R15-DOCS-016, R15-DOCS-017, R15-DOCS-018)
+b747a309 fix(agent): AUTO applies only panel, chart and watchlist changes (R15-AGENT-080, R15-CODE-FRONTEND-008)
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)
+## src/store/orders.ts
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)
+## src/store/proposed-changes.ts
+ac882106 fix(chat): write the gate's resolved outcome, not a predicted "Applied:" (R15-AGENT-032)
+1431e5b0 fix(agent): typed pre-image and session Undo for applied agent data writes (R15-AGENT-041)
+124b3160 fix(host-actions): parse each action once into a bound intent shared by describe and apply (R15-CODE-FRONTEND-011)
+b747a309 fix(agent): AUTO applies only panel, chart and watchlist changes (R15-AGENT-080, R15-CODE-FRONTEND-008)
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)
+## src/store/safety.ts
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)
+## types/broker.ts
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)
+## types/proposed-change.ts
+f10fb8ce docs(current-state): quote AUTO_APPLIED_KINDS, drop stale screener/registry claims (R15-DOCS-016, R15-DOCS-017, R15-DOCS-018)
+1431e5b0 fix(agent): typed pre-image and session Undo for applied agent data writes (R15-AGENT-041)
+124b3160 fix(host-actions): parse each action once into a bound intent shared by describe and apply (R15-CODE-FRONTEND-011)
+b747a309 fix(agent): AUTO applies only panel, chart and watchlist changes (R15-AGENT-080, R15-CODE-FRONTEND-008)
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)
+## types/safety.ts
+003d38d4 refactor(frontend): remove broker connectivity, the order path and trading UI (D81)

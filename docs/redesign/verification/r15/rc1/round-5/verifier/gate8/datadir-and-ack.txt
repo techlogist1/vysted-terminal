@@ -1,0 +1,14 @@
+== custom_agents.db: custom_agents 
+== data_cache.db: cache meta 
+== delegate_runs.db: runs 
+== fundamentals_cache.db: fundamentals 
+== plugins.db: plugin_configs 
+== portfolio.db: positions 
+== workflows.db: schedules workflows 
+
+== grep audit_orders in candidate code (non-test):
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-9bc600e-fix-int/sidecar/tests/test_no_trading_surface.py:135:    "audit_orders",
+
+== POST /agents/actions/ack bogus id:
+{"detail":[{"type":"missing","loc":["body","toolCallId"],"msg":"Field required","input":{"action_id":"bogus-123","decision":"accept"}},{"type":"missing","loc":["body","status"],"msg":"Field required","input":{"action_id":"bogus-123","decision":"accept"}},{"type":"extra_forbidden","loc":["body","action_id"],"msg":"Extra inputs are not permitted","input":"bogus-123"},{"type":"extra_forbidden","loc":["body","decision"],"msg":"Extra inputs are not permitted","input":"accept"}]} HTTP=422
+{"detail":[{"type":"missing","loc":["body","toolCallId"],"msg":"Field required","input":{}},{"type":"missing","loc":["body","status"],"msg":"Field required","input":{}}]} HTTP=422

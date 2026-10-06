@@ -1,0 +1,18 @@
+# R15-CODE-PLATFORM-040 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:15+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-PLATFORM-040\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+
+
+$ test -e sidecar/services/quant/monte_carlo.py && echo 'monte_carlo.py PRESENT' || echo 'monte_carlo.py absent'; grep -rn 'monte_carlo' sidecar --include=*.py --include=*.spec | grep -v '.venv' | head -3
+[exit 0] [6.28s]
+monte_carlo.py absent
+sidecar/tests/test_quant_options.py:192:    req_mc = _make_req(method="monte-carlo", monte_carlo_paths=100_000, monte_carlo_seed=42)
+sidecar/tests/test_quant_options.py:195:    assert mc.monte_carlo_std_error is not None and mc.monte_carlo_std_error > 0
+sidecar/tests/test_quant_options.py:197:    assert abs(mc.price - bs.price) <= 2.0 * mc.monte_carlo_std_error
+

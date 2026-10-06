@@ -1,0 +1,12 @@
+[
+  {
+    "key": "rc1-battery-3:1",
+    "kind": "environment",
+    "severity": "medium",
+    "register_id": "R15-DATA-056",
+    "title": "BSE shareholding SHP index blocked (403 Akamai) from this dev IP, pre-existing at base",
+    "repro": "In-process bse_provider.get_shareholding('CREST') raises ProviderError: bse shareholding: index HTTP 403; live /disclosures/shareholding?symbol=CREST comes back NSE-only with no FII/DII split merged for any of 20 quarters",
+    "evidence_file": "docs/redesign/verification/r15/rc1/battery/raw/set-15/R15-DATA-056-bse-direct.txt",
+    "suspected_files": []
+  }
+]

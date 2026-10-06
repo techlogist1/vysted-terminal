@@ -1,0 +1,27 @@
+CMD: launch run (ollama llama3.1:8b 'Research NVDA briefly.'), kill sidecar sleep pid (stdin EOF) mid-flight, reboot on same data dir, GET row
+launch: {"run_id":"277ffdcb811847f8beb20d7be24292b2"}
+--- mid-flight row:
+{'status': 'running', 'cost': {'tokens': 0, 'spend_usd': 0.0, 'steps': 0}, 'detail': None, 'checkpoint_messages': 0}
+--- killing sidecar sleep pid 65170 (stdin EOF) at 05:42:24
+(health after kill: exit 0)
+--- DB before restart (read from earlier sqlite): 277ffdcb...|running||  (checkpoint NULL: killed before the first round finished)
+--- after restart: GET /runs/277ffdcb811847f8beb20d7be24292b2
+{'status': 'error', 'detail': 'interrupted by sidecar restart', 'cost': {'tokens': 0, 'spend_usd': 0.0, 'steps': 0}, 'checkpoint_messages': 0}
+--- resume attempt:
+{"detail":"run '277ffdcb811847f8beb20d7be24292b2' has no checkpoint to resume from"}
+HTTP 409
+
+=== second kill, after round 1 (steps=1): the entry's stated repro
+launch: {"run_id":"0b5504ec3d4b47e297f5a0b38d70d295"}
+poll 1: running 1 1
+--- DB checkpoint len while running:
+running|49
+--- killing sidecar sleep pid 74264 at 05:43:34
+--- after restart GET /runs/0b5504ec3d4b47e297f5a0b38d70d295
+{'status': 'error', 'detail': 'interrupted by sidecar restart', 'cost': {'tokens': 6428, 'spend_usd': 0.0, 'steps': 1}, 'checkpoint_messages': 1}
+--- POST resume (no key; no Ollama contact until resumed run starts; cancel right after)
+{"resumed":true}
+resume HTTP 200
+{"cancelled":true}
+cancel HTTP 200
+cancelled cancelled by user

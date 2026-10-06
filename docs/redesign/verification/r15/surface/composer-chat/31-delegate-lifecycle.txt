@@ -1,0 +1,23 @@
+### t+8s cancel B
+{"cancelled":true} [HTTP 200]
+### answer B (not paused)
+{"detail":"run 'ebfddaf7eec046afaf0ff4d56daf80f0' is not awaiting an answer"} [HTTP 409]
+### cancel unknown
+{"detail":"unknown run: 'doesnotexist'"} [HTTP 404]
+### GET /runs (status of A,B,C)
+ebfddaf7 cancelled cancelled by user {'tokens': 0, 'spend_usd': 0.0, 'steps': 0, 'spendUsd': 0.0} {'max_tokens': 200000, 'max_spend_usd': 1.0, 'max_wall_seconds': 900.0, 'max_steps': 6}
+a69f4216 running None {'tokens': 0, 'spend_usd': 0.0, 'steps': 0, 'spendUsd': 0.0} {'max_tokens': None, 'max_spend_usd': None, 'max_wall_seconds': None, 'max_steps': None}
+6a1b44d9 running None {'tokens': 0, 'spend_usd': 0.0, 'steps': 0, 'spendUsd': 0.0} {'max_tokens': 2000, 'max_spend_usd': 0.5, 'max_wall_seconds': 600.0, 'max_steps': 5}
+260684a4 cancelled cancelled by user {'tokens': 0, 'spend_usd': 0.0, 'steps': 0, 'spendUsd': 0.0} {'max_tokens': None, 'max_spend_usd': None, 'max_wall_seconds': None, 'max_steps': None}
+3aa27a3b done completed {'tokens': 54450, 'spend_usd': 0.1089, 'steps': 2, 'spendUsd': 0.1089} {'max_tokens': None, 'max_spend_usd': None, 'max_wall_seconds': None, 'max_steps': None}
+### GET /runs/6a1b44d9aac04d0382f5a5feeffec9f4
+{"status": "error", "detail": "token ceiling 2000 reached (10126 used)", "cost": {"tokens": 10126, "spend_usd": 0.0, "steps": 1, "spendUsd": 0.0}, "question": null}
+transcript: [{"role": "user", "content": "Compare the P/E of BDL and COCHINSHIP"}, {"role": "assistant", "content": "[tool_use compare_symbols]"}, {"role": "assistant", "content": "It"}]
+### GET /runs/a69f42163aef4ec5a9b1a1ff7d02c203
+{"status": "done", "detail": "completed", "cost": {"tokens": 14664, "spend_usd": 0.0, "steps": 2, "spendUsd": 0.0}, "question": null}
+transcript: [{"role": "user", "content": "What is the latest price of BDL?"}, {"role": "assistant", "content": "[tool_use price_data]"}, {"role": "assistant", "content": "The latest price of BDL is 1168.0 INR."}]
+{"resumed":true} [HTTP 200]
+### 07:47:57 resumed run A is loading the AGENT DEFAULT model (ollama log 07:46:58: 'starting runner' general.name = Qwen2.5 7B Instruct, 'evicting a model to make space') although the run was launched on llama3.1:8b — resume re-enters with provider/model None
+### cancel resumed A
+{"cancelled":true} [HTTP 200]
+cancelled cancelled by user {'tokens': 0, 'spend_usd': 0.0, 'steps': 0, 'spendUsd': 0.0}

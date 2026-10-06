@@ -1,0 +1,12 @@
+=== R15-LEAD-001 check (candidate 1006c6da) ===
+openbb_mcp_subprocess/requirements.txt:
+fastmcp==3.3.1
+fastmcp-slim==3.3.1
+mcp==1.27.1
+httpx==0.28.1
+sec_edgar_mcp_subprocess/requirements.txt:
+mcp==1.27.1
+httpx==0.28.1
+scripts/sidecar-specs.test.mjs carries matching --copy-metadata flags for fastmcp/fastmcp-slim/mcp/httpx/anyio.
+NOTE: a full clean-venv PyInstaller build (the batch's original proof) is out of scope for this battery shard (heavy build, belongs to the sidecar-build lane); pin presence + specs test is the live evidence available here.
+VERDICT: holds (pins present, matching the known-good freeze fastmcp==3.3.1/fastmcp-slim==3.3.1/mcp==1.27.1/httpx==0.28.1).

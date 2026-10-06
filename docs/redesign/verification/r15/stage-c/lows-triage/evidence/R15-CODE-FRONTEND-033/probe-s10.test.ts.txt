@@ -1,0 +1,53 @@
+import { describe, expect, it, vi } from "vitest";
+import { appendFileSync } from "node:fs";
+const OUT = "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/s10/probe-out.txt";
+const log = (...a: unknown[]) => appendFileSync(OUT, a.map((x) => (typeof x === "string" ? x : JSON.stringify(x))).join(" ") + "\n");
+vi.mock("@/lib/sidecar-client", () => ({
+  getSidecarBaseUrl: () => "http://127.0.0.1:1",
+  sidecarGet: vi.fn(async () => { throw new Error("offline"); }),
+  sidecarRequest: vi.fn(async () => { throw new Error("offline"); }),
+  sidecarFetch: vi.fn(async () => { throw new Error("offline"); }),
+  sidecarApi: {},
+  SidecarError: class extends Error {},
+}));
+import { applyHostAction, describeHostAction, publishAckStatus } from "@/lib/host-actions";
+import { useWorkspaceStore } from "@/store/workspace";
+import { useWorkflowStore } from "@/store/workflow";
+import { useSettingsStore, resetSettingsStoreForTests } from "@/store/settings";
+import { useActiveAgentStore } from "@/store/active-agent";
+
+describe("shard-10 probes at e032be7", () => {
+  it("CF-033 P7: arrange_layout focus with alias 'screener' vs focus_panel", () => {
+    const panel = { api: { component: "screener-panel", setActive: vi.fn(), maximize: vi.fn() }, id: "screener-panel" };
+    const api = { getPanel: (id: string) => (id === "screener-panel" ? panel : undefined), panels: [panel] };
+    useWorkspaceStore.setState({ dockviewApi: api, openPanel: vi.fn() } as never);
+    const a = applyHostAction("arrange_layout", { pattern: "focus", panel: "screener" });
+    const b = applyHostAction("focus_panel", { panel: "screener" });
+    log("P7 arrange focus =>", JSON.stringify(a), "| focus_panel =>", JSON.stringify(b));
+    log("P7 describe =>", describeHostAction("arrange_layout", { pattern: "focus", panel: "screener" }).after);
+    expect(a).not.toBeNull();
+  });
+  it("CF-026 P3: drainNotifications drops an intent appended mid-flush", () => {
+    const ws = useWorkflowStore.getState();
+    const mk = (nodeId: string) => ({ kind: "node-output" as const, runId: "r", nodeId, durationMs: 1,
+      outputs: { intent: "desktop-notification", notified: true, title: nodeId, message: "" } });
+    ws.appendEvent(mk("a") as never);
+    const snapshot = useWorkflowStore.getState().pendingNotifications;
+    useWorkflowStore.getState().appendEvent(mk("b") as never);
+    useWorkflowStore.getState().drainNotifications();
+    log("P3 sent:", snapshot.map((i) => i.nodeId), "left pending:", useWorkflowStore.getState().pendingNotifications.length);
+    expect(snapshot.map((i) => i.nodeId)).toEqual(["a"]);
+    log("P3 pending after drain (defect if 0 with b unsent):", useWorkflowStore.getState().pendingNotifications.length);
+  });
+  it("CF-030: fresh store, import bundle -> active agent switched?", () => {
+    resetSettingsStoreForTests();
+    useActiveAgentStore.getState().setActiveAgent("copilot");
+    const before = useActiveAgentStore.getState().activeAgentId;
+    useSettingsStore.getState().setAll({ defaultAgentId: "quant" } as never);
+    const after = useActiveAgentStore.getState().activeAgentId;
+    log("CF-030 before:", before, "after import:", after);
+  });
+  it("CF-034: kept_previous ack derived from label prefix", () => {
+    log("CF-034", publishAckStatus("Kept the richer research brief already on screen"), publishAckStatus("Retained the richer research brief"), publishAckStatus(null));
+  });
+});

@@ -1,0 +1,163 @@
+=== R15-RESEARCH-001: deep.py news dim relevance gate ===
+def leading_token(text: str) -> str:
+    """The first word of an LLM reply's first non-empty line, upper-cased.
+
+    Markdown emphasis and list/label punctuation (``*``, ``:``, ``-``, ``#``,
+    ``[``, ``]``) around the word are stripped, so ``**UNVERIFIED** - ...``,
+    ``[UNVERIFIED] ...`` and ``COMPLETE: ...`` all read as their verdict word.
+    A leading list marker (``1.``) or a leading "Label:" word (``Verdict:``,
+    ``Answer:``) is skipped so the actual verdict/status word after it decides.
+    The ONE reader for every prompt that mandates a leading verdict token
+    (cross-check verdicts, reflect COMPLETE/GAPS) — a whole-reply substring
+    scan reads a reason's wording ("no source confirms", "not covered") as the
+    verdict.
+    """
+    for line in text.splitlines():
+        words = line.strip().strip("*:-#> ").split()
+        while words:
+            bare = words[0].strip("*")
+            if _LEADING_LIST_MARKER_RE.fullmatch(bare) or bare.upper() in _LEADING_LABEL_WORDS:
+                words = words[1:]
+                continue
+            break
+        if words:
+            return words[0].strip("*:-#.,;!\"'[]").upper()
+    return ""
+
+
+#: Negations that turn an affirmative reflect phrase into a gap statement.
+_REFLECT_NEGATION = re.compile(r"\b(?:not|no|never)\b|n't\b")
+
+
+def _reflect_says_complete(text: str) -> bool:
+    """Does a reflect completion declare coverage met?
+
+    The prompt asks for a leading COMPLETE or GAPS word, read by
+    :func:`leading_token`. A reply that does not lead with either falls back to
+    a conservative scan: an explicit "no gaps" counts as complete, any gap
+    marker or negation ("not covered yet") does not, and otherwise only a
+    whole-word complete/sufficient/done does. Ambiguity returns False so the
+    loop keeps going (bounded by the budget) rather than calling a thin run done.
+    """
+    head = leading_token(text)
+--- 1130,1155 ---
+                    "Write a concise research brief in markdown. Use inline [n] "
+                    "citation markers that reference the numbered sources. Do not "
+                    "fabricate sources or facts beyond the findings. PROVENANCE "
+                    "GUARANTEE: every numeric or dated claim (a price, a ratio, a "
+                    "percentage, a date, a quarter) MUST carry a [n] citation to a "
+                    "real numbered source above — never state a live figure from "
+                    "memory. If a needed figure was not gathered, say so plainly "
+                    "('not available in this run') rather than guessing it. "
+                    "ASSEMBLE ACROSS SOURCES: when findings carry components of "
+                    "one metric from different sources (e.g. interim dividends "
+                    "plus a final dividend), state the assembled total with ALL "
+                    "component citations.\n"
+                    + finance.date_directive()
+                    + "\n"
+                    + finance.corporate_action_directive()
+                    + (("\n" + priority) if priority else "")
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Query: {query}\nSymbol: {symbol}\n\n"
+                    f"Findings:\n"
+                    + "\n".join(f"- {f}" for f in findings.findings)
+                    + "\n\n"
+                    + ((snapshot + "\n\n") if snapshot else "")
+=== grep news dim / relevance in deep.py ===
+49:_COVERAGE_DIMS = ("price", "fundamentals", "news", "web")
+477:    A ``news`` tool result (already relevance-gated by the researcher) cites
+484:    items = result.get("news")
+485:    if dim == "news" and isinstance(items, list):
+497:                    domain=str(item.get("source") or "news"),
+498:                    source_type="news",
+770:                if row.get("source_type") in ("news", "research", "filing", "web")
+873:            dim, tool, args = "news", "corporate_announcements", {"symbol": symbol}
+881:        dim, tool, args = "news", "news", {"symbols": [symbol]}
+882:        bias_dim = "news"
+917:    # The news tool blends region-wide feeds with the per-symbol feed; the
+919:    # them or they become sources (the FAST news leg's gate, R13 ledger #9).
+920:    if target is not None and tool == "news" and structured_res.get("ok"):
+921:        from services.research.relevance import gate_news
+923:        items = structured_res.get("news")
+925:            kept, news_note = gate_news(items, target=target)
+926:            structured_res = {**structured_res, "news": kept, "count": len(kept)}
+927:            if news_note:
+928:                structured_res["note"] = news_note
+1023:        # The announcements pull is real news-dimension coverage with its own
+1025:        structured_pairs.append({"dim": "news", "result": disclosure_bundle["announcements"]})
+1115:    / news) therefore come from a live call or are honestly flagged as a gap —
+        )
+    elif target is not None:
+        structured_res, web_res = await asyncio.gather(
+            _safe_tool(tool_call, tool, args),
+            _safe_tool(tool_call, "web_search", web_args),
+        )
+    else:
+        # Web-only: no bound instrument means NO structured call may fire — a
+        # free-text query must never be passed where a symbol is expected.
+        structured_res = {"ok": False, "error": "no listed instrument bound — web evidence only"}
+        web_res = await _safe_tool(tool_call, "web_search", web_args)
+
+    # The news tool blends region-wide feeds with the per-symbol feed; the
+    # shared relevance gate drops off-entity items BEFORE the extraction reads
+    # them or they become sources (the FAST news leg's gate, R13 ledger #9).
+    if target is not None and tool == "news" and structured_res.get("ok"):
+        from services.research.relevance import gate_news
+
+        items = structured_res.get("news")
+        if isinstance(items, list):
+            kept, news_note = gate_news(items, target=target)
+            structured_res = {**structured_res, "news": kept, "count": len(kept)}
+            if news_note:
+                structured_res["note"] = news_note
+
+    # Announcement attachments become first-class citation rows (exchange tier
+--- gate_news def ---
+623:def gate_news(items: list[Any], *, target: ResearchTarget) -> tuple[list[Any], str | None]:
+624-    """The news relevance gate (R13 ledger #9) — ``(kept items, note)``.
+625-
+626-    The ``news`` tool blends region-wide market feeds with a per-symbol Yahoo
+627-    feed keyed by the BARE ticker. For a short/common Indian symbol (META,
+628-    BMW, ...) that per-symbol feed can serve the FOREIGN namesake's own
+629-    stories, and the region feeds serve headlines about other companies — all
+630-    stamped ``ok: True`` with nothing distinguishing on-entity from off-entity.
+631-    For a resolved IN equity every item is scored by :func:`row_relevant` (the
+632-    web-evidence gate — no new scoring) and off-entity items are dropped; when
+633-    none survives, the note says so. Other targets pass through unchanged.
+634-    The ONE gate for every news leg: FAST's snapshot and the DEEP/ULTRA
+635-    researchers' structured news pull.
+636-    """
+637-    if not items or not (is_india_target(target) and target.is_equity_like()):
+638-        return items, None
+57:class ResearchTarget:
+58-    """The one instrument a research run is bound to — resolved exactly once.
+59-
+60-    ``raw`` carries the full resolver wire reply (candidates, disambiguation
+61-    flag) for the ``structured["resolved"]`` surface; it never participates in
+62-    equality so two targets bound to the same instrument compare equal.
+63-    """
+64-
+65-    symbol: str
+66-    name: str
+67-    exchange: str | None
+68-    asset_class: str | None
+69-    confidence: float
+70-    region: str | None
+71-    #: R13 additive identity enrichment mirrored from the resolver reply — the
+72-    #: anchors the web-query builder + relevance gate use to disambiguate a
+73-    #: ≤3-char ticker (KSE) shadowed by a famous foreign entity. ``None`` when
+74-    #: the bundled data does not carry it (never fabricated).
+75-    isin: str | None = None
+76-    bse_code: str | None = None
+77-    industry: str | None = None
+78-    former_name: str | None = None
+79-    raw: dict[str, Any] = field(default_factory=dict, compare=False, repr=False)
+80-
+81-    def is_equity_like(self) -> bool:
+82-        """True unless the instrument is explicitly a crypto/fx asset — drives
+kept ids: ['abc123']
+note: None

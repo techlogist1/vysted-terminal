@@ -1,0 +1,37 @@
+COMMAND: vite ssr bundle (scratch config, alias @/lib/sidecar-client -> stub returning http://127.0.0.1:52343) of candidate src/lib/plugin-agents.ts syncPluginAgents + real CATALOG_BY_ID['vysted-lenses'], run with node against own sidecar :52343 (own data copy)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+import { syncPluginAgents, pluginAgentId } from "<cand>/src/lib/plugin-agents";
+import { CATALOG_BY_ID } from "<cand>/src/lib/marketplace";
+const inst: any = CATALOG_BY_ID["vysted-lenses"].discovered.instance;
+const orig = inst.getAgents.bind(inst);
+const good = orig();
+console.log("lenses agents:", good.map((a: any) => a.id), "tools of first:", good[0].tools);
+async function attempt(label: string, agents: any[], register = true) {
+  inst.getAgents = () => agents;
+  try { await syncPluginAgents("vysted-lenses", register); console.log(label, "-> resolved (no error)"); }
+  catch (e: any) { console.log(label, "-> REJECTED:", String(e.message).slice(0, 260)); }
+}
+const bad = [{ ...good[0], tools: ["not_a_real_tool"] }];
+await attempt("bad tool id register", bad);
+await attempt("good register #1", [good[0]]);
+await attempt("good register #2 (409 -> PUT)", [{ ...good[0], philosophy: "revised philosophy" }]);
+const r = await fetch("http://127.0.0.1:52343/custom-agents/" + encodeURIComponent(pluginAgentId("vysted-lenses", good[0].id)));
+console.log("stored philosophy after revision:", ((await r.json()) as any).philosophy);
+await attempt("remove (cleanup)", [good[0]], false);
+--- output ---
+lenses agents: [ 'quant-tutor' ] tools of first: [
+  'get_terminal_state',
+  'get_portfolio',
+  'price_data',
+  'fundamentals',
+  'macro_series',
+  'earnings_history',
+  'analyst_history'
+]
+bad tool id register -> REJECTED: agent registration failed — custom:vysted-lenses-quant-tutor: HTTP 422 {"detail":[{"type":"value_error","loc":["body","tools"],"msg":"Value error, unknown tool ids: ['not_a_real_tool']; allowed: ['add_chart_drawing', 'add_to_watchlist', 'analyst_history', 'ana
+good register #1 -> resolved (no error)
+good register #2 (409 -> PUT) -> resolved (no error)
+stored philosophy after revision: revised philosophy
+remove (cleanup) -> resolved (no error)
+EXIT=0

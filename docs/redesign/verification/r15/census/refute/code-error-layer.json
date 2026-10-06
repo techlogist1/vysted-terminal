@@ -1,0 +1,137 @@
+[
+  {
+    "raw_id": "COD-error-layer-1",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: DIVERGENCE_RE only matches 'did not confirm the publish' and the OLD 'kept the previous, richer brief'; the runtime now emits 'kept the brief already on screen…' and 'reported the publish failed…', so 2 of 3 notices fall through to appendResearchStep. Each suite pins its own copy (TS test :29 old string, py test :1390/:1464 new string), so both stay green.",
+    "evidence": "src/modules/chat/message-notices.ts:57-61, sidecar/services/agent_runtime.py:1023-1036, src/modules/chat/ChatSidebar.tsx:981-988, src/modules/chat/message-notices.test.ts:28-29, sidecar/tests/test_agent_runtime.py:1390,1464, src/modules/chat/ChatSidebar.test.tsx:699",
+    "evidence_checked": "code-only (read regex, emitter, branch and both tests); no live stream needed",
+    "repro_check": "grep of the three runtime detail strings vs DIVERGENCE_RE: only the no-ack line contains a regex alternative"
+  },
+  {
+    "raw_id": "COD-error-layer-2",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: consumeSseStream's !response.ok branch passes safeReadDetail (raw response.text().slice(0,500)) as the Error message and ChatSidebar's legacy path renders 'Something went wrong — <text>'; extractSidecarDetail is not used. /agents/{id}/invoke raises HTTPException 404 'unknown agent' before the stream opens, so a stale/deleted agent id lands a JSON blob in chat.",
+    "evidence": "src/modules/chat/streaming.ts:216-219,360-367, src/lib/sidecar-client.ts:48-72, src/modules/chat/ChatSidebar.tsx:1445,2033, sidecar/routers/agents.py:89",
+    "evidence_checked": "code-only; did not POST (non-GET would need vy.py and the mechanism is fully visible in code)",
+    "repro_check": "read the non-ok branch + ErrorRow; POST /agents/nope/invoke would return {\"detail\":\"unknown agent: 'nope'\"} (agents.py:89) rendered verbatim"
+  },
+  {
+    "raw_id": "COD-error-layer-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: sidecarGet is the only verb; census reproduces exactly (79 non-test fetch( sites in 39 files; extractSidecarDetail used only in sidecar-client.ts and equity-overview/api.ts), and delegate-runs.ts casts body.detail as string so a 422 array renders 'Could not start: [object Object]'. Correction: two of the three cited 'provably wrong' sites (host-actions.ts:1553-1562 order-proposal POST, BrokerOrderEntry.tsx:115-120) are trading surfaces being deleted by the 23 Sep removal, so the live defect is delegate-runs.ts (+ AgentBuilderPanel dropping arrays) and the structural gap.",
+    "evidence": "src/lib/sidecar-client.ts:154-216, src/lib/delegate-runs.ts:107-115, src/lib/host-actions.ts:1545-1562, src/modules/broker-connect/BrokerOrderEntry.tsx:110-120, src/modules/agent-builder/AgentBuilderPanel.tsx:85-100",
+    "evidence_checked": "code + grep recount (rg fetch( over src/ plugins/ excluding tests -> 79/39; extractSidecarDetail -> 2 files)",
+    "repro_check": "grep -rn 'fetch(' src plugins | grep -v .test. | wc -l -> 79; delegate-runs body.detail cast confirmed"
+  },
+  {
+    "raw_id": "COD-error-layer-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: app-level ProviderError handler emits 502 {detail} and drops kind; 25 'except ProviderError' sites across 7 routers; only GET /fundamentals/{symbol} maps rate_limited->429 and not_found->404; ProviderError docstring documents only 'rate_limited'|None while 'not_found' is raised in yfinance_provider and provider_registry.",
+    "evidence": "sidecar/app.py:312-315, sidecar/routers/fundamentals.py:102-115,219-220, sidecar/services/errors.py:25-40, sidecar/services/yfinance_provider.py:63,320,336,341, sidecar/services/provider_registry.py:437",
+    "evidence_checked": "code + grep ('except ProviderError' in sidecar/routers -> 25 hits in earnings, screener, disclosures, fundamentals, crypto, sec_filings, macro; '.kind' in routers -> fundamentals only)",
+    "repro_check": "grep -rn 'except ProviderError' sidecar/routers | wc -l -> 25"
+  },
+  {
+    "raw_id": "COD-error-layer-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "OpenAI 429-credit ('rate-limiting… try again in a minute') and 400/413 context overflow ('Something went wrong… switch provider', code=unknown) reproduce exactly. Correction: the Ollama leg is largely pre-empted on the chat path — ChatSidebar gates every keyless-provider send on validateProvider() and opens onboarding before any stream (ChatSidebar.tsx:796-806), so the 'check your network' copy only surfaces if Ollama dies mid-session or on paths without that gate.",
+    "evidence": "sidecar/services/errors.py:148-196,207-224,295-300, src/modules/chat/ChatSidebar.tsx:796-806, sidecar/services/llm/ollama.py:180-192",
+    "evidence_checked": "ran humanize() in sidecar/.venv with the finding's inputs",
+    "repro_check": "humanize('openai',429 credit)->rate_limit; ('openai',400 max context)->unknown; ('groq',413)->unknown; ('ollama',ConnectionError)->network 'Could not reach Ollama — check your network.'"
+  },
+  {
+    "raw_id": "COD-error-layer-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: router last-resort guards call error_frame(exc) without provider_id, and humanize matches 'connect'/'connection'/'timeout' anywhere in str(exc), so internal sidecar faults are blamed on the provider/network; adapters already catch Exception and humanize with their own id (e.g. anthropic.py:147-156, ollama.py:180-192), so what reaches the router guard is a runtime/tool/store fault.",
+    "evidence": "sidecar/services/errors.py:59-63,207-224,241-245,295-300, sidecar/routers/llm.py:141-145, sidecar/routers/agents.py:105-110, sidecar/services/llm/anthropic.py:147-156",
+    "evidence_checked": "ran humanize() in sidecar/.venv with the finding's inputs",
+    "repro_check": "humanize(None,RuntimeError('…database connection is closed'))->network; ValueError(\"could not parse depth…\")->parse_error 'the AI provider returned…' (lowercase); KeyError('connect_args')->network; TypeError research_depth->'Something went wrong with the AI provider.'"
+  },
+  {
+    "raw_id": "COD-error-layer-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real on the client: validateProvider returns false on catch/non-2xx and discards body.detail, and ChatSidebar then says 'No AI model is set up yet' and opens onboarding, so a dead sidecar misdiagnoses as first-run; KeyEntryDialog's postValidate is a second client that keeps detail. Correction: the claim that 'the wire already carries' the distinction does not hold for the keyless provider this gate exists for — OllamaAdapter.validate_key swallows every exception to False (ollama.py:239-248), so the route returns 'unauthorized or no key supplied', never 'transport error', for a stopped daemon; the fix needs the adapter/route too.",
+    "evidence": "src/lib/sidecar-client.ts:226-243, src/modules/chat/ChatSidebar.tsx:796-806, sidecar/routers/llm.py:99-111, sidecar/services/llm/ollama.py:239-248, src/components/KeyEntryDialog.tsx:175-189, src/components/StatusChrome.tsx:88-106",
+    "evidence_checked": "code-only",
+    "repro_check": "traced sidecar-unreachable -> fetch throws -> catch false -> onboarding.open(); traced Ollama down -> validate_key False -> detail 'unauthorized or no key supplied'"
+  },
+  {
+    "raw_id": "COD-error-layer-8",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: sidecarGet's fetch() is outside any try (only the JSON parse is wrapped), consumeSseStream forwards the fetch TypeError via toError, and the Rust event loop drops CommandEvent::Terminated into `_ => {}` with no respawn or frontend signal, so after a crash every call surfaces the engine's bare 'Load failed'/'Failed to fetch'.",
+    "evidence": "src/lib/sidecar-client.ts:194-216, src/modules/chat/streaming.ts:204-215, src/store/macro.ts:92-99, src-tauri/src/lib.rs:226-238",
+    "evidence_checked": "code-only",
+    "repro_check": "read both fetch sites and the Rust rx loop; no GUI repro permitted"
+  },
+  {
+    "raw_id": "COD-error-layer-9",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: the hook's .catch has no error classification and retries attempt(0..12) = 13 loads with 1,2,4,5,5… s backoff; MacroPanel defaults to fred/DGS10 and rethrows a plain Error on status 'error', and loadSeries resets to 'loading' each attempt. Live repro: keyless FRED is a deterministic 502.",
+    "evidence": "src/lib/use-sidecar-retry.ts:24-28,78-111, src/modules/macro/MacroPanel.tsx:14-15,38-47, src/store/macro.ts:75-79",
+    "evidence_checked": "code + GET repro against :52152",
+    "repro_check": "curl 'http://127.0.0.1:52152/macro/DGS10?provider=fred' -> 502 {\"detail\":\"FRED needs a free API key for macro data…\"}"
+  },
+  {
+    "raw_id": "COD-error-layer-10",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds: RESEARCH_BEGIN_RE has no s flag so `(.*)$` cannot span a newline; the emitter interpolates the model-supplied query (only .strip()ed) into the detail, so a multi-line query never matches and beginRun never fires.",
+    "evidence": "src/modules/chat/streaming.ts:57,83-91, sidecar/services/agent_tools/research.py:53-72,146-171",
+    "evidence_checked": "ran the regex in node (v24.15.0) with a multi-line and single-line query",
+    "repro_check": "multi-line -> false, single-line -> true"
+  },
+  {
+    "raw_id": "COD-error-layer-11",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds on both halves: dispatchFrame wraps JSON.parse, normalizeEvent (which calls feedBriefLifecycle) and handlers.onEvent in one try and relabels any throw 'unparseable SSE frame: …'; consumeSseStream returns normally on reader done without tracking a terminal frame, and ChatSidebar settles only in onDone/onError with nothing after the await.",
+    "evidence": "src/modules/chat/streaming.ts:225-271,297-305, src/modules/chat/ChatSidebar.tsx:888-939,1005-1038,1999-2033",
+    "evidence_checked": "code-only",
+    "repro_check": "read dispatchFrame try scope and the post-await code in the send path; no settle after streamAgentInvocation/streamChat returns"
+  },
+  {
+    "raw_id": "COD-error-layer-12",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds: the /health probe fetch has no signal and the deadline is checked only after it settles; sidecarGet takes no signal; resolvePortToBaseUrl builds http://127.0.0.1:0 unconditionally although Rust documents 0 as 'no sidecar bound' and start_main_sidecar returns early for port 0.",
+    "evidence": "src/lib/sidecar-client.ts:97-98,125-144,154-196, src-tauri/src/lib.rs:200-204,273-279",
+    "evidence_checked": "code-only",
+    "repro_check": "read probe loop and port resolution; port 0 is never short-circuited"
+  },
+  {
+    "raw_id": "COD-error-layer-13",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds: no src/ code branches on any error code value (grep for provider_402/model_not_found/rate_limit/provider_5xx/parse_error/content_filter finds only the type comment); 12 identical LLMErrorEvent(message=_h.message,…) re-spellings across adapters; types/ai.ts:194 still `{kind:'error'; message}`; run_manager writes raw detail=f'run failed: {exc}'.",
+    "evidence": "sidecar/services/errors.py:71-83,301-319, sidecar/services/llm/anthropic.py:147-156, src/modules/chat/streaming.ts:30-53, types/ai.ts:194, src/modules/chat/ChatSidebar.tsx:1431-1475, sidecar/services/run_manager.py:216-220, sidecar/services/agent_runtime.py:1485-1493",
+    "evidence_checked": "code + grep",
+    "repro_check": "grep -rnE 'provider_402|model_not_found|…' src (non-test) -> only streaming.ts comment; grep -c 'LLMErrorEvent(' sidecar/services/llm -> 12"
+  },
+  {
+    "raw_id": "COD-error-layer-14",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: connectSidecar's only caller is the page mount effect (page.tsx:52) and app.ts is the only writer of sidecarStatus; no heartbeat, focus re-probe or failure-path write, so the status latches after boot and the retry hook's 're-arm on reconnect' edge fires at most once.",
+    "evidence": "src/store/app.ts:20-34, src/app/page.tsx:45-52, src/lib/use-sidecar-retry.ts:19-22,113-135, src/components/StatusChrome.tsx:88-106, src-tauri/src/lib.rs:226-238",
+    "evidence_checked": "code + grep (connectSidecar / sidecarStatus writers across src and plugins)",
+    "repro_check": "grep -rn 'connectSidecar' src plugins (non-test) -> app.ts definition + page.tsx:52 only"
+  },
+  {
+    "raw_id": "COD-error-layer-15",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds: sidecarGet awaits buildSearchHeaders() on every call, which on tier_b does an unmemoised getSecret -> invoke('keychain_get') and sets X-Vysted-Openrouter-Key; the watchlist polls /quotes via sidecarApi every 5 s; the sidecarGet comment still names the 'BYOK Exa key' although search-headers.ts states the Exa lane is dead. Loopback-only, so low.",
+    "evidence": "src/lib/sidecar-client.ts:175-185, src/lib/search-headers.ts:27-30,84-98, src/lib/keychain.ts:63-66, src/modules/watchlist/WatchlistPanel.tsx:24,219-221, src/modules/watchlist/api.ts:38",
+    "evidence_checked": "code-only",
+    "repro_check": "traced WatchlistPanel poll -> sidecarApi.quotes -> sidecarGet -> buildSearchHeaders -> getOpenrouterApiKey on tier_b"
+  }
+]

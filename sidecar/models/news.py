@@ -20,8 +20,15 @@ class NewsItem(BaseModel):
     summary: str | None = None
     url: str
     source: str
-    published_at: datetime
+    #: The source's own publication time. ``None`` when the feed carried no
+    #: parseable date — never a fabricated ``now()`` (an undated item sorts last).
+    published_at: datetime | None
     symbols: list[str] = []
     sentiment: float | None = None
     sentiment_label: str | None = None
     provider: str
+    #: True when this item was tagged by per-symbol-feed provenance (the
+    #: symbol's own Yahoo feed), not by an alias match in the title/summary
+    #: text — R15-RESEARCH-001: DEEP/ULTRA trust an own-feed item without
+    #: running it through the news relevance gate.
+    via_symbol_feed: bool = False

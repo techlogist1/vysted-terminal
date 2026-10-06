@@ -1,0 +1,3 @@
+src/modules/screener/ScreenerResultsTable.test.tsx:350:    expect(screen.getByText("Nothing could be screened")).toBeInTheDocument();
+src/modules/screener/ScreenerResultsTable.tsx:535:        {result.evaluated_count === 0 ? (
+src/modules/screener/ScreenerResultsTable.tsx:539:            headline="Nothing could be screened"

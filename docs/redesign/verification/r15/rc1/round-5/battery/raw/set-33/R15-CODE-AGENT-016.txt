@@ -1,0 +1,16 @@
+CMD: in-process python (candidate sidecar venv): agent_runtime._load_schema() + a scratch openrouter-defaultProvider agent JSON through _discover_specs()
+  "schema_enum": [
+    "anthropic",
+    "openai",
+--
+  "openrouter_in_enum": true,
+  "openrouter_in_provider_ids": true,
+  "degraded_agents": [
+--
+  "openrouter_agent_loaded": true,
+  "bad_agent_degraded": true,
+  "roster_count_scratch": 14,
+  "missing_dir_specs_empty": true,
+  "missing_dir_degraded": [
+Schema enum now has all 8 registry ids including openrouter (derived live from model_registry.provider_ids(), _schema.json on disk carries no hardcoded enum per agent_runtime.py:236-238); the openrouter agent loaded (roster went 13->14 in the scratch dir, matching the register's '13 -> 14 with the fix').
+VERDICT: holds

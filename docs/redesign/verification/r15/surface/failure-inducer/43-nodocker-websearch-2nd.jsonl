@@ -1,0 +1,142 @@
+{"kind": "tool_use", "tool_call_id": "", "name": "web_search", "input": {"query": "Dixon Technologies", "category": "financial", "num_results": 10}}
+{"kind": "delta", "text": "Based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " call"}
+{"kind": "delta", "text": " response"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " appears"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " there"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " timeout"}
+{"kind": "delta", "text": " error"}
+{"kind": "delta", "text": " while"}
+{"kind": "delta", "text": " trying"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " Dixon"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " This"}
+{"kind": "delta", "text": " could"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " due"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " various"}
+{"kind": "delta", "text": " reasons"}
+{"kind": "delta", "text": " such"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " network"}
+{"kind": "delta", "text": " issues"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " provider"}
+{"kind": "delta", "text": " errors"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " unusually"}
+{"kind": "delta", "text": " high"}
+{"kind": "delta", "text": " demand"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " suggest"}
+{"kind": "delta", "text": " trying"}
+{"kind": "delta", "text": " again"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " narrower"}
+{"kind": "delta", "text": " query"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " lighter"}
+{"kind": "delta", "text": " depth"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " see"}
+{"kind": "delta", "text": " if"}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " some"}
+{"kind": "delta", "text": " relevant"}
+{"kind": "delta", "text": " results"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Alternatively"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " may"}
+{"kind": "delta", "text": " want"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " fetching"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " other"}
+{"kind": "delta", "text": " providers"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " using"}
+{"kind": "delta", "text": " different"}
+{"kind": "delta", "text": " tools"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " gather"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "In"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " meantime"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " previously"}
+{"kind": "delta", "text": " fetched"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " Dixon"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " might"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " our"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " knowledge"}
+{"kind": "delta", "text": " database"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " retry"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " web"}
+{"kind": "delta", "text": " search"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " narrower"}
+{"kind": "delta", "text": " query"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " lighter"}
+{"kind": "delta", "text": " depth"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2703, "output_tokens": 141, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop"}

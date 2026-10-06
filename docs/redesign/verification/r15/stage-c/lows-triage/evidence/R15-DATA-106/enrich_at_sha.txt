@@ -1,0 +1,29 @@
+## enrich_nse_sectors.py
+37:            out.append(str(row[0]).strip().upper())
+60:            industry = (info.get("industry") or "").strip()
+62:            sector, industry = "", ""
+67:                records.append(rec)
+69:            rec["sector"] = sector
+70:            rec["industry"] = industry or rec.get("industry")
+71:            rec["sector_source"] = "yfinance"
+83:        doc["coverage"].setdefault("sector_sources", {})["yfinance"] = filled
+## test_india_sector_map.py asserts
+11:  - 1,340 records carried a Yahoo industry string under an orphaned
+12:    ``industry`` key while every reader consumes ``industry_raw`` only —
+29:    "industry_raw",
+56:def test_shipped_map_no_record_carries_industry_without_industry_raw() -> None:
+58:    After the hygiene pass the orphan ``industry`` key must not exist at all —
+59:    every industry string lives in ``industry_raw`` (the one key readers
+62:        assert "industry" not in rec, (
+63:            f"{rec['symbol']}: orphaned 'industry' key — readers only consume industry_raw"
+65:        assert "industry_raw" in rec, f"{rec['symbol']}: missing the industry_raw key"
+68:def test_shipped_map_records_have_one_canonical_shape() -> None:
+## symbol_resolver industry_raw
+267:    industry: str | None = None  # india_sector_map industry_raw (None for uncovered names)
+309:        "industry": instrument.industry,
+379:    record carries ``isin / scrip_code / industry_raw / sector / sector_source /
+382:    uncovered micro-cap (KSE) is PRESENT with ``industry_raw: None`` — the join
+1220:    listing), ``industry`` from ``india_sector_map.json`` (``industry_raw``, else
+1224:    the sector map with ``industry_raw: None`` (KSE) surfaces ``industry = None``,
+1266:        raw_industry = record.get("industry_raw") or record.get("sector")
+1297:        "industry": industry,

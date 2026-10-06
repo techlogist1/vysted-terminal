@@ -1,0 +1,21 @@
+=== DOCS-018: CURRENT_STATE.md vs provider_registry.py ===
+93:>   data registry** (`provider_registry.py`) resolves by standard model key +
+196:import a concrete provider; they go through `provider_registry` or a domain
+277:| GET                 | `/health`                                                                                  | Liveness (Tauri polls on launch)                 | `provider_registry.active_providers()`; version from `request.app.version` |
+278:| GET                 | `/quotes/{symbol}`                                                                         | Single latest quote                              | `provider_registry.get_quote` via `asyncio.to_thread`                      |
+280:| GET                 | `/history/{symbol}`                                                                        | OHLCV (`?timeframe=&range=&asset_class=`)        | `provider_registry.get_history` — **NOT thread-offloaded**                 |
+287:| GET                 | `/fundamentals/{symbol}`                                                                   | Valuation ratios + profile                       | `provider_registry.get_fundamentals`                                       |
+288:| GET                 | `/fundamentals/{symbol}/income` `/balance` `/cashflow`                                     | Financial statements                             | `provider_registry.get_*_statement`                                        |
+289:| GET                 | `/fundamentals/{symbol}/ratings`                                                           | Aggregated analyst rating                        | `provider_registry.get_analyst_rating`                                     |
+320:All under `sidecar/services/`. `provider_registry.py` resolves by **standard
+851:- **The sidecar + data layer.** ~94 REST routes (post-D81), the `provider_registry`
+"""Provider registry — the single dispatch point routers call into.
+
+Routers never import a concrete provider directly; they call the registry, which
+resolves the right provider for each request. FR-035/FR-053: dispatch is no
+longer a hardcoded ``if asset_class`` switch — it is a resolver keyed by a
+STANDARD MODEL KEY (``quote``, ``ohlcv``, ``fundamentals``, ``income_statement``,
+…) that walks installed providers in a PREFERENCE ORDER, trying each until one
+succeeds. ``asset_class`` becomes a resolution *hint*, not the switch.
+
+This mirrors :mod:`services.agent_tools.catalog`'s "declare once, project to

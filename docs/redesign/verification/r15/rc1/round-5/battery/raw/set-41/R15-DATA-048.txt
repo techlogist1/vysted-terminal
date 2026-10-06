@@ -1,0 +1,6 @@
+candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98 -- live GET http://127.0.0.1:52341/fundamentals/<SYM>.NS (my isolated sidecar, isolated data copy)
+roce + field_meta.roce extracted per symbol:
+RELIANCE: roce=0.08993784539668614 field_meta.roce={'status': 'ok', 'provider': 'derived', 'as_of': '2026-09-27T08:31:57.867604+00:00', 'reason': None, 'label': None, 'basis_note': 'annual EBIT / (total assets - current liabilities)'}
+CREST: roce=0.03686193809422806 field_meta.roce={'status': 'ok', 'provider': 'derived', 'as_of': '2026-09-27T08:31:59.017647+00:00', 'reason': None, 'label': None, 'basis_note': 'annual EBIT / (total assets - current liabilities)'}
+AMAL: roce=0.22332467349866908 field_meta.roce={'status': 'ok', 'provider': 'derived', 'as_of': '2026-09-27T08:32:01.070587+00:00', 'reason': None, 'label': None, 'basis_note': 'annual EBIT / (total assets - current liabilities)'}
+ELCIDIN: roce=None field_meta.roce={'status': 'unavailable', 'provider': 'yfinance', 'as_of': '2026-09-27T08:32:12.684486+00:00', 'reason': 'insufficient statement data to derive ROCE', 'label': None, 'basis_note': None}

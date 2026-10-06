@@ -1,0 +1,18 @@
+CMD: curl -sS -m 20 'http://127.0.0.1:52362/fundamentals/TSM'
+price_to_book = None status= withheld reason= Yahoo's price/book (listing price over book value per share) divides or states a USD listing value against TWD statements; its basis cannot be verified without FX, so it is withheld
+book_value = None status= withheld reason= Yahoo's book value per share divides or states a USD listing value against TWD statements; its basis cannot be verified without FX, so it is withheld
+price_to_sales = None status= withheld reason= Yahoo's price/sales (market cap over trailing revenue) divides or states a USD listing value against TWD statements; its basis cannot be verified without FX, so it is withheld
+pe_ratio = 33.552494 status= ok reason= None
+
+CMD: curl -sS -m 20 'http://127.0.0.1:52362/fundamentals/HDB'
+price_to_book = None status= withheld reason= Yahoo's price/book (listing price over book value per share) divides or states a USD listing value against INR statements; its basis cannot be verified without FX, so it is withheld
+book_value = None status= withheld reason= Yahoo's book value per share divides or states a USD listing value against INR statements; its basis cannot be verified without FX, so it is withheld
+price_to_sales = None status= withheld reason= Yahoo's price/sales (market cap over trailing revenue) divides or states a USD listing value against INR statements; its basis cannot be verified without FX, so it is withheld
+pe_ratio = 16.09091 status= ok reason= None
+
+CMD: curl -sS -m 20 'http://127.0.0.1:52362/fundamentals/AAPL' (control, USD/USD)
+price_to_book = 46.341034 status= ok reason= None
+book_value = 7.36 status= ok reason= None
+price_to_sales = 10.662793 status= ok reason= None
+pe_ratio = 39.068733 status= ok reason= None
+EXIT: 0

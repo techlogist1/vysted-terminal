@@ -1,0 +1,15 @@
+CMD: git grep pinning tests at candidate ace7dd76 (vitest suites are the heavy lane's; not run here)
+src/lib/host-actions.test.ts:1126:  it("the apply result carries its ack status (D39 §4) — kept_previous, applied, failed", async () => {
+src/lib/host-actions.test.ts:1149:    expect(shrink.status).toBe("kept_previous");
+src/lib/host-actions.test.ts:1159:    expect(stale.status).toBe("kept_previous");
+src/store/proposed-changes.test.ts:192:  it("acks kept_previous when the apply kept the richer brief", async () => {
+src/store/proposed-changes.test.ts:195:      status: "kept_previous",
+src/store/proposed-changes.test.ts:200:    expect(ackHostActionMock).toHaveBeenCalledWith("tc-publish_brief", "kept_previous", {
+src/store/proposed-changes.test.ts:205:  it("a reworded Kept label still acks kept_previous", async () => {
+src/store/proposed-changes.test.ts:207:    // a label that no longer starts with "Kept" still acks kept_previous, and a
+src/store/proposed-changes.test.ts:211:      status: "kept_previous",
+src/store/proposed-changes.test.ts:216:    expect(ackHostActionMock).toHaveBeenLastCalledWith("tc-publish_brief", "kept_previous", {
+--- source:
+src/store/proposed-changes.ts:146:    const ok = status !== "failed";
+src/store/proposed-changes.ts:149:      : reason || "Could not apply this change — its arguments were incomplete.";
+src/store/proposed-changes.ts:152:    // (applied | kept_previous | failed) so the runtime's grounded

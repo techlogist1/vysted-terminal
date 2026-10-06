@@ -1,0 +1,8 @@
+groq/llama-3.3-70b-versatile -> native_search_available with_function_tools=True: False
+groq/llama-3.3-70b-versatile -> native_search_available with_function_tools=False: False
+groq/compound -> native_search_available with_function_tools=True: True
+groq/compound -> native_search_available with_function_tools=False: True
+gemini/gemini-2.5-pro -> native_search_available with_function_tools=True: False
+gemini/gemini-2.5-pro -> native_search_available with_function_tools=False: True
+gemini/gemini-3-pro -> native_search_available with_function_tools=True: True
+gemini/gemini-3-pro -> native_search_available with_function_tools=False: True

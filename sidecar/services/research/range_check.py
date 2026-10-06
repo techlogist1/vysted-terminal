@@ -1,0 +1,301 @@
+"""52-week range cross-check against the app's own exchange-direct history
+(R13 / D71).
+
+The R13 battery found the provider's 52-week high/low pair can be plainly WRONG
+while the correct series is already in the app: BI (Bilcare) shows a provider 52w
+high near 75 vs a real ~116; PML shows 645/451 vs the real 823/407. The chart
+panel renders the RIGHT series — it pulls exchange-direct EOD history through
+:func:`services.provider_registry.get_history` (the nse_direct → jugaad → bse
+lane) — so the brief can recompute the 52-week high/low from that same series and
+flag a provider pair that disagrees.
+
+D56/D66/D68 taught the app to FLAG, never silently pick, two sources that
+disagree; this applies that discipline to the 52-WEEK RANGE. The cross-check
+DISCLOSES, never substitutes: the provider ``fifty_two_week_high`` /
+``fifty_two_week_low`` are left untouched everywhere; a divergence surfaces as
+separately-labeled facts + a conflict in the derived semantics leg
+(:func:`services.research.semantics.derive_semantics`).
+
+:func:`get_52w_range` is the fetching entry point. It never raises into the
+research path: every provider failure becomes ``None`` (the caller then attaches
+nothing — absence is honest). It is APPLICABILITY-GATED twice: only for NSE/BSE
+listings (the exchange-direct lane exists only there), and only when the returned
+series actually spans ~52 weeks (a thin/cold cache that covers a few weeks cannot
+witness a 52-week range, so it stays silent rather than emit a false low high).
+
+Wiring contract (mirrors D66)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The snapshot builder attaches this module's result onto the fundamentals leg's
+``data`` dict under :data:`RANGE_KEY` — a plain dict
+``{high, low, coverage_days, bars, source}``. ``derive_semantics`` reads it
+alongside the provider's ``fifty_two_week_high`` / ``fifty_two_week_low`` and
+applies the divergence tolerance (which lives THERE, next to the other
+cross-check tolerances).
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime, timedelta
+from typing import Any
+
+from services import provider_health
+from services.errors import ProviderError
+from services.witness import is_block_error, is_india_listing
+
+logger = logging.getLogger(__name__)
+
+#: The provider-health FAMILY for the exchange-direct HISTORY lane. Distinct from
+#: the ``exchange`` shareholding family (a different endpoint / block semantics)
+#: and from the Yahoo family — a throttle on one exchange endpoint must not open
+#: the others' circuits.
+EXCHANGE_HISTORY = "exchange_history"
+
+#: The fundamentals-leg key the snapshot builder attaches this result under, and
+#: that :func:`services.research.semantics.derive_semantics` reads.
+RANGE_KEY = "range_52w_exchange"
+
+#: Provider ids that count as an EXCHANGE-DIRECT history lane (mirrors the ids
+#: :mod:`services.provider_registry` assigns its India OHLCV providers:
+#: ``nse_direct`` (the anti-bot NSE lane), ``nse`` (the jugaad-data-backed
+#: default), ``bse`` (the BhavCopy cache) — plus ``jugaad`` as a defensive
+#: alias should that id ever be used directly). A series served by anything
+#: else (chiefly ``yfinance``, the last-resort fallback) must NOT be used to
+#: recompute the 52-week range (R13 D-1 hardening): a yfinance-served series
+#: witnesses yfinance against itself — a false negative by construction — and
+#: yfinance's auto-adjusted OHLC vs. the unadjusted 52w scalar it also serves
+#: would manufacture false positives. :func:`get_52w_range` gates on this set
+#: and declines (returns ``None``) rather than compute from an ineligible
+#: source.
+_EXCHANGE_DIRECT_PROVIDERS = frozenset({"nse_direct", "nse", "bse", "jugaad"})
+
+#: The 52-week window in calendar days (the reduction is taken over bars within
+#: this trailing window of the latest bar).
+_WINDOW_DAYS = 365
+
+#: Coverage floors: the windowed series must span at least this many calendar
+#: days AND carry at least this many bars to honestly witness a "52-week" range.
+#: ~300 days (≈ 43 weeks) tolerates a young listing / holiday gaps while still
+#: covering most of the year; 180 trading bars is ~9 months of sessions. A
+#: thinner series (a cold BSE cache, a fresh IPO) returns ``None`` — absence is
+#: honest, never a low high computed from three weeks of data.
+_COVERAGE_MIN_DAYS = 300
+_COVERAGE_MIN_BARS = 180
+
+
+@dataclass(frozen=True)
+class Range52w:
+    """The 52-week high/low recomputed from the app's exchange-direct history.
+
+    ``high``/``low`` are the max intraday high / min intraday low over the
+    trailing 52-week window; ``coverage_days`` and ``bars`` back the
+    applicability gate and are carried as evidence; ``source`` is the provider
+    lane that actually served the series (``nse_direct`` / ``nse`` / ``bse`` —
+    only an exchange-direct lane can witness, see _EXCHANGE_DIRECT_PROVIDERS),
+    so a disagreement names which exchange series it came from.
+    """
+
+    high: float
+    low: float
+    coverage_days: int
+    bars: int
+    source: str
+
+    def as_wire(self) -> dict[str, Any]:
+        """The plain dict attached under :data:`RANGE_KEY`."""
+        return asdict(self)
+
+
+def should_cross_check(fund: dict[str, Any]) -> bool:
+    """Whether the fundamentals payload carries a 52-week bound to reconcile.
+
+    True only when the provider actually ships a numeric ``fifty_two_week_high``
+    or ``fifty_two_week_low`` — there is nothing to cross-check otherwise, and
+    fetching a year of history would spend budget for no comparison.
+    """
+    return any(
+        isinstance(fund.get(key), (int, float)) and not isinstance(fund.get(key), bool)
+        for key in ("fifty_two_week_high", "fifty_two_week_low")
+    )
+
+
+#: The exchange-direct history lane exists only for an NSE/BSE listing; a
+#: US/other listing routes to the same provider the 52-week scalar came from, so
+#: recomputing from it would not be an independent witness. Decided on the
+#: resolved listing (``.NS``/``.BO``), never bare-ticker membership.
+is_applicable = is_india_listing
+
+
+def _bar_timestamp(bar: Any) -> datetime | None:
+    """The bar's timestamp as an aware UTC datetime, or ``None`` if unusable."""
+    ts = getattr(bar, "timestamp", None)
+    if not isinstance(ts, datetime):
+        return None
+    return ts if ts.tzinfo is not None else ts.replace(tzinfo=UTC)
+
+
+def compute_range(bars: list[Any] | None, source: str) -> Range52w | None:
+    """The trailing-52-week high/low from an ascending OHLCV bar list.
+
+    Pure and synchronous so tests pin the reduction on fixture bars. The window
+    is the 365 days ending at the LATEST bar; the reduction is
+    ``max(b.high)`` / ``min(b.low)`` over the windowed bars. Returns ``None``
+    when there are no bars, or the windowed series fails the coverage floors
+    (:data:`_COVERAGE_MIN_DAYS` / :data:`_COVERAGE_MIN_BARS`) — a series too thin
+    to witness a full year cannot honestly emit a 52-week range.
+    """
+    if not bars:
+        return None
+    stamped = [(ts, bar) for bar in bars if (ts := _bar_timestamp(bar)) is not None]
+    if not stamped:
+        return None
+    latest = max(ts for ts, _ in stamped)
+    window_start = latest - timedelta(days=_WINDOW_DAYS)
+    windowed = [(ts, bar) for ts, bar in stamped if ts >= window_start]
+    if not windowed:
+        return None
+    coverage_days = (latest - min(ts for ts, _ in windowed)).days
+    if coverage_days < _COVERAGE_MIN_DAYS or len(windowed) < _COVERAGE_MIN_BARS:
+        return None
+    highs = [float(bar.high) for _, bar in windowed if bar.high is not None]
+    lows = [float(bar.low) for _, bar in windowed if bar.low is not None]
+    if not highs or not lows:
+        return None
+    return Range52w(
+        high=max(highs),
+        low=min(lows),
+        coverage_days=coverage_days,
+        bars=len(windowed),
+        source=source,
+    )
+
+
+def _fetch_history(symbol: str) -> Any:
+    """A year of daily exchange-direct history (BLOCKING; runs under
+    ``to_thread``). The SAME lane the chart panel uses —
+    :func:`services.provider_registry.get_history` — so the witness reconciles
+    against exactly what the user sees rendered."""
+    from services import provider_registry
+
+    return provider_registry.get_history(symbol, "1d", "1y", "equity")
+
+
+async def get_52w_range(symbol: str) -> Range52w | None:
+    """The 52-week high/low recomputed from the app's exchange-direct history.
+
+    ``None`` when the listing is not an Indian exchange name, the exchange-history
+    circuit is open, the series is unreachable, or the returned series does not
+    span ~52 weeks — never raises into the research snapshot. ``symbol`` should be
+    the listing the fundamentals leg resolved to (its exchange suffix is stripped
+    internally by the provider lane).
+    """
+    if not is_applicable(symbol):
+        return None
+    if provider_health.is_open(EXCHANGE_HISTORY):
+        return None  # circuit open — serve no exchange history this round (D52)
+    try:
+        series = await asyncio.to_thread(_fetch_history, symbol)
+    except Exception as exc:  # noqa: BLE001 — a cross-check must never break research
+        if is_block_error(exc):
+            provider_health.record_rate_limited(EXCHANGE_HISTORY)
+        else:
+            logger.debug("exchange history unavailable for %s: %s", symbol, exc)
+        return None
+    provider_health.record_success(EXCHANGE_HISTORY)
+    bars = getattr(series, "bars", None)
+    source = getattr(series, "provider", None) or "exchange"
+    if source not in _EXCHANGE_DIRECT_PROVIDERS:
+        # Circularity guard (R13 D-1): the served series fell through to a
+        # non-exchange-direct provider (e.g. yfinance) — recomputing from it
+        # would witness that provider against itself rather than cross-check
+        # it, so decline instead of computing. See _EXCHANGE_DIRECT_PROVIDERS.
+        logger.debug(
+            "52w range witness declined for %s: series provider %r is not exchange-direct",
+            symbol,
+            source,
+        )
+        return None
+    return compute_range(bars, source)
+
+
+def _fetch_nse_venue(symbol: str) -> Any:
+    """A year of NSE daily bars (BLOCKING): the exchange-direct lane, then the
+    jugaad lane when it is down. Raises the last lane's error when neither serves."""
+    from services import india_provider, nse_provider
+
+    error: Exception = ProviderError(f"nse: no history lane available for {symbol!r}")
+    for lane in (nse_provider, india_provider):
+        if not lane.is_available():
+            continue
+        try:
+            return lane.get_history(symbol, "1d", "1y")
+        except Exception as exc:  # noqa: BLE001 — the next lane is the fallback
+            error = exc
+    raise error
+
+
+def _fetch_bse_venue(symbol: str) -> Any:
+    """A year of BSE daily bars from the BhavCopy cache (BLOCKING)."""
+    from services import bse_provider
+
+    return bse_provider.get_history(symbol, "1d", "1y")
+
+
+async def get_venue_history(symbol: str) -> tuple[list[Any], list[str]] | None:
+    """A year of daily bars from BOTH Indian venues, merged by trading day.
+
+    The registry's single-lane history (:func:`get_52w_range`) witnesses one
+    venue; a dual-listed scrip's 52-week extreme can print on the other
+    (ELCIDIN: NSE low 1,02,210 vs BSE 87,003), and a scrip listed on NSE
+    mid-year has a short series there (R15-DATA-015). Each day keeps the higher
+    high and the lower low across venues. Returns ``(bars, venues)`` naming the
+    venues that served, or ``None`` when neither did, the listing is not Indian,
+    or the exchange-history circuit is open. Never raises.
+    """
+    if not is_applicable(symbol) or provider_health.is_open(EXCHANGE_HISTORY):
+        return None
+    results = await asyncio.gather(
+        asyncio.to_thread(_fetch_nse_venue, symbol),
+        asyncio.to_thread(_fetch_bse_venue, symbol),
+        return_exceptions=True,
+    )
+    by_day: dict[Any, Any] = {}
+    venues: list[str] = []
+    for venue, result in zip(("NSE", "BSE"), results, strict=True):
+        if isinstance(result, BaseException):
+            if is_block_error(result):
+                provider_health.record_rate_limited(EXCHANGE_HISTORY)
+            logger.debug("%s history unavailable for %s: %s", venue, symbol, result)
+            continue
+        bars = [b for b in getattr(result, "bars", None) or [] if _bar_timestamp(b)]
+        if not bars:
+            continue
+        venues.append(venue)
+        for bar in bars:
+            day = _bar_timestamp(bar).date()  # type: ignore[union-attr]
+            prev = by_day.get(day)
+            by_day[day] = (
+                bar
+                if prev is None
+                else prev.model_copy(
+                    update={"high": max(prev.high, bar.high), "low": min(prev.low, bar.low)}
+                )
+            )
+    if not venues:
+        return None
+    provider_health.record_success(EXCHANGE_HISTORY)
+    return [by_day[d] for d in sorted(by_day)], venues
+
+
+__all__ = [
+    "EXCHANGE_HISTORY",
+    "RANGE_KEY",
+    "Range52w",
+    "compute_range",
+    "get_52w_range",
+    "get_venue_history",
+    "is_applicable",
+    "should_cross_check",
+]

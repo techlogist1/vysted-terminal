@@ -1,0 +1,790 @@
+"""FAST research — the NO-LLM structured bundle (FR-070, US12).
+
+``gather_fast`` is the cheap, deterministic half of the research engine: it does
+NOT call an LLM. It resolves the query to a concrete instrument, fans the data
+pulls out in PARALLEL (price / fundamentals / news / SEC filings — each isolated
+so one provider failure is non-fatal), runs ONE web round, and returns a
+structured bundle plus layout hints. The agent then synthesises the prose from
+this bundle (prompt-driven, ratified) — keeping the FAST path free of model
+spend and the prose under the agent's voice.
+
+Honesty contract (FR-082): when the web-search backend is unconfigured the
+``web_search`` tool returns ``ok: False``; this bundle surfaces that as
+``web.available = False`` plus an honest ``note`` naming the structured-only
+fallback — never an empty section dressed up as "no news" and never a fabricated
+source.
+
+The tool layer is INJECTED (``tool_call``) so this module stays testable with a
+fake and carries no import-time dependency on the agent-tool registry.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import inspect
+import logging
+import time
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any
+
+from .depth import source_floor_leg
+from .models import ResearchStep
+
+if TYPE_CHECKING:  # import-light: no runtime dependency (see module docstring)
+    from services.research.target import ResearchTarget
+
+#: Injected tool dispatcher — ``await tool_call(name, args) -> dict``.
+ToolCall = Callable[[str, dict[str, Any]], Awaitable[dict[str, Any]]]
+
+#: Injected step sink — ``on_step(ResearchStep) -> None`` (may be a coroutine).
+#: The FAST path is short (≤15s) but the agent surface still animates a live
+#: trace from it (Track A) so even the default research mode feels alive. ``None``
+#: outside an agent run (tests / direct calls) — emission is then a silent no-op.
+OnStep = Callable[[ResearchStep], Any]
+
+logger = logging.getLogger(__name__)
+
+
+async def _emit(on_step: OnStep | None, step: ResearchStep) -> None:
+    """Forward one step to the sink, best-effort — a cosmetic trace must NEVER
+    break a research pull (a raising/garbled sink is swallowed)."""
+    if on_step is None:
+        return
+    try:
+        result = on_step(step)
+        if inspect.isawaitable(result):
+            await result
+    except Exception:  # noqa: BLE001 — the live trace is cosmetic, never fatal
+        pass
+
+
+def _ms(start: float) -> int:
+    """Elapsed wall time since ``start`` (a ``perf_counter`` reading) in ms."""
+    return int((time.perf_counter() - start) * 1000)
+
+
+#: Honest fallback line when no web backend answered (web_search ok==False). Kept
+#: short + actionable; the longer "how to unlock it" message rides the tool's own
+#: ``message`` field, surfaced in ``web.detail`` when present. Used ONLY for a
+#: genuine no-backend / unreachable failure — a TRANSIENT throttle gets the
+#: rate-limit note below so the brief never falsely claims "no backend".
+_NO_WEB_NOTE = "No web-search backend configured — structured data only"
+
+#: Honest note for a TRANSIENT throttle (DDG 202/429): the backend IS configured,
+#: it just rate-limited this run. Distinct from ``_NO_WEB_NOTE`` so the brief never
+#: tells a keyless user "no backend" when the floor was merely throttled.
+_RATE_LIMITED_NOTE = "Web search was rate-limited — retry in a moment"
+
+#: Per-asset-class DAILY indicator presets (FR-092): equities get trend +
+#: momentum (MA/RSI/MACD); ETFs drop MACD (basket, less single-name momentum
+#: signal); crypto is timeframe-agnostic (24/7, no session boundary) so it
+#: gets the same EMA50/200 + week-VWAP + RSI set at every timeframe.
+_INDICATORS_DAILY_BY_CLASS: dict[str, list[str]] = {
+    "equity": ["ma", "volume", "rsi", "macd"],
+    "etf": ["ma", "volume", "rsi"],
+    "crypto": ["ema:50", "ema:200", "vwap:week", "rsi"],
+}
+#: Per-asset-class INTRADAY indicator presets (FR-092): the EMA9/21 crossover
+#: + session VWAP replaces the daily MA trio (faster-reacting, single-line
+#: trend read). Crypto is unaffected by timeframe (see above).
+_INDICATORS_INTRADAY_BY_CLASS: dict[str, list[str]] = {
+    "equity": ["ema:9", "ema:21", "vwap", "rsi"],
+    "etf": ["ema:9", "ema:21", "vwap", "rsi"],
+    "crypto": _INDICATORS_DAILY_BY_CLASS["crypto"],
+}
+_DEFAULT_CLASS = "equity"
+#: Timeframes treated as intraday (1h and below); everything else is daily.
+#: This module is now the ONE source for the FR-092 default-indicator combos
+#: (R15-UI-091) — `src/lib/indicator-presets.ts`, a second, unwired copy with
+#: no production consumer, was deleted rather than kept in sync by hand.
+_INTRADAY_TIMEFRAMES: frozenset[str] = frozenset({"1m", "5m", "15m", "30m", "1h"})
+
+#: Per-leg time box for every structured leg — price, fundamentals, news,
+#: filings and the disclosure-only witness cross-checks (R15-RESEARCH-027): a
+#: slow leg is dropped like a failed one, so it never holds the NORMAL path past
+#: its FR-070 budget (<= 15 s).
+_WITNESS_LEG_TIMEOUT_S = 6.0
+
+#: The snapshot leg box for the DEEP/ULTRA/Tier B callers (rc1-battery-4:1).
+#: The FR-070 6 s box is FAST's; a cold NSE-paced price or fundamentals leg
+#: alone takes 10-11 s (~20 s run together), so under 6 s those runs dropped
+#: the metric cards for nothing. 25 s sits well inside their walls (>= 120 s).
+DEEP_SNAPSHOT_LEG_TIMEOUT_S = 25.0
+
+#: The NORMAL web round's own box (R15-RESEARCH-027): every structured leg is
+#: boxed at ``_WITNESS_LEG_TIMEOUT_S`` (6s), but the web round awaited
+#: ``_web_round`` unboxed — a keyless (DDG) backend can take 18-25s, holding
+#: the whole FAST bundle well past its FR-070 <= 15s budget. ``_web_round``
+#: itself (also used by DEEP, which has its own, much larger wall) stays
+#: unchanged; only the NORMAL caller's await is boxed.
+_WEB_ROUND_TIMEOUT_S = 8.0
+
+
+def _suggested_indicators(timeframe: str = "1d", asset_class: str | None = None) -> list[str]:
+    """Map an instrument's asset class + timeframe to the cockpit's opening
+    indicator set (FR-092). The research cockpit itself has no timeframe
+    concept (it opens on the daily read); ``timeframe`` defaults to ``"1d"``
+    for its two call sites and exists so a timeframe-aware caller (a chart
+    panel) can ask the same table for an intraday combo."""
+    key = (asset_class or "").strip().lower()
+    if key in ("crypto", "cryptocurrency"):
+        key = "crypto"
+    elif key in ("etf", "fund"):
+        key = "etf"
+    elif key != _DEFAULT_CLASS:
+        key = _DEFAULT_CLASS
+    if key == "crypto":
+        # Crypto is timeframe-agnostic (24/7, no session boundary) — FR-092.
+        return list(_INDICATORS_DAILY_BY_CLASS["crypto"])
+    table = (
+        _INDICATORS_INTRADAY_BY_CLASS
+        if timeframe.strip().lower() in _INTRADAY_TIMEFRAMES
+        else _INDICATORS_DAILY_BY_CLASS
+    )
+    return list(table.get(key, table[_DEFAULT_CLASS]))
+
+
+async def _safe_call(tool_call: ToolCall, name: str, args: dict[str, Any]) -> dict[str, Any]:
+    """Invoke one tool, converting ANY failure to an ``ok: False`` dict.
+
+    The parallel fan-out must be non-fatal per leg: a single provider raising
+    must not collapse the whole bundle. A raised exception becomes a structured
+    ``{"ok": False, "error": ...}`` so the caller treats a crash and a clean
+    provider miss the same way.
+    """
+    try:
+        result = await tool_call(name, args)
+    except Exception as exc:  # noqa: BLE001 — any tool failure is a soft miss here
+        return {"ok": False, "error": f"{name} failed: {exc}"}
+    if not isinstance(result, dict):
+        return {"ok": False, "error": f"{name} returned a non-dict result"}
+    return result
+
+
+async def _time_boxed(
+    name: str, leg: Awaitable[dict[str, Any]], on_step: OnStep | None, timeout_s: float
+) -> dict[str, Any]:
+    """Await one structured leg under ``timeout_s``.
+
+    A leg that overruns (a throttled Yahoo) becomes an ``ok: False`` miss and a
+    timed-out step with its ``latency_ms``, so the gather never waits on it and
+    the brief publishes without it (R15-RESEARCH-027).
+    """
+    start = time.perf_counter()
+    try:
+        return await asyncio.wait_for(leg, timeout_s)
+    except TimeoutError:
+        detail = f"{name} timed out after {timeout_s:g}s — dropped"
+        await _emit(on_step, ResearchStep("tool", detail, _ms(start), status="error"))
+        return {"ok": False, "provider": None, "error": detail, "reason": "provider_error"}
+
+
+def _provider_of(result: dict[str, Any]) -> str | None:
+    """Best-effort provenance label from a tool result.
+
+    Structured tools carry their source differently — ``price_data`` puts a
+    top-level ``provider``; fundamentals/news/filings nest it under their payload
+    or a ``mode``/``source`` field. Pull the first that's present so every
+    structured value is provenance-tagged for the FR-041 badge.
+    """
+    if not isinstance(result, dict):
+        return None
+    for key in ("provider", "source", "mode"):
+        val = result.get(key)
+        if isinstance(val, str) and val:
+            return val
+    # Nested payloads (fundamentals -> {"fundamentals": {...}}, filings ->
+    # {"filings": {"items": [{...}]}}). Look one dict-level in, then into the
+    # first row of any list found there, so a provider tagged on the rows (SEC
+    # filings carry it per item, not at the top) is still surfaced.
+    for payload_key in ("fundamentals", "quote", "filings", "news"):
+        payload = result.get(payload_key)
+        prov = _provider_in(payload)
+        if prov is not None:
+            return prov
+    return None
+
+
+def _provider_in(payload: Any) -> str | None:
+    """Find a provider/source/mode string in a dict, or the first row of a list
+    (or a dict's first list value) — one level deep, best-effort."""
+    if isinstance(payload, dict):
+        for key in ("provider", "source", "mode"):
+            val = payload.get(key)
+            if isinstance(val, str) and val:
+                return val
+        for val in payload.values():
+            if isinstance(val, list):
+                prov = _provider_in(val)
+                if prov is not None:
+                    return prov
+    elif isinstance(payload, list) and payload:
+        return _provider_in(payload[0])
+    return None
+
+
+#: Closed reason vocabulary for a FAILED structured leg (R13 JARVIS 2a) — so the
+#: model reads the CAUSE of a missing leg, never a bare "unavailable" it can round
+#: up to "the world doesn't publish X". A provider/app failure is OUR feed's gap
+#: (``provider_error``); a transient throttle is ``rate_limited``; a genuine
+#: no-such-instrument is ``not_found``. Absent → the consumer defaults to a gap,
+#: never a world-absence claim.
+_LEG_REASONS = ("provider_error", "rate_limited", "not_found")
+_LEG_RATE_LIMIT_MARKERS = ("rate limit", "rate-limit", "ratelimit", "429", "throttl")
+_LEG_NOT_FOUND_MARKERS = ("not found", "no data", "no such", "delisted", "404", "not available")
+
+
+def _leg_reason(result: dict[str, Any]) -> str:
+    """The failed leg's closed-vocabulary reason: the tool's own ``reason`` when
+    it is a known token, else inferred from the error/message text."""
+    reason = result.get("reason")
+    if isinstance(reason, str) and reason in _LEG_REASONS:
+        return reason
+    text = str(result.get("error") or result.get("message") or "").lower()
+    if any(marker in text for marker in _LEG_RATE_LIMIT_MARKERS):
+        return "rate_limited"
+    if any(marker in text for marker in _LEG_NOT_FOUND_MARKERS):
+        return "not_found"
+    return "provider_error"
+
+
+def _structured_value(result: dict[str, Any], payload_key: str) -> dict[str, Any]:
+    """Wrap one leg's result as a provenance-tagged structured value.
+
+    Shape: ``{"ok": bool, "provider": str|None, "data": <payload>, "error": ...,
+    "reason": ...}`` — uniform across legs so a consumer reads provenance the
+    same way for price, fundamentals, news, and filings. A FAILED leg carries a
+    closed-vocabulary ``reason`` (R13 JARVIS 2a) so the model narrates the cause
+    of the gap, never a silent absence it can round up to a world-absence claim.
+    """
+    ok = bool(result.get("ok"))
+    value: dict[str, Any] = {"ok": ok, "provider": _provider_of(result)}
+    if ok:
+        # Prefer the named payload; fall back to the whole result minus the
+        # bookkeeping keys so an unexpected shape still carries data.
+        if payload_key in result:
+            value["data"] = result[payload_key]
+        else:
+            value["data"] = {
+                k: v for k, v in result.items() if k not in ("ok", "provider", "source", "mode")
+            }
+    else:
+        value["error"] = result.get("error") or result.get("message") or "unavailable"
+        value["reason"] = _leg_reason(result)
+    return value
+
+
+async def snapshot_structured(
+    tool_call: ToolCall,
+    symbol: str,
+    *,
+    region: str | None = None,
+    listing_region: str | None = None,
+    canonical_name: str | None = None,
+    on_step: OnStep | None = None,
+    leg_timeout_s: float | None = None,
+) -> dict[str, Any]:
+    """:func:`_snapshot_legs` with every leg scoped to ``listing_region``.
+
+    R15-LEAD-127: ``symbol`` is a bare ticker that the legs re-resolve through
+    ``config.get_region()``. Under session IN, 'Halliburton' bound HAL/US, yet
+    every leg served Hindustan Aeronautics. When the caller passes the bound
+    listing's region, the region ContextVar is set BEFORE the fan-out (tasks
+    and ``to_thread`` copy the context) and restored afterwards. ``region``
+    stays the session region and is context only. ``None`` keeps the ambient
+    region.
+    """
+    if not listing_region:
+        return await _snapshot_legs(
+            tool_call,
+            symbol,
+            region=region,
+            canonical_name=canonical_name,
+            on_step=on_step,
+            leg_timeout_s=leg_timeout_s,
+        )
+    import config
+
+    token = config.set_request_region(listing_region)
+    try:
+        return await _snapshot_legs(
+            tool_call,
+            symbol,
+            region=region,
+            canonical_name=canonical_name,
+            on_step=on_step,
+            leg_timeout_s=leg_timeout_s,
+        )
+    finally:
+        config.reset_request_region(token)
+
+
+async def _snapshot_legs(
+    tool_call: ToolCall,
+    symbol: str,
+    *,
+    region: str | None = None,
+    canonical_name: str | None = None,
+    on_step: OnStep | None = None,
+    leg_timeout_s: float | None = None,
+) -> dict[str, Any]:
+    """A price + fundamentals snapshot as provenance-tagged structured legs.
+
+    Shared by the FAST bundle and the DEEP/iter/heavy briefs (and the Tier B
+    research-model lane) so ALL back the frontend metric cards from the same
+    uniform ``{ok, provider, data}`` shape. Each leg is pre-wrapped (a single
+    provider failure surfaces as ``ok: False`` in that slot, never a crash), so
+    this never raises — an empty/failed leg simply renders no card.
+
+    R10 (E8): the ONE metric-semantics hook — the ``derived`` leg
+    (:func:`services.research.semantics.derive_semantics`) rides every
+    snapshot, so labeled, basis-true metrics and flagged conflicts reach every
+    research path through this single seam.
+
+    R11 (D56): the fundamentals leg is augmented with
+    ``dividend_per_share_ttm`` — the trailing-12-month dividends actually paid
+    (:func:`services.dividend_history.get_dividend_ttm`) — so the derived leg
+    can reconcile it against Yahoo's ``dividendRate`` and flag an omitted
+    special dividend. The cross-check never raises (it swallows every failure to
+    ``None``); an absent figure simply means no reconciliation card.
+
+    R12 (D66): the same pattern for growth — when the provider claims MRQ-YoY
+    growth scalars, ``revenue_growth_computed``/``earnings_growth_computed``
+    (+ ``growth_computed_quarters``) are computed deterministically from the
+    provider's own QUARTERLY income statements
+    (:func:`services.growth_check.get_quarterly_yoy`) so the derived leg can
+    flag a scalar that contradicts the statements. Disclosure only — the
+    provider values are never replaced; missing statements attach nothing.
+
+    R13 (D68/D57): two more disclosure-only cross-checks ride the same fan-out.
+    ``ownership_exchange`` (:func:`services.ownership_check.get_exchange_ownership`)
+    is the latest NSE/BSE shareholding pattern, reconciled against yfinance's
+    ``heldPercentInsiders``/``heldPercentInstitutions`` (which drift materially
+    from the exchange filing). ``dividend_declared``
+    (:func:`services.dividend_actions.get_declared_unpaid_dividend`) is the
+    nearest declared-but-not-yet-paid dividend, separated from the D56 TTM-paid
+    figure so a future record date never collapses into "paid". Both never raise
+    (every failure becomes ``None``); an absent figure attaches nothing.
+
+    R13 (D70/D71/D72): three more disclosure-only cross-checks ride the same
+    fan-out. ``earnings_quality``
+    (:func:`services.earnings_quality.get_earnings_quality`) measures the one-off
+    distortion in reported net income (the reported-vs-adjusted PE/ROE trap).
+    ``range_52w_exchange``
+    (:func:`services.research.range_check.get_52w_range`) recomputes the 52-week
+    high/low from the app's own exchange-direct history to catch a wrong provider
+    pair. ``market_cap_witness``
+    (:func:`services.market_cap_witness.get_market_cap_witness`) supplies a
+    NON-provider (BSE-derived) share count so the market-cap check is not
+    circular. All three never raise; an absent figure attaches nothing.
+
+    R15-RESEARCH-027: each leg is time-boxed by ``leg_timeout_s`` (a timed-out
+    leg is dropped like a failed one) and reports one ``on_step`` step carrying
+    its ``latency_ms``. The caller owns the box: FAST leaves it at the FR-070
+    :data:`_WITNESS_LEG_TIMEOUT_S`; the deep callers pass
+    :data:`DEEP_SNAPSHOT_LEG_TIMEOUT_S` (rc1-battery-4:1).
+    """
+    from services import (
+        dividend_actions,
+        earnings_quality,
+        growth_check,
+        market_cap_witness,
+        ownership_check,
+    )
+    from services.dividend_history import apply_dividend_ttm, get_dividend_ttm
+    from services.research import range_check
+    from services.research.semantics import derive_semantics
+
+    box = _WITNESS_LEG_TIMEOUT_S if leg_timeout_s is None else leg_timeout_s
+    price_res, fund_res = await asyncio.gather(
+        _time_boxed("price", _safe_call(tool_call, "price_data", {"symbol": symbol}), on_step, box),
+        _time_boxed(
+            "fundamentals",
+            _safe_call(tool_call, "fundamentals", {"symbol": symbol}),
+            on_step,
+            box,
+        ),
+    )
+    out = {
+        "price": _structured_value(price_res, "quote"),
+        "fundamentals": _structured_value(fund_res, "fundamentals"),
+    }
+    # Cross-check the dividend scalar against corporate-action history and the
+    # growth scalars against the quarterly income statements. Use the symbol
+    # the fundamentals leg actually resolved to (its ``symbol`` carries the
+    # Yahoo listing form) so both checks reconcile against the SAME scalars.
+    fund_leg = out["fundamentals"]
+    fund_data = fund_leg.get("data") if fund_leg.get("ok") else None
+    if isinstance(fund_data, dict):
+        resolved = fund_data.get("symbol")
+        listing = resolved if isinstance(resolved, str) and resolved else symbol
+
+        async def _yoy() -> growth_check.QuarterlyYoY | None:
+            if not growth_check.should_cross_check(fund_data):
+                return None
+            return await growth_check.get_quarterly_yoy(listing)
+
+        async def _own() -> ownership_check.ExchangeOwnership | None:
+            if not ownership_check.should_cross_check(fund_data):
+                return None
+            return await ownership_check.get_exchange_ownership(listing)
+
+        # R13 (D70/D71/D72): three more disclosure-only cross-checks ride the same
+        # fan-out — reported-vs-adjusted earnings (annual income statement), the
+        # 52-week range (exchange-direct history), and the market-cap witness (a
+        # NON-provider BSE share count). Each is applicability-gated, never raises,
+        # and attaches nothing when it has no comparison to make.
+        async def _earn() -> earnings_quality.EarningsQuality | None:
+            if not earnings_quality.should_cross_check(fund_data):
+                return None
+            return await earnings_quality.get_earnings_quality(listing)
+
+        async def _range() -> range_check.Range52w | None:
+            if not range_check.should_cross_check(fund_data):
+                return None
+            return await range_check.get_52w_range(listing)
+
+        async def _mcap() -> market_cap_witness.MarketCapWitness | None:
+            if not market_cap_witness.should_cross_check(fund_data):
+                return None
+            return await market_cap_witness.get_market_cap_witness(listing)
+
+        # Each leg is isolated and time-boxed: one raising or slow cross-check
+        # drops only its own figure (the snapshot never raises for any depth).
+        async def _witness(name: str, leg: Awaitable[Any]) -> Any:
+            start = time.perf_counter()
+            try:
+                value = await asyncio.wait_for(leg, box)
+            except TimeoutError:
+                detail = f"{name} cross-check timed out after {box:g}s — dropped"
+            except Exception as exc:  # noqa: BLE001 — a failed witness is a soft miss
+                logger.debug("snapshot cross-check %s for %s failed: %r", name, listing, exc)
+                detail = f"{name} cross-check failed — dropped"
+            else:
+                await _emit(on_step, ResearchStep("tool", f"{name} cross-check", _ms(start)))
+                return value
+            await _emit(on_step, ResearchStep("tool", detail, _ms(start), status="error"))
+            return None
+
+        ttm, yoy, own, declared, earn, rng, mcw = await asyncio.gather(
+            _witness("dividend TTM", get_dividend_ttm(listing)),
+            _witness("growth", _yoy()),
+            _witness("ownership", _own()),
+            _witness("declared dividend", dividend_actions.get_declared_unpaid_dividend(listing)),
+            _witness("earnings quality", _earn()),
+            _witness("52-week range", _range()),
+            _witness("market-cap witness", _mcap()),
+        )
+        apply_dividend_ttm(fund_data, ttm)
+        if yoy is not None:
+            if yoy.revenue_growth is not None:
+                fund_data["revenue_growth_computed"] = yoy.revenue_growth
+            if yoy.earnings_growth is not None:
+                fund_data["earnings_growth_computed"] = yoy.earnings_growth
+            fund_data["growth_computed_quarters"] = {"mrq": yoy.mrq, "prior": yoy.prior}
+        if own is not None:
+            fund_data[ownership_check.OWNERSHIP_KEY] = own.as_wire()
+        if declared is not None:
+            fund_data[dividend_actions.DECLARED_KEY] = declared.as_wire()
+        if earn is not None:
+            fund_data[earnings_quality.EARNINGS_KEY] = earn.as_wire()
+        if rng is not None:
+            fund_data[range_check.RANGE_KEY] = rng.as_wire()
+        if mcw is not None:
+            fund_data[market_cap_witness.MCAP_WITNESS_KEY] = mcw.as_wire()
+    out["derived"] = derive_semantics(out, region, canonical_name=canonical_name, symbol=symbol)
+    return out
+
+
+#: How many exchange announcements the IN filings leg fetches (R13 ledger #10)
+#: — mirrors :data:`services.research.disclosures._ANNOUNCEMENT_LIMIT`'s order
+#: of magnitude without importing a private constant.
+_FAST_ANNOUNCEMENTS_LIMIT = 20
+
+
+async def _filings_leg(tool_call: ToolCall, target: ResearchTarget) -> dict[str, Any]:
+    """The filings leg, routed by REGION (R13 ledger #10).
+
+    SEC EDGAR indexes US filings — for an IN-listed target it is the WRONG
+    lane (a different jurisdiction's index entirely, and its MCP sidecar can
+    independently be down), so an Indian listing routes to the exchange
+    announcements feed instead: the SAME ``corporate_announcements`` tool the
+    DEEP path already consults for disclosures
+    (:func:`services.research.disclosures.gather_floor`) — mirrored here, not
+    reimplemented. The US path is UNCHANGED: ``sec_filings_list``, including
+    its own honest "sidecar unavailable" shape (:func:`_leg_reason` still
+    classifies a down sidecar as ``provider_error``).
+    """
+    from services.research.relevance import is_india_target
+
+    if is_india_target(target):
+        result = await _safe_call(
+            tool_call,
+            "corporate_announcements",
+            {"symbol": target.symbol, "limit": _FAST_ANNOUNCEMENTS_LIMIT},
+        )
+        value = _structured_value(result, "filings")
+        # corporate_announcements carries no top-level provider/source/mode key
+        # (unlike sec_filings_list's per-item "sec-edgar" tag) — stamp the
+        # exchanges that actually served it (a BSE-only listing or a lane
+        # outage serves one) so the FR-041 badge never claims both.
+        if value.get("ok") and not value.get("provider"):
+            value["provider"] = "+".join(str(s).lower() for s in result.get("sources") or [])
+        return value
+    result = await _safe_call(tool_call, "sec_filings_list", {"symbol": target.symbol})
+    return _structured_value(result, "filings")
+
+
+def _news_value(result: dict[str, Any], *, target: ResearchTarget) -> dict[str, Any]:
+    """The news leg through the shared relevance gate
+    (:func:`services.research.relevance.gate_news`, R13 ledger #9): off-entity
+    items dropped; when none survives the leg stays ``ok: True`` with an empty
+    list and an honest note (never generic filler dressed up as coverage)."""
+    value = _structured_value(result, "news")
+    items = value.get("data")
+    if not value.get("ok") or not isinstance(items, list):
+        return value
+    from services.research.relevance import gate_news
+
+    value["data"], note = gate_news(items, target=target)
+    if note:
+        value["note"] = note
+    return value
+
+
+async def _web_round(tool_call: ToolCall, web_query: str) -> dict[str, Any]:
+    """ONE web round → the bundle's honest ``web`` section.
+
+    Surfaces a note plus the tool's own "how to unlock it" message when no
+    backend answered — NEVER an empty section pretending to be "no news".
+    Distinguishes a TRANSIENT throttle (the backend exists, it was rate-limited
+    this run) from a genuine no-backend miss: the former must not claim "no
+    backend configured" (that would be a false banner — symptom #2).
+    """
+    web_res = await _safe_call(tool_call, "web_search", {"query": web_query})
+    web_ok = bool(web_res.get("ok"))
+    web: dict[str, Any] = {
+        "available": web_ok,
+        "citations": web_res.get("citations", []) if web_ok else [],
+        "results": web_res.get("results", []) if web_ok else [],
+    }
+    # R9 gate 2: carry the retrieval backend id through the rewrap — the
+    # web_search tool stamps "keyless-fallback" here and the published brief's
+    # nudge banner keys on it (auto-publish lifts web.backend onto the brief).
+    backend = web_res.get("backend")
+    if backend:
+        web["backend"] = backend
+    if not web_ok:
+        reason = web_res.get("reason")
+        web["reason"] = reason
+        web["note"] = _RATE_LIMITED_NOTE if reason == "rate_limited" else _NO_WEB_NOTE
+        detail = web_res.get("message") or web_res.get("error")
+        if detail:
+            web["detail"] = detail
+    return web
+
+
+async def gather_fast(
+    query: str,
+    *,
+    region: str | None = None,
+    tool_call: ToolCall,
+    on_step: OnStep | None = None,
+) -> dict[str, Any]:
+    """Pull the FAST structured research bundle for ``query`` (NO LLM).
+
+    Steps:
+      1. ``resolve_symbol`` — turn the free-text query into a concrete instrument.
+      2. In PARALLEL (``asyncio.gather``, each leg wrapped non-fatal):
+         ``price_data``, ``fundamentals``, ``news``, ``sec_filings_list``.
+      3. ONE web round: ``web_search`` for "<name> <query> news outlook",
+         run concurrently with step 2.
+
+    Returns the bundle described in the unit brief: ``resolved``, a provenance-
+    tagged ``structured`` map, an honest ``web`` section (``available=False`` +
+    note when no backend answered), and the cockpit ``suggested_layout`` /
+    ``suggested_indicators`` hints.
+
+    R8 target contract: resolution happens ONCE via
+    :func:`services.research.target.resolve_target` (policy verdict +
+    symbol-shape gate). With NO bound target the bundle is WEB-ONLY: zero
+    structured calls (a free-text query never rides a ``symbol`` arg),
+    ``symbol = ""``, and the honest one-line :data:`NO_INSTRUMENT_NOTE`.
+    R10 (D37): an ambiguous resolution returns the explicit "which did you
+    mean?" payload instead — no structured pulls, no web spend, no guess.
+    """
+    from services.research.target import (
+        NO_INSTRUMENT_NOTE,
+        ResearchDisambiguation,
+        resolve_target,
+        resolved_payload,
+    )
+
+    t0 = time.perf_counter()
+    await _emit(on_step, ResearchStep("plan", f'resolving "{query}"'))
+    target = await resolve_target(tool_call, query, region=region)
+
+    if isinstance(target, ResearchDisambiguation):
+        await _emit(
+            on_step,
+            ResearchStep("plan", "ambiguous instrument — asking which one was meant", _ms(t0)),
+        )
+        out = target.payload(query=query)
+        out["execution_loop"] = "fast"
+        return out
+
+    if target is None:
+        await _emit(
+            on_step,
+            ResearchStep("plan", "no listed instrument matched — web evidence only", _ms(t0)),
+        )
+        t_web = time.perf_counter()
+        await _emit(on_step, ResearchStep("search", f"searching the web for {query}"))
+        web = await _web_round(tool_call, f"{query} news outlook")
+        _hits = len(web["citations"]) or len(web["results"])
+        await _emit(
+            on_step,
+            ResearchStep(
+                "search",
+                f"{_hits} web source(s)" if web["available"] else "no web backend",
+                _ms(t_web),
+                status="ok" if web["available"] else "skipped",
+            ),
+        )
+        await _emit(on_step, ResearchStep("synthesize", "assembling the research bundle"))
+        return {
+            "ok": True,
+            "query": query,
+            "resolved": resolved_payload(None),
+            "symbol": "",
+            "structured": {},
+            "web": web,
+            "note": NO_INSTRUMENT_NOTE,
+            "suggested_layout": "research-cockpit",
+            "suggested_indicators": _suggested_indicators(asset_class=None),
+            "execution_loop": "fast",
+        }
+
+    resolved = resolved_payload(target)
+    symbol = target.symbol
+    name = target.name or symbol
+    asset_class = target.asset_class
+    await _emit(on_step, ResearchStep("plan", f"resolved → {symbol}", _ms(t0)))
+
+    # 2 + 3 run CONCURRENTLY (R15-RESEARCH-027): the web query needs only the
+    # resolved target, so the web round no longer waits for the structured
+    # fan-out — the bundle lands at max(fan-out, web), not their sum.
+    #
+    # 2 — parallel structured fan-out. Each leg is pre-wrapped so a single
+    # provider failure surfaces as ok:False in that slot, not a gather crash.
+    # Price + fundamentals ride snapshot_structured — the ONE seam that also
+    # computes the derived metric-semantics leg (R10, E8) for every path.
+    # R13 ledger #10: the filings leg is ROUTED by region (:func:`_filings_leg`)
+    # — SEC EDGAR for a US listing (unchanged), exchange announcements for an
+    # IN one, so the wrong-jurisdiction/wrong-sidecar lane is never consulted
+    # for an Indian name.
+    async def _structured() -> dict[str, Any]:
+        t1 = time.perf_counter()
+        await _emit(on_step, ResearchStep("tool", f"pulling market data for {symbol}"))
+        news_res, filings_value, snapshot = await asyncio.gather(
+            _time_boxed(
+                "news",
+                _safe_call(tool_call, "news", {"symbols": [symbol]}),
+                on_step,
+                _WITNESS_LEG_TIMEOUT_S,
+            ),
+            _time_boxed(
+                "filings", _filings_leg(tool_call, target), on_step, _WITNESS_LEG_TIMEOUT_S
+            ),
+            snapshot_structured(
+                tool_call,
+                symbol,
+                region=region,
+                listing_region=target.region,
+                canonical_name=target.name,
+                on_step=on_step,
+            ),
+        )
+        # R13 ledger #9: the news leg is relevance-gated for a resolved IN equity
+        # (:func:`_news_value`) — off-entity rows (a foreign namesake's feed,
+        # generic macro headlines) never count as this instrument's coverage.
+        structured = {
+            **snapshot,
+            "news": _news_value(news_res, target=target),
+            "filings": filings_value,
+        }
+        _ok_legs = sum(
+            1
+            for leg in ("price", "fundamentals", "news", "filings")
+            if (structured.get(leg) or {}).get("ok")
+        )
+        await _emit(
+            on_step,
+            ResearchStep("tool", f"pulled {_ok_legs}/4 data sources", _ms(t1)),
+        )
+        return structured
+
+    # 3 — ONE web round. The query anchors the instrument: the QUOTED display
+    # name pins the engine on the company + the bare ticker for the exact-symbol
+    # hits (R13 — the unquoted "{name} {query}" let a famous foreign namesake
+    # shadow a ≤3-char ticker). Kept short: no exchange/industry token here (the
+    # NORMAL path favours a keyless-engine-friendly query — the DEEP/ULTRA
+    # researcher queries carry the exchange anchor). ``name == symbol`` (no
+    # display name) drops the redundant quoted duplicate.
+    async def _web() -> dict[str, Any]:
+        t2 = time.perf_counter()
+        await _emit(on_step, ResearchStep("search", f"searching the web for {name}"))
+        web_query = (
+            f'"{name}" {symbol} {query} news outlook'
+            if name and name.upper() != symbol
+            else f"{symbol} {query} news outlook"
+        )
+        try:
+            web = await asyncio.wait_for(_web_round(tool_call, web_query), _WEB_ROUND_TIMEOUT_S)
+        except TimeoutError:
+            web = {
+                "available": False,
+                "citations": [],
+                "results": [],
+                "reason": "timeout",
+                "note": (
+                    f"Web search did not answer within {_WEB_ROUND_TIMEOUT_S:g}s — "
+                    "structured data only"
+                ),
+            }
+        web_ok = web["available"]
+        _hits = len(web["citations"]) or len(web["results"])
+        await _emit(
+            on_step,
+            ResearchStep(
+                "search",
+                f"{_hits} web source(s)" if web_ok else "no web backend — structured only",
+                _ms(t2),
+                status="ok" if web_ok else "skipped",
+            ),
+        )
+        return web
+
+    structured, web = await asyncio.gather(_structured(), _web())
+    # The brief's cited sources are the web round's rows (the same rows the
+    # auto-publish maps into brief.sources) — measured against SC-016's floor.
+    rows = web["citations"] or web["results"]
+    structured["source_floor"] = source_floor_leg(
+        row.get("url") for row in rows if isinstance(row, dict)
+    )
+    await _emit(on_step, ResearchStep("synthesize", "assembling the research bundle"))
+
+    return {
+        "ok": True,
+        "query": query,
+        "resolved": resolved,
+        "symbol": symbol,
+        "structured": structured,
+        "web": web,
+        "suggested_layout": "research-cockpit",
+        "suggested_indicators": _suggested_indicators(asset_class=asset_class),
+        "execution_loop": "fast",
+    }
+
+
+__all__ = ["DEEP_SNAPSHOT_LEG_TIMEOUT_S", "ToolCall", "gather_fast", "snapshot_structured"]

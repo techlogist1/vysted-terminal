@@ -1,0 +1,9 @@
+=== R15-RESEARCH-037: priority_note on an UNRANKED list (general, primary, press order) ===
+nseindia.com -> 1
+sec.gov -> 1
+reuters.com -> 2
+bloomberg.com -> 2
+economictimes.indiatimes.com -> 2
+randomblog.example.com -> 3
+=== R15-RESEARCH-037: priority_note on unranked [general, primary, press] ===
+Citation preference — when several sources support a claim, cite the most authoritative: primary record (exchange/regulator/filings/IR): [2]; tier-1 press: [3].

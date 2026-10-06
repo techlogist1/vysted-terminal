@@ -1,0 +1,9 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  39.2s] done: {"kind": "done", "usage": {"input_tokens": 7476, "output_tokens": 47, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+{"name": "portfolio_update_position", "parameters": {"asset_class": "equity", "cost_basis": 250, "quantity": 15, "position_id": None, "symbol": "WIPRO"}}
+
+=== ok · 39.2s · events {'heartbeat': 3, 'delta': 1, 'done': 1} · usage in=7476 out=47 · est $0.00000 · llama3.1:8b

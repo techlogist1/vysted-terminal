@@ -1,0 +1,67 @@
+COMMAND: source read — src-tauri/capabilities/default.json, grep tauri-plugin-fs in Cargo.toml/package.json, grep write_text_atomic/write_bytes_atomic in src-tauri/src/lib.rs, grep the same + BLUEPRINT.md §3.1, and trace src/lib/csv.ts -> src/lib/export-artifact.ts wiring for the portfolio CSV export
+EXIT: 0
+--- capabilities/default.json ---
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capability for the Vysted Terminal main window.",
+  "windows": ["main"],
+  "permissions": ["core:default", "notification:default", "shell:allow-open"]
+}
+
+--- fs plugin grep (Cargo.toml, package.json) ---
+(0 hits confirmed above/blank = no fs plugin)
+
+--- lib.rs commands ---
+391:fn write_text_atomic(path: String, contents: String) -> Result<(), String> {
+416:/// strategy as `write_text_atomic`). The WKWebView/Chromium webview blocks the
+422:fn write_bytes_atomic(path: String, contents: Vec<u8>) -> Result<(), String> {
+513:            write_text_atomic,
+514:            write_bytes_atomic,
+
+--- BLUEPRINT.md 3.1 ---
+### 3.1 Tech Stack (multi-language by design)
+
+**Rust layer (Tauri 2.x core):**
+- Desktop shell (windowing, system tray, OS integration)
+- File system access — custom atomic-write commands (`write_text_atomic`,
+  `write_bytes_atomic`), not the `tauri-plugin-fs` capability (R15-CODE-PLATFORM-024:
+  no `fs:*` permission is granted in `src-tauri/capabilities/default.json`, but notes
+  persistence and CSV/PNG/PDF exports both write real files through these commands, a
+  webview Blob download is only the non-Tauri dev fallback)
+- Secure key storage (OS keychain integration on each platform)
+
+--- src/lib/csv.ts ---
+/**
+ * Tiny CSV helpers — shared by the watchlist + portfolio exports (and anywhere
+ * else a panel offers "Export CSV"). Quoting follows RFC-4180: a cell containing
+ * a comma, double-quote, or newline is wrapped in double-quotes and any embedded
+ * double-quote is doubled. `null`/`undefined` become an empty cell.
+ */
+
+import { saveTextArtifact, type ExportResult } from "@/lib/export-artifact";
+
+/** Escape a single CSV cell value per RFC-4180. */
+export function escapeCsvCell(value: unknown): string {
+  const s = value === null || value === undefined ? "" : String(value);
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+/** Build a CSV string from a header row + data rows (each an array of cells). */
+export function buildCsv(headers: string[], rows: readonly unknown[][]): string {
+  const lines = [headers.map(escapeCsvCell).join(",")];
+  for (const row of rows) {
+    lines.push(row.map(escapeCsvCell).join(","));
+  }
+  return lines.join("\n");
+}
+
+/**
+ * Save `content` as `filename` (text/csv) — via the Rust atomic-write path
+ * (`saveTextArtifact`), never the Blob + `<a download>` primitive: WKWebView
+ * does not implement it, so it silently no-ops in the desktop app
+ * (R15-UI-009). Falls back to a browser Blob download outside Tauri.
+ */
+export async function downloadCsv(filename: string, content: string): Promise<ExportResult> {
+  return saveTextArtifact("csv", filename, content);
+}

@@ -1,0 +1,7 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ bash /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b2_112.sh
+exit=0
+{'universe': 'custom', 'evaluated_count': 3, 'skipped_count': 0, 'result_count': 3, 'matched_count': 3, 'duration_ms': 8034.65058398433, 'partial': False, 'coverage': 'screened 3 of 3 — 0 unavailable', 'throttled': False}
+RELIANCE.NS 15801867304960.0 INR
+TCS.NS 7507531530240.0 INR
+MANIKA.NS None INR

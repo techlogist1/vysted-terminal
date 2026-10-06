@@ -1,0 +1,10 @@
+# R15-UI-071 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'jsx-a11y\|vitest-axe\|axe' package.json; grep -n 'label-has-associated-control' eslint.config.mjs; grep -rln 'axe' src --include=*.test.tsx | head -3
+--- output ---
+73:    "eslint-plugin-jsx-a11y": "^6.10.2",
+87:    "vitest-axe": "^0.1.0"
+30:      "jsx-a11y/label-has-associated-control": ["error", { assert: "either" }],
+src/components/SettingsPanel.test.tsx
+
+EXIT=0 (0.0s)

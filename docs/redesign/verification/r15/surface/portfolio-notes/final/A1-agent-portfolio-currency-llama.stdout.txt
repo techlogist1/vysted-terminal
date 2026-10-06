@@ -1,0 +1,17 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  21.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_0727fdf66f9e4e7c805e6c46e720f32b", "name": "get_portfolio", "input": {}}
+[  21.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_0727fdf66f9e4e7c805e6c46e720f32b", "name": "get_portfolio", "ok": true, "error": null}
+[  28.9s] done: {"kind": "done", "usage": {"input_tokens": 2078, "output_tokens": 101, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+You have four positions in your portfolio:
+
+1. RELIANCE.NS - 10 shares, cost basis ₹1200
+2. TCS.NS - 5 shares, cost basis ₹2500
+3. TCS.NS - 21 shares, cost basis ₹3900
+4. AAPL - 2 shares, cost basis ₹190
+
+Note that the market value and PnL (Profit/Loss) are not available as your portfolio is not marked-to-market.
+
+=== ok · 28.9s · events {'heartbeat': 2, 'tool_use': 1, 'tool_result': 1, 'delta': 100, 'done': 1} · usage in=2078 out=101 · est $0.00000 · llama3.1:8b

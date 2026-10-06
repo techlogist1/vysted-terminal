@@ -1,0 +1,86 @@
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " added"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " holding"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " local"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " holdings"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " W"}
+{"kind": "delta", "text": "ipro"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "W"}
+{"kind": "delta", "text": "IP"}
+{"kind": "delta", "text": "RO"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "125"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " summary"}
+{"kind": "delta", "text": ":\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " Holdings"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " Total"}
+{"kind": "delta", "text": " value"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "125"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " Average"}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "165"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " Unreal"}
+{"kind": "delta", "text": "ized"}
+{"kind": "delta", "text": " gain"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "loss"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " show"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " updated"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " proceed"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " something"}
+{"kind": "delta", "text": " else"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2743, "output_tokens": 85, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

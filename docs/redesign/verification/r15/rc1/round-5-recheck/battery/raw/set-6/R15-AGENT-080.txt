@@ -1,0 +1,10 @@
+COMMAND: pnpm exec vitest run src/store/proposed-changes.test.ts src/store/proposed-change-kinds.test.ts (candidate 949c3c9f)
+EXIT: 0
+OUTPUT (relevant):
+ ✓ src/store/proposed-change-kinds.test.ts > AUTO_APPLIED_KINDS — the one declaration of the auto-apply set > autoApplies agrees with AUTO_APPLIED_KINDS for every proposed-change kind 2ms
+ ✓ src/store/proposed-change-kinds.test.ts > AUTO_APPLIED_KINDS — the one declaration of the auto-apply set > docs/CURRENT_STATE.md names AUTO_APPLIED_KINDS by name 2ms
+ ✓ src/store/proposed-changes.test.ts > proposed-changes store — the diff/accept trust gate (FR-010) > AUTO mode applies a UI/chart/watchlist change on enqueue, no manual accept 0ms
+ ✓ src/store/proposed-changes.test.ts > proposed-changes store — the diff/accept trust gate (FR-010) > AUTO mode keeps data-write and settings changes pending and acks them staged 2ms
+
+SOURCE CHECK: types/proposed-change.ts:31-45 — AUTO_APPLIED_KINDS = ["panel","chart","watchlist"] (allow-list, not a deny-list of "order"); autoApplies() returns AUTO_APPLIED_KINDS.includes(kind). src/store/proposed-changes.ts:125 gates enqueue on autoApplies(change.kind). data-write and settings kinds are excluded from AUTO_APPLIED_KINDS, so portfolio_add/update/delete_position, write_note, save_layout, save_screen, set_region all stay pending under AUTO.
+VERDICT: holds. The allow-list fix from batch-3 (c81d879) is present in the candidate; the original repro (AUTO auto-applying data-write/settings host-actions) no longer occurs.

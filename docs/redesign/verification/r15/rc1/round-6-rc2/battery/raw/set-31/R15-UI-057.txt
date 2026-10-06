@@ -1,0 +1,49 @@
+# R15-UI-057 at ace7dd7: trailing space/newline keys
+$ POST /llm/keys/validate {"provider":"openai","api_key":"fakekey0000000000000000 "}
+{"ok":false,"reason":"invalid","detail":"OpenAI rejected this key."}
+HTTP 200
+
+$ POST /llm/keys/validate {"provider":"openai","api_key":"fakekey0000000000000000
+"}
+{"ok":false,"reason":"invalid","detail":"OpenAI rejected this key."}
+HTTP 200
+
+$ POST /llm/keys/validate {"provider":"anthropic","api_key":"fakekey0000000000000000 "}
+{"ok":false,"reason":"invalid","detail":"Anthropic rejected this key."}
+HTTP 200
+
+$ POST /llm/keys/validate {"provider":"anthropic","api_key":"fakekey0000000000000000
+"}
+{"ok":false,"reason":"invalid","detail":"Anthropic rejected this key."}
+HTTP 200
+
+$ POST /llm/keys/validate {"provider":"groq","api_key":"fakekey0000000000000000 "}
+{"ok":false,"reason":"invalid","detail":"Groq rejected this key."}
+HTTP 200
+
+$ POST /llm/keys/validate {"provider":"groq","api_key":"fakekey0000000000000000
+"}
+{"ok":false,"reason":"invalid","detail":"Groq rejected this key."}
+HTTP 200
+
+$ POST /llm/keys/validate {"provider":"deepseek","api_key":"fakekey0000000000000000 "}
+{"ok":false,"reason":"invalid","detail":"DeepSeek rejected this key."}
+HTTP 200
+
+$ POST /llm/keys/validate {"provider":"deepseek","api_key":"fakekey0000000000000000
+"}
+{"ok":false,"reason":"invalid","detail":"DeepSeek rejected this key."}
+HTTP 200
+
+$ POST /llm/keys/validate {"provider":"gemini","api_key":"fakekey0000000000000000 "}
+{"ok":false,"reason":"invalid","detail":"Google Gemini rejected this key."}
+HTTP 200
+
+$ POST /llm/keys/validate {"provider":"gemini","api_key":"fakekey0000000000000000
+"}
+{"ok":false,"reason":"invalid","detail":"Google Gemini rejected this key."}
+HTTP 200
+
+# KeyEntryDialog trim:
+68:    const secret = key.trim();
+192:            <Button type="submit" size="sm" disabled={status === "validating" || !key.trim()}>

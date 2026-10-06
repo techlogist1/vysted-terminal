@@ -1,0 +1,6 @@
+cmd: GET /indicators/AAPL?indicators=rsi,bogus on own sidecar (:52358); static check of catalog.py enum + host-actions.ts indicatorByKey/dropped-unknown reporting
+{"detail":"Unknown indicator(s): bogus. Supported: rsi, macd, ma, ema, sma, bollinger, volume, adx, stochastic, atr, obv, mfi, ichimoku, keltner, vwap, parabolic_sar, cci, williams_r, roc, wma, hma, dema, tema, kama, tsi, kst, awesome_oscillator, ppo, ultimate_oscillator, std_dev, bollinger_bandwidth, donchian, chaikin_volatility, ad_line, chaikin_money_flow, force_index, ease_of_movement, vpt, aroon, aroon_oscillator, vortex, mass_index, pivot_points, supertrend, linreg, std_error_bands, hlc3, ohlc4, median_price, volume_profile."}
+HTTP_STATUS:400
+
+static check: sidecar/services/agent_tools/catalog.py:1312 -- set_chart_indicators.items schema now carries enum: list(SUPPORTED_INDICATORS) (50 keys, imported from services.indicators.SUPPORTED_INDICATORS).
+static check: src/lib/host-actions.ts:580 -- indicatorByKey(raw) filters unknown keys; :591 reports "(dropped unknown: ...)" in the host-action label instead of silently reporting full success.

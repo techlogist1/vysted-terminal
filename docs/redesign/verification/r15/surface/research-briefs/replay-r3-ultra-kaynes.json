@@ -1,0 +1,140 @@
+{
+ "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/research-briefs/r3-ultra-kaynes.jsonl": {
+  "phase": "published",
+  "applied": [
+   {
+    "name": "publish_brief",
+    "label": "Published the DEEP research brief",
+    "phaseAfter": "published"
+   }
+  ],
+  "errors": [],
+  "engineNotices": [
+   "Your active model — ollama/llama3.1:8b · Heavy mode (3 parallel angles + cross-check)",
+   "The panel kept the brief already on screen — this publish did not replace it; do not claim the new one rendered."
+  ],
+  "brief": {
+   "symbol": "KAYNES",
+   "depth": "heavy",
+   "mode": "DEEP",
+   "backend": "native",
+   "webAvailable": true,
+   "sourceCount": 3,
+   "sourcesStored": 3,
+   "sourcesRendered": 3,
+   "markdownLen": 2979,
+   "markersInBody": [
+    2
+   ],
+   "maxMarker": 2,
+   "markersAfterSanitize": 1,
+   "execution": {
+    "runId": "d3206d8239034e9ba518af3a54c5c27b",
+    "requestedDepth": "ultra",
+    "loop": "heavy",
+    "backend": "native",
+    "startedAt": 1790129362.74106,
+    "finishedAt": 1790129764.784543,
+    "degradedReason": null
+   },
+   "metrics": {
+    "symbol": "KAYNES",
+    "provider": "nse_direct",
+    "price": 3455,
+    "change": -195,
+    "changePercent": -5.342465753424658,
+    "currency": "INR",
+    "assetClass": "equity",
+    "items": [
+     {
+      "label": "Below 52-week high",
+      "value": "-55.16% · vs 52w high",
+      "title": "(52w high - price) / 52w high"
+     },
+     {
+      "label": "52-week price change (Yahoo)",
+      "value": "-53.65% · trailing 52 weeks",
+      "title": "trailing 52 weeks"
+     },
+     {
+      "label": "Revenue growth",
+      "value": "+40.50% · quarterly YoY (MRQ)",
+      "title": "quarterly YoY (MRQ)"
+     },
+     {
+      "label": "Earnings growth",
+      "value": "-0.40% · quarterly YoY (MRQ)",
+      "title": "quarterly YoY (MRQ)"
+     },
+     {
+      "label": "Net-profit growth (computed from quarterly statements)",
+      "value": "-24.37% · quarterly YoY (MRQ)",
+      "title": "(MRQ - same quarter prior year) / |same quarter prior year|"
+     },
+     {
+      "label": "Promoter group (exchange filing)",
+      "value": "53.46% · NSE shareholding filing, 2026-06-30",
+      "title": "NSE shareholding filing, 2026-06-30"
+     },
+     {
+      "label": "Institutional holding (exchange filing)",
+      "value": "17.60% · NSE shareholding filing, 2026-06-30",
+      "title": "NSE shareholding filing, 2026-06-30"
+     },
+     {
+      "label": "Market cap",
+      "value": "INR 232.25B"
+     },
+     {
+      "label": "P/E",
+      "value": "67.14"
+     },
+     {
+      "label": "Fwd P/E",
+      "value": "38.44"
+     },
+     {
+      "label": "Price/Book",
+      "value": "4.98"
+     },
+     {
+      "label": "EPS",
+      "value": "51.46"
+     },
+     {
+      "label": "Beta",
+      "value": "-0.16"
+     },
+     {
+      "label": "Net margin",
+      "value": "8.87%"
+     },
+     {
+      "label": "Debt/Equity",
+      "value": "0.19"
+     },
+     {
+      "label": "Revenue",
+      "value": "INR 38.99B"
+     },
+     {
+      "label": "52w range",
+      "value": "2,995–7,705"
+     },
+     {
+      "label": "Volume",
+      "value": "3.02M"
+     }
+    ],
+    "conflicts": [
+     {
+      "text": "Sources disagree on earnings growth: -0.004 (yfinance (earningsGrowth)) vs -0.2437 (derived (quarterly income statement)) — The provider's earnings growth scalar claims MRQ YoY but disagrees with the figure computed from its own quarterly income statements (2026-06-30 vs 2025-06-30) beyond tolerance — the statement-derived figure reconciles against reported quarterly results; the scalar may ride a different line definition (bank revenue) or a restated base quarter. The provider value is shown unchanged.",
+      "kind": "data_conflict"
+     }
+    ]
+   }
+  },
+  "anchors": [],
+  "renderedText": " Copy markdownDEEPKAYNES3 sources HEAVY· deepeststructured dataEOD as of 2026-09-23Kaynes Technology — latest quarterly resultsKAYNESINR 3,455.00-195.00 (-5.34%)nse_directBelow 52-week high-55.16% · vs 52w high52-week price change (Yahoo)-53.65% · trailing 52 weeksRevenue growth+40.50% · quarterly YoY (MRQ)Earnings growth-0.40% · quarterly YoY (MRQ)Net-profit growth (computed from quarterly statements)-24.37% · quarterly YoY (MRQ)Promoter group (exchange filing)53.46% · NSE shareholding filing, 2026-06-30Institutional holding (exchange filing)17.60% · NSE shareholding filing, 2026-06-30Market capINR 232.25BP/E67.14Fwd P/E38.44Price/Book4.98EPS51.46Beta-0.16Net margin8.87%Debt/Equity0.19RevenueINR 38.99B52w range2,995–7,705Volume3.02MCONFLICTSources disagree on earnings growth: -0.004 (yfinance (earningsGrowth)) vs -0.2437 (derived (quarterly income statement)) — The provider's earnings growth scalar claims MRQ YoY but disagrees with the figure computed from its own quarterly income statements (2026-06-30 vs 2025-06-30) beyond tolerance — the statement-derived figure reconciles against reported quarterly results; the scalar may ride a different line definition (bank revenue) or a restated base quarter. The provider value is shown unchanged.KAYNES Technology - Latest Quarterly Results=====================================================Price & Action-----------------Last price: 3455.0 (as of 2026-09-23)Price change %: -5.342465753424658 (vs previous day's close)Fundamentals Snapshot-------------------------Market capitalization: 232253702144.0 (as of 2026-09-23)Price-to-Earnings ratio: 67.13953Key Metrics---------------Revenue growth: +40.5% (quarterly YoY, 2)Earnings growth: -0.4% (quarterly YoY, computed from quarterly statements, [n] 1) + Note: discrepancy between provider's earnings growth scalar and statement-derived figure; see [CONFLICT] note belowNet-profit growth: -24.4% (quarterly YoY, computed from quarterly statements, [n] 2)Below 52-week high: 55.16% (vs 52w high, [n] 3)Ownership Structure------------------------Promoter group holding: 53.46% (as of 2026-06-30, [n] 4)Institutional holding: 17.60% (as of 2026-06-30, [n] 5)News & Events------------------On August 22, 2026, KAYNES Technology signed a strategic MoU with BOSGAME to build a strong computing presence in India ([n] 6)Annual General Meeting held on September 17, 2026; voting results and scrutinizer's report available on exchange filings ([n] 7)CONFLICT------------Earnings growth: discrepancy between provider's scalar value (+40.5%) and statement-derived figure (-0.4%); see notes above for reconciliation.Merged Sources------------------[n] numbers refer to the merged sources listed below:Fundamentals data for KAYNES - vysted://fundamentals/KAYNESQuarterly income statements for KAYNES Technology (2026-06-30 vs 2025-06-30)Provider's earnings growth scalar valueNSE shareholding filing, 2026-06-30NSE shareholding filing, 2026-06-30Press release dated August 22, 2026 ([n] 8)Exchange filings regarding AGM proceedings and voting results ([n] 9)Note: This brief is built from exchange data and filings gathered on 2026-09-23; all figures are subject to change.---References:[n] 1. Quarterly income statements for KAYNES Technology (2026-06-30 vs 2025-06-30)[n] 2. Provider's earnings growth scalar value[n] 3. Market capitalization and price-to-Earnings ratio data[n] 4. NSE shareholding filing, 2026-06-30[n] 5. NSE shareholding filing, 2026-06-30[n] 6. Press release dated August 22, 2026 ([n] 8)[n] 7. Exchange filings regarding AGM proceedings and voting results ([n] 9)Cross-checkTop numeric claims re-checked against fresh web evidence (at least 2 independent domains required per claim):UNVERIFIED — 232253702144 (no sources) — only 0 independent source(s) foundUNVERIFIED — 13953 (no sources) — only 0 independent source(s) foundUNVERIFIED — 5% (no sources) — only 0 independent source(s) foundUNVERIFIED — 4% (no sources) — only 0 independent source(s) foundUNVERIFIED — 16% (no sources) — only 0 independent source(s) foundSources(3)"
+ }
+}

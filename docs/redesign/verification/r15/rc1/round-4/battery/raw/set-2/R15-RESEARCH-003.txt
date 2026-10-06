@@ -1,0 +1,14 @@
+=== R15-RESEARCH-003: in-process _Findings.all_sources() append-only repro ===
+round1 [1] Press piece https://reuters.com/bluestar
+round1 [2] Price vysted://price/BLUESTARCO
+round1 [3] Fundamentals vysted://fundamentals/BLUESTARCO
+round2 [1] Press piece https://reuters.com/bluestar
+round2 [2] Price vysted://price/BLUESTARCO
+round2 [3] Fundamentals vysted://fundamentals/BLUESTARCO
+round2 [4] Filing 0 https://nsearchives.nseindia.com/filing0
+round2 [5] Filing 1 https://nsearchives.nseindia.com/filing1
+round2 [6] Filing 2 https://nsearchives.nseindia.com/filing2
+round2 [7] Filing 3 https://nsearchives.nseindia.com/filing3
+round2 [8] Filing 4 https://nsearchives.nseindia.com/filing4
+price marker stable: True 2 -> 2
+fundamentals marker stable: True 3 -> 3

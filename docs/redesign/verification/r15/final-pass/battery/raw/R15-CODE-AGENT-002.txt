@@ -1,0 +1,28 @@
+# R15-CODE-AGENT-002 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:09:24+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio, anyio, httpx
+from services import mcp_client
+async def mk(exc):
+    c = mcp_client.McpClient('t', transport='http', endpoint='http://x/mcp')
+    class Stub:
+        async def call_tool(self, *a, **k): raise exc
+    c._session = Stub(); c._generation = 1
+    try:
+        await c.call_tool('t', {}); r = 'no raise'
+    except BaseException as e:
+        r = f'{type(e).__name__}: {str(e)[:80]}'
+    print(f'{type(exc).__name__:22s} raised={r} | session dropped? {c._session is None}')
+async def a2():
+    for e in (anyio.ClosedResourceError(), anyio.BrokenResourceError(), httpx.ReadError('x'), anyio.EndOfStream(), httpx.RemoteProtocolError('x')):
+        await mk(e)
+asyncio.run(a2())
+PY
+--- output ---
+ClosedResourceError    raised=ProviderError: MCP server 't' call_tool(t) failed: ClosedResourceError() | session dropped? True
+BrokenResourceError    raised=ProviderError: MCP server 't' call_tool(t) failed: BrokenResourceError() | session dropped? True
+ReadError              raised=ProviderError: MCP server 't' call_tool(t) failed: ReadError('x') | session dropped? True
+EndOfStream            raised=ProviderError: MCP server 't' call_tool(t) failed: EndOfStream() | session dropped? True
+RemoteProtocolError    raised=ProviderError: MCP server 't' call_tool(t) failed: RemoteProtocolError('x') | session dropped? True
+
+EXIT=0 (0.4s)

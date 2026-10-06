@@ -1,0 +1,40 @@
+CMD: grep -n "saved screens survive serialize" /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/workspace.test.ts
+1584:  it("saved screens survive serialize, a fresh store and deserialize", () => {
+--- test body (lines 1584-1620) ---
+  it("saved screens survive serialize, a fresh store and deserialize", () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    useScreenerStore.getState().saveScreen("Cheap tech");
+
+    const saved = serializeWorkspace("screens");
+    useScreenerStore.getState().__resetForTests();
+    expect(useScreenerStore.getState().savedScreens).toEqual([]);
+    deserializeWorkspace(saved);
+
+    const screens = useScreenerStore.getState().savedScreens;
+    expect(screens.map((screen) => screen.name)).toEqual(["Cheap tech"]);
+    expect(screens[0]?.universe).toBe("sp500");
+  });
+});
+
+// ── one-time import of the pre-blob positions ledger (R15-LIFECYCLE-009) ───
+
+describe("legacy positions import (R15-LIFECYCLE-009)", () => {
+  /** v0.8.0 rows, as `GET /portfolio/positions` returns them. */
+  const LEDGER = [
+    {
+      id: 1,
+      symbol: "RELIANCE.NS",
+      quantity: 10,
+      cost_basis: 2890.55,
+      asset_class: "equity",
+      opened_at: null,
+      note: "core",
+    },
+    {
+      id: 2,
+      symbol: "TCS.NS",
+      quantity: 5,
+      cost_basis: 3400,
+      asset_class: "equity",
+      opened_at: null,

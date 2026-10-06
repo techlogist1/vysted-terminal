@@ -1,0 +1,10 @@
+sha e032be7d; git log a122dbf6..e032be7d -- docs/CURRENT_STATE.md => (empty)
+grep stale claims docs/CURRENT_STATE.md:
+44:> - **§4 "~11 registered handlers unreachable" → CLOSED.** Every registered,
+45:>   agent-intended handler has a schema (SC-006); 27 internal capabilities.
+418:deleted, not merely unreachable.
+585:the tool. A real, unfixed inconsistency.
+692:**unreachable through the LLM loop** — the schema is the only thing that produces
+805:| Gemini multi-round tool use                                                            | **Likely broken** — `function_response` keyed by empty name                                                   | §4                               |
+807:| Custom-agent tool allow-list                                                           | **Stale/out of sync** — 5 ids; `news`/`macro` not in `TOOL_SCHEMAS`                                           | §11                              |
+code at sha: TOOL_SCHEMAS 53; set(read_handler_ids())-set(TOOL_SCHEMAS) = set(); KNOWN_TOOL_IDS 53; mcp caps 30

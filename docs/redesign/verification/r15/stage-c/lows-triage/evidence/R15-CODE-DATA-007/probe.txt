@@ -1,0 +1,6 @@
+shareholding lane loop at :1087-1092 catches: ProviderError only
+shareholding -> RAW KeyError propagates (route 500): 'injected'
+announcements -> RAW ValidationError propagates (route 500): 1 validation error for AnnouncementWindow
+window_end
+  Input should be a valid date [type=date_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.13/v/date_type

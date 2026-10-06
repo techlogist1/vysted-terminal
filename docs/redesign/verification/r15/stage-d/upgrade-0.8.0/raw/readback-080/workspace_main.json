@@ -1,0 +1,112 @@
+{
+    "chartDrawings": {
+        "chart-1": [
+            {
+                "color": "#6366f1",
+                "id": "d1",
+                "kind": "trendline",
+                "points": [
+                    {
+                        "price": 231.4,
+                        "time": 1767225600
+                    },
+                    {
+                        "price": 255.1,
+                        "time": 1772323200
+                    }
+                ]
+            },
+            {
+                "color": "#a1a1aa",
+                "id": "d2",
+                "kind": "hline",
+                "points": [
+                    {
+                        "price": 250,
+                        "time": 1767225600
+                    }
+                ]
+            }
+        ]
+    },
+    "enabledModules": {
+        "agent-builder": true,
+        "chart": true,
+        "news": true,
+        "node-editor": true,
+        "portfolio": true,
+        "screener": false,
+        "watchlist": true
+    },
+    "layout": {
+        "activeGroup": "1",
+        "grid": {
+            "height": 1080,
+            "orientation": "HORIZONTAL",
+            "root": {
+                "data": [
+                    {
+                        "data": {
+                            "activeView": "chart-1",
+                            "id": "1",
+                            "views": [
+                                "chart-1"
+                            ]
+                        },
+                        "size": 1280,
+                        "type": "leaf"
+                    },
+                    {
+                        "data": [
+                            {
+                                "data": {
+                                    "activeView": "watchlist-1",
+                                    "id": "2",
+                                    "views": [
+                                        "watchlist-1"
+                                    ]
+                                },
+                                "size": 540,
+                                "type": "leaf"
+                            },
+                            {
+                                "data": {
+                                    "activeView": "portfolio-1",
+                                    "id": "3",
+                                    "views": [
+                                        "portfolio-1"
+                                    ]
+                                },
+                                "size": 540,
+                                "type": "leaf"
+                            }
+                        ],
+                        "size": 640,
+                        "type": "branch"
+                    }
+                ],
+                "size": 1080,
+                "type": "branch"
+            },
+            "width": 1920
+        },
+        "panels": {
+            "chart-1": {
+                "contentComponent": "chart",
+                "id": "chart-1",
+                "title": "Chart"
+            },
+            "portfolio-1": {
+                "contentComponent": "portfolio",
+                "id": "portfolio-1",
+                "title": "Portfolio"
+            },
+            "watchlist-1": {
+                "contentComponent": "watchlist",
+                "id": "watchlist-1",
+                "title": "Watchlist"
+            }
+        }
+    },
+    "name": "Main Desk"
+}

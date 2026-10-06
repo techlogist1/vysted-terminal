@@ -1,0 +1,48 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_36c0f6115672453f9c36b06f2df7791c", "name": "read_notes", "input": {"scope": "BDL"}}
+{"kind": "tool_result", "tool_call_id": "call_36c0f6115672453f9c36b06f2df7791c", "name": "read_notes", "ok": true, "error": null}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " B"}
+{"kind": "delta", "text": "DL"}
+{"kind": "delta", "text": " reads"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " '"}
+{"kind": "delta", "text": "Th"}
+{"kind": "delta", "text": "esis"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " B"}
+{"kind": "delta", "text": "DL"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " order"}
+{"kind": "delta", "text": " backlog"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " und"}
+{"kind": "delta", "text": "erval"}
+{"kind": "delta", "text": "ued"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " street"}
+{"kind": "delta", "text": ";"}
+{"kind": "delta", "text": " entered"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "145"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " target"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "210"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " stop"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "130"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": ".'"}
+{"kind": "done", "usage": {"input_tokens": 2935, "output_tokens": 41, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

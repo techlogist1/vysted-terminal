@@ -1,0 +1,20 @@
+=== UI-078: portfolio holding validation differs by entry path ===
+Form path (src/modules/portfolio/PortfolioPanel.tsx:492-506):
+  const quantity = Number(form.quantity);
+  const costBasis = Number(form.costBasis);
+  if (... || !Number.isFinite(quantity) || !Number.isFinite(costBasis)) { ...required... }
+  if (quantity <= 0) { ...must be > 0... }
+  if (costBasis < 0) { ...cannot be negative... }
+Number("") === 0 (finite, not negative) -> a blank cost-basis field is STILL silently saved as 0
+(matches "TCS.NS qty 5, cost blank -> saved as 0" exactly). Number("1e20") is finite and not <=0,
+and quantity has no upper bound check -> "qty '1e20' saved" also still reproduces. Both form-path
+sub-defects are unchanged.
+
+Agent path (src/lib/host-actions.ts): costBasisProblem() (line ~744) now returns "cost basis
+cannot be negative" for a negative costBasis, and the portfolio_add_position case (line ~1848)
+gates on `problem` and calls fail(problem) instead of silently applying it — this sub-path looks
+improved since the register's repro was written (a negative agent-proposed cost basis now surfaces
+a visible failure instead of applying silently while an ignored sidecar 422 was the only signal).
+The overall entry is a compound of 3 sub-defects; 2 of 3 (the form-path ones) still reproduce
+exactly as documented, so the register's `open`/`low` status is still an accurate description of
+the entry as a whole.

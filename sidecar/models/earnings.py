@@ -20,7 +20,10 @@ QuarterLabel = Literal["Q1", "Q2", "Q3", "Q4", "FY"]
 
 
 class FiscalPeriod(BaseModel):
-    """Fiscal-period label — e.g. ``"Q1 2026"``, ``"FY 2025"``."""
+    """Fiscal-period label — e.g. ``"Q1 2026"``, ``"FY 2025"``.
+
+    Every ``fiscal_period`` field is ``None`` unless the provider supplies the
+    period — it is never inferred from a report date (R15-DATA-067)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -37,11 +40,16 @@ class EarningsEvent(BaseModel):
     company_name: str | None = None
     scheduled_date: date
     time_of_day: EarningsTimeOfDay
-    fiscal_period: FiscalPeriod
+    fiscal_period: FiscalPeriod | None = None
     eps_estimate_mean: float | None = None
+    #: Measured dispersion only — None unless the provider supplies it.
     eps_estimate_stddev: float | None = None
-    estimate_analyst_count: int = Field(ge=0)  # a count, never negative — Phase 9.5 = 0
-    currency: str = "USD"
+    #: None when the provider gives no count (never a 0 standing in for unknown).
+    estimate_analyst_count: int | None = Field(default=None, ge=0)
+    #: The EPS estimate's own currency — ``None`` when the filer's true EPS
+    #: currency can't be determined (R15-DATA-113); see
+    #: ``EarningsSurprise.currency``.
+    currency: str | None = "USD"
     provider: str
 
 
@@ -56,8 +64,14 @@ class EarningsSurprise(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     symbol: str
-    reported_date: date
-    fiscal_period: FiscalPeriod
+    #: The fiscal quarter end (R15-LEAD-016) — the sort key and the chart's
+    #: x-axis; unlike ``reported_date`` it is never ``None``.
+    period_end: date
+    #: The actual announcement date, when one was found within 0-120 days of
+    #: ``period_end`` — ``None`` otherwise. Distinct from ``period_end``: a
+    #: company can report weeks after its quarter closes.
+    reported_date: date | None = None
+    fiscal_period: FiscalPeriod | None = None
     eps_actual: float
     eps_estimate_mean: float
     eps_surprise: float
@@ -65,7 +79,20 @@ class EarningsSurprise(BaseModel):
     revenue_actual: float | None = None
     revenue_estimate_mean: float | None = None
     revenue_surprise_pct: float | None = None
-    currency: str = "USD"
+    #: The EPS fields' own currency — a foreign reporter's per-share EPS is
+    #: sometimes denominated in the reporting currency, not the trading
+    #: currency the ADR/ADS trades in (PDD/NVO/JD). Scale-checked against
+    #: ``trailingEps`` before trusting Yahoo's ``financialCurrency``; ``None``
+    #: when the scale check can't determine it — never a guessed label
+    #: (R15-DATA-113).
+    currency: str | None = "USD"
+    #: The revenue fields' own currency — a foreign reporter's statement-size
+    #: revenue is denominated in the reporting currency, not the trading
+    #: currency ``currency`` carries. Scale-checked against ``totalRevenue``
+    #: before trusting Yahoo's ``financialCurrency``; ``None`` when neither
+    #: the scale check nor a home-market fallback determines it — never a
+    #: guessed label (R15-DATA-113).
+    revenue_currency: str | None = None
     provider: str
 
 
@@ -80,19 +107,26 @@ class EarningsEstimateDetail(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     symbol: str
-    fiscal_period: FiscalPeriod
-    eps_estimate_mean: float
+    fiscal_period: FiscalPeriod | None = None
+    #: R15-LEAD-039: nullable, same shape as the revenue triple below — Yahoo's
+    #: calendar payload omits these for several liquid non-US names (RDY, TM,
+    #: SONY); each field is independently nullable, never a raise.
+    eps_estimate_mean: float | None = None
     eps_estimate_median: float | None = None
-    eps_estimate_high: float
-    eps_estimate_low: float
+    eps_estimate_high: float | None = None
+    eps_estimate_low: float | None = None
     eps_estimate_stddev: float | None = None
-    estimate_analyst_count: int = Field(ge=0)  # a count, never negative — Phase 9.5
+    estimate_analyst_count: int | None = Field(default=None, ge=0)
     revenue_estimate_mean: float | None = None
     revenue_estimate_median: float | None = None
     revenue_estimate_high: float | None = None
     revenue_estimate_low: float | None = None
-    revenue_analyst_count: int = 0
-    currency: str = "USD"
+    #: The revenue frame's own count — never the EPS count (R15-DATA-032).
+    revenue_analyst_count: int | None = Field(default=None, ge=0)
+    #: See ``EarningsSurprise.currency`` (R15-DATA-113).
+    currency: str | None = "USD"
+    #: See ``EarningsSurprise.revenue_currency`` (R15-DATA-113).
+    revenue_currency: str | None = None
     provider: str
     as_of: datetime
 
@@ -110,6 +144,9 @@ class EarningsUpcomingResponse(BaseModel):
     start_date: date
     end_date: date
     events: list[EarningsEvent]
+    #: When this window was actually fetched from the provider (R15-DATA-068)
+    #: — a cache hit carries the ORIGINAL fetch time, not the read time.
+    as_of: datetime | None = None
 
 
 class EarningsSurprisesResponse(BaseModel):
@@ -119,6 +156,8 @@ class EarningsSurprisesResponse(BaseModel):
 
     symbol: str
     surprises: list[EarningsSurprise]
+    #: R15-DATA-068 — see ``EarningsUpcomingResponse.as_of``.
+    as_of: datetime | None = None
 
 
 class EarningsHistoryEntry(BaseModel):
@@ -126,13 +165,22 @@ class EarningsHistoryEntry(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    fiscal_period: FiscalPeriod
-    reported_date: date
+    fiscal_period: FiscalPeriod | None = None
+    #: The fiscal quarter end (R15-LEAD-016) — the sort key, NOT the
+    #: announcement date (a company reports weeks after its quarter closes).
+    period_end: date
+    #: The actual announcement date, when one was found within 0-120 days of
+    #: ``period_end`` — ``None`` otherwise (was: silently the same as
+    #: ``period_end``, the R15-LEAD-016 defect).
+    reported_date: date | None = None
     eps_actual: float
     eps_estimate_mean: float | None = None
     revenue_actual: float | None = None
     revenue_estimate_mean: float | None = None
-    currency: str = "USD"
+    #: See ``EarningsSurprise.currency`` (R15-DATA-113).
+    currency: str | None = "USD"
+    #: See ``EarningsSurprise.revenue_currency`` (R15-DATA-113).
+    revenue_currency: str | None = None
 
 
 class EarningsHistoryResponse(BaseModel):
@@ -142,3 +190,5 @@ class EarningsHistoryResponse(BaseModel):
 
     symbol: str
     history: list[EarningsHistoryEntry]
+    #: R15-DATA-068 — see ``EarningsUpcomingResponse.as_of``.
+    as_of: datetime | None = None

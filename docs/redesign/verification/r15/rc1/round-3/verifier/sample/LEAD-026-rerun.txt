@@ -1,0 +1,13 @@
+# git -C worktree rev-parse HEAD: 5ff9be041180c1c316ad48ceb120a23549a7575a
+## curl -s 'http://127.0.0.1:52312/history/ZZZZNOTREAL?timeframe=1d'
+{"symbol": "ZZZZNOTREAL", "timeframe": "1d", "bars": 0, "provider": "none", "freshness": null, "reason": "unknown_symbol", "partial": false, "coverage_start": null}
+## curl -s 'http://127.0.0.1:52312/history/QQZZFAKE.NS?timeframe=1d'
+{"symbol": "QQZZFAKE.NS", "timeframe": "1d", "bars": 0, "provider": "none", "freshness": null, "reason": null, "partial": false, "coverage_start": null}
+## curl -s 'http://127.0.0.1:52312/history/QQZZFAKE.BO?timeframe=1d'
+{"symbol": "QQZZFAKE.BO", "timeframe": "1d", "bars": 0, "provider": "none", "freshness": null, "reason": null, "partial": false, "coverage_start": null}
+## curl -s 'http://127.0.0.1:52312/history/QQZZFAKE?timeframe=1d'
+{"symbol": "QQZZFAKE", "timeframe": "1d", "bars": 0, "provider": "none", "freshness": null, "reason": "unknown_symbol", "partial": false, "coverage_start": null}
+## curl -s 'http://127.0.0.1:52312/history/RELIANC.NS?timeframe=1d'
+{"symbol": "RELIANC.NS", "timeframe": "1d", "bars": 0, "provider": "none", "freshness": null, "reason": null, "partial": false, "coverage_start": null}
+## curl -s 'http://127.0.0.1:52312/history/DAL?timeframe=1d'
+{"symbol": "DAL", "timeframe": "1d", "bars": 0, "provider": "none", "freshness": null, "reason": null, "partial": false, "coverage_start": null}

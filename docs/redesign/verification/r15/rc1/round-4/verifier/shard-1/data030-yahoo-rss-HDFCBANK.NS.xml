@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<rss version="2.0">
+    <channel>
+        <copyright>Copyright (c) 2026 Yahoo Inc. All rights reserved.</copyright>
+        <description>Latest Financial News for </description>
+        <image>
+            <height>45</height>
+            <link>http://finance.yahoo.com/q/h?s=</link>
+            <title>Yahoo! Finance:  News</title>
+            <url>https://s.yimg.com/rz/stage/p/yahoo_finance_en-US_h_p_finance_2.png</url>
+            <width>144</width>
+        </image>
+        <language>en-US</language>
+        <lastBuildDate>Sat, 26 Sep 2026 23:47:30 +0000</lastBuildDate>
+        <link>http://finance.yahoo.com/q/h?s=</link>
+        <title>Yahoo! Finance:  News</title>
+    </channel>
+</rss>

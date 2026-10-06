@@ -1,0 +1,7 @@
+AAPL {'symbol': 'AAPL', 'provider': 'yfinance', 'timestamp': '2026-09-24T20:00:01Z', 'freshness': 'eod', 'price': 335.9200134277344}
+RELIANCE {'symbol': 'RELIANCE', 'provider': 'nse_direct', 'timestamp': '2026-09-24T00:00:00Z', 'freshness': 'eod', 'price': 1219.2}
+0.000000E+00NSEI {'symbol': '^NSEI', 'provider': 'yfinance', 'timestamp': '2026-09-24T10:01:13Z', 'freshness': 'eod', 'price': 23063.099609375}
+0.000000E+00BSESN {'symbol': '^BSESN', 'provider': 'yfinance', 'timestamp': '2026-09-24T10:02:34Z', 'freshness': 'eod', 'price': 73580.5390625}
+VOD.L {'symbol': 'VOD.L', 'provider': 'yfinance', 'timestamp': '2026-09-24T15:51:57Z', 'freshness': 'eod', 'price': 125.3}
+7203.T {'symbol': '7203.T', 'provider': 'yfinance', 'timestamp': '2026-09-25T02:30:00Z', 'freshness': 'eod', 'price': 2988.0}
+TCS.NS {'symbol': 'TCS', 'provider': 'nse_direct', 'timestamp': '2026-09-24T00:00:00Z', 'freshness': 'eod', 'price': 2087.0}

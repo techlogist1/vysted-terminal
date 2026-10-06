@@ -1,0 +1,17 @@
+# R15-CODE-DATA-023 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:24+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; sed -n 1,14p sidecar/services/screener_universe_india.py | grep -n "2,675\|2.7k\|4.9k"; echo "stale-count grep exit $?"; sed -n 28,40p sidecar/models/screener.py | grep -n "2,675\|2.7k\|4.9k"; echo "stale-count grep exit $?"
+"$IP" -c "
+import asyncio
+from services import screener_universe_india as u
+for k in ('nse-all','bse-all','india-all'):
+    r=u.load_india_universe(k); r=asyncio.run(r) if asyncio.iscoroutine(r) else r
+    print(k, len(getattr(r,'symbols',r)))" 2>&1 | grep -v Warning
+--- output ---
+stale-count grep exit 1
+stale-count grep exit 1
+nse-all 3506
+bse-all 5042
+india-all 5891
+
+EXIT=0 (0.2s)

@@ -1,0 +1,223 @@
+{
+ "query": "Coforge",
+ "symbol": "COFORGE",
+ "mode": "DEEP",
+ "depth": "deep",
+ "markdown": "# Coforge (COFORGE) \u2013 Research Brief\n\n**As of market close: 12 June 2026** | **Server date: 13 June 2026**\n\n## Price Snapshot\n\n- **NSE closing price**: \u20b91,367.20 [1]  \n- **Trading volume**: 2,484,998 shares [1]  \n- **52\u2011week high**: \u20b91,994.00 [6]  \n- **52\u2011week low**: \u20b91,008.10 [6]  \n- **Below 52\u2011week high**: 31.43% [= (1,994 - 1,367.20) / 1,994]  \n- **52\u2011week price change (Yahoo)**: \u201325.27% (trailing 52 weeks) [6]  \n\n## Fundamentals (Yahoo Finance \u2013 trailing twelve months)\n\n| Metric | Value | Source |\n|--------|-------|--------|\n| Market capitalisation | \u20b960,522 crore | [6] |\n| P/E ratio (TTM) | 31.15 | [6] |\n| Forward P/E | 19.92 | [6] |\n| Price\u2011to\u2011book | 4.81 | [6] |\n| Price\u2011to\u2011sales | 3.69 | [6] |\n| EV/EBITDA | 14.99 | [6] |\n| EPS (TTM) | \u20b943.89 | [6] |\n| Profit margin | 9.48% | [6] |\n| Operating margin | 16.56% | [6] |\n| Revenue growth (yoy) | 30.50% | [6] |\n| Earnings growth (yoy) | 134.00% | [6] |\n| Return on equity | 18.60% | [6] |\n| Debt\u2011to\u2011equity | 0.075 | [6] |\n\n**Note**: Specific quarterly financials (e.g. Q4 FY2026) were not captured in this run; the figures above are trailing\u2011twelve\u2011month estimates from Yahoo Finance.\n\n## Dividend\n\n- **Dividend yield**: 1.17% (per share / price) [6]  \n- **Dividend per share (TTM)**: \u20b916.00 [6]  \n- Payout history (announcement dates, amounts) \u2014 not retrieved in this run.\n\n## Analyst Consensus\n\n- **Price target**: Not available in this run. No recent broker report or consensus figure was collected.\n\n## Key Open Questions\n\n- What are Coforge\u2019s exact quarterly results (e.g. Q4 FY2026 revenue, net profit, segment margins) and the as\u2011of date of those filings?  \n- What is the company\u2019s dividend payout track record for the past 2\u20113 years?  \n- What is the current analyst consensus one\u2011year price target for COFORGE?  \n- How does the stock\u2019s current valuation compare with peers in the IT services sector?  \n\n## Sources\n\n NSE India \u2013 Coforge Limited (COFORGE) \u2013 equity quote, 12 June 2026 (not confirmed in this run).  \n[6] Yahoo Finance \u2013 COFORGE.NS fundamentals and price history.",
+ "sources": [
+  {
+   "url": "https://www.nseindia.com/get-quote/equity/COFORGE/Coforge-Limited",
+   "title": "Coforge Limited - NSE",
+   "excerpt": "Coforge Limited Live NSE Share Price: Get the latest Coforge Limited news, company updates, quotes, offers, annual financial reports, graph, volumes, ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.nseindia.com/get-quotes/derivatives?symbol=COFORGE",
+   "title": "Coforge Limited (INE591G01025) - NSE",
+   "excerpt": "COFORGE 1,370.00. -23.80(-1.71 %). Close. 1,367.20. -26.60(-1.91 %). COFORGE. Coforge Limited (INE591G01025). As on 12-Jun-2026 15:30:00 IST (All price values ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.moneycontrol.com/india/stockpricequote/computers-software/coforge/NII02",
+   "title": "COFORGE Ltd. - Share/Stock Price - Moneycontrol.com",
+   "excerpt": "10 out of 18 years COFORGE LIMITED has given positive returns in June. June. Max. Positive Change(%); 17.79%. (2021). Max. Negative Change ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://groww.in/stocks/niit-technologies-ltd",
+   "title": "Coforge Stock Price Live NSE/BSE - Groww",
+   "excerpt": "52W High is the highest price at which the Stock has been traded in the last 52 weeks ... Coforge Limited is a global digital services and solutions provider ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://trendlyne.com/equity/942/COFORGE/coforge-ltd/",
+   "title": "Coforge Live Share Price Today, Share Analysis and Chart",
+   "excerpt": "Coforge Limited:Long-term rating upgraded to 'Crisil AA+/Stable'; Short-term rating reaffirmed, Link. 02 Feb 2025, crisil ratings, Coforge Limited, Coforge ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://finance.yahoo.com/quote/COFORGE.NS/",
+   "title": "Coforge Limited (COFORGE.NS) Stock Price, News, Quote & History",
+   "excerpt": "Find the latest Coforge Limited (COFORGE.NS) stock quote, history, news and other vital information to help you with your stock trading and investing.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.bajajbroking.in/stock/coforge-limited-share-price",
+   "title": "Coforge Share Price today - Live NSE/BSE - Bajaj Broking",
+   "excerpt": "COFORGE LIMITED is currently trading at \u20b91367.2, down by \u20b926.6 from the previous close. The stock touched an intraday high of \u20b91410.4 and a low of \u20b91364 during ...",
+   "domain": "web"
+  },
+  {
+   "url": "vysted://price/COFORGE",
+   "title": "Price for COFORGE",
+   "excerpt": "Structured price snapshot via nse_direct gathered this run.",
+   "domain": "nse_direct"
+  },
+  {
+   "url": "vysted://fundamentals/COFORGE",
+   "title": "Fundamentals for COFORGE",
+   "excerpt": "Structured fundamentals snapshot via yfinance gathered this run.",
+   "domain": "yfinance"
+  }
+ ],
+ "sourceCount": 9,
+ "cost": {
+  "tokens": 0,
+  "spendUsd": 0
+ },
+ "webAvailable": true,
+ "structured": {
+  "resolved": {
+   "ok": true,
+   "query": "Coforge",
+   "region": "US",
+   "status": "bound",
+   "reason": "score 1.00 >= accept at band 6",
+   "resolved": {
+    "symbol": "COFORGE",
+    "name": "Coforge Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "COFORGE.NS",
+    "confidence": 1
+   },
+   "needs_disambiguation": false,
+   "candidates": [
+    {
+     "symbol": "COFORGE",
+     "name": "Coforge Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "COFORGE.NS",
+     "confidence": 1
+    },
+    {
+     "symbol": "COFORGE",
+     "name": "Coforge Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "COFORGE.BO",
+     "confidence": 1
+    }
+   ]
+  },
+  "price": {
+   "ok": true,
+   "provider": "nse_direct",
+   "data": {
+    "symbol": "COFORGE",
+    "price": 1367.2,
+    "change": -26.59999999999991,
+    "change_percent": -1.9084517147366846,
+    "volume": 2484998,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-06-12T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": null
+   }
+  },
+  "fundamentals": {
+   "ok": true,
+   "provider": "yfinance",
+   "data": {
+    "symbol": "COFORGE.NS",
+    "name": "Coforge Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "currency": "INR",
+    "market_cap": 605220503552,
+    "pe_ratio": 31.150602,
+    "forward_pe": 19.91849,
+    "peg_ratio": null,
+    "price_to_book": 4.8147116,
+    "price_to_sales": 3.6897614,
+    "ev_to_ebitda": 14.999,
+    "book_value": 283.963,
+    "dividend_yield": 0.011699999999999999,
+    "dividend_per_share": 16,
+    "eps": 43.89,
+    "beta": 0.227,
+    "fifty_two_week_high": 1994,
+    "fifty_two_week_low": 1008.1,
+    "fifty_two_week_change": -0.25269198,
+    "roe": 0.18596001,
+    "roa": 0.107980005,
+    "gross_margin": 0.36431,
+    "operating_margin": 0.16555999,
+    "profit_margin": 0.094840005,
+    "debt_to_equity": 0.07518,
+    "current_ratio": 1.609,
+    "quick_ratio": 1.472,
+    "revenue_ttm": 164027006976,
+    "net_income_ttm": 14855000064,
+    "free_cash_flow": 17159374848,
+    "shares_outstanding": 442671546,
+    "revenue_growth": 0.305,
+    "earnings_growth": 1.34,
+    "held_percent_insiders": 0.21816999,
+    "held_percent_institutions": 0.57096,
+    "provider": "yfinance"
+   }
+  },
+  "derived": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "drawdown_from_high": {
+     "value": 0.31434302908726175,
+     "label": "Below 52-week high",
+     "basis": "vs 52w high",
+     "formula": "(52w high - price) / 52w high",
+     "unit": "percent"
+    },
+    "fifty_two_week_change": {
+     "value": -0.25269198,
+     "label": "52-week price change (Yahoo)",
+     "basis": "trailing 52 weeks",
+     "unit": "percent"
+    },
+    "dividend_yield": {
+     "value": 0.011702750146284377,
+     "label": "Dividend yield",
+     "basis": "fraction of price",
+     "formula": "dividend per share / price",
+     "unit": "percent"
+    },
+    "dividend_per_share": {
+     "value": 16,
+     "label": "Dividend per share",
+     "basis": "per share, INR",
+     "unit": "currency"
+    },
+    "revenue_growth": {
+     "value": 0.305,
+     "label": "Revenue growth",
+     "basis": "yoy",
+     "unit": "percent"
+    },
+    "earnings_growth": {
+     "value": 1.34,
+     "label": "Earnings growth",
+     "basis": "yoy",
+     "unit": "percent"
+    },
+    "conflicts": []
+   }
+  }
+ },
+ "backend": "native",
+ "execution": {
+  "runId": "8269a80c07ff45a390002e495deb84b1",
+  "requestedDepth": "deep",
+  "loop": "iter",
+  "backend": "native",
+  "startedAt": 1781388341.42099,
+  "finishedAt": 1781388507.2642932,
+  "degradedReason": null
+ },
+ "createdAt": 1781388507301
+}

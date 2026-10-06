@@ -1,0 +1,16 @@
+import sys,json,asyncio; sys.path.insert(0,'.')
+from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMUsage
+from services import agent_runtime
+h=json.load(open(sys.argv[1]))["history"]
+class P:
+    seen=None
+    async def stream_chat(self, messages, model, api_key=None, **_):
+        P.seen=list(messages)
+        yield LLMDeltaEvent(text="ok"); yield LLMDoneEvent(usage=LLMUsage(input_tokens=1,output_tokens=1))
+agent_runtime.reload(); agent_runtime.get_provider=lambda *a,**k: P(); agent_runtime._ACK_GRACE_SECONDS=0.0
+async def m():
+    async for _ in agent_runtime.invoke_agent(agent_id="copilot",prompt="Repeat your previous answer.",api_key=None,provider="ollama",model="llama3.1:8b",mode="ask",autonomy="ask",options={"history":h}): pass
+asyncio.run(m())
+for msg in P.seen:
+    if msg.role in ("assistant",) or "Earlier turns" in msg.content:
+        print(msg.role, repr(msg.content[:300]))

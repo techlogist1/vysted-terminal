@@ -1,0 +1,96 @@
+{
+ "get_results_summary": {
+  "544774": {
+   "col1": "(in Cr.)",
+   "col2": "",
+   "col3": "",
+   "col4": "FY25-26",
+   "resultinCr": [
+    {
+     "title": "Revenue",
+     "v1": "--",
+     "v2": "--",
+     "v3": "432.37"
+    },
+    {
+     "title": "Net Profit",
+     "v1": "--",
+     "v2": "--",
+     "v3": "24.75"
+    },
+    {
+     "title": "EPS",
+     "v1": "--",
+     "v2": "--",
+     "v3": "16.89"
+    },
+    {
+     "title": "Cash EPS",
+     "v1": "--",
+     "v2": "--",
+     "v3": "16.93"
+    },
+    {
+     "title": "OPM %",
+     "v1": "--",
+     "v2": "--",
+     "v3": "8.27"
+    },
+    {
+     "title": "NPM %",
+     "v1": "--",
+     "v2": "--",
+     "v3": "5.72"
+    }
+   ],
+   "resultinM": [
+    {
+     "title": "Revenue",
+     "v1": "--",
+     "v2": "--",
+     "v3": "4,323.67"
+    },
+    {
+     "title": "Net Profit",
+     "v1": "--",
+     "v2": "--",
+     "v3": "247.49"
+    },
+    {
+     "title": "EPS",
+     "v1": "--",
+     "v2": "--",
+     "v3": "16.89"
+    },
+    {
+     "title": "Cash EPS",
+     "v1": "--",
+     "v2": "--",
+     "v3": "16.93"
+    },
+    {
+     "title": "OPM %",
+     "v1": "--",
+     "v2": "--",
+     "v3": "8.27"
+    },
+    {
+     "title": "NPM %",
+     "v1": "--",
+     "v2": "--",
+     "v3": "5.72"
+    }
+   ],
+   "resultinS": [
+    {
+     "FY": "FY25-26",
+     "LQ": null,
+     "SQ": null,
+     "LFY": "https://www.bseindia.com/corporates/results.aspx?Code=544774&Company=SMR-Jewels-Ltd&qtr=129.50&RType=",
+     "LLQ": null,
+     "LSQ": null
+    }
+   ]
+  }
+ }
+}

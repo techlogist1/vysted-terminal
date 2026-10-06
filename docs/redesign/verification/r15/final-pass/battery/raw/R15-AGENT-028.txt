@@ -1,0 +1,15 @@
+# R15-AGENT-028 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:44:50+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for m in gemma3:4b llama3.1:8b; do echo "\$ POST /llm/keys/validate ollama $m"; curl -s -m 60 -X POST "$H/llm/keys/validate" -H 'content-type: application/json' -d "{\"provider\":\"ollama\",\"model\":\"$m\"}"; echo; done
+echo '$ POST /llm/chat ollama unpulled model fb0-notpulled:1b'; curl -s -m 60 -N -X POST "$H/llm/chat" -H 'content-type: application/json' -d '{"provider":"ollama","model":"fb0-notpulled:1b","messages":[{"role":"user","content":"hi"}]}' | head -c 700; echo
+--- output ---
+$ POST /llm/keys/validate ollama gemma3:4b
+{"ok":false,"reason":"model_not_pulled","detail":"gemma3:4b is not downloaded in Ollama (local) yet."}
+$ POST /llm/keys/validate ollama llama3.1:8b
+{"ok":true,"reason":null,"detail":null}
+$ POST /llm/chat ollama unpulled model fb0-notpulled:1b
+data: {"kind": "error", "message": "The model fb0-notpulled:1b is not downloaded in Ollama.", "action": "Run `ollama pull fb0-notpulled:1b`, or pick an installed model in Settings.", "detail": "model 'fb0-notpulled:1b' not found (status code: 404)", "code": "model_not_pulled"}
+
+
+
+EXIT=0 (0.1s)

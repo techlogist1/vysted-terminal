@@ -1,0 +1,29 @@
+rg-docs-current.txt	broker as data-source/news term (broker ratings, brokerage firm research, broker estimates)	1
+rg-docs-current.txt	current doc stating no broker / removal (D81), manually reviewed	9
+rg-docs-current.txt	current doc/code stating no broker / removal (D81)	34
+rg-docs-current.txt	disclaimer: no brokerage / not a broker-dealer / removal statement	9
+rg-docs-current.txt	financial metric margin (gross/operating/profit/net/EBITDA/margin of safety)	4
+rg-docs-current.txt	historical doc: pre-D81 research/handoff/redesign history (not current-state)	478
+rg-sidecar.txt	OpenRouter described as an LLM 'broker' (model routing term)	12
+rg-sidecar.txt	current doc/code stating no broker / removal (D81)	14
+rg-sidecar.txt	disclaimer: no brokerage / not a broker-dealer / removal statement	2
+rg-sidecar.txt	exchange filing fixture text (test data)	7
+rg-sidecar.txt	financial leverage metric / verb	3
+rg-sidecar.txt	financial metric margin (gross/operating/profit/net/EBITDA/margin of safety)	105
+rg-sidecar.txt	listed company name / master data (resolver masters)	10
+rg-sidecar.txt	listed company name containing Brokers (resolver master data)	1
+rg-sidecar.txt	live-model (substring 'live mode' in 'live model')	5
+rg-sidecar.txt	non-trading 'marginal' (hardware-fit verdict, CSS margin, ECB rate, marginal cost)	22
+rg-sidecar.txt	public suffix list domain data	5
+rg-sidecar.txt	test asserting absence of trading surface	28
+rg-src-tauri.txt	legacy keychain key namespace holding first-launch TOS acceptance only	2
+rg-src-tauri.txt	non-trading 'marginal' (hardware-fit verdict, CSS margin, ECB rate, marginal cost)	1
+rg-src.txt	OpenRouter described as an LLM 'broker' (model routing term)	4
+rg-src.txt	current doc/code stating no broker / removal (D81)	7
+rg-src.txt	disclaimer: no brokerage / not a broker-dealer / removal statement	2
+rg-src.txt	financial leverage metric / verb	2
+rg-src.txt	financial metric margin (gross/operating/profit/net/EBITDA/margin of safety)	62
+rg-src.txt	generic EmptyState component test label (test-only string; no production caller)	4
+rg-src.txt	live-model (substring 'live mode' in 'live model')	4
+rg-src.txt	non-trading 'marginal' (hardware-fit verdict, CSS margin, ECB rate, marginal cost)	6
+rg-src.txt	test asserting absence of trading surface	7

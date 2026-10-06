@@ -1,0 +1,12 @@
+[   6.5s] done: {"kind": "done", "usage": {"input_tokens": 2731, "output_tokens": 120, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Since you only have access to the `price_data` tool for TCS.NS, I'll focus on that.
+
+What would you like to know about TCS.NS? 
+
+(Please note: I'll be relying solely on the `price_data` tool's result for TCS.NS. If you need any other information or context, please let me know.)
+
+Also, since my training data is stale, I might not have the most up-to-date information. If that's the case, I'll do my best to fetch the live data using the `price_data` tool.
+
+=== ok · 6.5s · events {'delta': 121, 'done': 1} · usage in=2731 out=120 · est $0.00000 · llama3.1:8b

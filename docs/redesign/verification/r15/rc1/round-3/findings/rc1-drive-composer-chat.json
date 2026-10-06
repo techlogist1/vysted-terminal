@@ -1,0 +1,19 @@
+[
+  {
+    "key": "rc1-drive-composer-chat:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "A missing/invalid API key on any eagerly-validating cloud provider (OpenAI, Groq, and by shared-class construction OpenRouter/xAI/DeepSeek) now surfaces the router's generic 'The terminal hit an internal error... restart Vysted' frame instead of a humanized 'add your API key in Settings' message, on both /agents/{id}/invoke and /llm/chat",
+    "repro": "python3 scripts/r15/vy.py invoke copilot \"hi\" --port 52320 --provider openai --model gpt-4o-mini --mode agent --autonomy ask --no-key -> SSE {\"kind\":\"error\",\"message\":\"The terminal hit an internal error.\",\"action\":\"Try again; if it keeps happening, restart Vysted.\",\"detail\":\"OpenAIError: Missing credentials...\",\"code\":\"internal\"}. Reproduced identically for provider=groq (GroqError: api_key client option must be set...) and via a direct curl to /llm/chat for provider=openai. Provider=anthropic on the SAME /llm/chat route correctly humanizes to {message:'Something went wrong with Anthropic.', action:'Try again or switch provider in Settings.', code:'unknown'} because Anthropic's SDK defers key validation to request time, while OpenAI's/Groq's SDK client constructor raises immediately.",
+    "evidence_file": "docs/redesign/verification/r15/surface/composer-chat/rc1/round-3/cc-20-err-nokey-openai.jsonl",
+    "suspected_files": [
+      "sidecar/services/llm/openai.py:591 (client = self._client(api_key) called before the try: at :651, so a client-construction OpenAIError never reaches this adapter's own try/except or humanize())",
+      "sidecar/services/llm/groq.py (same self._client(api_key)-before-try shape)",
+      "sidecar/services/llm/anthropic.py, sidecar/services/llm/gemini.py (same shape but their SDKs do not raise eagerly, so they are not currently exposed by this gap)",
+      "sidecar/routers/agents.py:106-110 (except Exception: yield error_frame(exc) unconditionally, never tries humanize(provider_id, exc) first)",
+      "sidecar/routers/llm.py:167-170 (same unconditional error_frame(exc) shape)",
+      "sidecar/services/errors.py:552-568 (error_frame() is hardcoded generic 'internal' by design per R15-AGENT-030's fix_shape, on the premise that 'adapters already humanize their own failures' before reaching the router guard — that premise is false for this call path)"
+    ]
+  }
+]

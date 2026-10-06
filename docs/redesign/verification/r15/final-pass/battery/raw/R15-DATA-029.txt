@@ -1,0 +1,19 @@
+# R15-DATA-029 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:05+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+from services import yfinance_provider as y
+for s in ('RELIANCE.NS','532540.BO','AAPL'): print(s,'->',y._yahoo_symbol(s))
+PY
+for h in "" "X-Vysted-Region: IN"; do for s in RELIANCE.NS INFY; do echo -n "/earnings/$s/estimates [$h] -> "; curl -s -m 60 ${h:+-H "$h"} "$H/earnings/$s/estimates" | head -c 220; echo; done; done
+echo -n "BDL news IN: "; curl -s -m 90 -H "X-Vysted-Region: IN" "$H/news?symbols=BDL" | python3 -c "import sys,json;d=json.load(sys.stdin);d=d if isinstance(d,list) else d.get('items',[]);print(len(d),'items; Flanigan hits',sum('flanigan' in (x.get('title','')+(x.get('summary') or '')).lower() for x in d))"
+--- output ---
+RELIANCE.NS -> RELIANCE.NS
+532540.BO -> TCS.BO
+AAPL -> AAPL
+/earnings/RELIANCE.NS/estimates [] -> {"symbol":"RELIANCE.NS","fiscal_period":null,"eps_estimate_mean":16.275,"eps_estimate_median":null,"eps_estimate_high":18.95,"eps_estimate_low":13.6,"eps_estimate_stddev":null,"estimate_analyst_count":2,"revenue_estimate
+/earnings/INFY/estimates [] -> {"symbol":"INFY.NS","fiscal_period":null,"eps_estimate_mean":19.63622,"eps_estimate_median":null,"eps_estimate_high":20.37,"eps_estimate_low":19.0,"eps_estimate_stddev":null,"estimate_analyst_count":11,"revenue_estimate_
+/earnings/RELIANCE.NS/estimates [X-Vysted-Region: IN] -> {"symbol":"RELIANCE.NS","fiscal_period":null,"eps_estimate_mean":16.275,"eps_estimate_median":null,"eps_estimate_high":18.95,"eps_estimate_low":13.6,"eps_estimate_stddev":null,"estimate_analyst_count":2,"revenue_estimate
+/earnings/INFY/estimates [X-Vysted-Region: IN] -> {"symbol":"INFY.NS","fiscal_period":null,"eps_estimate_mean":19.63622,"eps_estimate_median":null,"eps_estimate_high":20.37,"eps_estimate_low":19.0,"eps_estimate_stddev":null,"estimate_analyst_count":11,"revenue_estimate_
+BDL news IN: 1 items; Flanigan hits 0
+
+EXIT=0 (2.8s)

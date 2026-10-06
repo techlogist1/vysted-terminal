@@ -1,0 +1,12 @@
+[
+    {
+        "raw_id": "INT-blueprint-240-1",
+        "title": "Earnings EPS-estimate 'Std. dev.' field is a high/low-spread approximation mislabeled as a real standard deviation, and pairs with a fabricated-looking '/0' analyst count",
+        "severity": "medium",
+        "area": "data",
+        "subsystem": "earnings calendar / EPS estimates",
+        "repro": "Open the Earnings Calendar panel for a symbol whose yfinance `earnings_estimate` frame lacks a `numberOfAnalysts` value (common outside large-cap US names) and inspect an upcoming report's estimate row: the EPS Estimate Grid shows 'Std. dev.: <value>' (EpsEstimateGrid.tsx:68) and the calendar table renders '<value> / 0' (EarningsCalendarPanel.tsx:364) - a real-looking dispersion figure paired with zero contributing analysts.",
+        "evidence": "sidecar/services/earnings_provider.py:244-260 (`eps_stddev = (eps_high - eps_low) / 4.0` approximation, `analyst_count` defaults to 0 when yfinance omits `numberOfAnalysts`), types/earnings.ts:36-37 (field doc: 'Estimate dispersion (standard deviation of analyst forecasts)'), src/modules/earnings/EpsEstimateGrid.tsx:68 (label 'Std. dev.'), src/modules/earnings/EarningsCalendarPanel.tsx:364 (renders `stddev / analyst_count` with no provenance marker)",
+        "notes": "Data-honesty gap: the code comment at earnings_provider.py:244-245 admits this is 'a coarse dispersion' approximation (high/low span assumed to be ~4 stddev under a 95% CI rule), but nothing downstream discloses that - the TS contract calls it a real standard deviation, the grid labels it plainly 'Std. dev.', and the calendar table shows it next to an analyst count that can independently be 0 while the stddev is still non-null, reading as a computed statistic backed by zero analysts. For a finance terminal whose entire moat is claimed to be data trust, an undisclosed approximation presented as a real statistic is exactly the kind of promise-vs-code gap 0.9.0 should not ship with. Smallest fix: rename the field/label to something like 'Est. range (approx.)' or add a provenance flag (e.g. `eps_estimate_stddev_is_approx: bool`) threaded from earnings_provider.py through types/earnings.ts to both UI components, and suppress or footnote the ratio when analyst_count is 0."
+    }
+]

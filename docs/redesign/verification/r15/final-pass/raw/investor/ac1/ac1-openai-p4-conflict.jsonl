@@ -1,0 +1,151 @@
+{"kind": "tool_use", "tool_call_id": "call_53a143beb42b4f0eaf342e583faf6ee6", "name": "resolve_symbol", "input": {"query": "Amal Ltd", "region": "IN"}}
+{"kind": "tool_result", "tool_call_id": "call_53a143beb42b4f0eaf342e583faf6ee6", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_e4e69f7feb894536854c001b8cbf8a45", "name": "shareholding_pattern", "input": {"symbol": "AMAL"}}
+{"kind": "tool_result", "tool_call_id": "call_e4e69f7feb894536854c001b8cbf8a45", "name": "shareholding_pattern", "ok": true, "error": null}
+{"kind": "delta", "text": "According"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": "holding"}
+{"kind": "delta", "text": " pattern"}
+{"kind": "delta", "text": " filed"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " exchange"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Am"}
+{"kind": "delta", "text": "al"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "N"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " AM"}
+{"kind": "delta", "text": "AL"}
+{"kind": "delta", "text": "),"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " promoter"}
+{"kind": "delta", "text": " stake"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " approximately"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "71"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "35"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " June"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "30"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " This"}
+{"kind": "delta", "text": " aligns"}
+{"kind": "delta", "text": " closely"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " Yahoo"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " report"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "71"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " insider"}
+{"kind": "delta", "text": " ownership"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "For"}
+{"kind": "delta", "text": " further"}
+{"kind": "delta", "text": " verification"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " detailed"}
+{"kind": "delta", "text": " filing"}
+{"kind": "delta", "text": " ["}
+{"kind": "delta", "text": "here"}
+{"kind": "delta", "text": "]("}
+{"kind": "delta", "text": "https"}
+{"kind": "delta", "text": "://"}
+{"kind": "delta", "text": "www"}
+{"kind": "delta", "text": ".b"}
+{"kind": "delta", "text": "se"}
+{"kind": "delta", "text": "india"}
+{"kind": "delta", "text": ".com"}
+{"kind": "delta", "text": "/X"}
+{"kind": "delta", "text": "BR"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": "FILES"}
+{"kind": "delta", "text": "/S"}
+{"kind": "delta", "text": "HP"}
+{"kind": "delta", "text": "X"}
+{"kind": "delta", "text": "BR"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": "Data"}
+{"kind": "delta", "text": "XML"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "506"}
+{"kind": "delta", "text": "597"}
+{"kind": "delta", "text": "_"}
+{"kind": "delta", "text": "572"}
+{"kind": "delta", "text": "026"}
+{"kind": "delta", "text": "953"}
+{"kind": "delta", "text": "44"}
+{"kind": "delta", "text": "_SP"}
+{"kind": "delta", "text": ".html"}
+{"kind": "delta", "text": ").\n\n"}
+{"kind": "delta", "text": "Both"}
+{"kind": "delta", "text": " sources"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " consistent"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " but"}
+{"kind": "delta", "text": " insider"}
+{"kind": "delta", "text": " percentages"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " vary"}
+{"kind": "delta", "text": " slightly"}
+{"kind": "delta", "text": " between"}
+{"kind": "delta", "text": " platforms"}
+{"kind": "delta", "text": " due"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " timing"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " reporting"}
+{"kind": "delta", "text": " practices"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Generally"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " exchange"}
+{"kind": "delta", "text": " filings"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " considered"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " official"}
+{"kind": "delta", "text": " record"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " so"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " may"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " prudent"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " trust"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " over"}
+{"kind": "delta", "text": " other"}
+{"kind": "delta", "text": " sources"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 10854, "output_tokens": 146, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": "gpt-4o-mini-2024-07-18"}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.016162}

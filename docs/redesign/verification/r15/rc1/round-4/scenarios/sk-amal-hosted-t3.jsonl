@@ -1,0 +1,68 @@
+{"kind": "tool_use", "tool_call_id": "call_c2f4bfe1f081485d9e0a003924d2930a", "name": "resolve_symbol", "input": {"query": "AMAL", "region": "IN"}}
+{"kind": "tool_result", "tool_call_id": "call_c2f4bfe1f081485d9e0a003924d2930a", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_c514ee1dba254f0badcb052b5b2caaa2", "name": "price_data", "input": {"symbol": "AMAL", "timeframe": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_c514ee1dba254f0badcb052b5b2caaa2", "name": "price_data", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Am"}
+{"kind": "delta", "text": "al"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "AM"}
+{"kind": "delta", "text": "AL"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "674"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "40"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "It"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " seen"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " decrease"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " approximately"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "93"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " trading"}
+{"kind": "delta", "text": " session"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " take"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " closer"}
+{"kind": "delta", "text": " look"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " specific"}
+{"kind": "delta", "text": " metrics"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " historical"}
+{"kind": "delta", "text": " performance"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 11148, "output_tokens": 63, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.017413}

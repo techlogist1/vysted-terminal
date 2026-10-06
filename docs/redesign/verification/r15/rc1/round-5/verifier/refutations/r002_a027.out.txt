@@ -1,0 +1,16 @@
+PV 'UNVERIFIED - no source confirms the 23% operating margin.' -> unverified
+PV 'UNVERIFIED - evidence does not support the figure' -> unverified
+PV 'UNVERIFIED - no matching figure' -> unverified
+PV 'Verdict: UNVERIFIED - no source confirms the 23% operating margin.' -> unverified
+PV '**Verdict:** UNVERIFIED - no source confirms it.' -> unverified
+PV 'Answer: UNVERIFIED - evidence does not support the figure.' -> unverified
+PV '[UNVERIFIED] the sources do not confirm this.' -> unverified
+PV 'The claim is UNVERIFIED; nothing I found confirms the 23% margin.' -> unverified
+PV '1. UNVERIFIED - no source confirms' -> unverified
+PV '_UNVERIFIED_ - no source confirms the 23% operating margin.' -> agree
+PV 'Verdict: DISAGREE - sources agree on 21% not 23%' -> disagree
+PV 'Verdict: AGREE - reuters confirms' -> agree
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-verifier-r5/ref/r002_a027.py", line 8, in <module>
+    from services.llm.errors import humanize
+ModuleNotFoundError: No module named 'services.llm.errors'

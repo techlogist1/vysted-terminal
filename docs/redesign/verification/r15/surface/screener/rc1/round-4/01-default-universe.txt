@@ -1,0 +1,2 @@
+{"universe":"nifty50"}
+HTTP 200

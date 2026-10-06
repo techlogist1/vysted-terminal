@@ -1,0 +1,23 @@
+CMD: python3 scripts/r15/vy.py invoke copilot 'research KPIT Technologies' --provider ollama --model llama3.1:8b --port 52354
+See AGENT-001-invoke.txt (full SSE trace) and AGENT-001-events.jsonl in this dir for the raw stream.
+
+OBSERVATION: on this isolated seed-data profile (no managed SearXNG), the research
+tool auto-selected loop=fast/depth=quick ('no web backend - structured only') and the
+runtime's auto-publish-brief mechanism fired on structured data, so the model's own
+chat text was the generic 'Built you a brief...' acknowledgement -- it never narrated
+any derived money figure (no dividend yield / market cap sentence), so this specific
+run cannot exercise the AGENT-001 mis-scaling trigger (which needs the model to
+actually narrate a numeric field).
+
+CODE-LEVEL CONFIRMATION instead: sidecar/services/research/semantics.py still labels
+growth/promoter/institutional/dividend-yield fraction values unit='percent' (:392,
+:569,:584,:889 unchanged) and src/modules/research/brief-blocks.tsx:159 formatDerived
+still treats unit 'fraction'||'percent' the same way (multiplies), i.e. the fix's
+convention-handling shape is unmodified on this candidate.
+
+SEPARATE OBSERVATION (not this entry, logged as a new_defect finding): the agent's
+own research-tool symbol resolution for the literal query 'KPIT Technologies' picked
+BSOFT (Birlasoft Limited, former_name 'KPIT') instead of KPITTECH (KPIT Technologies
+Limited) -- both tied at confidence 1.0 on GET /resolve, KPITTECH listed first. Brief
+was built for the wrong company (BSOFT.NS). Direct /resolve probe below.
+{"ok":true,"query":"KPIT Technologies","region":"IN","resolved":null,"needs_disambiguation":true,"candidates":[{"symbol":"KPITTECH","name":"KPIT Technologies Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"KPITTECH.NS","confidence":1.0,"isin":"INE04I401011","bse_code":"542651","industry":"Information Technology / Computers - Software & Consulting","former_name":null,"board":"mainboard","exchange_group":"A","face_value":10.0},{"symbol":"BSOFT","name":"BIRLASOFT LIMITED","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"BSOFT.NS","confidence":1.0,"isin":"INE836A01035","bse_code":"532400","industry":"Information Technology / Computers - Software & Consulting","former_name":"KPIT","board":"mainboard","exchange_group":"A","face_value":2.0},{"symbol":"EXATO","name":"Exato Technologies Ltd","exchange":"BSE","region":"IN","asset_class":"equity","yahoo_symbol":"EXATO.BO","confidence":0.7179,"isin":"INE1E4401010","bse_code":"544626","industry":null,"former_name":null,"board":"SME","exchange_group":"MT","face_value":10.0},{"symbol":"IKOMA","name":"Ikoma Technologies Ltd","exchange":"BSE","region":"IN","asset_class":"equity","yahoo_symbol":"IKOMA.BO","confidence":0.7179,"isin":"INE164D01010","bse_code":"531997","industry":null,"former_name":null,"board":"mainboard","exchange_group":"XT","face_value":10.0},{"symbol":"EMIAC","name":"Emiac Technologies Ltd","exchange":"BSE","region":"IN","asset_class":"equity","yahoo_symbol":"EMIAC.BO","confidence":0.7179,"isin":"INE1OSW01015","bse_code":"544747","industry":null,"former_name":null,"board":"SME","exchange_group":"M","face_value":10.0},{"symbol":"RELICTEC","name":"Relic Technologies Ltd","exchange":"BSE","region":"IN","asset_class":"equity","yahoo_symbol":"RELICTEC.BO","confidence":0.7179,"isin":"INE452B01013","bse_code":"511712","industry":null,"former_name":null,"board":"mainboard","exchange_group":"X","face_value":10.0}],"rename_lane":"available"}

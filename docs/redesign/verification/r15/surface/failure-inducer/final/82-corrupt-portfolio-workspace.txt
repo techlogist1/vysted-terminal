@@ -1,0 +1,15 @@
+=== GET /portfolio/positions
+Internal Server Error
+HTTP:500
+=== GET /workspace
+["__autosave__"]
+HTTP:200
+=== GET /workspace/__autosave__
+{"detail":"Workspace '__autosave__' not found."}
+HTTP:404
+=== data dir after
+total 8
+drwxr-xr-x@  3 lokavyasingh  wheel   96 Oct  3 17:08 .
+drwxr-xr-x@ 16 lokavyasingh  wheel  512 Oct  3 17:08 ..
+-rw-r--r--@  1 lokavyasingh  wheel    7 Oct  3 17:06 __autosave__.vysted-workspace.corrupt-1791027497486
+50a437337b9c220978e8f6685bd27e2f132e31b9  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-drive-failure-inducer-corrupt/portfolio.db

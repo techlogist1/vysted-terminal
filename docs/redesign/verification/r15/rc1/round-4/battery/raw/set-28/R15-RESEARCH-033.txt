@@ -1,0 +1,4 @@
+COMMAND: python -c run_heavy_research() with explorer 2 raising RuntimeError('explorer boom')
+EXIT: 0
+OUTPUT:
+brief_has_markdown=True failed_steps=['explorer angle 2 (Angle Beta) failed: RuntimeError: explorer boom']

@@ -14,17 +14,138 @@
 
 import { create } from "zustand";
 
+import { compileScreenerExpr } from "@/lib/screener-expr";
 import { getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
 
 import type {
+  CriterionGroup,
   ScreenerCriterion,
+  ScreenerNumericField,
+  ScreenerProgressFrame,
   ScreenerRequest,
   ScreenerResult,
   ScreenerUniverse,
   ScreenerUniverseId,
 } from "../../types/screener";
 
+/** R15-UI-006 default — byte-identical to the pre-``sort_by`` ranking. */
+const DEFAULT_SORT_BY: ScreenerNumericField = "market_cap";
+const DEFAULT_SORT_DIR: "asc" | "desc" = "desc";
+const DEFAULT_LIMIT = 200;
+/** "Show more" step, capped at the server's own ``_MAX_LIMIT``. */
+const SHOW_MORE_STEP = 200;
+const MAX_LIMIT = 1000;
+
+// AbortController for the active streaming run. Module-level (singleton store)
+// so cancelRun() can abort without threading it through state. Each run
+// captures its own `controller` and writes its outcome only through that run's
+// `finish()`, which no-ops once another run (or cancelRun) owns the slot.
+let _runAbortController: AbortController | null = null;
+
+/** Strip empty sub-groups so a serialized tree never carries dead nodes that
+ * the server would treat as "matches everything". Returns null when the whole
+ * tree collapses to nothing (→ fall back to the flat criteria path). */
+function pruneGroup(group: CriterionGroup): CriterionGroup | null {
+  const criteria = group.criteria
+    .map((c) => ("combinator" in c ? pruneGroup(c) : c))
+    .filter((c): c is ScreenerCriterion | CriterionGroup => c !== null);
+  if (criteria.length === 0) {
+    return null;
+  }
+  return { combinator: group.combinator, criteria };
+}
+
+/** Does the editable tree carry real NESTING (a sub-group)? A flat group of
+ * leaves is expressible via the simple criteria+combinator path, so we only
+ * switch to the `group` wire field when nesting is actually present. */
+function hasNestedGroup(group: CriterionGroup | null): boolean {
+  if (!group) {
+    return false;
+  }
+  return group.criteria.some((c) => "combinator" in c);
+}
+
 export type ScreenerStatus = "idle" | "loading" | "ready" | "error";
+
+/** Top-level combinator the builder applies across its flat criteria list:
+ * "and" = match ALL, "or" = match ANY. Maps to the `group` boolean tree. */
+export type ScreenerCombinator = "and" | "or";
+
+/** One saved screen — rides the workspace blob (`SerializedWorkspace.savedScreens`). */
+export interface SavedScreen {
+  name: string;
+  universe: ScreenerUniverseId;
+  criteria: ScreenerCriterion[];
+  group?: CriterionGroup | null;
+  formula?: string;
+  combinator: ScreenerCombinator;
+}
+
+// Serialization helpers — `deserializeSavedScreens` validates a restored blob.
+export function serializeSavedScreens(screens: SavedScreen[]): string {
+  return JSON.stringify(screens);
+}
+
+export function deserializeSavedScreens(raw: string | null | undefined): SavedScreen[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(
+        (s): s is Record<string, unknown> =>
+          s !== null &&
+          typeof s === "object" &&
+          typeof (s as Record<string, unknown>).name === "string" &&
+          typeof (s as Record<string, unknown>).universe === "string",
+      )
+      .map((s): SavedScreen => {
+        // Ensure criteria is a valid array; corrupt/missing entries default to [].
+        const rawCriteria = s.criteria;
+        const criteria: ScreenerCriterion[] = Array.isArray(rawCriteria)
+          ? (rawCriteria as unknown[]).filter(
+              (c): c is ScreenerCriterion =>
+                c !== null && typeof c === "object" && "field" in (c as object),
+            )
+          : [];
+        // Ensure combinator is valid; default to "and".
+        const combinator: import("./screener").ScreenerCombinator =
+          s.combinator === "or" ? "or" : "and";
+        // Validate group shape: must be null, or an object with a valid
+        // combinator string and an array criteria field.  A group with an
+        // unexpected shape (e.g. `group: "junk"`) is silently dropped to null
+        // so loadScreen never passes a corrupt value to hasNestedGroup.
+        let group: CriterionGroup | null | undefined;
+        if (s.group === null || s.group === undefined) {
+          group = s.group as null | undefined;
+        } else if (
+          (typeof s.group === "object" &&
+            (s.group as Record<string, unknown>).combinator === "and") ||
+          (typeof s.group === "object" && (s.group as Record<string, unknown>).combinator === "or")
+        ) {
+          const rawGroup = s.group as Record<string, unknown>;
+          if (Array.isArray(rawGroup.criteria)) {
+            group = s.group as CriterionGroup;
+          } else {
+            group = null;
+          }
+        } else {
+          // Corrupt/unexpected shape — drop to null.
+          group = null;
+        }
+        return {
+          name: s.name as string,
+          universe: s.universe as SavedScreen["universe"],
+          criteria,
+          combinator,
+          ...(group !== undefined ? { group } : {}),
+          ...(typeof s.formula === "string" && s.formula ? { formula: s.formula } : {}),
+        };
+      });
+  } catch {
+    return [];
+  }
+}
 
 // In-flight universe fetches, deduped by id. Two concurrent loadUniverse(id)
 // calls both missed the cache and fired duplicate requests (Phase 9.5); a
@@ -35,27 +156,104 @@ const _inFlightUniverses = new Map<string, Promise<ScreenerUniverse | null>>();
 interface ScreenerState {
   // --- editable draft -------------------------------------------------
   universe: ScreenerUniverseId;
+  /** True once the user, a saved screen or the agent picked the universe — the
+   *  region default (R15-CODE-DATA-004) never overrides such a choice. */
+  universeChosen: boolean;
   customSymbols: string;
   criteria: ScreenerCriterion[];
+  /** How the flat criteria combine: "and" = match ALL (default), "or" = ANY. */
+  combinator: ScreenerCombinator;
+  /** Advanced nested AND/OR tree edited by the recursive group editor. When it
+   * carries real nesting it SUPERSEDES the flat criteria/combinator on run
+   * (the server already evaluates the tree). `null` → simple flat mode. */
+  group: CriterionGroup | null;
+  /** Whether the builder is in advanced (nested group) mode vs simple flat. */
+  advanced: boolean;
+  /** Custom formula (the shared restricted grammar, `src/lib/screener-expr.ts`
+   * ⇄ `sidecar/services/screener_formula.py`). Sent on the request and
+   * evaluated SERVER-SIDE per universe member, AND-combined with the criteria.
+   * Empty = no-op. Rows missing a referenced field land in the skip ledger. */
+  formula: string;
+  /** R15-UI-006: applied server-side BEFORE the `limit` cut. A header click
+   *  sets these and re-runs — sorting only the already-served page silently
+   *  hid rows that would rank in the true top-K (e.g. the lowest P/E stock
+   *  wasn't among the top-200-by-market-cap page). */
+  sortBy: ScreenerNumericField;
+  sortDir: "asc" | "desc";
+  /** The `limit` the last (or in-flight) run used — "Show more" reads this to
+   *  compute its next request rather than resetting to the 200 default. */
+  lastLimit: number;
 
   // --- last-run cache -------------------------------------------------
   lastResult: ScreenerResult | null;
   status: ScreenerStatus;
   error: string | null;
+  /** R10 (D40): live streaming progress from /screener/run/stream. Null when idle. */
+  progress: Pick<ScreenerProgressFrame, "phase" | "done" | "total" | "detail"> | null;
 
   // --- universes ------------------------------------------------------
   universeMeta: Record<string, ScreenerUniverse>;
   universeStatus: Record<string, ScreenerStatus>;
+  /** R15-UI-015: the ORIGINAL caught error per universe id, kept alongside
+   *  ``universeStatus`` so a caller can tell a transient sidecar-not-ready
+   *  failure from a deterministic one (e.g. `useRetryOnSidecarReady`) instead
+   *  of re-throwing a flattened `new Error(string)` that always reads as
+   *  transient. */
+  universeCauses: Record<string, unknown>;
+
+  // --- saved screens --------------------------------------------------
+  savedScreens: SavedScreen[];
 
   // --- public API -----------------------------------------------------
   setUniverse: (id: ScreenerUniverseId) => void;
+  /** Adopt the sidecar's default universe for the session region unless a
+   *  universe was already chosen. Rejects when the sidecar is unreachable. */
+  adoptRegionDefaultUniverse: () => Promise<void>;
   setCustomSymbols: (raw: string) => void;
+  setCombinator: (combinator: ScreenerCombinator) => void;
   setCriteria: (criteria: ScreenerCriterion[]) => void;
+  /** Restore the default starter criteria and clear the formula + nested group
+   *  (the "Reset filters" affordance on the no-results empty state). */
+  resetCriteria: () => void;
   addCriterion: (criterion: ScreenerCriterion) => void;
   removeCriterion: (index: number) => void;
   updateCriterion: (index: number, criterion: ScreenerCriterion) => void;
+  /** Replace the advanced nested tree (the recursive group editor's model). */
+  setGroup: (group: CriterionGroup | null) => void;
+  setAdvanced: (advanced: boolean) => void;
+  setFormula: (formula: string) => void;
+  /** Write a full filter set at once (the agent's `write_screener_filters`
+   * and `save_screen` host actions and the presets land here). Sets criteria,
+   * the optional nested group and the optional universe; `formula` overrides
+   * the formula field when provided, else the user keeps their own. Never runs:
+   * a caller that wants a run chains runScreener(). */
+  applyFilters: (input: {
+    criteria: ScreenerCriterion[];
+    group?: CriterionGroup | null;
+    universe?: ScreenerUniverseId;
+    formula?: string;
+  }) => void;
   runScreener: (limit?: number) => Promise<ScreenerResult | null>;
+  /** Set the server-side sort and re-run at the current limit (R15-UI-006). */
+  setSort: (sortBy: ScreenerNumericField, sortDir: "asc" | "desc") => void;
+  /** Re-run at `lastLimit + 200` (capped at 1000) — raises how many of the
+   *  TRUE top-K-by-sort rows are served, not just how many render. */
+  showMore: () => void;
+  /** Cancel the in-flight streaming run (if any). Disconnecting aborts the
+   * server-side engine per the R10 SSE contract. */
+  cancelRun: () => void;
   loadUniverse: (id: ScreenerUniverseId) => Promise<ScreenerUniverse | null>;
+  /** Save the current filter set under a name. Replaces any existing screen with
+   * the same name. */
+  saveScreen: (name: string) => void;
+  /** Delete a saved screen by name. */
+  deleteScreen: (name: string) => void;
+  /** Load a saved screen into the active draft (restores universe, criteria,
+   * group, formula, combinator). Does NOT auto-run. */
+  loadScreen: (name: string) => void;
+  /** Replace the full savedScreens list atomically — used by the workspace
+   * restore path (the `savedScreens` slice) to rehydrate persisted screens. */
+  setSavedScreens: (screens: SavedScreen[]) => void;
   __resetForTests: () => void;
 }
 
@@ -97,17 +295,37 @@ function parseCustomSymbols(raw: string): string[] {
 
 export const useScreenerStore = create<ScreenerState>((set, get) => ({
   universe: "sp500",
+  universeChosen: false,
   customSymbols: "",
   criteria: DEFAULT_CRITERIA,
+  combinator: "and",
+  group: null,
+  advanced: false,
+  formula: "",
+  sortBy: DEFAULT_SORT_BY,
+  sortDir: DEFAULT_SORT_DIR,
+  lastLimit: DEFAULT_LIMIT,
   lastResult: null,
   status: "idle",
   error: null,
+  progress: null,
   universeMeta: {},
   universeStatus: {},
+  universeCauses: {},
+  savedScreens: [],
 
-  setUniverse: (id) => set({ universe: id }),
+  setUniverse: (id) => set({ universe: id, universeChosen: true }),
+  adoptRegionDefaultUniverse: async () => {
+    const { universe } = await sidecarGet<{ universe: ScreenerUniverseId }>(
+      "/screener/default-universe",
+    );
+    if (!get().universeChosen && typeof universe === "string") set({ universe });
+  },
   setCustomSymbols: (raw) => set({ customSymbols: raw }),
+  setCombinator: (combinator) => set({ combinator }),
   setCriteria: (criteria) => set({ criteria }),
+  resetCriteria: () =>
+    set({ criteria: DEFAULT_CRITERIA, group: null, advanced: false, formula: "" }),
   addCriterion: (criterion) => set((state) => ({ criteria: [...state.criteria, criterion] })),
   removeCriterion: (index) =>
     set((state) => ({
@@ -119,25 +337,294 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       next[index] = criterion;
       return { criteria: next };
     }),
+  setGroup: (group) => set({ group }),
+  setAdvanced: (advanced) => set({ advanced }),
+  setFormula: (formula) => set({ formula }),
+  applyFilters: ({ criteria, group, universe, formula }) =>
+    set((state) => ({
+      // R15-AGENT-096: a flat group SUPERSEDES the caller's flat `criteria` —
+      // the ack, label and server all treat the group as the source of truth,
+      // so `runScreener` must send the same leaves, not the stale flat list.
+      // A nested group is unchanged (it drives `advanced` / the `group` wire
+      // field instead).
+      criteria:
+        group && !hasNestedGroup(group) ? (group.criteria as ScreenerCriterion[]) : criteria,
+      group: group ?? null,
+      advanced: hasNestedGroup(group ?? null),
+      // A flat group from the agent collapses to the simple combinator so the
+      // simple builder reflects it; a nested one drives advanced mode.
+      combinator: group && group.combinator === "or" && !hasNestedGroup(group) ? "or" : "and",
+      universe: universe ?? state.universe,
+      universeChosen: state.universeChosen || universe !== undefined,
+      // `formula` overrides when provided; omitting it leaves the user's own formula.
+      ...(formula !== undefined ? { formula } : {}),
+    })),
 
-  runScreener: async (limit = 200) => {
-    const { universe, customSymbols, criteria } = get();
-    set({ status: "loading", error: null });
+  setSort: (sortBy, sortDir) => {
+    set({ sortBy, sortDir });
+    void get().runScreener();
+  },
+
+  showMore: () => {
+    const next = Math.min(MAX_LIMIT, get().lastLimit + SHOW_MORE_STEP);
+    void get().runScreener(next);
+  },
+
+  runScreener: async (limit = get().lastLimit) => {
+    const {
+      universe,
+      customSymbols,
+      criteria,
+      combinator,
+      group: editTree,
+      advanced,
+      formula,
+      sortBy,
+      sortDir,
+    } = get();
+    // Pre-flight the formula against the SAME grammar the server enforces —
+    // an unparseable formula is an honest inline failure (with the caret
+    // column), never a wasted round-trip to a 422.
+    const trimmedFormula = formula.trim();
+    if (trimmedFormula) {
+      const compiled = compileScreenerExpr(trimmedFormula);
+      if (!compiled.ok) {
+        set({
+          status: "error",
+          error: `Formula: ${compiled.error} (col ${compiled.position + 1})`,
+        });
+        return null;
+      }
+    }
+    // Abort any in-flight run before starting a new one.
+    _runAbortController?.abort();
+    const controller = new AbortController();
+    _runAbortController = controller;
+    set({ status: "loading", error: null, progress: null, lastLimit: limit });
+
+    /** The one completion path (R15-CODE-DATA-006): only the CURRENT run may
+     *  write its outcome and free the slot — run B aborting run A must not let
+     *  A's late completion clobber B's state. Returns whether it applied. */
+    function finish(patch: Partial<ScreenerState>): boolean {
+      if (_runAbortController !== controller) return false;
+      set({ progress: null, ...patch });
+      _runAbortController = null;
+      return true;
+    }
+
+    // Three shapes for the boolean tree, in precedence:
+    //   1. ADVANCED nested tree (the recursive group editor) — pruned, supersedes
+    //      everything when it carries real nesting (server evaluates it).
+    //   2. flat "or" — a flat OR group over the simple criteria list.
+    //   3. flat "and" (default) — no `group`, the back-compat flat criteria path.
+    // `criteria` stays populated either way so older readers + the
+    // matched-criteria index column still resolve.
+    let group: CriterionGroup | undefined;
+    const pruned = advanced && editTree ? pruneGroup(editTree) : null;
+    if (pruned && hasNestedGroup(pruned)) {
+      group = pruned;
+    } else if (combinator === "or") {
+      group = { combinator: "or", criteria: [...criteria] };
+    }
     const req: ScreenerRequest = {
       universe,
       criteria,
       limit,
+      sort_by: sortBy,
+      sort_dir: sortDir,
+      ...(group ? { group } : {}),
+      // The formula rides the request and is evaluated SERVER-SIDE per
+      // universe member (R7 Pillar 3) — rows missing a referenced field come
+      // back itemized in the skip ledger, never silently dropped.
+      ...(trimmedFormula ? { formula: trimmedFormula } : {}),
       ...(universe === "custom" ? { custom_symbols: parseCustomSymbols(customSymbols) } : {}),
     };
+    // --- Attempt streaming via POST /screener/run/stream (R10 D40) ----------
+    // Falls back to the unary endpoint on 404 (older sidecar builds). Disconnect
+    // (cancel) aborts the server-side engine per the SSE contract.
+    // Wire format: SSE (text/event-stream) — frames are `data: {json}\n\n`
+    // (precedent: routers/backtest.py:195, _encode_event). The parser strips the
+    // `data:` prefix and tolerates bare NDJSON for resilience.
+    /** The unary POST /screener/run, shared by both fallbacks. */
+    async function runUnary(describe: (err: unknown) => string): Promise<ScreenerResult | null> {
+      try {
+        const result = await postJson<ScreenerRequest, ScreenerResult>("/screener/run", req);
+        if (controller.signal.aborted) {
+          finish({ status: "idle" });
+          return null;
+        }
+        return finish({ lastResult: result, status: "ready", error: null }) ? result : null;
+      } catch (err: unknown) {
+        finish(
+          controller.signal.aborted
+            ? { status: "idle" }
+            : { status: "error", error: describe(err) },
+        );
+        return null;
+      }
+    }
+
+    const base = await getSidecarBaseUrl();
+    const streamUrl = new URL("/screener/run/stream", base).toString();
+    let streamResponse: Response;
     try {
-      const result = await postJson<ScreenerRequest, ScreenerResult>("/screener/run", req);
-      set({ lastResult: result, status: "ready", error: null });
-      return result;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "screener run failed";
-      set({ status: "error", error: message });
+      streamResponse = await fetch(streamUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(req),
+        signal: controller.signal,
+      });
+    } catch (fetchErr) {
+      if (controller.signal.aborted) {
+        finish({ status: "idle" });
+        return null;
+      }
+      // Network error before any response (sidecar down / cold-boot).
+      // Attempt the unary fallback — it may work if the sidecar just came up.
+      const fetchErrMsg = fetchErr instanceof Error ? fetchErr.message : "sidecar unreachable";
+      return runUnary(() => `Sidecar unreachable: ${fetchErrMsg}`);
+    }
+    if (streamResponse.status === 404) {
+      // Older sidecar: fall back to unary /screener/run.
+      return runUnary((err) => (err instanceof Error ? err.message : "screener run failed"));
+    }
+    if (!streamResponse.ok) {
+      let detail = streamResponse.statusText;
+      try {
+        const parsed = (await streamResponse.json()) as { detail?: string };
+        if (parsed.detail) detail = parsed.detail;
+      } catch {
+        // Not JSON — keep status text.
+      }
+      finish({
+        status: "error",
+        error: `POST /screener/run/stream failed (${streamResponse.status}): ${detail}`,
+      });
       return null;
     }
+    // Consume the SSE stream.
+    // The sidecar emits `data: {json}\n\n` per frame (backtest.py:195 precedent).
+    // We split on `\n\n` event boundaries and strip the `data:` prefix from each
+    // line before JSON.parse. Bare NDJSON (no `data:` prefix) is also tolerated
+    // for resilience during development / older intermediary builds.
+    const body = streamResponse.body;
+    if (!body) {
+      finish({ status: "error", error: "Stream body was empty" });
+      return null;
+    }
+    const reader = body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let finalResult: ScreenerResult | null = null;
+    let serverError: string | null = null;
+
+    /** Parse one SSE data line or bare NDJSON line into a frame object, or null. */
+    function parseLine(raw: string): Record<string, unknown> | null {
+      const trimmed = raw.trim();
+      if (!trimmed || trimmed.startsWith(":")) return null; // blank or comment
+      // Strip `data:` prefix (SSE format).
+      const jsonStr = trimmed.startsWith("data:") ? trimmed.slice(5).trim() : trimmed;
+      if (!jsonStr) return null;
+      try {
+        return JSON.parse(jsonStr) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    }
+
+    /** Apply one frame; returns true on a terminal frame (stop reading). */
+    function processFrame(frame: Record<string, unknown>): boolean {
+      if (frame.event === "progress") {
+        if (_runAbortController === controller) {
+          set({
+            progress: {
+              phase: String(frame.phase ?? ""),
+              done: Number(frame.done ?? 0),
+              total: Number(frame.total ?? 0),
+              detail: String(frame.detail ?? ""),
+            },
+          });
+        }
+        return false;
+      }
+      if (frame.event === "result") {
+        // The result frame carries the full ScreenerResult fields inline.
+        // Strip the envelope key so the shape matches ScreenerResult exactly.
+        const { event: _e, ...resultFields } = frame;
+        finalResult = resultFields as unknown as ScreenerResult;
+        return true;
+      }
+      if (frame.event === "error") {
+        // R15-UI-056: the engine's own reason (ScreenerErrorFrame) reaches the panel.
+        serverError = typeof frame.message === "string" ? frame.message : "screener run failed";
+        return true;
+      }
+      return false;
+    }
+
+    /** Parse + apply complete lines; returns true once a terminal frame landed. */
+    function processLines(lines: string[]): boolean {
+      for (const line of lines) {
+        const frame = parseLine(line);
+        if (frame && processFrame(frame)) return true;
+      }
+      return false;
+    }
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          // Flush the trailing decoder buffer (final frame without a trailing newline).
+          buffer += decoder.decode();
+          break;
+        }
+        if (controller.signal.aborted) break;
+        buffer += decoder.decode(value, { stream: true });
+        // Split on event boundaries. SSE uses \n\n; NDJSON uses \n. We handle both
+        // by splitting on \n and processing each data: line individually. Empty lines
+        // (the \n\n separator) are skipped by parseLine.
+        const lines = buffer.split("\n");
+        // The last element may be an incomplete line — keep it in the buffer.
+        buffer = lines.pop() ?? "";
+        if (processLines(lines)) {
+          buffer = "";
+          break;
+        }
+      }
+      // Process any remainder left in the buffer (final frame without trailing newline).
+      if (buffer.trim()) processLines([buffer]);
+    } catch (readErr) {
+      if (!controller.signal.aborted) {
+        finish({
+          status: "error",
+          error: readErr instanceof Error ? readErr.message : "stream read failed",
+        });
+        return null;
+      }
+    } finally {
+      reader.releaseLock();
+    }
+    if (controller.signal.aborted) {
+      finish({ status: "idle" });
+      return null;
+    }
+    if (serverError !== null) {
+      finish({ status: "error", error: serverError });
+      return null;
+    }
+    if (!finalResult) {
+      finish({ status: "error", error: "Stream ended without a result frame" });
+      return null;
+    }
+    const result: ScreenerResult = finalResult;
+    return finish({ lastResult: result, status: "ready", error: null }) ? result : null;
+  },
+
+  cancelRun: () => {
+    _runAbortController?.abort();
+    _runAbortController = null;
+    set({ status: "idle", progress: null, error: null });
   },
 
   loadUniverse: async (id) => {
@@ -166,9 +653,10 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
           universeStatus: { ...state.universeStatus, [id]: "ready" },
         }));
         return payload;
-      } catch {
+      } catch (err: unknown) {
         set((state) => ({
           universeStatus: { ...state.universeStatus, [id]: "error" },
+          universeCauses: { ...state.universeCauses, [id]: err },
         }));
         return null;
       } finally {
@@ -179,15 +667,67 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
     return request;
   },
 
+  saveScreen: (name) => {
+    const { universe, criteria, group, formula, combinator } = get();
+    const screen: SavedScreen = {
+      name,
+      universe,
+      criteria,
+      group: group ?? null,
+      formula: formula || undefined,
+      combinator,
+    };
+    set((state) => ({
+      savedScreens: [
+        // Replace any existing screen with the same name.
+        ...state.savedScreens.filter((s) => s.name !== name),
+        screen,
+      ],
+    }));
+  },
+
+  deleteScreen: (name) => {
+    set((state) => ({
+      savedScreens: state.savedScreens.filter((s) => s.name !== name),
+    }));
+  },
+
+  setSavedScreens: (screens) => set({ savedScreens: screens }),
+
+  loadScreen: (name) => {
+    const screen = get().savedScreens.find((s) => s.name === name);
+    if (!screen) return;
+    set({
+      universe: screen.universe,
+      universeChosen: true,
+      criteria: screen.criteria,
+      group: screen.group ?? null,
+      formula: screen.formula ?? "",
+      combinator: screen.combinator,
+      advanced: hasNestedGroup(screen.group ?? null),
+    });
+  },
+
   __resetForTests: () =>
     set({
       universe: "sp500",
+      universeChosen: false,
       customSymbols: "",
       criteria: DEFAULT_CRITERIA,
+      combinator: "and",
+      group: null,
+      advanced: false,
+      formula: "",
+      sortBy: DEFAULT_SORT_BY,
+      sortDir: DEFAULT_SORT_DIR,
+      lastLimit: DEFAULT_LIMIT,
       lastResult: null,
       status: "idle",
       error: null,
+      progress: null,
       universeMeta: {},
       universeStatus: {},
+      universeCauses: {},
+      savedScreens: [],
     }),
 }));

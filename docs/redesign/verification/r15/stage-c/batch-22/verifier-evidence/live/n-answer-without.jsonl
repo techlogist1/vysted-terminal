@@ -1,0 +1,41 @@
+{"kind": "delta", "text": "Based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " what"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " told"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " proceeds"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " selling"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " would"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "31"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "000"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " x"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": ")\n\n"}
+{"kind": "delta", "text": "Is"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " correct"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2746, "output_tokens": 42, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

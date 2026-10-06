@@ -1,0 +1,15 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_009b5afb9a2f4312bd1c55df1138923e", "name": "get_terminal_state", "input": {}}
+[  37.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_009b5afb9a2f4312bd1c55df1138923e", "name": "get_terminal_state", "ok": true, "error": null}
+[  40.3s] done: {"kind": "done", "usage": {"input_tokens": 2818, "output_tokens": 42, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+You have a position of 5 shares in TCS at the price of ₹3,100.
+
+The current market value of your holding is: ₹15,500
+
+This matches your prior stated value.
+
+=== ok · 40.3s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 41, 'done': 1} · usage in=2818 out=42 · est $0.00000 · llama3.1:8b

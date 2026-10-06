@@ -1,0 +1,17 @@
+2026-10-03T06:19:17Z
+## ps tree under app pid 24395 (pid ppid etime args)
+24395     1       01:43 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-ace7dd7/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-terminal
+24404 24395       01:43 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-ace7dd7/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-openbb-mcp-sidecar --port 54849
+24405 24395       01:43 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-ace7dd7/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-sec-edgar-mcp-sidecar --port 54850
+24406 24395       01:43 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-ace7dd7/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-sidecar --port 54848 --data-dir /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-round-home-R15-LIFECYCLE-040/Library/Application Support/com.vysted.terminal --cache-dir /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-round-home-R15-LIFECYCLE-040/Library/Application Support/com.vysted.terminal
+## grandchildren (PyInstaller onefile workers)
+24421 24404       01:42 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-ace7dd7/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-openbb-mcp-sidecar --port 54849
+24425 24405       01:41 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-ace7dd7/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-sec-edgar-mcp-sidecar --port 54850
+24424 24406       01:42 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-ace7dd7/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-sidecar --port 54848 --data-dir /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-round-home-R15-LIFECYCLE-040/Library/Application Support/com.vysted.terminal --cache-dir /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-round-home-R15-LIFECYCLE-040/Library/Application Support/com.vysted.terminal
+## listeners
+COMMAND     PID         USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+vysted-op 24421 lokavyasingh    9u  IPv4 0x7dea55c333f1a26f      0t0  TCP 127.0.0.1:54849 (LISTEN)
+COMMAND     PID         USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+vysted-se 24425 lokavyasingh   12u  IPv4 0x55542c607108544b      0t0  TCP 127.0.0.1:54850 (LISTEN)
+COMMAND     PID         USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+vysted-si 24424 lokavyasingh   16u  IPv4 0xf62ad0f237a67df0      0t0  TCP 127.0.0.1:54848 (LISTEN)

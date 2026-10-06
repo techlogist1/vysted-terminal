@@ -1,0 +1,4 @@
+RELIANCE -> ['RELIANCE.NS']
+TCS -> ['TCS.NS']
+control NVDA -> ['NVDA']
+A (bare-letter false positive check) -> []

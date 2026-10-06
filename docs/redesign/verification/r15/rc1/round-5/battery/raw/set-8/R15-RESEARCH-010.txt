@@ -1,0 +1,12 @@
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+probe: pinned-test citation (no vitest/pytest suite execution per harness rule)
+
+=== sidecar/tests/test_research_model_lane.py ===
+290:def test_rejected_key_401_is_also_an_error_step(stub_openrouter) -> None:
+291:    """R15-RESEARCH-010 (error-step half): a 401 reaches the stream too."""
+
+=== sidecar/tests/test_llm_openai.py ===
+293:async def test_openrouter_validate_key_false_when_key_endpoint_401(
+296:    # R15-UI-008 / CODE-AGENT-003 / RESEARCH-010: /models is public, so it
+311:async def test_openrouter_validate_key_true_when_key_endpoint_200(
+

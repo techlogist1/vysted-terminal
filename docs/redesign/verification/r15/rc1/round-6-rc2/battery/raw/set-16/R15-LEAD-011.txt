@@ -1,0 +1,9 @@
+# R15-LEAD-011
+$ curl -H 'X-Vysted-Region: IN' http://127.0.0.1:52351/history/%5ENSEI
+{"detail":"The data provider is throttled right now — try again shortly.","code":"rate_limited","action":"Wait a minute, then retry."}
+HTTP 429
+# R15-LEAD-011 retry
+%5ENSEI 246 yfinance None
+%5EBSESN 246 yfinance None
+--- in-process _yahoo_symbol under IN
+IN ['^NSEI', '^BSESN', '^NSEBANK', 'RELIANCE.NS']

@@ -1,0 +1,25 @@
+COMMAND: catalog/TOOL_SCHEMAS probe for add_chart_drawing + grep host-actions.ts + hand-action parity test presence (SC-022/SC-027 audit grep)
+EXIT: 0
+OUTPUT:
+add_chart_drawing in catalog: True in TOOL_SCHEMAS: True
+                ["indicators"],
+            ),
+            domain="indicators",
+            read_only=False,
+            kind="host_action",
+        ),
+        _cap(
+            "add_chart_drawing",
+            description=(
+                "Draw on the open chart, on the symbol and timeframe it shows: a "
+                "horizontal-line at one price (support, resistance, a target) or a "
+                "trendline between two bars. Each point's time is a bar timestamp "
+                "exactly as price_data returns it for that timeframe; a "
+83:  "add_chart_drawing",
+108:  "Draw a horizontal line or trendline": "add_chart_drawing",
+827:      name: "add_chart_drawing";
+968:    case "add_chart_drawing":
+1085:/** The drawing kinds the agent may add (`add_chart_drawing`); every other kind
+1097: * Bind an `add_chart_drawing` to the open chart panel and the view it shows at
+hand-action-inventory.test.ts
+../sidecar/tests/test_capability_completeness.py

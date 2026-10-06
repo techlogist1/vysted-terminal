@@ -1,0 +1,4 @@
+CMD: in-process probe (candidate venv) /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/inproc_ratio.py ; EXIT=0
+== LEAD-032 (_fetch raises OSError; second lookup must not re-fetch)
+None None None fetch calls: 1
+(stderr) adr_ratio WIT: OSError('edgar unreachable')

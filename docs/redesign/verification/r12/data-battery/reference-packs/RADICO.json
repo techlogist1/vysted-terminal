@@ -1,0 +1,186 @@
+{
+  "generated_at": "2026-07-10",
+  "generated_by": "independent-web-research (no localhost/Vysted API touched)",
+  "company": {
+    "legal_name": "Radico Khaitan Limited",
+    "common_name": "Radico Khaitan",
+    "isin": "INE944F01028",
+    "incorporated": "1983 (per NSE listing record; some sources cite founding lineage to 1943 as Rampur Distillery)",
+    "sector": "Beverages - Alcoholic (IMFL manufacturer, exports to 100+ countries)",
+    "exchange_listings": {
+      "nse": { "symbol": "RADICO", "series": "EQ" },
+      "bse": { "scrip_code": "532497" },
+      "notes": "Primary listings NSE + BSE. Some aggregator pages also mention historical MCX-SX/Bangalore SE listings (legacy, not actively traded)."
+    }
+  },
+  "price_and_valuation": {
+    "last_close": {
+      "value": 4089.00,
+      "basis": "NSE, intraday/EOD snapshot",
+      "as_of": "2026-07-09",
+      "source": "screener.in (https://www.screener.in/company/RADICO/consolidated/)",
+      "cross_check": [
+        { "value": 4090.00, "as_of": "2026-07-09 15:29 IST", "source": "stockanalysis.com (https://stockanalysis.com/quote/nse/RADICO/)" },
+        { "value": 4077.60, "as_of": "2026-07-09 (labelled, possibly stale cache dated 2026-07-08 by underlying feed)", "source": "web aggregator search snapshot citing NSE feed" },
+        { "value": 4075.00, "exchange": "BSE", "as_of": "2026-07-08", "source": "web aggregator search snapshot citing BSE feed" },
+        { "value": 4098.60, "note": "previous day's close cited alongside an intraday open of 4103.70 and day range 4058.00-4140.00", "source": "web aggregator search snapshot" }
+      ],
+      "disagreement_note": "Two independent sources (screener.in and stockanalysis.com) agree closely at ~4089-4090 as of 9 Jul 2026. A third aggregator snapshot shows a lower ~4075-4078 figure dated a day earlier (8 Jul 2026) or from a cached/delayed feed. Spread is small (~0.3%) and most likely explained by snapshot timing (intraday vs close, or one-day lag in a cached feed) rather than a genuine data conflict. Treated screener.in + stockanalysis.com convergence (~4089-4090) as the more reliable current price."
+    },
+    "market_cap": {
+      "value_cr": 54820,
+      "basis": "INR crore, full market cap",
+      "as_of": "2026-07-09",
+      "source": "screener.in",
+      "cross_check": [
+        { "value_cr": 54765, "as_of": "2026-07-09", "source": "stockanalysis.com (₹547.65 billion)" },
+        { "value_cr": 54632.66, "as_of": "2026-07-08", "source": "web aggregator search snapshot" }
+      ],
+      "disagreement_note": "All three cluster within ~0.35% of each other (54,633-54,820 Cr); consistent with the same small price-snapshot-timing variance noted above, not a genuine conflict."
+    },
+    "pe_ttm": {
+      "consolidated": { "value": 88.9, "as_of": "2026-07-09", "source": "screener.in consolidated view" },
+      "standalone": { "value": 89.1, "as_of": "2026-07-09", "source": "screener.in standalone (default) view" },
+      "third_party": { "value": 90.63, "as_of": "2026-07-09", "source": "stockanalysis.com" },
+      "note": "Spread of ~88.9x-90.6x across sources, mostly a function of exactly which trailing price and TTM EPS timestamp each provider uses. No single figure silently chosen as 'the' number - range noted."
+    },
+    "eps_ttm": {
+      "consolidated": { "value": 45.14, "currency": "INR", "as_of": "FY26 TTM (through Mar 2026 quarter)", "source": "screener.in consolidated" },
+      "third_party": { "value": 45.12, "source": "stockanalysis.com", "yoy_change": "+74.7% YoY per stockanalysis.com" }
+    },
+    "week52_high": {
+      "value": 4161.80,
+      "as_of_high_date": "not explicitly dated by sources (within trailing 52 weeks to 9 Jul 2026)",
+      "source": "screener.in (rounded 4,162) and stockanalysis.com / web aggregator (precise 4,161.80) - in agreement"
+    },
+    "week52_low": {
+      "value": 2500.00,
+      "source": "screener.in, stockanalysis.com, web aggregator - all in agreement"
+    },
+    "drawdown_from_52w_high_pct": {
+      "value_pct": -1.75,
+      "formula": "(close - 52w_high) / 52w_high",
+      "inputs_used": { "close": 4089.00, "week52_high": 4161.80 },
+      "as_of": "2026-07-09"
+    },
+    "week52_price_change_pct": {
+      "reported_values": [
+        { "value_pct": 55.08, "source": "stockanalysis.com" },
+        { "value_pct": 53.89, "source": "web aggregator search snapshot" },
+        { "value_pct": 55.58, "source": "another aggregator snapshot (source site unclear from search excerpt)" },
+        { "value_pct": 50.78, "source": "third aggregator snapshot (source site unclear from search excerpt)" },
+        { "value_pct": 42.55, "source": "outlier aggregator snapshot - flagged as inconsistent with the rest" }
+      ],
+      "disagreement_note": "Meaningful spread across sources (42.55% to 55.58%) for the trailing 12-month price return, most likely due to different exact start dates / whether split/bonus/dividend adjustments are applied. NOT silently resolved to one number - full spread reported. Cluster of 50.8%-55.6% is most consistent across sources; the 42.55% figure looks like an outlier (possibly a stale or shorter-window calc) and is flagged as such rather than discarded."
+    }
+  },
+  "dividends": {
+    "face_value_inr": 2.00,
+    "dividend_yield_pct": {
+      "value": 0.22,
+      "alt_value": 0.23,
+      "source": "screener.in (0.22%) vs web aggregator (0.23%) - trivial rounding-level disagreement"
+    },
+    "paid_trailing_12_months": [
+      {
+        "type": "Final dividend, FY2024-25",
+        "amount_per_share_inr": 4.00,
+        "record_date": "2025-07-24",
+        "ex_date": "2025-07-24",
+        "pay_date": "2025-09-07",
+        "status": "PAID",
+        "source": "stockanalysis.com dividend history; choiceindia.com dividend history (cross-checked, agree)"
+      }
+    ],
+    "declared_not_yet_paid": [
+      {
+        "type": "Final dividend, FY2025-26",
+        "amount_per_share_inr": 9.00,
+        "board_approval_date": "2026-05-06",
+        "record_date": "2026-07-24",
+        "ex_date": "2026-07-24",
+        "expected_pay_date": "2026-09-06",
+        "status": "DECLARED, NOT YET PAID (record date 2026-07-24 is in the future relative to today 2026-07-10; subject to shareholder approval at 42nd AGM)",
+        "yoy_change": "+125% vs prior year's ₹4.00 final dividend",
+        "source": "businessupturn.com; stockanalysis.com; choiceindia.com (cross-checked, agree on amount and record date)"
+      }
+    ],
+    "specials_in_ttm": "None identified - the ₹4.00 paid in the trailing 12 months was an ordinary final dividend for FY24-25, not flagged as special by any source.",
+    "note": "Only one dividend cash-paid within the trailing 12 months (₹4.00/share, Sep 2025). The much larger ₹9.00/share dividend is declared but sits outside the trailing-12-month PAID window as of today (2026-07-10) since its record/pay dates are in Jul/Sep 2026 - reported separately per instructions, not blended into the TTM paid figure."
+  },
+  "latest_quarter": {
+    "period_label": "Q4 FY26 (quarter ended 31 Mar 2026)",
+    "basis": "consolidated",
+    "revenue_cr": 1504,
+    "net_profit_cr": 179,
+    "eps_inr": 13.40,
+    "source": "screener.in consolidated"
+  },
+  "same_quarter_prior_year": {
+    "period_label": "Q4 FY25 (quarter ended 31 Mar 2025)",
+    "basis": "consolidated",
+    "revenue_cr": 1304,
+    "net_profit_cr": 92,
+    "eps_inr": 6.88,
+    "source": "screener.in consolidated"
+  },
+  "latest_quarter_standalone_cross_check": {
+    "period_label": "quarter ended 31 Mar 2026 (standalone basis)",
+    "revenue_cr": 1504,
+    "net_profit_cr": 175,
+    "eps_inr": 13.08,
+    "note": "Standalone net profit (₹175 Cr) and EPS (₹13.08) are lower than consolidated (₹179 Cr / ₹13.40) as expected since consolidated includes subsidiaries. Revenue matches at ₹1,504 Cr on both bases.",
+    "source": "screener.in standalone (default) view"
+  },
+  "growth_mrq_yoy": {
+    "revenue_growth_pct": 15.4,
+    "revenue_growth_check": "(1504-1304)/1304 = 15.34%, consistent with reported 15.4%",
+    "earnings_growth_pct": 94.6,
+    "earnings_growth_check": "(179-92)/92 = 94.57%, consistent with reported 94.6%",
+    "basis": "consolidated, MRQ (Q4 FY26) vs same quarter prior year (Q4 FY25)",
+    "source": "screener.in consolidated"
+  },
+  "profitability_and_balance_sheet": {
+    "roe_latest_fy_pct": {
+      "consolidated": 20.3,
+      "standalone": 20.7,
+      "as_of": "FY26 (year ended Mar 2026)",
+      "source": "screener.in"
+    },
+    "roce_pct": {
+      "consolidated": 24.2,
+      "standalone": 24.6,
+      "source": "screener.in"
+    },
+    "book_value_inr": {
+      "consolidated": 248,
+      "standalone": 243,
+      "source": "screener.in",
+      "note": "Small consolidated vs standalone difference is expected and not a data conflict."
+    }
+  },
+  "shareholding": {
+    "promoter_holding_pct": 40.20,
+    "fii_pct": 17.63,
+    "dii_pct": 27.35,
+    "public_pct": 14.82,
+    "as_of": "quarter ended Mar 2026",
+    "source": "screener.in shareholding pattern"
+  },
+  "sources_used": [
+    "https://www.screener.in/company/RADICO/consolidated/",
+    "https://www.screener.in/company/RADICO/",
+    "https://stockanalysis.com/quote/nse/RADICO/",
+    "https://stockanalysis.com/quote/nse/RADICO/dividend/",
+    "https://choiceindia.com/stocks/radico-khaitan-ltd-dividend",
+    "https://www.businessupturn.com/business/radico-khaitan-approves-rs-9-per-share-dividend-for-fy26",
+    "web search aggregation across NSE/BSE-linked broker pages (Kotak Neo, Bajaj Finserv, Dhan, Groww, Anand Rathi, InvestOnline, Upstox, ICICI Direct) for cross-checking price, market cap, ISIN and 52-week range",
+    "NSE quote page (https://www.nseindia.com/get-quote/equity/RADICO/Radico-Khaitan-Limited) attempted directly - request timed out, relied on cached/aggregated citations of NSE data instead"
+  ],
+  "known_data_gaps_and_caveats": [
+    "Could not directly fetch moneycontrol.com or the live NSE quote page (both errored/timed out) - relied on screener.in, stockanalysis.com and web-search aggregation of broker pages that themselves source NSE/BSE feeds.",
+    "Exact 52-week high/low DATES (i.e., which calendar day the high of 4161.80 and low of 2500.00 were hit) were not surfaced by any source consulted; only the levels were confirmed, consistently, across sources.",
+    "52-week price-change % has a real, unresolved spread (42.55% to 55.58%) across sources - see week52_price_change_pct.disagreement_note.",
+    "Price/market-cap show a small (~0.3%) disagreement between screener.in+stockanalysis.com (~4089-4090, ~54,765-54,820 Cr) and one aggregator snapshot (~4075-4078, ~54,633 Cr) - flagged, not silently resolved."
+  ]
+}

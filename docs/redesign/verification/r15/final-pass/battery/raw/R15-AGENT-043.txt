@@ -1,0 +1,8 @@
+# R15-AGENT-043 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n -E 'R15-AGENT-043' src/lib/host-actions.test.ts
+--- output ---
+363:  it("write_screener_filters says which malformed criterion it dropped, in label and ack (R15-AGENT-043)", () => {
+384:  it("save_screen whose every criterion is malformed refuses instead of saving the current filters (R15-AGENT-043)", () => {
+
+EXIT=0 (0.0s)

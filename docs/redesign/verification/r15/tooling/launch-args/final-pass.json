@@ -1,0 +1,8 @@
+{
+  "sha": "d38b5d1a2487bd52fe8a7e741a3a5266e3206611",
+  "max_fix_rounds": 1,
+  "adversaries": 2,
+  "run_ending": false,
+  "scratch": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad",
+  "slice": ["data-smallcaps", "research-search", "agent-chat", "ui-panels", "lifecycle-safety"]
+}

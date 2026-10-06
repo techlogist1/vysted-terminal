@@ -1,0 +1,22 @@
+=== ChartPanel chartViews persistence ===
+72:  chartViews?: Record<string, ChartView>;
+248:function chartViewsOf(workspace: SerializedWorkspace): Record<string, ChartView> {
+250:  const raw: unknown = workspace.chartViews;
+320:    key: "chartViews",
+322:    read: () => ({ chartViews: useChartDrawingsStore.getState().views }),
+323:    restore: (workspace) => useChartDrawingsStore.getState().replaceViews(chartViewsOf(workspace)),
+333:      const views = chartViewsOf(workspace);
+=== pinned round-trip test ===
+122:  it("serializeWorkspace captures the layout, enabled map, drawings, default provider, and watchlist", () => {
+135:      chartViews: {},
+--
+677:  it("round-trips each chart panel's view and adopts an older blob's drawings (R15-UI-020)", () => {
+702:      chartViews: { chart: view },
+712:    // The oldest blobs have no chartViews: the panels open on their defaults.
+--
+1211:  it("an OLDER blob's brief (no execution record) restores fine — archived too", () => {
+1249:  chartViews: true,
+--
+631:  it("round-trips chart drawings through workspace JSON (Phase 2)", () => {
+677:  it("round-trips each chart panel's view and adopts an older blob's drawings (R15-UI-020)", () => {
+717:  it("loadWorkspace without chartDrawings clears any pre-existing drawings", () => {

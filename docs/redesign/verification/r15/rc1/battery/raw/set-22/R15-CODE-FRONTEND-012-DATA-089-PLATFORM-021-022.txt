@@ -1,0 +1,13 @@
+Live against candidate sidecar :52344:
+- GET /portfolio/positions -> 200, [] (seeded rows would list here; route intact per the corrected
+  scope - it is the documented one-time legacy-import reader, R15-LIFECYCLE-009)
+- POST /portfolio/positions -> 405 Method Not Allowed (route exists for GET only, no write verb
+  registered)
+- PUT /portfolio/positions/1 -> 404 Not Found (no such sub-route at all)
+- DELETE /portfolio/positions/1 -> 404 Not Found (no such sub-route at all)
+Source: sidecar/routers/portfolio.py has exactly one route, `@router.get("/positions")` - no POST/
+PUT/DELETE registered (previously these existed and silently 405'd against h-<uuid> ids). Frontend:
+`grep syncPositionToSidecar|sidecarPositionId|portfolioUrl|positionBody src/lib/host-actions.ts` ->
+zero matches (all deleted). `grep addPosition|updatePosition|deletePosition|refresh
+src/store/portfolios.ts` -> zero matches (dead client removed).
+Verdict: holds (live + source confirmed).

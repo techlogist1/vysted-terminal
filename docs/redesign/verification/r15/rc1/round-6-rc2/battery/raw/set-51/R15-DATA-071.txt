@@ -1,0 +1,6 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: curl -s -m 100 'localhost:52344/history/KARNAVATI.BO?range=1y' | python3 -c 'import sys,json;d=json.load(sys.stdin);b=d.get("bars",[]);print("provider",d.get("provider"),"bars",len(b),b[0]["timestamp"] if b else None,b[-1]["timestamp"] if b else None,"partial",d.get("partial"))' ; curl -s -m 100 'localhost:52344/history/TRADEWELL.BO?range=1y' | python3 -c 'import sys,json;d=json.load(sys.stdin);b=d.get("bars",[]);print("provider",d.get("provider"),"bars",len(b),"partial",d.get("partial"), list(d)[:8])'
+provider bse bars 255 2025-09-18T00:00:00Z 2026-10-01T00:00:00Z partial False
+provider bse bars 143 partial False ['symbol', 'timeframe', 'bars', 'provider', 'freshness', 'reason', 'partial', 'coverage_start']
+
+exit=0

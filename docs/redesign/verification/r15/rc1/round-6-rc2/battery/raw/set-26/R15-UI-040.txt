@@ -1,0 +1,7 @@
+CMD: git grep pins at candidate (vitest not run here: heavy lane)
+src/lib/delegate-runs.test.ts:209:  it("adopts a live sidecar run the store never saw (a webview reload), once", async () => {
+src/lib/delegate-runs.test.ts:243:  it("a failed cancel leaves the run running with a retry message", async () => {
+src/lib/delegate-runs.test.ts:265:  it("a refused cancel names the sidecar's reason, not an HTTP code (class pin, R15-CODE-PLATFORM-011)", async () => {
+
+live adoption source (sidecar side), GET /runs on :52341 returns the sidecar's own runs:
+[('9965e4ac', 'done'), ('fa2032ea', 'done'), ('9b8cfd0f', 'done'), ('756f9f88', 'error'), ('e5b73a31', 'error'), ('61fcf8c4', 'done')]

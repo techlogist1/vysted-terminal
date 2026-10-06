@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  40.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_08f72c8a3a2546049dea813188084225", "name": "portfolio_add_position", "input": {"quantity": 5, "symbol": "ITC", "asset_class": "equity", "cost_basis": 420, "note": "", "purchased_at": "2026-09-26"}}
+[  40.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_08f72c8a3a2546049dea813188084225", "name": "portfolio_add_position", "ok": true, "error": null}
+[  44.1s] research_step: {"kind": "research_step", "tool_call_id": "call_08f72c8a3a2546049dea813188084225", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position ITC. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  44.1s] done: {"kind": "done", "usage": {"input_tokens": 2967, "output_tokens": 33, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I have proposed adding 5 shares of ITC at ₹420 to your portfolio for review. Please accept this change in the proposal bar before it is applied.
+
+=== ok · 44.1s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 33, 'research_step': 1, 'done': 1} · usage in=2967 out=33 · est $0.00000 · llama3.1:8b

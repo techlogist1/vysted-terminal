@@ -1,0 +1,33 @@
+--- finding (a)
+ in : an operating margin of 10.98% [New findings]. Dividend per Share: ₹4.90 [New findings].
+ out: an operating margin of 10.98% [?]. Dividend per Share: ₹4.90 [?].  broken=2
+--- finding (b)
+ in : P/E of 71.23 [2, 3]. Margin [2, 4].
+ out: P/E of 71.23 [2][3]. Margin [2][4].  broken=0
+--- fresh: range hyphen
+ in : Revenue grew 18% [2-4].
+ out: Revenue grew 18% [2-4].  broken=0
+--- fresh: range en dash
+ in : Revenue grew 18% [2–4].
+ out: Revenue grew 18% [2–4].  broken=0
+--- fresh: out-of-range range
+ in : Order book ₹23,000 cr [7-9].
+ out: Order book ₹23,000 cr [7-9].  broken=0
+--- fresh: pseudo then marker
+ in : Margin 10.98% [New findings][2].
+ out: Margin 10.98% [New findings][2].  broken=0
+--- fresh: pseudo then out-of-range
+ in : Margin 10.98% [Web evidence][9].
+ out: Margin 10.98% [Web evidence][?].  broken=1
+--- fresh: group 'and'
+ in : Growth [2, 3 and 4].
+ out: Growth [2, 3 and 4].  broken=0
+--- fresh: source prefix
+ in : Growth 12% [Source 3].
+ out: Growth 12% [?].  broken=1
+--- control: link/ref/checkbox
+ in : See [the filing](http://x) and [the filing][sec] and - [x] done.
+ out: See [the filing](http://x) and [the filing][sec] and - [x] done.  broken=0
+--- control: editorial/ticker
+ in : Revenue [Note: consolidated] rose 12% [2]. Bharat Dynamics [NSE: BDL].
+ out: Revenue [?] rose 12% [2]. Bharat Dynamics [?].  broken=2

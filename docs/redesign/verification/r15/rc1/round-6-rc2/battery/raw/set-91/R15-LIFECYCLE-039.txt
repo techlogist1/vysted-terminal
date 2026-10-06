@@ -1,0 +1,8 @@
+CMD: private TMPDIR; ledger A owned by live pid with live child (sleep), ledger B owned by dead pid with live child; run _scopedOrphanPreflight; expect A's child alive, B's child reaped
+STATE_DIR /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b23-tmp.00kX/vysted-smoke-test
+[smoke] pre-flight: reaping a leaked child from a PRIOR RUN OF THIS SCRIPT (pid=26084, binary=sleep) — confirmed via this script's own marker, tree-killing.
+[smoke] pre-flight (ATTENDED-SAFE) complete: reaped 1 leaked child(ren), dropped 0 stale/unowned ledger row(s), left 1 ledger(s) owned by a still-running concurrent smoke-test process untouched.
+A-child (live owner) ALIVE: correct
+B-child reaped: correct
+live-children-26082.json
+done

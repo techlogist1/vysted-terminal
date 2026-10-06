@@ -1,0 +1,21 @@
+# set-33 — batch-8/W4-resolver-exchange-lanes (rc1-battery-4, round 4)
+
+Candidate `1006c6da694ede5776c3dabbd27b305aeb56b5ad`. Own sidecar on `:52344`
+(data dir `rc1-round-4-data-battery-4`, copied from the round seed), shared
+openbb-mcp `:52153` / sec-edgar-mcp `:52154`. Raw: `battery/raw/set-33/`.
+
+| id | repro run | observed | verdict |
+| --- | --- | --- | --- |
+| R15-DATA-058 | Live `GET /resolve?q=Sify Technologies Ltd (ADR)`; fresh cases MakeMyTrip (ADR), Wipro ADR | SIFY US 0.913 lands in the candidate list (last slot); MMYT US 0.7778 present; WIPRO(NSE) still first, WIT(US) 0.7778 listed | holds |
+| R15-LIFECYCLE-019 | In-process `nse_symbol_change` with an `httpx.MockTransport`: (a) first call raises `ConnectTimeout`, backed by a real stale cache entry; (b) every call (live + all `data_cache` reads) forced to fail | (a) exception type logged (`ConnectTimeout`), lane recovers via stale-cache fallback, `_refreshed_on` set only on the successful branch; (b) with no cache at all: 3 attempts (initial + 2 backoff retries), `_refreshed_on` stays `None`, `_gave_up_on` set, lane correctly unavailable. Live `/resolve?q=GUJGASLTD` also carries `rename_lane:"available"` and the rename block | holds |
+| R15-LIFECYCLE-022 | In-process `nse_bhavcopy.fetch_latest` under a `MockTransport`: (A) primary UDiFF 404, legacy `sec_bhavdata_full` 200; (B) both hosts 404 for 3 weekdays | (A) fallback IS tried on a primary 404 — returns the fallback's row, 0 empty markers written; (B) 0 empty markers on non-holiday 404s, WARNING names the archive URL after the threshold | holds |
+| R15-UI-039 | Live `GET /resolve/autocomplete?q=GUJGASLTD`, `q=ZOMATO`, `q=INFY` | GUJGASLTD → GUJENERGY with `former_name`, ISIN INE844O01030, BSE 539336, FV 2, rename block; ZOMATO → ETERNAL with rename block; INFY rows carry ISIN/BSE/industry (previously always null) | holds |
+| R15-CODE-DATA-002 | In-process, `_live_lookup` unpatched but stubbed via existing masters-only path; timed `resolve('infosys','IN')` and `resolve('hdfc bank limited results','IN')` twice each | infosys 285.0ms → 0.1ms repeat; hdfc query 637.8ms → 0.1ms repeat; `_scan_names.cache_info()` shows a real memo hit (the fuzzy scan is memoized, not full `resolve()`) | holds |
+| R15-CODE-DATA-003 | In-process: call `agent_tools.resolve_symbol._resolve_symbol` and `routers.resolve.resolve_symbol` for the same query, compare payloads | GUJGASLTD: tool and router `resolved` dicts are byte-identical (both carry the `rename` block with `effective_date`/`note`); MakeMyTrip (ADR) fuzzy query: candidate confidences and full candidate lists identical between tool and router | holds |
+| R15-DATA-051 | Live `GET /resolve?q=SMR\|ELCIDIN\|CREST\|RELIANCE` | SMR: board SME, group M, FV 10; ELCIDIN: mainboard, B, 10; CREST: mainboard, B, 10; RELIANCE: mainboard, A, 10 — matches BSE truth from the batch-8 table exactly | holds |
+| R15-AGENT-045 | In-process MCP `compare_symbols._compare_symbols(["COCHINSHIP","MAZAGONDOCK"])` and `(["Cochin Shipyard","Mazagon Dock"])` | Case 1: `ok:false`, MAZAGONDOCK carries `"unresolved name: 'MAZAGONDOCK' is not a known ticker ... retry with the company name or the exact exchange ticker"` (not a bare quote-failure); Case 2 (names): `ok:true`, COCHINSHIP ₹1,377 and MAZDOCK ₹2,199.60, resolved from company names | holds |
+| R15-DATA-084 | In-process `openbb_mcp_provider.get_macro_series('EFFR')` with `_call_tool` stubbed to return a `{"date":...,"value":0.0}` row | observations `[('2021-01-04', 0.0), ('2021-01-05', 0.07)]` — the 0.0 print survives (`_first_present` replaces the truthiness `or`) | holds |
+| R15-DATA-085 | Live `GET /macro/NY.GDP.MKTP.CD?provider=world-bank`, fresh case `SL.UEM.TOTL.ZS` | Title "GDP (current US$) — IND", 2025 value 3,956,067,115,771.63 (matches worldbank.org); SL.UEM.TOTL.ZS titled "Unemployment, total (% of total labor force) (modeled ILO estimate) — IND" | holds |
+| R15-DATA-086 | In-process `macro_router.search('unemployment', provider='world-bank')` with `world_bank_provider._make_client` forced to raise, `data_cache` mocked; then live `/macro/search?provider=world-bank&q=unemployment` with network up | Forced failure: `ProviderError` raised (not curated 9-entry fallback), `data_cache.set` never called; network up: 25 real World Bank hits returned live | holds |
+
+COVERAGE: 11/11 ids raw; no raw: none.

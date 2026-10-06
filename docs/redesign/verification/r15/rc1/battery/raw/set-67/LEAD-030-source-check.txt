@@ -1,0 +1,56 @@
+R15-LEAD-030 re-confirmation (source read only, no fix attempted) — candidate 4c6dfe8c
+
+batch-16/VERDICTS.md documented three failure modes at cert time (not_certified):
+  1. Escape: guard's reference regex needed the literal tool id; a humanised name
+     ("Price Data", "price data", "price-data") never matched.
+  2. Escape: citation ends in "returned:" with the "{" opening on the next line —
+     depth tracking stays 0, so the dump on the next line streams unguarded.
+  3. Over-replacement (a regression inside LEAD-030 itself): ok_tools is scoped
+     per-turn, so a follow-up turn whose HISTORY shows a prior ok fundamentals
+     call still says "no data returned this session" and fabricates a citation
+     note over what was actually a true, traced sentence.
+
+Re-read of sidecar/services/agent_runtime.py at 4c6dfe8c:
+
+- Mode 1 (humanised-name regex): `_tool_reference()` (line 2049) now builds
+  `ids = ... re.escape(t).replace("_", r"[\s_-]?") ...` and matches a bare
+  humanised id followed by a tool/returned/results/output/data noun, OR a
+  bare/backticked id after a lead-in phrase. This now DOES match "Price Data",
+  "price-data" etc. — mode 1 as originally described (single-word humanised
+  tool name) looks addressed since batch-16.
+- Mode 2 (dump-on-next-line): not independently re-verified live this round
+  (would need a fresh fabricated-dump repro under the Ollama lock, which the
+  LEAD NOTE says not to spend a fix/verify round on for this class) — the
+  segment/depth-tracking code this mode described was not re-read line-by-line;
+  treated as unconfirmed-unchanged per the "no fix rounds on this class" rule.
+- Mode 3 (ok_tools per-turn over-replacement): `_TurnState.cited_tools` (line
+  1876) is new since batch-16, docstring explicitly citing R15-LEAD-030:
+  "Tools the turn may cite without calling them (R15-LEAD-030): those the
+  history's trailers name". `turn = _TurnState(ok_tools=set(run.cited_tools))`
+  (line 3259) seeds ok_tools from history-derived cited_tools, which looks like
+  a genuine attempt to fix the follow-up-turn over-replacement bug. NOT
+  independently re-run live (multi-turn follow-up repro would need its own
+  Ollama-lock session) — noted as an apparent partial fix, not verified
+  end-to-end, and NOT claimed as "certified" by this shard (that determination
+  is the operator's/a dedicated verifier's to make, not a battery-shard call).
+
+NEW instance found this round (via the AGENT-090 live repro in this same set,
+see AGENT-090.txt): the RATIO guard (`_guard_ratio_claims`, the AGENT-090-
+specific mechanism, distinct from the general tool-citation guard LEAD-030
+tracks) failed to intercept an untraced ADR-ratio claim when the model
+attributed it to "the tool call response" generically (no specific tool id
+named) after calling `financial_statements` (cashflow) — a tool whose result
+carries no "ADR"/"depositary"/"Repr" term, so `_sourced_counts` should have
+been empty and the claim ({"6"}) should not have been a subset of it. The
+claim's factual content (six ordinary shares) is CORRECT (matches SIFY's
+20-F), so this is the same class of failure the LEAD NOTE names ("local model
+states a figure with no ok tool call behind it") — filed as a register note
+under R15-LEAD-030's existing blocked_tier4 entry per standing operator
+decision (DECISIONS 4.9-4.12), not a new defect, not a fix round.
+
+Conclusion: R15-LEAD-030 remains accurately blocked_tier4. One documented
+failure mode (1) looks addressed since batch-16; one (3) looks attempted but
+unverified by this shard; one (2) unconfirmed either way. A fourth,
+distinct-but-same-class escape was newly observed via the ratio guard
+specifically (not one of the three original modes, which are all about the
+general tool-citation guard) — logged as a register note per standing policy.

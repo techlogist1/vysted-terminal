@@ -1,0 +1,14 @@
+custom_agents.db: 
+data_cache.db: 
+delegate_runs.db: 
+fundamentals_cache.db: 
+plugins.db: 
+portfolio.db: 
+workflows.db: 
+custom_agents.db: custom_agents
+data_cache.db: cache,meta
+delegate_runs.db: runs
+fundamentals_cache.db: fundamentals
+plugins.db: plugin_configs
+portfolio.db: positions,sqlite_sequence
+workflows.db: workflows,schedules

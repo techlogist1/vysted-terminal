@@ -1,0 +1,9 @@
+# ace7dd76 in-process
+$ python /tmp/b5_042.py
+no-web-FAST structured-only, 0 sources -> {'ok': True, 'provider': 'derived', 'data': {'cited': 0, 'floor': 3}, 'note': '0 sources (below 3)'} | md: ''
+2 distinct sources -> {'ok': True, 'provider': 'derived', 'data': {'cited': 2, 'floor': 3}, 'note': '2 sources (below 3)'} | md: '# Brief\n\n_Cited: 2 sources (below 3)._'
+3 distinct (floor met) -> {'ok': True, 'provider': 'derived', 'data': {'cited': 3, 'floor': 3}} | md: '# Brief'
+EXIT=0
+$ grep source_floor in fast.py/brief types
+services/research/fast.py:30:from .depth import source_floor_leg
+services/research/fast.py:722:    structured["source_floor"] = source_floor_leg(

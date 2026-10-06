@@ -1,0 +1,472 @@
+{
+ "candidate_sha": "1006c6da694ede5776c3dabbd27b305aeb56b5ad",
+ "slots_recollected": 24,
+ "slots_complete": 24,
+ "fixed_entries_touching_battery": [
+  {
+   "id": "R15-DATA-001",
+   "severity": "critical",
+   "slots": [
+    "P15",
+    "P2",
+    "P3",
+    "P4",
+    "P5",
+    "P6",
+    "P9",
+    "S2",
+    "S4"
+   ],
+   "title": "Income / balance-sheet / cash-flow statements (and one /fundamentals identity) for Indian tickers th"
+  },
+  {
+   "id": "R15-DATA-003",
+   "severity": "critical",
+   "slots": [
+    "P19"
+   ],
+   "title": "Research treats a US-bound AMAL as the Indian Amal Ltd for ownership: the ownership applicability ga"
+  },
+  {
+   "id": "R15-DATA-004",
+   "severity": "critical",
+   "slots": [
+    "P12",
+    "P14",
+    "P16",
+    "P18",
+    "P4",
+    "P8",
+    "S1",
+    "S3",
+    "S4"
+   ],
+   "title": "Equity Overview and the screener show Yahoo's heldPercentInsiders / heldPercentInstitutions as owner"
+  },
+  {
+   "id": "R15-DATA-005",
+   "severity": "critical",
+   "slots": [
+    "P1",
+    "P18",
+    "P7",
+    "S3"
+   ],
+   "title": "Book value per share and P/B are served from a stale or wrong share count while market cap in the sa"
+  },
+  {
+   "id": "R15-DATA-006",
+   "severity": "critical",
+   "slots": [
+    "P2"
+   ],
+   "title": "A scrip that has not traded for 556 days is served with today's session as its quote timestamp and '"
+  },
+  {
+   "id": "R15-DATA-008",
+   "severity": "critical",
+   "slots": [
+    "P17"
+   ],
+   "title": "SIFY revenue_ttm / net_income_ttm are INR amounts served under currency 'USD' (~94x overstatement: '"
+  },
+  {
+   "id": "R15-AGENT-022",
+   "severity": "high",
+   "slots": [],
+   "title": "A missing required argument becomes a fabricated or zero cost basis in the user's tracked portfolio:"
+  },
+  {
+   "id": "R15-AGENT-090",
+   "severity": "high",
+   "slots": [],
+   "title": "Agent fabricates SIFY's ADR ratio with a fake 'fundamentals data' citation (true ratio is 1 ADS = 6 "
+  },
+  {
+   "id": "R15-DATA-013",
+   "severity": "high",
+   "slots": [
+    "P1",
+    "P2",
+    "S1",
+    "S2"
+   ],
+   "title": "Headline EPS and P/E are Yahoo's trailingEps/trailingPE passed through as ok while the same payload'"
+  },
+  {
+   "id": "R15-DATA-014",
+   "severity": "high",
+   "slots": [
+    "P11",
+    "P14",
+    "P2"
+   ],
+   "title": "revenue_ttm is Yahoo's totalRevenue passed through as ok with no cross-check against the app's own s"
+  },
+  {
+   "id": "R15-DATA-015",
+   "severity": "high",
+   "slots": [
+    "P13"
+   ],
+   "title": "52-week high/low are computed from a truncated single-exchange series and served ok as the 52-week r"
+  },
+  {
+   "id": "R15-DATA-016",
+   "severity": "high",
+   "slots": [
+    "P2"
+   ],
+   "title": "For a scrip with zero trades in 52 weeks the 52-week low is a 2023 print carried forward through zer"
+  },
+  {
+   "id": "R15-DATA-017",
+   "severity": "high",
+   "slots": [
+    "P1",
+    "P15",
+    "P9",
+    "S1"
+   ],
+   "title": "Bundled NSE/BSE masters (June 2026, no NSE Emerge/SME) make every later listing and every NSE-SME na"
+  },
+  {
+   "id": "R15-DATA-018",
+   "severity": "high",
+   "slots": [
+    "P10"
+   ],
+   "title": "A renamed stock cannot be found by its old ticker or name ('zomato' / 'SEQUENT' -> 'No instrument ma"
+  },
+  {
+   "id": "R15-DATA-019",
+   "severity": "high",
+   "slots": [
+    "P13",
+    "P7",
+    "P9",
+    "S4"
+   ],
+   "title": "The BSE announcements lane requests only the last 30 days and says nothing about it: an infrequent B"
+  },
+  {
+   "id": "R15-DATA-022",
+   "severity": "high",
+   "slots": [
+    "S2"
+   ],
+   "title": "A fresh IPO's only shareholding pattern is silently dropped: BSE dates the listing-time SHP '04 Jun "
+  },
+  {
+   "id": "R15-DATA-023",
+   "severity": "high",
+   "slots": [
+    "P2",
+    "P5"
+   ],
+   "title": "Promoter pledge is not modelled anywhere: no pledge percentage, history or threshold for any Indian "
+  },
+  {
+   "id": "R15-DATA-025",
+   "severity": "high",
+   "slots": [
+    "P13",
+    "P14",
+    "P19",
+    "P9"
+   ],
+   "title": "No structured corporate actions anywhere: bonuses, splits, rights, buybacks and past dividends with "
+  },
+  {
+   "id": "R15-DATA-026",
+   "severity": "high",
+   "slots": [
+    "P12"
+   ],
+   "title": "Financial statements are shallow and invisible to the agent: income/balance/cash-flow are annual-onl"
+  },
+  {
+   "id": "R15-DATA-027",
+   "severity": "high",
+   "slots": [],
+   "title": "yfinance is the de-facto India primary for fundamentals, statements and analyst data, contradicting "
+  },
+  {
+   "id": "R15-LEAD-011",
+   "severity": "high",
+   "slots": [],
+   "title": "^NSEI (Nifty 50) and other caret-prefixed Yahoo index symbols get wrongly suffixed .NS by _yahoo_sym"
+  },
+  {
+   "id": "R15-DATA-048",
+   "severity": "medium",
+   "slots": [
+    "P1",
+    "P10",
+    "P13",
+    "P14",
+    "P16",
+    "P2",
+    "P3",
+    "P4",
+    "P6",
+    "P7",
+    "P8",
+    "P9",
+    "S1",
+    "S2",
+    "S3",
+    "S4"
+   ],
+   "title": "Core ratios are missing for Indian small-caps: ROCE is not in the Fundamentals contract at all, and "
+  },
+  {
+   "id": "R15-DATA-049",
+   "severity": "medium",
+   "slots": [
+    "P10",
+    "P11",
+    "P12",
+    "P13",
+    "P16",
+    "P17",
+    "P2",
+    "P3",
+    "P6",
+    "P7",
+    "S1",
+    "S2",
+    "S3"
+   ],
+   "title": "The plain /fundamentals route and Equity Overview never run the dividend TTM / affirmed-zero leg: a "
+  },
+  {
+   "id": "R15-DATA-050",
+   "severity": "medium",
+   "slots": [
+    "P13",
+    "P14",
+    "P2",
+    "P3",
+    "P4",
+    "P6",
+    "P7",
+    "P8",
+    "S2",
+    "S3",
+    "S4"
+   ],
+   "title": "/disclosures/results is NSE-only: every BSE-only or SME name gets a 502 'nse_direct: not a known NSE"
+  },
+  {
+   "id": "R15-DATA-051",
+   "severity": "medium",
+   "slots": [
+    "P10",
+    "P12",
+    "P13",
+    "P15",
+    "P16",
+    "P7",
+    "S2",
+    "S4"
+   ],
+   "title": "The identity payload has no board/SME classification and no face value: the resolver reads the BSE g"
+  },
+  {
+   "id": "R15-DATA-052",
+   "severity": "medium",
+   "slots": [
+    "P13",
+    "P8"
+   ],
+   "title": "Sector/industry for Indian names come from Yahoo unchecked: ELCIDIN's are empty strings stamped stat"
+  },
+  {
+   "id": "R15-DATA-053",
+   "severity": "medium",
+   "slots": [
+    "P13",
+    "P6",
+    "P9"
+   ],
+   "title": "BSE quotes are thin: the header path never carries day volume (reads keys getScripHeaderData does no"
+  },
+  {
+   "id": "R15-DATA-054",
+   "severity": "medium",
+   "slots": [
+    "P13",
+    "P16"
+   ],
+   "title": "Fundamentals never say which accounting basis they use: CREST and ELCIDIN ratios silently match the "
+  },
+  {
+   "id": "R15-DATA-055",
+   "severity": "medium",
+   "slots": [
+    "P1",
+    "P18",
+    "P19",
+    "P9",
+    "S1",
+    "S2",
+    "S4"
+   ],
+   "title": "Fundamentals carry no reporting period, estimate horizon or listing date: every field shares one fet"
+  },
+  {
+   "id": "R15-DATA-056",
+   "severity": "medium",
+   "slots": [
+    "P16",
+    "S3",
+    "S4"
+   ],
+   "title": "Shareholding FII/DII come back null next to a known institutions total (CREST DII null, VERTEX both "
+  },
+  {
+   "id": "R15-DATA-057",
+   "severity": "medium",
+   "slots": [
+    "P12"
+   ],
+   "title": "Name search ranks an expired rights-entitlement line above the real bank: 'Dhanalakshmi Bank' tops w"
+  },
+  {
+   "id": "R15-DATA-058",
+   "severity": "medium",
+   "slots": [
+    "P17"
+   ],
+   "title": "A company-name query with a stray token ('Sify Technologies Ltd (ADR)') never lists the right US com"
+  },
+  {
+   "id": "R15-DATA-060",
+   "severity": "medium",
+   "slots": [
+    "P17"
+   ],
+   "title": "Out-of-scope instruments get a 502 'not a known NSE/BSE instrument' from disclosures instead of a no"
+  },
+  {
+   "id": "R15-DATA-076",
+   "severity": "medium",
+   "slots": [],
+   "title": "The growth cross-check validates Yahoo's growth scalars against Yahoo's own statements, so a systema"
+  },
+  {
+   "id": "R15-DATA-115",
+   "severity": "medium",
+   "slots": [],
+   "title": "A .BO request for a dual-listed name is still served by nse_direct instead of the BSE provider, when"
+  },
+  {
+   "id": "R15-LEAD-004",
+   "severity": "medium",
+   "slots": [],
+   "title": "The 'half-yearly filer' TTM label also fires on quarterly filers"
+  },
+  {
+   "id": "R15-LEAD-013",
+   "severity": "medium",
+   "slots": [],
+   "title": "The bundled sp500 screener universe pack carries about 15 delisted names (rate_limited noise) and is"
+  },
+  {
+   "id": "R15-LEAD-015",
+   "severity": "medium",
+   "slots": [],
+   "title": "Quarterly financial statements silently skip a quarter (DHANBANK 2025-09-30 missing with no gap mark"
+  },
+  {
+   "id": "R15-LEAD-026",
+   "severity": "medium",
+   "slots": [],
+   "title": "GET /history/<unknown-symbol> returns 200 with an empty series and reason: null instead of a typed e"
+  },
+  {
+   "id": "R15-LEAD-028",
+   "severity": "medium",
+   "slots": [],
+   "title": "BSE scrip-code addressing (e.g. 506597.BO, 544774.BO) 404s on data routes; only the BSE ticker-symbo"
+  },
+  {
+   "id": "R15-LEAD-034",
+   "severity": "medium",
+   "slots": [],
+   "title": "Background India fundamentals warming passes bare screener-universe symbols to the correctness gate,"
+  },
+  {
+   "id": "R15-DATA-116",
+   "severity": "high",
+   "slots": [],
+   "title": "BSE shareholding-pattern (SHP) quarter index 403s over plain httpx while the impersonated curl_cffi "
+  }
+ ],
+ "spot_checks": [
+  {
+   "register_id": "R15-DATA-001",
+   "slot": "P2",
+   "symbol": "DAL",
+   "verdict": "fix_confirmed",
+   "evidence": "battery/collected/P2_DAL.json calls.income.body (symbol DAL.BO, INR-scale operating_revenue ~2.07 crore FY26, not US Delta Air Lines figures)"
+  },
+  {
+   "register_id": "R15-DATA-004",
+   "slot": "P12",
+   "symbol": "DHANBANK",
+   "verdict": "fix_confirmed",
+   "evidence": "battery/collected/P12_DHANBANK.json calls.fundamentals.body.field_meta.held_percent_insiders.status=flagged with reason naming the promoter-vs-insiders gap"
+  },
+  {
+   "register_id": "R15-DATA-005",
+   "slot": "S3",
+   "symbol": "VERTEX",
+   "verdict": "fix_confirmed",
+   "evidence": "battery/collected/S3_VERTEX.json calls.fundamentals.body.field_meta.book_value.status=flagged with reason naming the 50% share-count gap"
+  },
+  {
+   "register_id": "R15-DATA-006",
+   "slot": "P2",
+   "symbol": "DAL",
+   "verdict": "fix_confirmed",
+   "evidence": "battery/collected/P2_DAL.json calls.quote.body: timestamp=2025-03-12, freshness=stale (was todays session + fake +4.99% change)"
+  },
+  {
+   "register_id": "R15-DATA-008",
+   "slot": "P17",
+   "symbol": "SIFY",
+   "verdict": "regression_confirmed",
+   "evidence": "battery/collected/P17_SIFY.json calls.fundamentals.body: currency=USD, revenue_ttm=46506049536.0, net_income_ttm=-912369984.0, field_meta status=ok for both -- identical to the original repro figures. financial_currency=INR is now present and price_to_sales/price_to_book are correctly withheld for the currency mismatch, but the two base scalars the entry was filed against are neither converted, withheld, nor labelled."
+  },
+  {
+   "register_id": "R15-DATA-052",
+   "slot": "P13",
+   "symbol": "ELCIDIN",
+   "verdict": "fix_confirmed",
+   "evidence": "battery/collected/P13_ELCIDIN.json calls.fundamentals.body: sector/industry/symbol now populated (Financial Services / Investment Company / ELCIDIN.NS), were all null in census"
+  },
+  {
+   "register_id": "R15-DATA-115",
+   "slot": "P9,P19",
+   "symbol": "AMAL",
+   "verdict": "fix_confirmed",
+   "evidence": "battery/collected/{P9,P19}_AMAL.json calls.fundamentals.body.symbol=AMAL.NS (was AMAL.BO), same entity name unchanged"
+  }
+ ],
+ "structural_diff_notes": {
+  "method": "fundamentals/quote/shareholding call bodies, scalar keys, old census battery/collected/*.json vs this runs re-collected files, excluding field_meta and price-like keys",
+  "both_sides_present_changes": 170,
+  "classified_as_as_of_skew": "quote price/change/timestamp/volume/provider (23-24 slots); fundamentals revenue_growth/earnings_growth/growth_basis quarter rollover (14 slots)",
+  "reviewed_individually": [
+   "P15 SUMAX name/symbol/sector",
+   "P13 ELCIDIN sector/industry/symbol",
+   "P8 NAPEROL sector/industry",
+   "P9/P19 AMAL symbol suffix"
+  ],
+  "flagged_as_regression": [
+   "R15-DATA-008 (see spot_checks)"
+  ]
+ }
+}

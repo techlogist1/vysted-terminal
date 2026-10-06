@@ -1,0 +1,50 @@
+Repro attempted: curl / vy.py / in-process python -- none apply. The chat-transcript
+vs proposed-changes-row race under AUTO auto-apply is entirely frontend
+(src/modules/chat/ChatSidebar.tsx + src/store/proposed-changes.ts). Battery role may
+not run vitest or a GUI.
+
+src/modules/chat/ChatSidebar.test.tsx
+
+Pinned test body at candidate sha 949c3c9fd49d61ecadc9813a8321bcdfd81178bd:
+  it("under AUTO a failing auto-apply writes no 'Applied:' line, it says why (R15-AGENT-032)", async () => {
+    useAgentAutonomyStore.setState({ autonomy: "auto" });
+    streamAgentInvocationMock.mockImplementationOnce(
+      async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
+        handlers.onEvent({
+          kind: "tool_use",
+          name: "open_panel",
+          input: { panel: "flux-capacitor" },
+          toolCallId: "tc-open",
+        });
+        handlers.onEvent({ kind: "done" });
+      },
+    );
+    try {
+      render(<ChatSidebar />);
+      const input = screen.getByLabelText("Chat input") as HTMLInputElement;
+      fireEvent.change(input, { target: { value: "open the flux capacitor" } });
+      fireEvent.submit(input.closest("form")!);
+      await waitFor(() =>
+        expect(assistantSteps().some((s) => s.startsWith("Couldn't apply: Open Flux"))).toBe(true),
+      );
+      expect(assistantSteps().some((s) => s.startsWith("Applied:"))).toBe(false);
+      expect(useProposedChangesStore.getState().changes[0].status).toBe("pending");
+    } finally {
+      resetAgentAutonomyStoreForTests();
+    }
+  });
+});
+
+function assistantSteps(): string[] {
+  const assistant = useChatHistoryStore.getState().messages.find((m) => m.role === "assistant");
+  return assistant?.toolSteps ?? [];
+}
+
+// ── R10: refresh depth override, structured errors, divergence chips, E10 ───
+
+describe("ChatSidebar — R10 brief/error honesty", () => {
+  beforeEach(() => {
+    seedStores();
+    streamChatMock.mockClear();
+    streamAgentInvocationMock.mockClear();
+    getSecretMock.mockClear();

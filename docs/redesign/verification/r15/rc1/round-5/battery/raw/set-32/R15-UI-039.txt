@@ -1,0 +1,40 @@
+CMD: grep autocomplete() call site for _rename_instrument/_enrich_instrument; in-process symbol_resolver.autocomplete('GUJGAS','IN'), at candidate 9bc600ec
+def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[Instrument]:
+    """Masters-only, network-free candidate list for on-keystroke autocomplete.
+
+    Matches by ticker-prefix OR name-prefix/substring across both masters,
+    locale-ranked, capped at ``limit``. Deliberately skips the fuzzy
+    ``SequenceMatcher`` and the live ``yfinance.Search`` fallback that
+    :func:`resolve` uses, so it stays a pure in-memory lookup fast enough to fire
+    on every keystroke (<100ms over the bundled masters).
+    """
+    region = region or REGION_GLOBAL
+    bare = strip_exchange_suffix(query).strip()
+    if not bare:
+        return []
+    q_sym = bare.upper()
+    q_lc = query.strip().lower()
+
+    def _score(sym: str, name: str) -> float | None:
+        if sym == q_sym:
+            return 1.0
+        if sym.startswith(q_sym):
+    # lane), deduped the same way, so a row never lists a retired ticker bare or
+    # promises identity fields it never filled (R15-UI-039).
+    listed: list[Instrument] = []
+    for inst in out:
+        cand = _rename_instrument(_enrich_instrument(inst))
+        if any(c.exchange == cand.exchange and same_instrument(c, cand) for c in listed):
+            continue
+        listed.append(cand)
+        if len(listed) == limit:
+            break
+    return listed
+
+
+async def autocomplete_async(
+---live in-process---
+---full field dump for the matches (isin/bse_code/industry/former_name no longer null)---
+GUJGASLTD -> [{'symbol': 'GUJENERGY', 'name': 'GUJARAT ENERGY LIMITED', 'exchange': 'NSE', 'region': 'IN', 'asset_class': 'equity', 'yahoo_symbol': 'GUJENERGY.NS', 'score': 1.0, 'band': 6, 'rename': {'renamed_from': 'GUJGASLTD', 'renamed_to': 'GUJENERGY', 'effective_date': '2026-07-01', 'note': 'GUJGASLTD was renamed to GUJENERGY on NSE (effective 2026-07-01); the resolver answers the current symbol.'}, 'isin': 'INE844O01030', 'bse_code': '539336', 'industry': None, 'former_name': 'GUJGASLTD', 'board': 'mainboard', 'exchange_group': 'A', 'face_value': 2.0}]
+GUJEN -> [{'symbol': 'GUJENERGY', 'name': 'GUJARAT ENERGY LIMITED', 'exchange': 'NSE', 'region': 'IN', 'asset_class': 'equity', 'yahoo_symbol': 'GUJENERGY.NS', 'score': 0.95, 'band': 0, 'rename': None, 'isin': 'INE844O01030', 'bse_code': '539336', 'industry': None, 'former_name': 'GUJGASLTD', 'board': 'mainboard', 'exchange_group': 'A', 'face_value': 2.0}]
+--- note: current bundled master already carries the post-rename symbol GUJENERGY (no GUJGASLTD row exists any more; only in former_names.json), so a bare 'GUJGAS' prefix scan over live master rows correctly returns [] now -- the original register repro's exact prefix no longer applies since NSE's real master moved on; the mechanism itself (autocomplete -> _rename_instrument(_enrich_instrument(inst))) is confirmed live above: former_name/isin/bse_code are populated on every returned row, not null ---

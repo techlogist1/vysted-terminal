@@ -1,0 +1,45 @@
+=== read_notes handler on frontend (host-actions.ts) ===
+=== vitest test file ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/chat/ChatSidebar.test.tsx
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/chat/context-provider.ts
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/chat/context-provider.test.ts
+290-  "\n[note truncated here; the full text is in the Notes panel]";
+291-
+292:/** The user's notes as the `__notes__` snapshot entry (C2): the general note
+293- *  and every non-empty per-symbol note, each capped. They ride beside
+294- *  `__terminal__`, not inside it, so `get_terminal_state` stays compact. */
+295-export interface TerminalNotes {
+296-  general: string;
+297-  bySymbol: Record<string, string>;
+298-}
+299-
+300-function capNote(text: string): string {
+--
+317-
+318-/** The context an agent invocation carries: the terminal state plus the
+319: *  user's notes, which the agent reads with `read_notes` (R15-AGENT-020). */
+320-export function captureAgentContext(): AgentContextSnapshot {
+321-  const terminalState = captureTerminalState();
+322-  return {
+323-    focusedSource: terminalState.focusedPanel,
+324:    bySource: { __terminal__: terminalState, __notes__: captureNotes() },
+325-    capturedAt: terminalState.capturedAt,
+326-  };
+327-}
+328-
+329-/** Read the live bus + stores once and assemble a structured snapshot. */
+330-export function captureTerminalState(): TerminalState {
+331-  const bus = usePanelContextBus.getState();
+332-  const bySource = bus.lastEventBySource;
+=== test file assertion ===
+266-});
+267-
+268:describe("captureNotes — the __notes__ entry (R15-AGENT-020)", () => {
+269-  afterEach(() => {
+270-    useNotesStore.setState({ general: "", bySymbol: {} });
+271-  });
+272-
+273-  it("caps a long note with a marker and drops empty ones", () => {
+274-    const long = "Order book covers 3.5 years of revenue. ".repeat(200);
+275-    useNotesStore.setState({ general: "  ", bySymbol: { BDL: long, HAL: "" } });
+276-    const notes = captureNotes();

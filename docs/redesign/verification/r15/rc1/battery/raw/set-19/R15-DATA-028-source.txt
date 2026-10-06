@@ -1,0 +1,5 @@
+sidecar/services/earnings_provider.py:375:    if not watchlist and get_region() == "IN":
+sidecar/services/agent_tools/earnings_tools.py:6:* ``earnings_upcoming(days=7, watchlist=...)`` — upcoming earnings events.
+sidecar/services/agent_tools/earnings_tools.py:28:async def _earnings_upcoming(args: dict[str, Any]) -> dict[str, Any]:
+sidecar/services/agent_tools/earnings_tools.py:102:    register_tool("earnings_upcoming", _earnings_upcoming)
+sidecar/services/agent_tools/earnings_tools.py:110:    "_earnings_upcoming",

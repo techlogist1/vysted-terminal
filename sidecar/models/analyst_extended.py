@@ -11,7 +11,7 @@ live here.
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
@@ -51,6 +51,9 @@ class RatingsHistoryResponse(BaseModel):
 
     symbol: str
     history: list[RatingsHistoryEntry]
+    # When this envelope was fetched upstream (a cache hit keeps the fetch
+    # time, not the read time) — R15-DATA-068 / C16.
+    as_of: datetime | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -80,6 +83,9 @@ class PriceTargetHistoryResponse(BaseModel):
 
     symbol: str
     history: list[PriceTargetEntry]
+    # When this envelope was fetched upstream (a cache hit keeps the fetch
+    # time, not the read time) — R15-DATA-068 / C16.
+    as_of: datetime | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -111,3 +117,6 @@ class IndividualAnalystResponse(BaseModel):
 
     symbol: str
     analysts: list[IndividualAnalystForecast]
+    # When this envelope was fetched upstream (a cache hit keeps the fetch
+    # time, not the read time) — R15-DATA-068 / C16.
+    as_of: datetime | None = None

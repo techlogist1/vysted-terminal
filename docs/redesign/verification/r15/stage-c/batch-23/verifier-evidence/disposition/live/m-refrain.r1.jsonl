@@ -1,0 +1,47 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_009b5afb9a2f4312bd1c55df1138923e", "name": "get_terminal_state", "input": {}}
+{"kind": "tool_result", "tool_call_id": "call_009b5afb9a2f4312bd1c55df1138923e", "name": "get_terminal_state", "ok": true, "error": null}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " position"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " value"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " holding"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "500"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "This"}
+{"kind": "delta", "text": " matches"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " prior"}
+{"kind": "delta", "text": " stated"}
+{"kind": "delta", "text": " value"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2818, "output_tokens": 42, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

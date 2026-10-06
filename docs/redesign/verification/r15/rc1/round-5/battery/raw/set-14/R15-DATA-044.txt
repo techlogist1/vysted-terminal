@@ -1,0 +1,11 @@
+CMD: curl -s -X POST http://127.0.0.1:52346/screener/run -H 'Content-Type: application/json' -d '{"universe":"nse-all","criteria":[{"field":"pe_ratio","operator":"lt","value":20}],"limit":1000}'
+
+HTTP_CODE:200
+keys: ['universe', 'evaluated_count', 'skipped_count', 'skip_details', 'result_count', 'matched_count', 'rows', 'duration_ms', 'partial', 'coverage', 'freshness', 'basis_counts', 'throttled']
+result_count: 1000
+matched_count: 1036
+evaluated: screened 2,684 of 3,506 — 822 unavailable
+skip_summary: screened 2,684 of 3,506 — 822 unavailable
+-- skip_details reason breakdown --
+Counter({'missing_field:pe_ratio': 552, 'not_found': 270})
+sample missing_field row: {'symbol': 'INDIGO.NS', 'reason': 'missing_field:pe_ratio'}

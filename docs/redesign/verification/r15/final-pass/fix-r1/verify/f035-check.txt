@@ -1,0 +1,5 @@
+live 39 missing from doc (backticked) []
+DOC: "protocolVersion": "2025-06-18"
+DOC: the live `toolCount` (39 at 0.9.0: 31 catalog-projected + 8 hand-written).
+DOC: -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"curl","version":"0.0.0"}}}'
+DOC: # {"ready":true,"toolCount":39,"endpoint":"/mcp","protocolVersion":"2025-11-25"}

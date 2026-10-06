@@ -1,0 +1,42 @@
+[
+  {
+    "raw_id": "DAT-P11-1",
+    "title": "Symbol resolver never surfaces FUSION's former name (Fusion Micro Finance Limited -> Fusion Finance Limited, Jul 2024) despite carrying a former_name field",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P11_FUSION",
+    "repro": "GET http://127.0.0.1:52152/resolve?q=FUSION (and q=Fusion+Finance+Ltd, q=543652) on the isolated stack -> every candidate row (resolved and all entries in candidates[]) has \"former_name\": null. FUSION renamed from 'Fusion Micro Finance Limited' to 'Fusion Finance Limited' in July 2024, confirmed on a current, dated aggregator profile page.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P11_FUSION.json:30,45,58,86,101,114,127,140,153,166,194 (calls.resolve_bare_symbol/resolve_company_name/resolve_bse_code bodies, former_name:null on every row) vs docs/redesign/verification/r15/battery/packs/P11_FUSION.json (identity.former_names.value='Fusion Micro Finance Limited', rename_date='2024-07', source https://stockanalysis.com/quote/bom/543652/)",
+    "notes": "The resolver schema already models former_name (the field exists, it's just always null for this symbol) -- so this isn't a missing capability, it's an unpopulated one. A user searching 'Fusion Micro Finance' (the name under which pre-Jul-2024 filings, news and older cached aggregator pages are indexed) or an agent trying to match an old filing to today's FUSION gets no help from the one field designed to bridge that gap. The manifest itself calls out the rename as one of this entity's hostile traits precisely because a naive pipeline will miss it. Smallest fix shape: populate former_name from NSE/BSE's own 'Company Name Change' announcement/master-data feed (the same source the pack found it in) for at least the handful of well-known Indian rename cases, rather than leaving the field permanently null."
+  },
+  {
+    "raw_id": "DAT-P11-2",
+    "title": "Dividend fields (yield, per-share declared, per-share paid-TTM) show as blank/unavailable instead of the confirmed value zero",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P11_FUSION",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/FUSION -> dividend_yield: null, dividend_per_share: null, dividend_per_share_ttm: null, field_meta for all three: {status:'unavailable', reason:'provider did not publish this field'}. Outside truth: screener.in's Dividend Payout % column reads 0% for every FY shown, Mar2018 through Mar2026 plus TTM -- the company has never once declared a dividend since listing, a confirmed fact, not a missing one.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P11_FUSION.json:257-258,281,370-383 (calls.fundamentals.body.dividend_yield/.dividend_per_share/.dividend_per_share_ttm and their field_meta entries) vs docs/redesign/verification/r15/battery/packs/P11_FUSION.json:271-294 (dividend.last_declared_per_share.value=0, .paid_trailing_12m_per_share.value=0, .yield.value=0.0, note='Dividend Payout % is listed as 0% for every FY column ... the company has never declared a dividend since listing, this is not a missing-data gap.')",
+    "notes": "'provider did not publish this field' and 'the company has genuinely never paid a dividend' render identically to the user (blank/dash), but they mean opposite things for an investor screening on income stocks -- one is 'we don't know', the other is a hard, checkable fact. Every field on this row is derivable from data the app already has: dividend history is knowable from the same exchange announcement feed /disclosures/announcements already pulls from, or from a payout-ratio-style derivation off the income statement the app already fetches. Smallest fix shape: when yfinance's own dividend fields are unavailable, fall back to 'no cash dividend in filed history' (derivable from the announcements/results feeds already wired up) rather than leaving a bare null with a generic 'provider did not publish' reason that reads the same as any other missing field."
+  },
+  {
+    "raw_id": "DAT-P11-3",
+    "title": "revenue_ttm shown as INR 858.2cr, roughly half the verified INR 1,699cr, while net_profit_ttm on the same endpoint ties out to within 0.3%",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P11_FUSION",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/FUSION -> revenue_ttm: 8582000128.0 (INR 858.20 crore), net_income_ttm: 1685100032.0 (INR 168.51 crore), field_meta.revenue_ttm.status='ok'/provider='yfinance'. Outside truth (screener.in, summing the same Sep2025+Dec2025+Mar2026+Jun2026 standalone quarters the app should be covering): revenue_ttm = INR 1,699 crore (matches screener's own page meta description verbatim, 'Revenue: 1,699 Cr'), net_profit_ttm = INR 169 crore ('Profit: 169 Cr').",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P11_FUSION.json:272-273 (calls.fundamentals.body.revenue_ttm, .net_income_ttm) vs docs/redesign/verification/r15/battery/packs/P11_FUSION.json:190-224 (revenue_ttm.value=1699, net_profit_ttm.value=169, both basis='standalone, trailing 4 quarters', source https://www.screener.in/company/FUSION/)",
+    "notes": "Ruled out a blanket standalone-vs-yfinance-template basis shift as the explanation: if the whole P&L were being read off a different (e.g. net-interest-margin) template, net income would drift by a similar proportion too, but it ties to within 0.3% (168.51cr vs 169cr) while revenue is off by 49%. This is a core, headline, money-relevant TTM figure presented with field_meta.status='ok' (no caveat) that a user or the agent would read as ground truth -- exactly the class of quietly-wrong number the product's data-trust moat is supposed to prevent. Smallest fix shape: audit how the yfinance TTM revenue rollup is being computed for this symbol (NBFC total-income line item selection, or a stale/partial quarter in the trailing-4 window) against the same provider's own annual income-statement figures (Total Revenue FY2026 = 1,513.13cr per calls.income, which is itself closer to screener's 1,699cr than the TTM field is), and cross-check the derived revenue_ttm against net_profit_ttm's implied margin sanity before serving it with status='ok'."
+  },
+  {
+    "raw_id": "DAT-P11-4",
+    "title": "52-week low shown as 136.5 vs the verified 136.0, both dated within days of each other with no intervening new low",
+    "severity": "low",
+    "area": "data",
+    "subsystem": "P11_FUSION",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/FUSION -> fifty_two_week_low: 136.5 (field_meta.status='ok', provider='yfinance', as_of 2026-09-19). Outside truth (screener.in, 22-Sep): week52.low = 136 (INR). The pack's own day_range.low for 22-Sep is 182.0 -- well above both figures -- so no new 52-week low could have been set in the 3-4 days between the two collections; this rules out as-of skew as the explanation.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P11_FUSION.json:262,405-411 (calls.fundamentals.body.fifty_two_week_low, field_meta.fifty_two_week_low) vs docs/redesign/verification/r15/battery/packs/P11_FUSION.json:296-312 (week52.low.value=136, source https://www.screener.in/company/FUSION/) and :107-113 (price.day_range.low=182.0, 22-Sep, ruling out a new low in the intervening window)",
+    "notes": "Small in isolation (0.37% on a secondary stat, not the headline price), but it is exactly the mandatory subtle-tier field the differ spec calls out by name, and it demonstrates the same yfinance-vs-exchange-sourced-aggregator drift pattern seen elsewhere in this pack (52w high, by contrast, matches exactly at 243). Smallest fix shape: no urgent code change implied by a single 0.5 INR gap on one symbol; worth a cheap sanity cross-check (52w low should never sit below the actual observed daily-low series the app already has) if this pattern recurs across other battery slots."
+  }
+]

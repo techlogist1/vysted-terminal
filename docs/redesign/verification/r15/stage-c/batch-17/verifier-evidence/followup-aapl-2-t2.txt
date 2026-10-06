@@ -1,0 +1,17 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_d54add6e4d404ae7b4084f2992f3e6a2", "name": "fundamentals", "input": {"symbol": "AAPL"}}
+[  42.0s] tool_result: {"kind": "tool_result", "tool_call_id": "call_d54add6e4d404ae7b4084f2992f3e6a2", "name": "fundamentals", "ok": true, "error": null}
+[  52.0s] heartbeat: {"kind": "heartbeat"}
+[  62.0s] heartbeat: {"kind": "heartbeat"}
+[  65.8s] done: {"kind": "done", "usage": {"input_tokens": 5938, "output_tokens": 37, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The market cap of AAPL is $4.90T.
+
+[tool steps: Using fundamentals]
+
+This result was returned by the fundamentals tool, which fetched data from yfinance.
+
+=== ok · 65.8s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 36, 'done': 1} · usage in=5938 out=37 · est $0.00000 · llama3.1:8b

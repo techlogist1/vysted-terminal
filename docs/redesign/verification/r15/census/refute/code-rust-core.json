@@ -1,0 +1,137 @@
+[
+  {
+    "raw_id": "COD-rust-core-1",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds. setup() spawns both MCP supervisors and joins them inline (lib.rs:472-485), each consuming up to 45s x 2 (openbb_mcp.rs:149-159), and only then calls start_main_sidecar (lib.rs:493). One small mechanism correction that does not change the conclusion: in tauri 2.11.1 (the Cargo.lock version) the user setup hook runs INSIDE the event loop's RuntimeRunEvent::Ready callback on the main thread (app.rs:1414-1417 -> setup() app.rs:2513-2526, which builds the config windows first), not before App::run - so the main thread/event loop is blocked for the whole join either way. The code's own measurements (lib.rs:66-72) put even a WARM boot at 13.6s/24.6s, so the freeze is not cold-only.",
+    "evidence": "src-tauri/src/lib.rs:437-493, src-tauri/src/lib.rs:66-83, src-tauri/src/openbb_mcp.rs:149-180, ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-2.11.1/src/app.rs:1358-1417, :2513-2526, src/lib/sidecar-client.ts:101-113, src-tauri/Cargo.lock:4612-4613",
+    "evidence_checked": "Read lib.rs setup closure, openbb_mcp::spawn, and tauri 2.11.1 App::run/setup source in the cargo registry; no GUI repro (headless-only rule).",
+    "repro_check": "Would run: cold-launch the packaged app and sample the main thread (`sample <pid> 5`) during the first 30s - expect the main thread parked in JoinHandle::join under setup(). Not run (no GUI launch permitted)."
+  },
+  {
+    "raw_id": "COD-rust-core-2",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The mechanism half is true (child.kill() SIGKILLs only the PyInstaller bootloader; lib.rs:507-518, shell process/mod.rs:78-81) but the claimed consequence is designed out: every worker runs a stdin-EOF watchdog that os._exit(0)s when the Tauri core's stdin pipe closes (sidecar/main.py:71-87,141; openbb_mcp_subprocess/main.py:29-66; sec_edgar_mcp_subprocess/main.py:16-60), tauri-plugin-shell always gives the child a piped stdin whose writer lives in CommandChild (shell process/mod.rs:67,310-313,363) and child.kill(self) consumes/drops that writer. A live probe confirmed the worker survives a bootloader SIGKILL only while the stdin write end is open and exits once it closes. The PPID-1 pids cited cannot be attributed to an app quit (the R15 isolated stack's own MCP bootloaders sit at PPID 1 by construction).",
+    "evidence": "src-tauri/src/lib.rs:507-518, sidecar/main.py:71-87, sidecar/main.py:141, sidecar/openbb_mcp_subprocess/main.py:29-66, sidecar/sec_edgar_mcp_subprocess/main.py:16-60, ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-shell-2.3.5/src/process/mod.rs:67-81,169-171,310-313",
+    "evidence_checked": "Read the exit handler, shell plugin spawn/kill, and all three worker watchdogs; ran an own-process probe against the bundled openbb-mcp binary (spawned on a free port, cleaned up). Live `ps -eo pid,ppid` showed no operator app running, only the isolated stack's MCP pairs.",
+    "repro_check": "python3 scratchpad/orphan_probe.py: Popen(openbb-mcp binary, stdin=PIPE) -> SIGKILL bootloader 58142 -> worker 58150 alive=True -> close stdin -> worker alive=False after ~6.5s. The worker is reaped by the watchdog, not orphaned."
+  },
+  {
+    "raw_id": "COD-rust-core-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: the shortcut emits kill-switch:requested (kill_switch.rs:59-61,94-97), the only frontend listen() is menu-bridge.ts:21 for vysted://menu-layout, safety.ts:13-17 admits nothing listens, and the always-mounted first-launch TOS (page.tsx:289 -> DisclaimerFlow.tsx:228-229) states the shortcut halts order routing (DisclaimerFlow.tsx:45). Downgraded from high: what the mechanism actually gates is ORDERS ONLY - the sidecar bus's only subscribers are broker adapters (broker_base.py:103) and its only consumers are the propose/confirm order gates (broker_base.py:251, :345); no agent, run_manager, workflow or other control-plane path checks it - so in the read-only app the dead key halts nothing that can happen; the live defect is the false written promise, in a TOS body that is itself all about live trading (DisclaimerFlow.tsx:37-45). Both the shortcut and that TOS text go with the trading removal.",
+    "evidence": "src-tauri/src/kill_switch.rs:49-97, src/lib/menu-bridge.ts:20-21, src/store/safety.ts:11-17, src/modules/safety/DisclaimerFlow.tsx:37-45, :228-229, src/app/page.tsx:289, sidecar/services/kill_switch.py:1-18, sidecar/services/broker_base.py:100-103, :245-252, :340-346",
+    "evidence_checked": "Read kill_switch.rs, grepped src/ for listeners and for kill-switch:requested/kill_switch_emit, read DisclaimerFlow + mount point, grepped sidecar/ (non-test) for every kill_switch consumer.",
+    "repro_check": "grep -rn \"kill-switch:requested\" src plugins types -> only a doc comment in src/store/safety.ts:13; grep -rn kill_switch sidecar (non-test) -> only routers/safety.py and services/broker_base.py order gates."
+  },
+  {
+    "raw_id": "COD-rust-core-4",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds. The updater plugin is registered (lib.rs:393) and configured with endpoint + pubkey (tauri.conf.json plugins.updater), but nothing in src-tauri/src calls app.updater(), nothing in src/ or plugins/ imports @tauri-apps/plugin-updater (package.json:29 installs it), capabilities/default.json grants no updater:* permission, and tauri.conf.json:45 sets createUpdaterArtifacts:false so a release would not even produce the signed update bundle. A shipped build can never discover or install an update.",
+    "evidence": "src-tauri/src/lib.rs:391-395, src-tauri/tauri.conf.json:45 (createUpdaterArtifacts false) + plugins.updater, src-tauri/capabilities/default.json, package.json:29",
+    "evidence_checked": "Read lib.rs builder, parsed tauri.conf.json, read both capability files, grepped src/ plugins/ src-tauri/src for updater usage (zero hits).",
+    "repro_check": "grep -rn updater src plugins --include=*.ts --include=*.tsx -> no output; grep -n 'updater()' src-tauri/src -> no output; tauri.conf.json bundle.createUpdaterArtifacts == false."
+  },
+  {
+    "raw_id": "COD-rust-core-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The missing boundary is real: write_text_atomic/write_bytes_atomic take any path and only create_dir_all the parent (lib.rs:287-342), they are in the release invoke_handler (lib.rs:410-411), app commands are unrestricted (no AppManifest in build.rs), and CSP is null. Corrected on two particulars: (1) 'one caller already forgot' is wrong in effect - export-artifact.ts saveTextArtifact interpolates subdir/filename unsanitised, but its only callers (NotesPanel.tsx:225,236,247) pass the constant 'notes' and a base name sanitised at NotesPanel.tsx:220; (2) the plugin threat model cited does not exist today - plugins are static bundled imports (plugin-runtime.ts:26-28, marketplace.ts:8-41), not runtime-loaded third-party JS, and the finder itself found no injection sink. Defense-in-depth gap with no live vector: medium, not high.",
+    "evidence": "src-tauri/src/lib.rs:287-342, :406-419, src-tauri/build.rs:1-26, src-tauri/tauri.conf.json app.security.csp=null, src/lib/export-artifact.ts:76-88, src/modules/notes/NotesPanel.tsx:220-247, src/modules/notes/notes-persistence.ts:68-70, src/lib/plugin-runtime.ts:26-28, src/lib/marketplace.ts:8-41",
+    "evidence_checked": "Read both commands, the handler registration, build.rs (no command allow-list), CSP, every caller of the export helpers and notes persistence, and the plugin loader; grep for innerHTML/dangerouslySetInnerHTML over src/ plugins/ returned nothing.",
+    "repro_check": "grep -rn 'saveTextArtifact|savePngArtifact|savePdfArtifact' src -> only NotesPanel.tsx:225/236/247 with sanitised exportBaseName; no runtime plugin JS loading found."
+  },
+  {
+    "raw_id": "COD-rust-core-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: write_mcp_endpoint_file is the only writer (lib.rs:184-193), called only after the bind probe (lib.rs:260-265), and nothing ever deletes mcp-endpoint.json (MCP_ENDPOINT_FILENAME appears only in lib.rs; the exit handler lib.rs:507-518 does not remove it), so the doc comment at lib.rs:182-183 is wrong about the file on disk. Downgraded: the amplifying consequence depended on COD-rust-core-2's live orphan answering on the stale port, which is refuted (stdin-EOF watchdog reaps the workers), so a stale file normally points at a dead port and the client gets connection-refused, not another session's answers.",
+    "evidence": "src-tauri/src/lib.rs:157-193, :241-269, :507-518, sidecar/main.py:71-87",
+    "evidence_checked": "Read writer + caller + exit handler; grepped the repo (.py/.rs/.ts/.mjs/.md) for mcp-endpoint / MCP_ENDPOINT_FILENAME - only lib.rs and docs.",
+    "repro_check": "grep -rn 'mcp-endpoint|MCP_ENDPOINT_FILENAME' -> lib.rs:159,177,526 + docs only; no remove_file anywhere."
+  },
+  {
+    "raw_id": "COD-rust-core-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: both commands do File::create -> write_all -> flush -> rename with no sync_all on the file or directory (lib.rs:303-309, :336-341); File::flush does not fsync, so the SC-032 'survives a crash' comment (lib.rs:281-286) overclaims. Downgraded: the .md file is a mirror, not the note's primary store - notes-persistence.ts documents the workspace blob as 'the primary durable store' and the .md write as non-fatal (notes-persistence.ts:52,72-76), so a power-loss truncation of the mirror does not lose the note.",
+    "evidence": "src-tauri/src/lib.rs:281-310, :318-342, src/modules/notes/notes-persistence.ts:52, :60-76",
+    "evidence_checked": "Read both write commands and the notes persistence caller.",
+    "repro_check": "design - read lib.rs:303-309: no sync_all/sync_data call; grep -n sync_ src-tauri/src/lib.rs -> none."
+  },
+  {
+    "raw_id": "COD-rust-core-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The over-claim is real: wait_for_port_timeout is a bare TcpStream::connect (lib.rs:46-55) and its caller logs 'Python sidecar healthy' and publishes the discovery file on that evidence (lib.rs:260-265); pick_free_port drops the listener (lib.rs:30-33) and the port is picked at lib.rs:440, before the up-to-90s MCP join, so the window is long. Corrected consequence: the BYOK half is wrong - the frontend never relies on the Rust probe, it gates on its own GET /health (sidecar-client.ts:125-143), so the core's TCP check governs only a log line and the discovery file; a foreign process must also be handed the same OS-assigned ephemeral port, which is improbable. Low.",
+    "evidence": "src-tauri/src/lib.rs:30-33, :46-55, :240-269, :440, src/lib/sidecar-client.ts:90-99, :125-143",
+    "evidence_checked": "Read the probe, port pick, caller, and the frontend's independent health gate.",
+    "repro_check": "design - read sidecar-client.ts:131-133: frontend only proceeds on response.ok from /health, independent of the Rust probe."
+  },
+  {
+    "raw_id": "COD-rust-core-9",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. SidecarPort is managed once with the picked port before the spawn (lib.rs:440-441); every spawn-failure arm in start_main_sidecar only eprintln!s and returns (lib.rs:206-222) without changing that state, so get_sidecar_port keeps returning a live-looking port; the frontend never tests for 0 (sidecar-client.ts:97-98) and simply retries /health until a 120s deadline, then throws a generic 'did not become ready in time' (sidecar-client.ts:127-140). The documented 0 sentinel (lib.rs:272-275) is honoured nowhere.",
+    "evidence": "src-tauri/src/lib.rs:195-224, :272-279, :437-441, src/lib/sidecar-client.ts:90-99, :125-143",
+    "evidence_checked": "Read start_main_sidecar, get_sidecar_port, setup, and the frontend resolve/ready loop; grep for '=== 0' in sidecar-client.ts returned nothing.",
+    "repro_check": "Would run: rename the bundled vysted-sidecar binary and launch - expect a 120s spinner then the generic SidecarError(503). Not run (no GUI launch permitted); code path is unambiguous."
+  },
+  {
+    "raw_id": "COD-rust-core-10",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The two supervisor threads cannot race each other on the environment: both mutate it only through std::env::set_var/remove_var (openbb_mcp.rs:59-60,95-96; sec_edgar_mcp.rs same), and Rust std serialises every setenv/unsetenv behind a process-wide ENV_LOCK write lock (and std getenv behind its read lock) - std/sys/env/unix.rs:50-53,112-123 in the installed 1.95.0 toolchain. The Rust-2024 `unsafe` concern is non-Rust code calling libc getenv without that lock, which is not what the finding claims and is not created by having two supervisors (the proposed fix of moving set_var to the setup thread would not change it).",
+    "evidence": "src-tauri/src/openbb_mcp.rs:58-63, :92-96, src-tauri/src/lib.rs:466-485, ~/.rustup/toolchains/stable-aarch64-apple-darwin/share/doc/rust/html/src/std/sys/env/unix.rs.html:50-53,112-123",
+    "evidence_checked": "Read both supervisors' env mutation sites and the std env implementation shipped with the local toolchain (rustc 1.95.0 docs source).",
+    "repro_check": "sed -e 's/<[^>]*>//g' .../std/sys/env/unix.rs.html | grep ENV_LOCK -> 'static ENV_LOCK: RwLock', setenv takes ENV_LOCK.write() (line 115), unsetenv takes ENV_LOCK.write() (line 123)."
+  },
+  {
+    "raw_id": "COD-rust-core-11",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The logic defect is real: pass 2 converts a read error to None (keychain.rs:287-289), migrate_at then sets migrated=true unconditionally (keychain.rs:197-198), both guards short-circuit forever after (keychain.rs:180-186, :258-264), and MigrateReport has no failed list (keychain.rs:49-58). Corrected: the whole path is cfg(debug_assertions) (keychain.rs:92, :353-361) - no shipped user runs it - and nothing is 'forfeited': the secret stays in the OS keychain and the frontend treats migration as best-effort with Settings re-entry as the fallback (src/lib/keychain.ts:141-151). Dev-only edge: low.",
+    "evidence": "src-tauri/src/keychain.rs:49-58, :92, :171-204, :244-293, :347-370, src/lib/keychain.ts:141-156",
+    "evidence_checked": "Read the dev_keystore module, both migrate functions, the command, and the frontend caller.",
+    "repro_check": "design - migrate_collecting with a reader that errors twice for account A: resolved[A]=None, migrate_at sets migrated=true, report {migrated:0, already_done:false}; a unit test with that stub reader would show it (not run: no cargo)."
+  },
+  {
+    "raw_id": "COD-rust-core-12",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The triplication is real (lib.rs:116-134, lib.rs:142-151, keychain.rs:117-124, the last one saying it 'mirrors resolve_data_dir'). Corrected: the 'does not create the directory' half has no consequence, because every consumer of get_app_data_dir writes through write_text_atomic/write_bytes_atomic, which create_dir_all the parent (lib.rs:295, :326); and the three copies currently agree. A maintainability smell kept in sync by comment, not a medium defect.",
+    "evidence": "src-tauri/src/lib.rs:112-151, :295, :326, src-tauri/src/keychain.rs:114-124, src/modules/notes/notes-persistence.ts:31-35, src/lib/export-artifact.ts:37-45",
+    "evidence_checked": "Read all three resolvers and both frontend consumers.",
+    "repro_check": "design - diff the three bodies: identical app_data_dir()-or-temp_dir().join(\"vysted-terminal\") policy; create_dir_all present in 2/3 and in both write commands."
+  },
+  {
+    "raw_id": "COD-rust-core-13",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds as stated. keychain_migrate is an async command (keychain.rs:347-351) that runs migrate_collecting inline, which std::thread::sleep(140s) (keychain.rs:224, :286) on a Tauri async-runtime worker with no event/progress to the renderer; the inline placement is deliberate (keychain.rs:355-359) and the path is debug-only, so low is right.",
+    "evidence": "src-tauri/src/keychain.rs:216-237, :280-290, :347-361, src/lib/keychain.ts:141-156",
+    "evidence_checked": "Read the command, the sleep site and the frontend invoke (no progress listener).",
+    "repro_check": "design - read keychain.rs:286: std::thread::sleep(Duration::from_secs(140)) inside a fn called from `pub async fn keychain_migrate`."
+  },
+  {
+    "raw_id": "COD-rust-core-14",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds. write_text_atomic (lib.rs:287-310) and write_bytes_atomic (lib.rs:318-342) are the same parent/create_dir_all/tmp-name/create/write_all/flush/rename sequence, differing only in as_bytes() and the 'note' vs 'export' fallback name (lib.rs:299 vs :332).",
+    "evidence": "src-tauri/src/lib.rs:287-342",
+    "evidence_checked": "Read both functions side by side.",
+    "repro_check": "design - visual diff of lib.rs:287-310 vs :318-342."
+  },
+  {
+    "raw_id": "COD-rust-core-15",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds. kill_switch_emit takes a caller-chosen fired_by (kill_switch.rs:89-92), is documented as a developer fire-test (kill_switch.rs:83-88), and is registered in the release invoke_handler with no cfg gate (lib.rs:416); no live consequence because nothing listens (see COD-rust-core-3). Mechanism fact for the removal batch: the kill switch gates order placement ONLY - bus subscribers are broker adapters (broker_base.py:103) and the only is_fired checks are the propose/confirm order gates (broker_base.py:251, :345) - so this command, like the shortcut, serves only the trading surface.",
+    "evidence": "src-tauri/src/kill_switch.rs:83-97, src-tauri/src/lib.rs:406-419, sidecar/services/broker_base.py:100-103, :245-252, :340-346",
+    "evidence_checked": "Read the command, its registration, and every sidecar kill-switch consumer (grep over non-test sidecar/).",
+    "repro_check": "grep -rn kill_switch_emit src -> no frontend caller; grep -rn 'kill_switch' sidecar (non-test) -> routers/safety.py + broker_base.py order gates only."
+  }
+]

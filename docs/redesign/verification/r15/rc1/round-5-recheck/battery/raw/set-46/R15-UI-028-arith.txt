@@ -1,0 +1,4 @@
+=== manual arithmetic check of toMarketUnits (pure function, no vitest invoked) ===
+vega/100 = 0.30627 expect ~0.306 per vol pt
+theta/365 = -0.10871424657534247 expect ~-0.109 per day
+rho/100 = 0.135565 expect ~0.1356 per 1% (the residual the batch-9 note flagged as still unlabelled)

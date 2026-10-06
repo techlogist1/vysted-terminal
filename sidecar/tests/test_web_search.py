@@ -1,0 +1,699 @@
+"""R9 Track A — the web_search agent tool: ONE retrieval resolution path.
+
+Retrieval is ONE local lane shared by BOTH research tiers (the tier governs
+where RESEARCH routes, never where retrieval happens). The routing matrix
+below locks every cell — {explicit tier_a/tier_b} × {legacy R7 ids} ×
+{legacy pre-R8 headers} × {no headers} × {custom URL or not} × {managed
+SearXNG READY or not} — asserting the chosen backend id per cell with the
+registry and the in-process manager mocked. It EXTENDS R8's matrix (never
+shrunk); the R8 cells whose semantics R9 deliberately changed are called out
+inline (there is no user-facing keyless tier anymore — t1_local folds into
+tier_a, so a READY managed instance now serves it).
+
+Rule 1 (extends R8 D20/D25): tier_a → SearXNG READY ? searxng :
+``keyless-fallback`` (the honest id Team C's nudge banner keys off) — never an
+error state. A stopped SearXNG NEVER yields "no web backend".
+"""
+
+from __future__ import annotations
+
+import asyncio
+import contextlib
+
+import pytest
+
+import config
+from services.agent_tools.web_search import KEYLESS_FALLBACK_BACKEND_ID, _web_search
+from services.search.base import Citation, SearchError, SearchResponse, SearchResult
+
+MANAGED_URL = "http://127.0.0.1:8888"
+
+
+class _FakeBackend:
+    def __init__(self, backend: str = "searxng") -> None:
+        self.backend = backend
+
+    async def search(self, query: str, *, options=None) -> SearchResponse:  # noqa: ANN001
+        return SearchResponse(
+            results=[SearchResult(url="https://x.com/a", title="A", snippet="snip")],
+            citations=[Citation(url="https://x.com/a", title="A", excerpt="snip")],
+            backend=self.backend,
+            query=query,
+        )
+
+
+class _EmptyBackend:
+    """An UP backend that answers ``ok: True`` with ZERO results — the live
+    R13 bug shape: a managed SearXNG whose upstream engines are all dead still
+    serves HTTP 200 with ``results: []`` for every query."""
+
+    def __init__(self, backend: str = "searxng") -> None:
+        self.backend = backend
+
+    async def search(self, query: str, *, options=None) -> SearchResponse:  # noqa: ANN001
+        return SearchResponse(results=[], citations=[], backend=self.backend, query=query)
+
+
+def _run(coro):
+    return asyncio.run(coro)
+
+
+@contextlib.contextmanager
+def _request(
+    *,
+    r7: str | None = None,
+    legacy: str | None = None,
+    searxng_url: str | None = None,
+    openrouter_key: str | None = None,
+):
+    """Set the full per-request search header state; reset on exit (the
+    middleware contract — nothing leaks across requests)."""
+    r7_token = config.set_request_research_search_tier(r7)
+    search_tokens = config.set_request_search(tier=legacy, searxng_url=searxng_url)
+    or_token = config.set_request_openrouter_search_key(openrouter_key)
+    try:
+        yield
+    finally:
+        config.reset_request_openrouter_search_key(or_token)
+        config.reset_request_search(search_tokens)
+        config.reset_request_research_search_tier(r7_token)
+
+
+def _stub_registry(monkeypatch: pytest.MonkeyPatch) -> list[dict]:
+    """A registry.resolve stub with REAL availability semantics: ``searxng``
+    needs a URL, the keyless floor always resolves, dead R7 ids resolve to
+    None. Records every call (id + kwargs) so a test can assert WHICH lane was
+    consulted and WITH WHAT URL."""
+    from services.search import registry
+
+    calls: list[dict] = []
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        calls.append({"id": active_id, **kw})
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _FakeBackend("searxng")
+        if active_id in ("keyless", "ddg"):
+            return _FakeBackend(active_id)
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    return calls
+
+
+def _set_manager_ready(monkeypatch: pytest.MonkeyPatch, ready: bool) -> None:
+    """Pin the in-process managed-SearXNG state: READY → the managed base URL,
+    else ``None`` (the instant ``ready_base_url()`` read the resolver uses)."""
+    from services import searxng_manager
+
+    monkeypatch.setattr(
+        searxng_manager.manager,
+        "ready_base_url",
+        lambda: MANAGED_URL if ready else None,
+    )
+
+
+# --- The R9 routing matrix ----------------------------------------------------
+#
+# Each cell: (r7 tier header, legacy tier header, openrouter key, custom
+# searxng url, manager READY) → the backend id the tool result must carry.
+# ``None`` r7 + ``None`` legacy = the no-headers cell.
+
+CUSTOM_URL = "http://10.0.0.5:8080"
+FALLBACK = KEYLESS_FALLBACK_BACKEND_ID
+
+MATRIX = [
+    # Explicit tier_a — managed instance when READY, else the SILENT honest
+    # keyless fallback (never an error state).
+    ("tier_a", None, None, None, True, "searxng"),
+    ("tier_a", None, None, None, False, FALLBACK),
+    # Explicit tier_a with a custom URL — that instance, manager moot.
+    ("tier_a", None, None, CUSTOM_URL, True, "searxng"),
+    ("tier_a", None, None, CUSTOM_URL, False, "searxng"),
+    # Explicit tier_b — retrieval STAYS local (only research routes to the
+    # research model); the key changes nothing about retrieval.
+    ("tier_b", None, "sk-or-1", None, True, "searxng"),
+    ("tier_b", None, "sk-or-1", None, False, FALLBACK),
+    ("tier_b", None, None, None, True, "searxng"),
+    ("tier_b", None, None, None, False, FALLBACK),
+    # Legacy R7 ids fold in: t1_local/t2_searxng → tier_a. (R9 semantics
+    # change, deliberate: there is no user-facing keyless tier, so a READY
+    # managed instance now serves an old explicit-t1 client too.)
+    ("t1_local", None, None, None, True, "searxng"),
+    ("t1_local", None, None, None, False, FALLBACK),
+    ("t2_searxng", None, None, None, True, "searxng"),
+    ("t2_searxng", None, None, None, False, FALLBACK),
+    ("t2_searxng", None, None, CUSTOM_URL, True, "searxng"),
+    ("t2_searxng", None, None, CUSTOM_URL, False, "searxng"),
+    # Legacy R7 t3_hosted → tier_b; the hosted SCRAPER is dead, retrieval is
+    # local — with or without the key, with a READY manager or not.
+    ("t3_hosted", None, "sk-or-1", None, True, "searxng"),
+    ("t3_hosted", None, "sk-or-1", None, False, FALLBACK),
+    ("t3_hosted", None, None, None, True, "searxng"),
+    ("t3_hosted", None, None, None, False, FALLBACK),
+    # Legacy pre-R8 byok-exa — the Exa lane is DELETED; maps across the key
+    # boundary (tier_b with a key, tier_a without), retrieval local either way.
+    (None, "byok-exa", "sk-or-1", None, True, "searxng"),
+    (None, "byok-exa", "sk-or-1", None, False, FALLBACK),
+    (None, "byok-exa", None, None, True, "searxng"),
+    (None, "byok-exa", None, None, False, FALLBACK),
+    # Legacy local-searxng with an explicit URL — that instance, manager moot.
+    (None, "local-searxng", None, CUSTOM_URL, True, "searxng"),
+    (None, "local-searxng", None, CUSTOM_URL, False, "searxng"),
+    # Legacy local-searxng without a URL — tier_a lanes.
+    (None, "local-searxng", None, None, True, "searxng"),
+    (None, "local-searxng", None, None, False, FALLBACK),
+    # Legacy native — THE confirmed R7 bug cell stays pinned: a READY managed
+    # SearXNG is never bypassed.
+    (None, "native", None, None, True, "searxng"),
+    (None, "native", None, None, False, FALLBACK),
+    # No headers at all (fresh client / non-HTTP entrypoint): the tier_a lanes.
+    (None, None, None, None, True, "searxng"),
+    (None, None, None, None, False, FALLBACK),
+]
+
+
+@pytest.mark.parametrize(
+    ("r7", "legacy", "or_key", "searxng_url", "ready", "expected"),
+    MATRIX,
+)
+def test_routing_matrix(
+    monkeypatch: pytest.MonkeyPatch,
+    r7: str | None,
+    legacy: str | None,
+    or_key: str | None,
+    searxng_url: str | None,
+    ready: bool,
+    expected: str,
+) -> None:
+    _stub_registry(monkeypatch)
+    _set_manager_ready(monkeypatch, ready)
+    # No cell may reach a network autodetect — there is no such path anymore
+    # (services.search.searxng.detect_searxng was deleted, R15-CODE-RESEARCH-004);
+    # the manager read below is in-process, so this is now true by construction.
+
+    with _request(r7=r7, legacy=legacy, searxng_url=searxng_url, openrouter_key=or_key):
+        out = _run(_web_search({"query": "nvidia earnings"}))
+
+    assert out["ok"] is True, out
+    assert out["backend"] == expected
+
+
+def test_matrix_did_not_shrink_from_r8() -> None:
+    # R8 pinned 14 matrix cells; the brief mandates extending, never shrinking.
+    assert len(MATRIX) >= 29
+
+
+def test_default_lane_uses_the_managed_instances_own_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The managed lane resolves SearXNG with the manager's reported base URL —
+    not a guessed port."""
+    calls = _stub_registry(monkeypatch)
+    _set_manager_ready(monkeypatch, True)
+
+    with _request():
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True and out["backend"] == "searxng"
+    searxng_calls = [c for c in calls if c["id"] == "searxng"]
+    assert searxng_calls and searxng_calls[0]["searxng_url"] == MANAGED_URL
+
+
+def test_custom_url_wins_over_the_managed_instance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = _stub_registry(monkeypatch)
+    _set_manager_ready(monkeypatch, True)
+
+    with _request(searxng_url=CUSTOM_URL):
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True and out["backend"] == "searxng"
+    searxng_calls = [c for c in calls if c["id"] == "searxng"]
+    assert searxng_calls[0]["searxng_url"] == CUSTOM_URL
+
+
+def test_degraded_searxng_skips_straight_to_keyless_with_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """C10: a managed instance the health-poll already knows is DEGRADED (every
+    engine blocked) is never dispatched to — the tool routes straight to the
+    keyless floor and carries ``reason: "searxng_degraded"`` so the brief can
+    say WHY, not just that it fell back."""
+    from services import searxng_manager
+
+    calls = _stub_registry(monkeypatch)
+    _set_manager_ready(monkeypatch, False)
+    monkeypatch.setattr(searxng_manager.manager, "state", searxng_manager.STATE_DEGRADED)
+
+    with _request():
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True
+    assert out["backend"] == KEYLESS_FALLBACK_BACKEND_ID
+    assert out["reason"] == "searxng_degraded"
+    assert not any(c["id"] == "searxng" for c in calls)
+
+
+def test_ready_searxng_never_carries_the_degraded_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A plain READY SearXNG result must never carry ``reason`` — it is set
+    ONLY on the pre-emptive degraded route, never on a normal searxng serve."""
+    _stub_registry(monkeypatch)
+    _set_manager_ready(monkeypatch, True)
+
+    with _request():
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True and out["backend"] == "searxng"
+    assert "reason" not in out
+
+
+def test_searxng_search_time_failure_degrades_to_keyless_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Rule 1 resilience: a SearXNG instance that RESOLVES but fails at search
+    time (stopped container / dead custom URL) degrades ONCE to the keyless
+    floor with the honest fallback id — never an error state, and no banner can
+    claim SearXNG served the run."""
+    from services.search import registry
+
+    class _DeadSearxng:
+        async def search(self, query, *, options=None):  # noqa: ANN001, ANN201
+            raise SearchError("SearXNG unreachable at http://…")
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _DeadSearxng()
+        if active_id == "keyless":
+            return _FakeBackend("keyless")
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, True)
+
+    with _request(r7="tier_a"):
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True
+    assert out["backend"] == KEYLESS_FALLBACK_BACKEND_ID
+
+
+def test_keyless_fallback_id_never_claims_searxng(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The fallback result's id is the FALLBACK id even though the keyless
+    backend reports its own engine-tagged id internally."""
+    from services.search import registry
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "keyless":
+            return _FakeBackend("keyless:brave")  # engine-tagged internal id
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, False)
+
+    with _request(r7="tier_a"):
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["backend"] == KEYLESS_FALLBACK_BACKEND_ID
+
+
+def test_ddg_defensive_floor_is_stamped_as_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services.search import registry
+
+    # Should the keyless module ever fail to import, the bare ddg floor serves —
+    # still stamped with the honest fallback id (it IS the fallback position).
+    def _resolve(active_id, **_kw):  # noqa: ANN001, ANN003
+        return _FakeBackend("ddg") if active_id == "ddg" else None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, False)
+    with _request():
+        out = _run(_web_search({"query": "nvidia earnings"}))
+    assert out["ok"] is True
+    assert out["backend"] == KEYLESS_FALLBACK_BACKEND_ID
+    assert out["results"][0]["url"] == "https://x.com/a"
+
+
+# --- Up-but-empty SearXNG cross-check (D25 extension, live R13 fix) -----------
+#
+# LIVE ROOT CAUSE: the managed SearXNG container's upstream engines were all
+# dead (CAPTCHA-suspended/timeouts) but it served HTTP 200 with
+# ``results: []`` for EVERY query — a false "no web sources found" claim. An
+# ``ok: True`` zero-result SearXNG answer is now cross-checked against the
+# keyless floor once before being accepted, mirroring the keyless tier's own
+# internal doctrine (rotate to cross-check before declaring "found nothing",
+# services/search/keyless.py).
+
+
+def test_searxng_ok_empty_cross_checks_floor_and_serves_its_rows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(a) SearXNG ok+empty, floor has rows → the floor's rows are served,
+    stamped ``keyless-fallback``, and the run's keyless_fallback telemetry is
+    incremented (same accounting as the search-time-failure degrade)."""
+    from services.search import registry
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _EmptyBackend("searxng")
+        if active_id == "keyless":
+            return _FakeBackend("keyless")
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, True)
+
+    telemetry = config.begin_search_telemetry()
+    with _request(r7="tier_a"):
+        out = _run(_web_search({"query": '"KSE Ltd" KSE news outlook'}))
+
+    assert out["ok"] is True
+    assert out["backend"] == KEYLESS_FALLBACK_BACKEND_ID
+    assert out["results"][0]["url"] == "https://x.com/a"
+    assert telemetry["keyless_fallback_searches"] == 1
+
+
+def test_searxng_ok_empty_and_floor_also_empty_stays_honest_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(b) SearXNG ok+empty, floor ALSO ok+empty → the SearXNG empty answer
+    stands as ``ok: True`` with no results — a genuine "no results" is not an
+    error and the floor is never faked into having found something."""
+    from services.search import registry
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _EmptyBackend("searxng")
+        if active_id == "keyless":
+            return _EmptyBackend("keyless")
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, True)
+
+    with _request(r7="tier_a"):
+        out = _run(_web_search({"query": '"KSE Ltd" KSE news outlook'}))
+
+    assert out["ok"] is True
+    assert out["backend"] == "searxng"
+    assert out["results"] == []
+
+
+def test_searxng_with_results_never_consults_the_floor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(c) SearXNG answering WITH results is trusted as-is — the cross-check
+    floor is never even resolved."""
+    from services.search import registry
+
+    calls: list[str] = []
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        calls.append(active_id)
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _FakeBackend("searxng")
+        if active_id == "keyless":
+            return _FakeBackend("keyless")
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, True)
+
+    with _request(r7="tier_a"):
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True
+    assert out["backend"] == "searxng"
+    assert "keyless" not in calls and "ddg" not in calls
+
+
+# --- Real-query outcomes feed the manager's empty-probe signal (R15-RESEARCH-028) --
+#
+# ``web_search`` is the only caller that knows what a REAL finance query got back
+# from the managed instance; it must feed that into ``searxng_manager.manager``'s
+# own consecutive-empty counter so three empty real answers degrades the same as
+# three empty periodic probes (the manager side of this is pinned separately in
+# ``test_searxng_manager.py``).
+
+
+def test_managed_searxng_empty_result_feeds_the_manager(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import searxng_manager
+    from services.search import registry
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _EmptyBackend("searxng")
+        if active_id == "keyless":
+            return _EmptyBackend("keyless")
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, True)
+    recorded: list[bool] = []
+    monkeypatch.setattr(
+        searxng_manager.manager,
+        "record_search_result",
+        lambda had_results: recorded.append(had_results),
+    )
+
+    with _request(r7="tier_a"):
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True
+    assert recorded == [False]
+
+
+def test_managed_searxng_with_results_feeds_the_manager_true(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import searxng_manager
+    from services.search import registry
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _FakeBackend("searxng")
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, True)
+    recorded: list[bool] = []
+    monkeypatch.setattr(
+        searxng_manager.manager,
+        "record_search_result",
+        lambda had_results: recorded.append(had_results),
+    )
+
+    with _request(r7="tier_a"):
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True
+    assert recorded == [True]
+
+
+def test_custom_searxng_url_never_feeds_the_managed_instance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A user-pointed custom instance isn't what ``searxng_manager.manager``
+    represents — its empty answers must never count against the app-managed
+    container's own health."""
+    from services import searxng_manager
+    from services.search import registry
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _EmptyBackend("searxng")
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, True)
+    recorded: list[bool] = []
+    monkeypatch.setattr(
+        searxng_manager.manager,
+        "record_search_result",
+        lambda had_results: recorded.append(had_results),
+    )
+
+    with _request(searxng_url=CUSTOM_URL):
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True
+    assert recorded == []
+
+
+# --- Existing contract — unchanged behaviours ---------------------------------
+
+
+def test_missing_query_is_rejected() -> None:
+    out = _run(_web_search({}))
+    assert out["ok"] is False and "error" in out
+
+
+def test_honest_message_when_even_ddg_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services.search import registry
+
+    # Defensive path: if EVERY backend (including the ddg floor) fails to resolve,
+    # the handler still returns an honest message rather than a fabricated source.
+    monkeypatch.setattr(registry, "resolve", lambda *a, **k: None)
+    _set_manager_ready(monkeypatch, False)
+    with _request():
+        out = _run(_web_search({"query": "nvidia earnings"}))
+    assert out["ok"] is False
+    assert "Unlimited" in out["message"] or "Settings" in out["message"]
+    assert "search" in out["message"].lower()
+
+
+def test_dispatch_returns_results_and_citations(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services.search import registry
+
+    monkeypatch.setattr(registry, "resolve", lambda *a, **k: _FakeBackend("searxng"))
+    with _request(searxng_url=CUSTOM_URL):
+        out = _run(_web_search({"query": "nvidia", "num_results": 3, "category": "financial"}))
+    assert out["ok"] is True
+    assert out["backend"] == "searxng"
+    assert out["results"][0]["url"] == "https://x.com/a"
+    # C4: every citation row carries the bare-host domain and the date key.
+    assert out["citations"][0] == {
+        "url": "https://x.com/a",
+        "title": "A",
+        "excerpt": "snip",
+        "domain": "x.com",
+        "published_at": None,
+    }
+
+
+def test_search_error_becomes_human_message(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services.search import registry
+
+    class _Boom:
+        backend = "keyless"
+
+        async def search(self, query, *, options=None):  # noqa: ANN001, ANN201
+            raise SearchError("keyless web search failed upstream (503).")
+
+    def _resolve(active_id, **_kw):  # noqa: ANN001, ANN003
+        return _Boom() if active_id == "keyless" else None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, False)
+    with _request():
+        out = _run(_web_search({"query": "x"}))
+    assert out["ok"] is False and "503" in out["message"]
+    # A plain SearchError (no typed reason) defaults to "unreachable" so the
+    # brief reports an honest no-backend miss rather than a transient throttle.
+    assert out["reason"] == "unreachable"
+
+
+def test_search_error_forwards_typed_rate_limit_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """WS3: a SearchError tagged ``reason="rate_limited"`` (a transient throttle)
+    is surfaced on the failed dict so the brief shows "rate-limited, retrying"
+    instead of the false "no backend configured" banner. Pinned on the floor
+    lane (no headers, manager down) — the fast-path distinction survives R9."""
+    from services.search import registry
+    from services.search.base import SEARCH_REASON_RATE_LIMITED
+
+    class _Throttled:
+        backend = "ddg"
+
+        async def search(self, query, *, options=None):  # noqa: ANN001, ANN201
+            raise SearchError(
+                "keyless web search is rate-limiting right now — retry shortly",
+                reason=SEARCH_REASON_RATE_LIMITED,
+            )
+
+    def _resolve(active_id, **_kw):  # noqa: ANN001, ANN003
+        return _Throttled() if active_id in ("keyless", "ddg") else None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, False)
+    with _request():
+        out = _run(_web_search({"query": "x"}))
+    assert out["ok"] is False
+    assert out["reason"] == "rate_limited"
+
+
+def test_searxng_rate_limit_does_not_silently_degrade(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Only an UNREACHABLE SearXNG degrades to the floor; a typed rate-limit is
+    surfaced honestly (transient — the instance is alive, retry is the fix)."""
+    from services.search import registry
+    from services.search.base import SEARCH_REASON_RATE_LIMITED
+
+    class _Throttled:
+        async def search(self, query, *, options=None):  # noqa: ANN001, ANN201
+            raise SearchError("SearXNG throttled", reason=SEARCH_REASON_RATE_LIMITED)
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _Throttled()
+        if active_id == "keyless":
+            return _FakeBackend("keyless")
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, True)
+    with _request():
+        out = _run(_web_search({"query": "x"}))
+    assert out["ok"] is False
+    assert out["reason"] == "rate_limited"
+
+
+def test_keyless_hanging_ddg_serves_brave_inside_the_tool_cap(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-RESEARCH-008: with no SearXNG, a hanging DuckDuckGo no longer burns
+    the whole 25 s tool cap — the rotation reaches Brave and its rows serve."""
+    import time
+
+    from services.agent_tools import catalog
+    from services.search import keyless, registry
+    from services.search.breaker import reset_breakers
+    from services.search.pacing import reset_queue
+
+    class _Hang:
+        async def search(self, query, *, options=None):  # noqa: ANN001, ANN201
+            await asyncio.sleep(3600)
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "keyless":
+            return keyless.KeylessSearchBackend(
+                engines={"ddg": _Hang(), "brave": _FakeBackend("brave"), "mojeek": _Hang()}
+            )
+        return None
+
+    reset_breakers()
+    reset_queue()
+    monkeypatch.setattr(keyless, "ENGINE_DEADLINE_SECS", 0.2)
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, False)
+    cap = catalog.timeout_for("web_search")
+    try:
+        with _request(r7="tier_a"):
+            t0 = time.monotonic()
+            out = _run(asyncio.wait_for(_web_search({"query": "Dixon news"}), cap))
+            elapsed = time.monotonic() - t0
+    finally:
+        reset_breakers()
+        reset_queue()
+    assert out["ok"] is True
+    assert out["results"][0]["url"] == "https://x.com/a"
+    assert elapsed < 1.0
+
+
+def test_web_search_in_catalog_and_registered() -> None:
+    import services.agent_tools as agent_tools
+    from services.agent_tools import catalog
+
+    assert "web_search" in catalog.CAPABILITY_CATALOG
+    cap = catalog.CAPABILITY_CATALOG["web_search"]
+    assert cap.read_only is True and cap.domain == "research"
+    agent_tools.register_v0_6_0_tools()
+    assert "web_search" in agent_tools.registered_tools()

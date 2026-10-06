@@ -16,7 +16,7 @@ import QuantLib as ql
 
 from models.quant import BondPricingRequest, BondPricingResult
 
-from ._common import to_ql_date
+from ._common import holds_ql_lock, to_ql_date
 
 _FREQUENCY_MAP: dict[int, int] = {
     1: ql.Annual,
@@ -25,6 +25,7 @@ _FREQUENCY_MAP: dict[int, int] = {
 }
 
 
+@holds_ql_lock
 def price_bond(req: BondPricingRequest) -> BondPricingResult:
     """Price a fixed-rate bond at the given yield-to-maturity.
 

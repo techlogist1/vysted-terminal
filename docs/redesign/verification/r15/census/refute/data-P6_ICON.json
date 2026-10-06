@@ -1,0 +1,92 @@
+[
+  {
+    "raw_id": "DAT-P6-1",
+    "verdict": "admitted",
+    "severity_final": "critical",
+    "reason": "Holds exactly. The statement routes pass the bare user string to openbb-mcp, whose _normalize_symbol only swaps dots for dashes and forwards 'ICON' to its yfinance backend, which answers with the US-listed Icon Energy Corp (Greece, USD). No correctness validator runs on statements (validate=None), unlike /fundamentals. The live stack still serves Icon Energy's Dec-FY net income (-4,197,000 / -210,000 / 1,155,000 / 4,242,000), which matches yfinance's 'ICON' ticker number for number, as financials for Icon Facilitators (BSE 544426). One refinement: nothing is misresolved in the first place. The bare ticker is never resolved to the BSE listing at all (yfinance_provider._yahoo_symbol, which maps BSE-only names to .BO, is only the rank-2 fallback and is never reached).",
+    "evidence": "sidecar/services/provider_registry.py:495-513 (statement accessors, validator None), sidecar/services/provider_registry.py:134-136, sidecar/services/openbb_mcp_provider.py:260-262 (_normalize_symbol), sidecar/services/openbb_mcp_provider.py:447-481 (_financial_statement passes normalized bare symbol), sidecar/services/yfinance_provider.py:97-125 (_yahoo_symbol .BO mapping only on fallback), sidecar/routers/fundamentals.py:177-192",
+    "evidence_checked": "Opened registry, openbb-mcp provider and router. Re-ran GET :52152/fundamentals/ICON/income live (provider openbb-mcp, Dec-31 periods, same negative net income). Checked yfinance.Ticker('ICON') directly from the sidecar venv: longName 'Icon Energy Corp.', country Greece, currency USD, identical net-income series. Checked yfinance.Ticker('ICON.BO') income_stmt: Mar-FY, positive NI (4.42 cr FY26).",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ICON/income returned provider=openbb-mcp, periods 2025-12-31..2022-12-31, net_income 2025=-4197000. This is identical to yf.Ticker('ICON').income_stmt (Icon Energy Corp, Greece) on 2026-09-23T00:59Z."
+  },
+  {
+    "raw_id": "DAT-P6-2",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "This is a definitional difference, not a wrong value. The app's 6.03 is yfinance trailingEps, which is FY26 continuing-ops net income divided by WEIGHTED-AVERAGE shares. That is the statutory Ind AS 33 basic-EPS basis. Screener's 5.62 is net profit divided by YEAR-END shares (7,859,600). Reconstruction: 5,759,600 pre-IPO shares plus 2,100,000 IPO shares weighted from late-June 2025 allotment (about 274/365 of FY26) gives about 7.34M shares, and 44,216,000 / 7.34M = 6.03 exactly. The 'does not self-reconcile' point (43.5M / 7.86M = 5.54) is the same period-end-denominator confusion. Per PROMPT_data_s2 a definitional difference is never a finding. At most a low polish item: the EPS basis (weighted vs period-end) is not labelled.",
+    "evidence": "sidecar/services/yfinance_provider.py:297-373 (get_fundamentals maps info fields incl. eps), docs/redesign/verification/r15/battery/packs/P6_ICON.json:ipo (allotment 2025-06-27, issue 21,00,000 shares, pre-IPO capital 5.76 cr) + traps.eps_series_not_restated_1000x (year-end share counts), docs/redesign/verification/r15/battery/collected/P6_ICON.json:259,272-275",
+    "evidence_checked": "Pulled yfinance ICON.BO directly (sidecar venv, 2026-09-23T00:59Z): trailingEps 6.03, FY26 'Net Income From Continuing Operation' 44,216,000, sharesOutstanding 7,859,600. Did the weighted-average reconstruction against the pack's own IPO dates and share counts. The app's EPS is not recomputed anywhere, it is passed through from info.",
+    "repro_check": "python: yf.Ticker('ICON.BO').info['trailingEps'] gives 6.03. 44216000 / (5759600 + 2100000*274/365) = 6.03, so this is the weighted-average basis, not an error."
+  },
+  {
+    "raw_id": "DAT-P6-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real, but the finding overstates it. The results-calendar service is NSE-only by construction: nse_provider.get_results_calendar has no BSE lane, unlike get_shareholding, which has NSE+BSE lanes. So every BSE-only name gets a 502 with the misleading 'not a known NSE instrument' text, and the live stack reproduces this. Two corrections take it from high to medium. First, the route serves board-meeting and results DATES (purpose/date events), not results figures, so 'cannot surface ANY results data' is wrong. The half-year figures the finding cites as outside truth are a different field, and the pack records the filing dates themselves as a world gap. Second, the failure is loud, not silent. Its only other consumer, research/disclosures.fetch_results_calendar, degrades softly to ok:false.",
+    "evidence": "sidecar/services/corporate_disclosures.py:335-358 (NSE-only get_results_calendar), sidecar/services/corporate_disclosures.py:366-393 (shareholding has NSE+BSE lanes, for contrast), sidecar/routers/disclosures.py:74-92 (502 on ProviderError), sidecar/services/research/disclosures.py:185-203 (soft consumer)",
+    "evidence_checked": "Opened router, service and research consumer. Re-ran the repro live against :52152.",
+    "repro_check": "curl -s '127.0.0.1:52152/disclosures/results?symbol=ICON' returned HTTP 502 {\"detail\":\"nse_direct: 'ICON' is not a known NSE instrument\"} (2026-09-23)."
+  },
+  {
+    "raw_id": "DAT-P6-4",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "Follows from the DAT-P6-2 refutation. 64.15 / 6.03 = 10.638, which is exactly the app's pe_ratio. That is P/E on statutory weighted-average basic EPS, versus Screener and Groww P/E on year-end-share EPS (5.62-5.63). This is a definitional difference in the EPS denominator, a legitimate convention, not a wrong value. The finding itself says it has no independent root cause.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P6_ICON.json:250,259 (pe 10.638474, eps 6.03, price 64.15), sidecar/services/yfinance_provider.py:297-373 (pe/eps pass-through from info)",
+    "evidence_checked": "Arithmetic check against the collected payload, plus the yfinance direct pull used for DAT-P6-2.",
+    "repro_check": "64.15/6.03 = 10.638 (app) vs 64.15/5.62 = 11.41 (screener). The only difference is the weighted-average vs period-end share denominator."
+  },
+  {
+    "raw_id": "DAT-P6-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. The Fundamentals model carries roe and roa but has no ROCE field, and no code anywhere in sidecar/, src/ or types/ computes or renders ROCE. ROCE is a headline ratio on screener.in, the product's stated data benchmark, and a core screen for Indian small-cap investors. This is a real completeness gap at medium. Minor caveat: the pack itself cannot pin which fiscal year Screener's 23.3% belongs to. That does not affect the absent-field claim.",
+    "evidence": "sidecar/models/fundamentals.py:46-111 (roe:81, roa:82, no roce), repo-wide grep for roce/return_on_capital in sidecar/src/types (no hits)",
+    "evidence_checked": "Opened the Fundamentals model and grepped the whole repo for ROCE.",
+    "repro_check": "grep -rni 'roce' sidecar src types (excluding process/resource/force) found no matches. The /fundamentals/ICON body has no roce key."
+  },
+  {
+    "raw_id": "DAT-P6-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds, and it is structural rather than ICON-specific. bse_provider._quote_from_header reads h.get('Volume') or h.get('TotalTradedQty'), but BSE's getScripHeaderData payload carries neither key: the Header object has PrevClose/Open/High/Low/LTP/Ason and no volume at all. So EVERY header-path BSE quote ships volume=null, even though the bhavcopy fallback (_quote_from_bhavcopy) carries real volume. Side observation for the lead: the live quote is stamped timestamp 2026-09-23 via most_recent_session, while BSE's own 'Ason' says 22 Sep 26 16:00, so the session label also ignores the header's as-of.",
+    "evidence": "sidecar/services/bse_provider.py:506-537 (_quote_from_header volume key), sidecar/services/bse_provider.py:540-559 (bhavcopy fallback has volume), https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544426&seriesid= (fetched 2026-09-23T00:59:53Z: Header has no Volume/TotalTradedQty key)",
+    "evidence_checked": "Opened the BSE provider quote path. Fetched BSE's header API directly for 544426 (browser UA + Referer). Re-ran GET :52152/quotes/ICON?asset_class=equity live: volume still null.",
+    "repro_check": "curl 127.0.0.1:52152/quotes/ICON?asset_class=equity returned volume:null, provider bse. BSE getScripHeaderData Header keys contain no volume field."
+  },
+  {
+    "raw_id": "DAT-P6-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The gap is real but the mechanism is misdescribed and the severity overstated. dividend_per_share_ttm is a DERIVED field that /fundamentals never computes: it is excluded from field_meta stamping, and the cited 'provider did not publish' meta at collected:377-383 belongs to dividend_per_share, not _ttm. The research FAST leg fills it via dividend_history, which deliberately returns 'unavailable' for an EMPTY dividend series, because never-paid and data-missing cannot be told apart from that alone. So a lifetime non-payer like ICON is shown as honestly-labelled unknown, never as the confirmed 0. That is a conservative design choice with a reason attached, not a silent blank, so the severity goes to low. The fix is to affirm zero when price history covers 12 months or more and the dividend series is empty.",
+    "evidence": "sidecar/services/yfinance_provider.py:163-180 (_DERIVED_FIELDS excludes dividend_per_share_ttm from meta), sidecar/services/dividend_history.py:90-128 (empty series -> unavailable), sidecar/services/research/fast.py:207-232 (_apply_dividend_ttm affirmed-zero path), docs/redesign/verification/r15/battery/collected/P6_ICON.json:281,370-383",
+    "evidence_checked": "Opened the yfinance provider meta logic, dividend_history and the research fast leg. Confirmed from the collected field_meta that there is no dividend_per_share_ttm entry. Code-only, no live research run.",
+    "repro_check": "yf.Ticker('ICON.BO').dividends is empty, so _sum_trailing_dividends returns DividendTTM(None,'unavailable'). /fundamentals/ICON shows dividend_per_share_ttm null with no meta."
+  },
+  {
+    "raw_id": "DAT-P6-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real but honestly labelled. yfinance's info has no dividendYield for ICON.BO (confirmed None live), and the app stamps field_meta 'unavailable: provider did not publish this field' instead of a silent blank. The world's value is a triple-corroborated true 0.00%, so the gap is genuine. But it is a labelled provider gap with the same root as DAT-P6-7, so the severity goes to low. Fix together with DAT-P6-7: derive a zero yield once a zero trailing payout is affirmed.",
+    "evidence": "sidecar/services/yfinance_provider.py:343-350 (dividendYield mapping), docs/redesign/verification/r15/battery/collected/P6_ICON.json:257,370-376 (null + labelled meta), src/modules/research/brief-blocks.tsx:356-360 (yield row shown only when numeric)",
+    "evidence_checked": "Opened the provider mapping and the frontend consumer. Pulled yf.Ticker('ICON.BO').info live (dividendYield None).",
+    "repro_check": "python: yf.Ticker('ICON.BO').info.get('dividendYield') returns None, so the app returns null with the labelled reason."
+  },
+  {
+    "raw_id": "DAT-P6-9",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "Not a finding under the diff rules. The app's null is honestly labelled (field_meta 'unavailable: provider did not publish this field'), and yfinance genuinely publishes no beta for ICON.BO, confirmed None live. The outside 'truth' is a single aggregator's methodology-dependent statistic (INDmoney 0.68, unknown index and window), not an exchange fact with one correct value. A labelled gap measured against a vendor-specific estimate is not a mismatch, and the raw finding itself flags this as its weakest item.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P6_ICON.json:391-397 (labelled unavailable), docs/redesign/verification/r15/battery/packs/P6_ICON.json:price.beta_ltm (single source), sidecar/services/yfinance_provider.py:183-200 (_served_field_meta stamps reason for null fields)",
+    "evidence_checked": "Opened the provider field_meta logic. Pulled yf.Ticker('ICON.BO').info live (beta None).",
+    "repro_check": "python: yf.Ticker('ICON.BO').info.get('beta') returns None, so the app serves null with an explicit reason, which is an honest labelled gap."
+  },
+  {
+    "raw_id": "DAT-P6-10",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The app does not corrupt anything. BSE's own AnnSubCategoryGetData payload has the literal double quote in NEWSSUB (' Shareholder Meeting / Postal Ballot-Scrutinizer\"s Report'), and in the long HEADLINE it even has doubled single quotes ('Scrutinizer''s'). corporate_disclosures._clean only strips whitespace, so the app faithfully reproduces the exchange's text of record. Screener shows a normalized rendering. There is no app-side mis-transliteration.",
+    "evidence": "sidecar/services/corporate_disclosures.py:160-175 (_bse_row_to_announcement uses NEWSSUB), sidecar/services/corporate_disclosures.py:551-556 (_clean = strip only), https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260901&strScrip=544426&strSearch=P&strToDate=20260923&strType=C&subcategory=-1 (fetched 2026-09-23T01:00:43Z)",
+    "evidence_checked": "Opened the BSE announcement lane and _clean. Fetched BSE's announcements API directly for scrip 544426 and printed the raw NEWSSUB/HEADLINE repr.",
+    "repro_check": "curl BSE AnnSubCategoryGetData for 544426 returns NEWSSUB repr ' Shareholder Meeting / Postal Ballot-Scrutinizer\"s Report', with the same GUID 8f71db28, so the quote character is upstream."
+  }
+]

@@ -1,0 +1,2 @@
+right after aclose: finished = False
+0.6s later: finished = False

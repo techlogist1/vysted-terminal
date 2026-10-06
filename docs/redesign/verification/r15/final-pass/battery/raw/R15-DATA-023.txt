@@ -1,0 +1,21 @@
+# R15-DATA-023 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:53+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in DAL CSL ADANIENT; do echo "\$ GET /disclosures/shareholding?symbol=$s [IN]"; curl -s -m 90 -H "X-Vysted-Region: IN" "$H/disclosures/shareholding?symbol=$s" | python3 -c "
+import sys,json;d=json.load(sys.stdin);ps=d.get('patterns') or []
+print('patterns',len(ps),'coverage',d.get('coverage'))
+for r in ps[:2]: print({k:v for k,v in r.items() if 'pledg' in k or k in ('quarter_end','promoter_percent')})"; done
+--- output ---
+$ GET /disclosures/shareholding?symbol=DAL [IN]
+patterns 43 coverage covered
+{'quarter_end': '2026-06-30', 'promoter_percent': 70.86, 'promoter_pledged_percent': 0.0, 'promoter_pledge_basis': 'filed'}
+{'quarter_end': '2026-03-31', 'promoter_percent': 70.86, 'promoter_pledged_percent': 0.0, 'promoter_pledge_basis': 'filed'}
+$ GET /disclosures/shareholding?symbol=CSL [IN]
+patterns 49 coverage covered
+{'quarter_end': '2026-08-20', 'promoter_percent': 40.21, 'promoter_pledged_percent': 0.0, 'promoter_pledge_basis': 'filed'}
+{'quarter_end': '2026-06-30', 'promoter_percent': 37.65, 'promoter_pledged_percent': 0.0, 'promoter_pledge_basis': 'filed'}
+$ GET /disclosures/shareholding?symbol=ADANIENT [IN]
+patterns 25 coverage covered
+{'quarter_end': '2026-07-07', 'promoter_percent': 71.97, 'promoter_pledged_percent': 0.79, 'promoter_pledge_basis': 'filed'}
+{'quarter_end': '2026-06-30', 'promoter_percent': 74.84, 'promoter_pledged_percent': 0.79, 'promoter_pledge_basis': 'filed'}
+
+EXIT=0 (4.6s)

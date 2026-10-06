@@ -1,0 +1,4 @@
+[HEAD] keep-cases 43: stripped 9 -> ['Any chance you could get rid of my TCS position?', 'Mind noting that INFY cut its guidance?', 'What if you noted that BEL order book is 75k cr?', 'Think you could scrap my WIPRO lot?', 'Do you mind dropping ITC from my holdings?', 'Would it be okay to bump my TCS quantity to 40?', "Mind jotting down that HAL's order book crossed 1 lakh cr?", 'Is it alright if you get rid of my SBIN position?', "You'd be able to trim my LT holding to 5 shares?"]
+[HEAD] strip-controls 13: kept writes 1 -> ['Are markets open today?']
+[SIM interrogative-opener rule] keep-cases 43: stripped 0 -> []
+[SIM interrogative-opener rule] strip-controls 13: kept writes 1 -> ['Are markets open today?']

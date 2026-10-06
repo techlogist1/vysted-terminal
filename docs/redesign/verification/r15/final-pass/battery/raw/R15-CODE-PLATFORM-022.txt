@@ -1,0 +1,21 @@
+# R15-CODE-PLATFORM-022 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; echo "importers of portfolios client:"; grep -rn 'addPosition\|updatePosition\|deletePosition' src --include=*.ts --include=*.tsx | cut -c1-200; echo "exports in portfolios.ts:"; grep -n '^export' src/store/portfolios.ts
+--- output ---
+importers of portfolios client:
+src/modules/panel-context-publishers.test.tsx:95:  updatePosition: vi.fn(),
+src/modules/panel-context-publishers.test.tsx:96:  deletePosition: vi.fn(),
+src/store/portfolios.test.ts:7: * the agent's portfolio host actions alike (the dead addPosition/updatePosition/
+src/store/portfolios.test.ts:8: * deletePosition/refresh client was removed, R15-CODE-PLATFORM-022). A rejected
+exports in portfolios.ts:
+20:export type AssetClass = "equity" | "crypto";
+23:export interface Holding {
+33:export interface Portfolio {
+40:export interface HoldingInput {
+70:export const MAX_HOLDING_QUANTITY = 1e12;
+72:export interface HoldingValidation {
+87:export function validateHolding(raw: {
+179:export const usePortfoliosStore = create<PortfoliosState>((set, get) => ({
+283:export function seedDefaultPortfolio(holdings: HoldingInput[]): void {
+
+EXIT=0 (0.1s)

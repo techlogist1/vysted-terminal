@@ -1,0 +1,6 @@
+[  65.1s] done: {"kind": "done", "usage": {"input_tokens": 8112, "output_tokens": 19, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop"}
+
+=== ASSISTANT TEXT ===
+{"name": "portfolio_delete_position", "parameters": {"symbol": "TCS"}}
+
+=== ok · 65.1s · events {'delta': 1, 'done': 1} · usage in=8112 out=19 · est $0.00000 · llama3.1:8b

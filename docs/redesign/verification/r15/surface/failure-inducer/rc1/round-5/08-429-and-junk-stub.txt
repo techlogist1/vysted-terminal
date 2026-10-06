@@ -1,0 +1,3 @@
+plain-429 -> rate_limit | OpenAI is rate-limiting your account — try again in a minute. | Wait a moment, then try again.
+json-decode-junk -> parse_error | OpenAI returned an unreadable response. | Try again; if the problem persists, check the provider's status page.
+truncated-stream -> unknown | Something went wrong with OpenAI. | Try again or switch provider in Settings.

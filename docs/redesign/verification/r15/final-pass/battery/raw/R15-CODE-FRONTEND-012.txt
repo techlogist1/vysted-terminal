@@ -1,0 +1,9 @@
+# R15-CODE-FRONTEND-012 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:24+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'no sidecar ledger call (R15-CODE-FRONTEND-012)' src/lib/host-actions.test.ts; grep -n 'portfolio/positions\|syncPositionToSidecar\|sidecarPositionId' src/lib/host-actions.ts src/store/portfolios.ts; echo grep-exit-$? '(1 = no hits)'
+--- output ---
+1210:  it("add/update/delete write only the store — no sidecar ledger call (R15-CODE-FRONTEND-012)", async () => {
+grep-exit-1 (1 = no hits)
+
+EXIT=0 (0.0s)

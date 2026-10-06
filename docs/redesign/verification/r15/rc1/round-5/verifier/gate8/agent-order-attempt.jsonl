@@ -1,0 +1,26 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " cannot"}
+{"kind": "delta", "text": " fulfill"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " request"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " buy"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " sell"}
+{"kind": "delta", "text": " securities"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Is"}
+{"kind": "delta", "text": " there"}
+{"kind": "delta", "text": " anything"}
+{"kind": "delta", "text": " else"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 7483, "output_tokens": 22, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

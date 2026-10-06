@@ -1,0 +1,23 @@
+# rc1-vshard-0 working log (gate round 3)
+
+- 2026-09-26 22:45:16 IST start. Candidate worktree HEAD = 5ff9be041180c1c316ad48ceb120a23549a7575a (checked).
+- Sample rule: battery INDEX.json sets (ids only) with set index % 9 == 0 (sets 0,9,18,27,36,45,54,63,72); from those, a risk-weighted pick (criticals/highs first, then live-reproducible mediums).
+- Own sidecar: :52600, data dir scratchpad/rc1-round-3-data-rc1-vshard-0 (seed copy), sleep pid 4608, worker 4609. /health ok.
+- DATA-004 holds: DHANBANK insiders 51.18% flagged vs NSE promoter 0.00%; fresh ITC/ICICIBANK/LT all flagged; screener labels field "(Yahoo)".
+- DATA-006 holds: /quotes/DAL timestamp 2025-03-12, freshness stale, change 0; fundamentals as_of = trade date. In-process fresh Ason '21 Sep 26' -> change 0, dated 21 Sep.
+- DATA-008 holds: SIFY financial_currency INR carried, P/S withheld; fresh TSM (TWD), IBN (INR) P/S withheld; panel/brief format with financial_currency.
+- DATA-005 NOT CERTIFIED: VERTEX/JNPR/JUMBO literal repros flagged; fresh TSM P/B 92.17 and HDB P/B 9.32 served ok (true ~13.7 / ~1.3-2); reconcile_book_value skips any foreign reporter (correctness_gate.py:770).
+- DATA-033 holds: NaN/inf last close + NaN/inf quote rejected; providers drop NaN OHLC rows via _num.
+- DATA-022 holds: SMR count 1 (2026-06-04 BSE 65.74%); caller falls back to submission date on an unparsed qtr.
+- LEAD-039 holds: RDY/TM/SONY 200 with null EPS triple; fresh HMC 200, NVS full triple. Adjacent: TM analyst count 1 from earnings_estimate frame whose 0q avg 2.735 is not used.
+- AGENT-010 holds: resolver on to_thread; live miss 4.69 s, never-answering proxy 6.04 s, max loop gap 27 ms.
+- CODE-PLATFORM-004 holds: live /workflow/run with ' FALSE ', 'Off', 0 -> true subgraph skipped (incl. downstream), 'yes' -> false node skipped.
+- CODE-PLATFORM-005 holds: 200 concurrent /quant/option/price (2 dates x BS/binomial, 32 threads) -> 0 mismatches vs sequential; tools/nodes use run_quant.
+- LEAD-026 NOT CERTIFIED: ZZZZNOTREAL and ZZQQ-USD -> reason unknown_symbol; fresh QQZZFAKE.NS and QQZZFAKE.BO -> 200, 0 bars, reason null (history.py _is_unknown_symbol returns False for any .NS/.BO suffix though the NSE/BSE masters are bundled).
+- DATA-090 holds: truncated __autosave__ quarantined to .corrupt-<ts>, next save does not overwrite it; fresh named workspace with non-dict and binary corruption -> .bak served, corrupt moved aside. Adjacent low: no-.bak case answers 404 'not found' (user not told).
+- DATA-070 holds: in-process RSS with undated + malformed pubDate -> published_at None, sorted last; panel renders 'date unknown'.
+- DATA-021 holds: SIL 2024-06 and earlier carry no split; 2024-09 takes 2024-12 (92 d, within bound). Jun-2026 FII 38.86 checked against the NSE XBRL itself (InstitutionsForeign 0.3886) - screener.in's 0.00% is screener's reclassification, not an app defect.
+- DATA-019 holds: JUMBO 18 items with BSE window 2026-03-30..2026-09-26 stated; fresh AMAL 21 (NSE+BSE), TTC 16, windows stated.
+- CODE-PLATFORM-020 holds: extra-key, v2 and non-JSON rows listed under unreadable, good row listed. Adjacent low: GET /workflow/saved/{id} of the extra-key / non-JSON row -> 500 (v2 -> 409).
+- UI-046 holds (code): listWorkspaces filters reserved names; save/delete reject '__' names.
+- 2026-09-26 22:59:29 IST stopped own sidecar (killed sleep pid 4608).

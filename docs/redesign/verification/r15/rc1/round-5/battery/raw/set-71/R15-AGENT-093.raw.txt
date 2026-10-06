@@ -1,0 +1,32 @@
+{
+  "option_chain max_strikes='5.0'": [
+    5,
+    "int"
+  ],
+  "add_chart_drawing nested points[0].price='185.5'": [
+    185.5,
+    "float"
+  ],
+  "add_chart_drawing stringified points array": [
+    [
+      {
+        "price": 185.5
+      }
+    ],
+    "list"
+  ],
+  "yield_curve nested tenor='3'/rate='0.05'": [
+    3,
+    "int",
+    0.05,
+    "float"
+  ],
+  "option_chain max_strikes='ten' (should stay string)": [
+    "ten",
+    "str"
+  ]
+}
+FULL PATH option_chain max_strikes='5' -> {'symbol': 'NIFTY', 'max_strikes': 5} sentinel present: False
+FULL PATH yield_curve nested strings -> {'__vysted_invalid_args__': "invalid arguments for yield_curve_value: 'valuation_date' is a required property; call again with valid args"} sentinel present: True
+FULL PATH option_chain max_strikes='2.5' (non-integral for int) -> {'__vysted_invalid_args__': "invalid arguments for option_chain: '2.5' is not of type 'integer'; call again with valid args"} sentinel present: True
+FULL PATH yield_curve nested tenor='6'/rate='0.051' -> {'__vysted_invalid_args__': "invalid arguments for yield_curve_value: 'sample_count' is a required property; call again with valid args"} sentinel: True

@@ -1,0 +1,47 @@
+[
+  {
+    "raw_id": "DAT-P3-1",
+    "verdict": "admitted",
+    "severity_final": "critical",
+    "reason": "Holds exactly as stated. The openbb-mcp provider is registered with no region scope at rank 10, so it wins income_statement/balance_sheet/cash_flow for an IN symbol; get_income_statement/get_balance_sheet/get_cash_flow pass validate=None (no correctness gate, unlike get_fundamentals), and openbb_mcp_provider sends the bare 'CHTR' with no exchange suffix, so Charter Communications' Dec-FY statements (total_revenue $54.8B) are served for Chatterbox. The Equity Overview panel renders these as the stock's statements, so a wrong money-relevant value is shown as fact.",
+    "evidence": "sidecar/services/provider_registry.py:127-139 (openbb-mcp declaration, no region field), sidecar/services/provider_registry.py:473-512 (fundamentals gated; statements validate=None), sidecar/services/openbb_mcp_provider.py:259-261, sidecar/services/openbb_mcp_provider.py:448-483, sidecar/routers/fundamentals.py:177-190, src/lib/sidecar-client.ts:296-303, src/modules/equity-overview/api.ts:101-108, docs/redesign/verification/r15/battery/collected/P3_CHTR.json (income/balance/cashflow)",
+    "evidence_checked": "Opened the registry, openbb provider, router and the frontend consumer chain; re-ran the repro live against :52152 at 2026-09-23T00:56:30Z.",
+    "repro_check": "curl -s 'http://127.0.0.1:52152/fundamentals/CHTR/income' -> symbol=CHTR, provider=openbb-mcp, periods 2021-12-31..2025-12-31, total_revenue 2025-12-31=54,774,000,000 (Charter's figures; /fundamentals/CHTR itself resolves to CHTR.BO)."
+  },
+  {
+    "raw_id": "DAT-P3-2",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The app's eps=7.41 is exactly the company's own reported FY2025-26 consolidated Basic & Diluted EPS (standalone 7.49), computed on the weighted-average share count (about 1.23 crore shares, because the IPO shares listed on 3 Oct 2025, partway through the year). screener's 6.50 divides net profit by the year-end count of about 1.414 crore shares. That is a definitional difference (weighted-average vs period-end shares), not a wrong value, and the spec rules that such differences are never called wrong. The 'internal inconsistency' (net_income_ttm/shares_outstanding=6.43) is the same definitional gap. P/E 4.73 is price over the reported EPS, a legitimate basis. The pack witness itself (standalone 9.2 Cr vs the app's consolidated 9.098 Cr) confirms the app is on the reported consolidated basis.",
+    "evidence": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/835e5afd-f239-4a83-8e34-99dbe27a1255.pdf (Chatterbox FY2025-26 Annual Report, fetched 2026-09-23T00:57:21Z: consolidated P&L 'Basic and Diluted ... 7.41 8.50'; note 22 'Basic EPS 7.41' on weighted-average shares; standalone 'Basic EPS 7.49' with 'Weighted average number of equity shares ... 1,22,80,200'; 'listed on the SME Platform of BSE Limited with effect from 3rd October, 2025'), sidecar/services/yfinance_provider.py:375 (eps=trailingEps), docs/redesign/verification/r15/battery/packs/P3_CHTR.json (eps_ttm 6.50 = standalone net profit / year-end shares)",
+    "evidence_checked": "Fetched the company's Reg-34 annual report from BSE (the PDF linked in the app's own announcements feed) and extracted the EPS notes with pypdf; read the eps mapping at yfinance_provider.py:375; re-ran /fundamentals/CHTR live (eps still 7.41, net_income_ttm 90,980,000 = consolidated PAT 909.80 lakh).",
+    "repro_check": "curl -s 'http://127.0.0.1:52152/fundamentals/CHTR' -> eps=7.41; annual report: consolidated basic EPS 7.41 on weighted-average shares, which matches the app exactly."
+  },
+  {
+    "raw_id": "DAT-P3-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real but overstated. The world value is determinable: the FY26 annual report says the Board 'have not recommended any dividend'. But the null is NOT a silent or unlabeled blank. yfinance_provider stamps field_meta status=unavailable with reason 'provider did not publish this field', and the Equity Overview cell renders it as an explicit 'not published' chip. dividend_per_share_ttm is a derived field that the research leg affirms as zero only when history depth reaches 12 months, and CHTR listed 3 Oct 2025 (under 12 months as of the 19-Sep snapshot). What remains is that the app does not affirm a known zero for a very young SME listing, which is low severity.",
+    "evidence": "sidecar/services/yfinance_provider.py:167-185, sidecar/services/yfinance_provider.py:343-374, src/modules/equity-overview/EquityOverviewPanel.tsx:183-199, sidecar/services/research/fast.py:207-231, sidecar/services/dividend_history.py:40-47, https://www.bseindia.com/xml-data/corpfiling/AttachLive/835e5afd-f239-4a83-8e34-99dbe27a1255.pdf (DIVIDEND section: Board has not recommended any dividend; listed 3 Oct 2025)",
+    "evidence_checked": "Opened the null-field reason stamping, the UI reason-chip renderer and the derived trailing-12m affirmed-zero logic; re-ran /fundamentals/CHTR live (field_meta for dividend_yield and dividend_per_share = unavailable / 'provider did not publish this field'); confirmed no dividend in the annual report.",
+    "repro_check": "curl -s 'http://127.0.0.1:52152/fundamentals/CHTR' -> dividend_* null, field_meta status=unavailable with a reason; the UI maps this to 'not published' (EquityOverviewPanel.tsx:197-199), so the gap is labelled, not silent."
+  },
+  {
+    "raw_id": "DAT-P3-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The value gap is real: the annual report states 'The Company does not have any borrowings', so D/E=0 is knowable, yet the app serves null because yfinance's info omits debtToEquity. The mechanism is corrected: it is a labelled gap ('not published' chip, field_meta reason), not a silent blank. Severity stays medium for a different reason: a null D/E marks the row missing_field in the screener, so a debt-free company is skipped by exactly the low-leverage screen it should top. The balance-sheet route cannot supply the value either, because of DAT-P3-1.",
+    "evidence": "sidecar/services/yfinance_provider.py:353-356, sidecar/services/yfinance_provider.py:183-185, src/modules/equity-overview/EquityOverviewPanel.tsx:183-199, sidecar/services/screener_formula.py:46-53, https://www.bseindia.com/xml-data/corpfiling/AttachLive/835e5afd-f239-4a83-8e34-99dbe27a1255.pdf ('The Company does not have any borrowings')",
+    "evidence_checked": "Opened the D/E mapping, the null-reason stamp, the UI chip and the screener's missing-field semantics; re-ran /fundamentals/CHTR live (debt_to_equity null, unavailable / 'provider did not publish this field'); confirmed zero borrowings in the annual report.",
+    "repro_check": "curl -s 'http://127.0.0.1:52152/fundamentals/CHTR' -> debt_to_equity=null with a labelled field_meta reason; a 'de < 0.5' screen would skip CHTR as missing_field:debt_to_equity (screener_formula.py:48-50)."
+  },
+  {
+    "raw_id": "DAT-P3-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The mechanism is real: get_results_calendar is NSE-only (nse_provider), and the route turns the ProviderError into a 502 for any BSE-only symbol. The impact is narrower than claimed. No frontend code calls /disclosures/results. Its only in-product consumer is the research disclosures leg, which calls it only for earnings-date questions and soft-fails to {ok:false} without raising, while BSE announcements (which include board-meeting outcomes and intimations) are still served in the same leg. So the 502 never reaches a user surface, and the results-calendar gap for BSE-only names is low severity.",
+    "evidence": "sidecar/routers/disclosures.py:74-91, sidecar/services/corporate_disclosures.py:335-358, sidecar/services/research/disclosures.py:185-203, sidecar/services/research/disclosures.py:319-327",
+    "evidence_checked": "Opened the route, the service and the only consumer; grepped src/ and plugins/ for any caller of /disclosures/results (none); re-ran the repro live against :52152.",
+    "repro_check": "curl -s -w '%{http_code}' 'http://127.0.0.1:52152/disclosures/results?symbol=CHTR' -> 502 {\"detail\":\"nse_direct: 'CHTR' is not a known NSE instrument\"}; grep for 'disclosures/results' in src/ finds no caller."
+  }
+]

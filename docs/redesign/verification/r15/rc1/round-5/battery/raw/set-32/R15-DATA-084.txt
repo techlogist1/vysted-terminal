@@ -1,0 +1,14 @@
+CMD: in-process, stub the openbb-mcp client with a fixture row of value 0.0, call openbb_mcp_provider.get_macro_series('EFFR'), at candidate 9bc600ec
+286:def _coerce_float(value: Any) -> float | None:
+326:    price = _coerce_float(row.get("last_price") or row.get("close"))
+327:    prev = _coerce_float(row.get("prev_close") or row.get("previous_close"))
+328:    change = _coerce_float(row.get("change"))
+329:    change_percent = _coerce_float(row.get("change_percent"))
+342:        volume=_coerce_float(_first_present(row, "volume", "exchange_volume")),
+415:    raw_yield = _coerce_float(metric_row.get("dividend_yield"))
+422:        market_cap=_coerce_float(profile_row.get("market_cap") or metric_row.get("market_cap")),
+423:        pe_ratio=_coerce_float(metric_row.get("pe_ratio") or metric_row.get("trailing_pe")),
+424:        forward_pe=_coerce_float(metric_row.get("forward_pe")),
+['_get_client', 'mcp_client']
+2021-01-04 00:00:00+00:00 0.0
+2021-01-05 00:00:00+00:00 0.07

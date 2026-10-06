@@ -1,0 +1,32 @@
+[
+  {
+    "raw_id": "INT-blueprint-288-1",
+    "title": "Node-editor workflows have no scheduler \u2014 'alert on entry trigger' and 'agent monitors news and notifies' are structurally impossible without a manual re-run",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "node-editor / workflow engine",
+    "repro": "Build any workflow using logic.compare + action.notify_desktop (e.g. 'notify me when AAPL crosses $200') and close the app or switch panels: nothing re-evaluates the condition until the user manually reopens the workflow and clicks Run again (Cmd+K -> Run). grep for schedule|cron|recurring|periodic across sidecar/services/workflow_engine.py, sidecar/routers/workflow*.py and sidecar/routers/node*.py returns zero hits.",
+    "evidence": "sidecar/services/workflow_nodes/__init__.py:15,54 (action.notify_desktop exists) + builtin.py:321-343 (notify_desktop implementation) + sidecar/services/workflow_nodes/builtin.py logic.compare/logic.branch registrations; no scheduler file anywhere under sidecar/ (find sidecar -iname '*schedul*' is empty)",
+    "notes": "This is the mechanism BLUEPRINT UC3 (Earnings Playbook: 'alert on entry trigger') and UC5 (Macro Thesis Watcher: 'AI Macro Researcher monitors news and sends notifications on thesis-confirming events') both depend on, and it's the exact kind of always-on, agent-does-it-for-you behavior the product's own positioning ('agent-native', 'Jarvis, if Tony Stark built a finance app') is staked on. Today every workflow node type needed for these use cases exists and is individually correct (ai.agent_invoke, logic.compare, action.notify_desktop, quant.yield_curve) \u2014 the gap is purely the missing background trigger. Smallest fix shape: a lightweight polling scheduler in the sidecar (e.g. an APScheduler-backed table of {workflow_id, cron_or_interval, last_run}) that invokes the existing workflow_engine.run() on a timer and reuses the existing action.notify_desktop intent path \u2014 no new node types needed, no touch to the plugin contract or \u00a76.5 safety model."
+  },
+  {
+    "raw_id": "INT-blueprint-288-2",
+    "title": "Auto-updater is wired end-to-end (endpoint + pubkey) but disabled, and zero GitHub Releases have ever been published \u2014 there is currently no update or distribution path for any user",
+    "severity": "medium",
+    "area": "release",
+    "subsystem": "Tauri bundler / distribution",
+    "repro": "Inspect src-tauri/tauri.conf.json: plugins.updater.endpoints points at https://github.com/techlogist1/vysted-terminal/releases/latest/download/latest.json and a pubkey is present, but bundle.createUpdaterArtifacts is false, so `tauri build` never emits the latest.json/signature the updater needs. `gh release list` on this repo returns zero rows.",
+    "evidence": "src-tauri/tauri.conf.json:33 (createUpdaterArtifacts: false), src-tauri/tauri.conf.json plugins.updater block (endpoint + pubkey present), BLOCKERS.md:291-296 (Phase 10 carry-forwards #2 'Tauri auto-updater wiring... flip to true' and #3 'Distribution channels... GitHub Releases workflow + signed-bundle upload')",
+    "notes": "Every piece needed for the update mechanism is already in place except flipping one boolean and running a release workflow \u2014 this is the cheapest of the launch-ops gaps to close, and closing it is a prerequisite for every other Phase-10 item (SignPath, Homebrew, the landing page) to matter at all, since none of them help a user who installed once and can never get an update. Smallest fix shape: flip createUpdaterArtifacts to true, add a tag-triggered GitHub Actions release workflow that runs `tauri build`, uploads the bundle + latest.json to a GitHub Release, and dry-run it against a pre-release tag before cutting v0.9.0."
+  },
+  {
+    "raw_id": "INT-blueprint-288-3",
+    "title": "The backtest engine's own headline performance bar ('60-day strategy in <30s') has never been measured, and the one doc that set out to measure it explicitly deferred and was never revisited",
+    "severity": "low",
+    "area": "agent",
+    "subsystem": "backtest engine",
+    "repro": "grep sidecar/tests/test_backtest_*.py for any elapsed/time.perf_counter/timing assertion: none exists. docs/archive/PHASE_8_PERF_BASELINE.md:144-150 states 'Backtest workflow execution time \u2014 Not measured this session... Deferred to Phase 9 / re-measure after F1 fix loop' and no later doc closes that loop.",
+    "evidence": "docs/archive/PHASE_8_PERF_BASELINE.md:144-150 (explicit deferral, includes a stated methodology for the re-measure that was never executed); sidecar/tests/test_backtest_engine.py, test_backtest_strategies.py, test_backtest_custom.py, test_backtest_agent_parity.py (none assert on wall-clock time)",
+    "notes": "This is a stated \u00a78 success-criterion for the v1.0 launch and one of the product's direct comparisons to standard-hardware performance claims \u2014 shipping without ever having measured it risks discovering at launch that the number is false (e.g. an unoptimized pandas loop over 60 daily bars could plausibly blow the 30s bar on a slow machine, or could easily clear it \u2014 nobody has checked). Smallest fix shape: one pytest using time.perf_counter() around a call to the existing backtest_engine.run_backtest() with the bundled 'SPY mean-reversion 30d' template and a 60-day range, asserting < 30s, run in CI so a future regression is caught automatically instead of re-discovered by an operator at launch."
+  }
+]

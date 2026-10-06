@@ -1,0 +1,45 @@
+{
+ "tag": "code-A",
+ "common": "CONTEXT: Worker in the R15 'LAUNCH' autonomous run on the Vysted Terminal repo (/Users/lokavyasingh/Documents/dev/vysted-terminal, branch 004-r4-experience-rebuild): an open-source, BYOK, local-first, agent-native desktop finance terminal for Indian markets (benchmarks: Perplexity Finance for research, screener.in for data; moat = data trust, research quality, a finance-tuned agent). This is Stage 1, the CENSUS: find everything wrong, missing, rotten or mediocre. You are READ-ONLY on the repo except your own output file(s).\nHARD RULES: the operator is AT the machine - NO GUI interaction (no clicks/keys/screenshots/osascript UI/opening apps or visible browser windows). Do not start/stop/kill any process you did not start yourself. The operator's live app (vite :5173 and its sidecars) is HIS session: never POST to it. An ISOLATED headless sidecar for this run is at http://127.0.0.1:52152 (a copy of his data; safe to drive). No full pytest/cargo/PyInstaller/builds (heavy lane busy); one targeted test file (sidecar/.venv/bin/python -m pytest <file> -q, or pnpm exec vitest run <file>) is fine when it settles a claim. Never print/log/write a secret. Never touch other products on this Mac. Never speculate about code you have not opened: file:line for every code claim. WRITE YOUR OUTPUT FILE(S) AS YOU GO - if one already exists, a previous attempt died when the machine lost power: continue from it, do not restart. Avoid shell aliases: use /bin/ls, /bin/cat (cat is aliased to bat and can hang). Compact return value; report the exact model id you run as.\nOut of scope by decision (never report as missing): live broker order execution; Tradesa; reopening two-tier research, the R9 design system, the dev keystore, or the plugin system's existence.\nRAW FINDING SHAPE: {\"raw_id\": \"<PREFIX>-<n>\", \"title\": \"...\", \"severity\": \"critical|high|medium|low\", \"area\": \"ui|agent|research|data|code|lifecycle|release|docs\", \"subsystem\": \"...\", \"repro\": \"input/state -> wrong output, or 'design'\", \"evidence\": \"file:line[, file:line]\", \"notes\": \"principle violated + concrete consequence + smallest fix shape\"}. Severity: critical = wrong money-relevant data shown as true, data loss, safety boundary; high = a core flow breaks or silently degrades; medium = a real defect/design flaw that bites users or the next maintainer in normal use; low = polish.",
+ "stages": [
+  {
+   "label": "critique",
+   "model": "opus",
+   "prompt": "OBJECTIVE (Code sweep, critique): Grade the subsystem with id \"{{id}}\" against A Philosophy of Software Design. FIRST invoke the Skill tool with skill \"aposd-critique\" and follow it (two personas, 18 principles, pass/at-risk/violate, mandatory file:line evidence). If the skill is unavailable, SAY SO in your output and carry its vocabulary directly (deep vs shallow modules, information hiding/leakage, temporal decomposition, pass-through methods, general vs special purpose, different layer different abstraction, pull complexity downward, define errors out of existence, design it twice, comments, naming, consistency, obviousness). Your subsystem's responsibility, owning files, LOC and tests are the entry with that id in docs/redesign/verification/r15/census/CODE_PARTITION.json - read that entry first. READ THE CODE ITSELF, fully for the core files. The findings that matter are the ones a bug hunt MISSES - code that works and is still badly built: the route with no error handling while its five siblings have it; the invariant held by a comment when the structure could hold it; behaviour the next reader will not understand; duplicated truth that will drift; a swallowed exception that turns a failure into a silent empty; a cache with no bound; a retry with no ceiling; a network call with no timeout; special-casing to satisfy a test. ALSO report any outright BUG you can prove from the code (input -> wrong output) - prove it with a tiny snippet or a targeted test where cheap. Do not pad: 5-15 findings that would change a decision beat 40 nitpicks; no refactors beyond what a concrete consequence justifies. OUTPUT FILES: (1) docs/redesign/verification/r15/census/code/{{id}}.md - critique table (principle | grade | evidence file:line | consequence) + priority findings. (2) docs/redesign/verification/r15/census/raw/code-{{id}}.json - RAW FINDINGS array (raw_id prefix \"COD-{{id}}\")."
+  },
+  {
+   "label": "refute",
+   "model": "fable",
+   "prompt": "OBJECTIVE (refutation): A critic produced docs/redesign/verification/r15/census/raw/code-{{id}}.json. You are a fresh, sceptical senior engineer: for EACH finding, try to REFUTE it. Open the cited file:line and its callers; check whether the claimed consequence can actually occur (a guard upstream? handling in a middleware/decorator/base class? is the bug input reachable?). Where cheap, run a tiny snippet or one targeted test to settle it. Plausible-but-wrong findings waste the fix stage - default to refuted when the evidence does not hold. Verdicts: confirmed | refuted | downgraded | upgraded | needs-live-check (say exactly what check). OUTPUT FILE: docs/redesign/verification/r15/census/refute/code-{{id}}.json - array of {raw_id, verdict, severity_final, reason, evidence_checked} covering EVERY raw_id in the input (counts must match). Return counts by verdict."
+  }
+ ],
+ "items": [
+  {
+   "id": "resolver",
+   "skip": [
+    0
+   ]
+  },
+  {
+   "id": "fundamentals-profile"
+  },
+  {
+   "id": "research-retrieval-relevance"
+  },
+  {
+   "id": "research-extraction-synthesis"
+  },
+  {
+   "id": "agent-runtime"
+  },
+  {
+   "id": "agent-tools-catalog-ledger"
+  },
+  {
+   "id": "screener"
+  },
+  {
+   "id": "llm-adapters"
+  }
+ ]
+}

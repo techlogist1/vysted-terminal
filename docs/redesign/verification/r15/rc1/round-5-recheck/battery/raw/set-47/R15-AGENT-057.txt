@@ -1,0 +1,111 @@
+Repro attempted: curl / vy.py / in-process python. This entry (syncPluginAgents
+ignoring response.ok on POST /custom-agents) is a frontend fetch-wrapper behavior
+(src/lib/plugin-agents.ts) exercised against a mocked fetch, not a route this role
+can independently curl for the exact repro (a plugin AgentSpec whose tools contains
+an id outside the sidecar allow-list). Attempted a live cross-check of the sidecar
+leg instead (the part that IS curl-able): POST /custom-agents with a bad tool id,
+to confirm the 4xx the frontend fix now inspects still fires.
+
+HTTP_STATUS:422
+
+Response body:
+{"detail":[{"type":"value_error","loc":["body","id"],"msg":"Value error, custom-agent id must start with 'custom:' (got 'rc1battery9-badtool')","input":"rc1battery9-badtool","ctx":{"error":{}}},{"type":"missing","loc":["body","philosophy"],"msg":"Field required","input":{"id":"rc1battery9-badtool","name":"rc1battery9 badtool","description":"battery probe","tools":["not_a_real_tool_id"],"provider":"ollama","model":"llama3.1:8b"}},{"type":"missing","loc":["body","system_prompt"],"msg":"Field required","input":{"id":"rc1battery9-badtool","name":"rc1battery9 badtool","description":"battery probe","tools":["not_a_real_tool_id"],"provider":"ollama","model":"llama3.1:8b"}},{"type":"value_error","loc":["body","tools"],"msg":"Value error, unknown tool ids: ['not_a_real_tool_id']; allowed: ['add_chart_drawing', 'add_to_watchlist', 'analyst_history', 'analyst_individual', 'arrange_layout', 'ask_user', 'backtest_summary', 'close_panel', 'compare_symbols', 'compute_greeks', 'corporate_actions', 'corporate_announcements', 'earnings_call_transcript', 'earnings_estimates', 'earnings_history', 'earnings_upcoming', 'exchange_deals', 'financial_statements', 'focus_panel', 'fundamentals', 'get_portfolio', 'get_terminal_state', 'macro_search', 'macro_series', 'market_overview', 'news', 'open_company_overview', 'open_panel', 'option_chain', 'portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position', 'price_bond', 'price_data', 'price_option', 'price_target_history', 'publish_brief', 'read_notes', 'remove_from_watchlist', 'research', 'resolve_symbol', 'run_custom_backtest', 'save_layout', 'save_screen', 'screener_run', 'sec_filing_content', 'sec_filings_list', 'sec_insider_transactions', 'set_chart_indicators', 'set_chart_symbol', 'set_region', 'shareholding_pattern', 'web_search', 'write_note', 'write_screener_filters', 'yield_curve_value']","input":["not_a_real_tool_id"],"ctx":{"error":{}}},{"type":"missing","loc":["body","default_provider"],"msg":"Field required","input":{"id":"rc1battery9-badtool","name":"rc1battery9 badtool","description":"battery probe","tools":["not_a_real_tool_id"],"provider":"ollama","model":"llama3.1:8b"}}]}
+Certification mechanism per batch-10/VERDICTS.md line 62: 'vitest plugin-agents.test
+updates an already-registered agent via PUT on a 409 so a revised spec replaces it;
+plugin-agents.ts:67/:78 check status and response.ok.' The frontend leg itself needs
+vitest (barred for battery); verified the pinned test is real/committed at this sha:
+src/lib/plugin-agents.test.ts
+57:  it("updates an already-registered agent via PUT on a 409 so a revised spec replaces it (R15-AGENT-057)", async () => {
+71:  it("a rejected registration (422) marks the plugin errored with the reason (R15-AGENT-057)", async () => {
+  it("updates an already-registered agent via PUT on a 409 so a revised spec replaces it (R15-AGENT-057)", async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === "POST" ? { ok: false, status: 409 } : { ok: true, status: 200 },
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    await syncPluginAgents("vysted-lenses", true);
+    const put = (fetchMock as unknown as FetchCalls).mock.calls.find((c) => c[1]?.method === "PUT");
+    expect(put).toBeDefined();
+    expect(String(put![0])).toContain(encodeURIComponent("custom:vysted-lenses-quant-tutor"));
+    const lenses = CATALOG_BY_ID["vysted-lenses"].discovered.instance.getAgents!();
+    const tutor = lenses.find((a) => a.id === "quant-tutor")!;
+    expect(JSON.parse(String(put![1]!.body)).system_prompt).toBe(tutor.systemPrompt);
+  });
+
+  it("a rejected registration (422) marks the plugin errored with the reason (R15-AGENT-057)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: false, status: 422, text: async () => "unknown tool id" })),
+    );
+    const runtime = new PluginRuntime({
+      hostVersion: "0.8.0",
+      host: {
+        attach: (id) => syncPluginAgents(id, true),
+        detach: (id) => syncPluginAgents(id, false),
+      },
+    });
+    const snapshot = await runtime.loadPlugin(CATALOG_BY_ID["vysted-lenses"].discovered);
+    expect(snapshot.state).toBe("error");
+    expect(snapshot.errorMessage).toContain("HTTP 422 unknown tool id");
+    expect(refreshMock).toHaveBeenCalled();
+  });
+
+  it("removes (DELETE) the registered agents on unregister", async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true })) as unknown as typeof fetch;
+    vi.stubGlobal("fetch", fetchMock);
+    await syncPluginAgents("vysted-lenses", false);
+    const calls = (fetchMock as unknown as FetchCalls).mock.calls;
+    const del = calls.find((c) => c[1]?.method === "DELETE");
+    expect(del).toBeDefined();
+
+Source-read confirmation of the fix (response.ok checked, not just network catch):
+  let base: string;
+  try {
+    base = await getSidecarBaseUrl();
+  } catch {
+    return; // outside the Tauri shell — nothing to register against
+  }
+
+  const failures: string[] = [];
+  for (const agent of agents) {
+    const id = pluginAgentId(pluginId, agent.id);
+    const itemUrl = new URL(`/custom-agents/${encodeURIComponent(id)}`, base).toString();
+    try {
+      let response: Response;
+      if (register) {
+        const spec = {
+          name: agent.name,
+          philosophy: agent.philosophy,
+          system_prompt: agent.systemPrompt,
+          tools: agent.tools,
+          default_provider: agent.defaultProvider,
+          icon: agent.icon,
+        };
+        response = await fetch(new URL("/custom-agents", base).toString(), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, ...spec }),
+        });
+        if (response.status === 409) {
+          response = await fetch(itemUrl, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(spec),
+          });
+        }
+      } else {
+        response = await fetch(itemUrl, { method: "DELETE" });
+        if (response.status === 404) continue;
+      }
+      if (!response.ok) {
+        const detail = await response.text().catch(() => "");
+        failures.push(`${id}: HTTP ${response.status} ${detail}`.trim());
+      }
+    } catch (error) {
+      failures.push(`${id}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  await useAgentsStore.getState().refresh();
+  if (failures.length > 0) {
+    throw new Error(
+      `agent ${register ? "registration" : "removal"} failed — ${failures.join("; ")}`,
+    );

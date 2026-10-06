@@ -1,0 +1,41 @@
+=== R15-CODE-PLATFORM-032: safety-audit files removed with D81 ===
+GONE: sidecar/services/kill_switch.py
+GONE: sidecar/models/audit_log.py
+GONE: types/safety.ts
+EXISTS: src/store/safety.ts
+GONE: src/modules/safety/AuditLogViewer.tsx
+GONE: sidecar/models/safety.py
+GONE: src/modules/safety/OrderConfirmationDialog.tsx
+
+-- git log for feat(d81) merge --
+a122dbf6 feat(d81): remove trading from the product (Stage C batch 1)
+
+      test_safety_end_to_end.py as the Gate-8 test
+      rewritten as the agent-write safety model, BLUEPRINT roadmap drops live
+ .../v0.5.0/safety-audit/kill-switch-benchmark.json |  22 -
+ sidecar/models/audit_log.py                        |  58 ---
+ sidecar/models/safety.py                           | 170 -------
+ sidecar/routers/safety.py                          | 193 --------
+ sidecar/services/audit_log.py                      | 257 ----------
+ sidecar/services/kill_switch.py                    | 217 --------
+ sidecar/tests/test_audit_log.py                    | 218 --------
+ sidecar/tests/test_kill_switch.py                  | 183 -------
+ sidecar/tests/test_safety_end_to_end.py            | 509 -------------------
+ sidecar/tests/test_safety_router.py                | 167 -------
+ src-tauri/src/kill_switch.rs                       |  97 ----
+ src/modules/safety/AuditLogViewer.test.tsx         | 122 -----
+ src/modules/safety/AuditLogViewer.tsx              | 294 -----------
+ src/modules/safety/DisclaimerFlow.test.tsx         |  69 +--
+ src/modules/safety/DisclaimerFlow.tsx              | 138 +-----
+ .../safety/OrderConfirmationDialog.test.tsx        | 227 ---------
+ src/modules/safety/OrderConfirmationDialog.tsx     | 304 ------------
+ src/modules/safety/index.ts                        |  45 +-
+-- src/store/safety.ts full --
+      53 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/store/safety.ts
+19:/** Read whether the user has acked the first-launch terms. */
+31:  firstLaunchTosAcked: boolean;
+37:  firstLaunchTosAcked: false,
+40:    const acked = await hasFirstLaunchTosAck();
+41:    set({ firstLaunchTosAcked: acked });
+46:    set({ firstLaunchTosAcked: true });
+52:  useSafetyStore.setState({ firstLaunchTosAcked: false });

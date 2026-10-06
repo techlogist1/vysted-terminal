@@ -1,0 +1,9 @@
+provider nse_direct failed for quote, falling through: nse_direct: '^NSEI' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: '^NSEI' is not a known NSE instrument
+provider nse_direct failed for quote, falling through: nse_direct: '^BSESN' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: '^BSESN' is not a known NSE instrument
+provider bse failed for quote, falling through: bse: '^NSEI' is not a known BSE instrument
+provider bse failed for quote, falling through: bse: '^BSESN' is not a known BSE instrument
+ok: True
+headlines_error: news feed unavailable: all news sources failed (simulated dead proxy)
+indices: [('^NSEI', 23140.5, None), ('^BSESN', 73895.7421875, None)]

@@ -1,0 +1,590 @@
+{
+ "P1-empty": {
+  "panelText": "PortfolioSymbolQuantityAvg cost / shareClassEquityCryptoNoteAddThis portfolio is emptyManually add a stock or crypto holding to track P&L, weight, and concentration.Add your first holding",
+  "exportDisabled": true,
+  "net": []
+ },
+ "P2-validation": {
+  "empty": {
+   "input": {
+    "s": "",
+    "q": "",
+    "c": ""
+   },
+   "error": "Symbol is required",
+   "holdings": []
+  },
+  "qty0": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "0",
+    "c": "100"
+   },
+   "error": "Quantity must be greater than 0",
+   "holdings": []
+  },
+  "negcost": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "5",
+    "c": "-1"
+   },
+   "error": "Avg cost cannot be negative",
+   "holdings": []
+  },
+  "qtyabc": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "abc",
+    "c": "100"
+   },
+   "error": "Quantity must be a plain number (got \"abc\")",
+   "holdings": []
+  },
+  "qty-neg": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "-3",
+    "c": "100"
+   },
+   "error": "Quantity must be greater than 0",
+   "holdings": []
+  },
+  "qty-1e20": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "1e20",
+    "c": "100"
+   },
+   "error": "Quantity is too large",
+   "holdings": []
+  },
+  "cost-blank": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "5",
+    "c": ""
+   },
+   "error": "Avg cost per share is required",
+   "holdings": []
+  },
+  "cost-spaces": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "5",
+    "c": "   "
+   },
+   "error": null,
+   "holdings": [
+    [
+     "TCS.NS",
+     5,
+     0
+    ]
+   ]
+  },
+  "qty-spaces": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "   ",
+    "c": "100"
+   },
+   "error": "Quantity must be greater than 0",
+   "holdings": []
+  },
+  "qty-comma": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "1,000",
+    "c": "100"
+   },
+   "error": "Quantity must be a plain number (got \"1,000\")",
+   "holdings": []
+  },
+  "qty-hex": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "0x10",
+    "c": "100"
+   },
+   "error": null,
+   "holdings": [
+    [
+     "TCS.NS",
+     16,
+     100
+    ]
+   ]
+  },
+  "cost-zero": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "5",
+    "c": "0"
+   },
+   "error": null,
+   "holdings": [
+    [
+     "TCS.NS",
+     5,
+     0
+    ]
+   ]
+  },
+  "ok": {
+   "input": {
+    "s": "tcs.ns",
+    "q": " 5 ",
+    "c": "2500.5"
+   },
+   "error": null,
+   "holdings": [
+    [
+     "TCS.NS",
+     5,
+     2500.5
+    ]
+   ]
+  }
+ },
+ "P3-inr": {
+  "settleMs": 30274,
+  "ref": {
+   "RELIANCE.NS": 1167.7,
+   "TCS.NS": 2075
+  },
+  "expected": {
+   "mv": 22052,
+   "pnl": -2448,
+   "pnlPct": -9.991836734693878,
+   "wRel": 0.5295211318701252
+  },
+  "panel": "Portfolio · 2SymbolQuantityAvg cost / shareClassEquityCryptoNoteAddMarket value: — (no live quotes)·Total P&L: —·Concentration: —%·2 without a live quoteCouldn't refresh live quotes — values shown without market data.RetrySymbolQtyAvg costPriceMkt valP&LWtRELIANCE.NS10₹1,200.00————TCS.NS5₹2,500.00————",
+  "bus": {
+   "positionCount": 2,
+   "totalValue": null,
+   "totalValueNote": "no live quotes resolved",
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "id": "h-0339dc63-85f8-4590-ab74-74a44bb29b9a",
+     "symbol": "RELIANCE.NS",
+     "quantity": 10,
+     "costBasis": 1200,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": null,
+     "pnl": null
+    },
+    {
+     "id": "h-7324234d-33f7-4aba-9eb6-1d249ce6611a",
+     "symbol": "TCS.NS",
+     "quantity": 5,
+     "costBasis": 2500,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": null,
+     "pnl": null
+    }
+   ]
+  }
+ },
+ "P4-delete-edit": {
+  "before": {
+   "active": "Second",
+   "holdings": [
+    "TCS.NS",
+    "INFY.NS"
+   ]
+  },
+  "afterSingleClick": [
+   "TCS.NS",
+   "INFY.NS"
+  ],
+  "afterConfirm": [
+   "TCS.NS"
+  ],
+  "afterEdit": [
+   [
+    "TCS.NS",
+    7,
+    2500
+   ]
+  ],
+  "formAfterSwitch": "",
+  "afterSwitchSave": {
+   "err": "Symbol is required",
+   "all": [
+    [
+     "Portfolio",
+     [
+      [
+       "RELIANCE.NS",
+       10
+      ]
+     ]
+    ],
+    [
+     "Second",
+     [
+      [
+       "TCS.NS",
+       7
+      ]
+     ]
+    ]
+   ]
+  },
+  "controlDeleteInFirstPortfolio": []
+ },
+ "P4c-header": {
+  "afterRename": [
+   "Core"
+  ],
+  "afterBlankRename": [
+   "Core"
+  ],
+  "afterCreate": {
+   "names": [
+    "Core",
+    "Spec"
+   ],
+   "active": "Spec"
+  },
+  "afterSingleClickDelete": [
+   "Core",
+   "Spec"
+  ],
+  "afterConfirmDelete": {
+   "names": [
+    "Core"
+   ],
+   "active": "Core"
+  },
+  "afterDeleteLast": {
+   "names": [
+    "Portfolio"
+   ],
+   "count": 1
+  }
+ },
+ "P5-unresolved-crypto": {
+  "unresolved": {
+   "panel": "Portfolio · 1SymbolQuantityAvg cost / shareClassEquityCryptoNoteAddMarket value: — (no live quotes)·Total P&L: —·Concentration: —%·1 without a live quoteCouldn't refresh live quotes — values shown without market data.RetrySymbolQtyAvg costPriceMkt valP&LWtZZZZNOTREAL10₹100.00————",
+   "bus": {
+    "positionCount": 1,
+    "totalValue": null,
+    "totalValueNote": "no live quotes resolved",
+    "activePortfolioId": "default",
+    "activePortfolioName": "Portfolio",
+    "holdings": [
+     {
+      "id": "h-37bb4b65-6c72-4ecc-976e-a08c774d1700",
+      "symbol": "ZZZZNOTREAL",
+      "quantity": 10,
+      "costBasis": 100,
+      "assetClass": "equity",
+      "currency": "INR",
+      "marketValue": null,
+      "pnl": null
+     }
+    ]
+   }
+  },
+  "cryptoSlash": {
+   "table": "SymbolQtyAvg costPriceMkt valP&LWtBTC/USDTlive0.560,000.00 USDT84,616.03 USDT42,308.02 USDT+12,308.02 USDT (+41.03%)100.0%"
+  },
+  "cryptoNoSlash": {
+   "table": "SymbolQtyAvg costPriceMkt valP&LWtBTCUSDTlive0.5$60,000.00$84,616.03$42,308.02+$12,308.02 (+41.03%)100.0%"
+  },
+  "net": [
+   {
+    "t": 1791025461045,
+    "method": "GET",
+    "url": "/quotes/BTC%2FUSDT?asset_class=crypto",
+    "status": 200,
+    "ms": 3709
+   },
+   {
+    "t": 1791025466151,
+    "method": "GET",
+    "url": "/quotes/BTC%2FUSDT?asset_class=crypto",
+    "status": 200,
+    "ms": 2638
+   },
+   {
+    "t": 1791025469568,
+    "method": "GET",
+    "url": "/quotes/BTCUSDT?asset_class=crypto",
+    "status": 200,
+    "ms": 2209
+   },
+   {
+    "t": 1791025474686,
+    "method": "GET",
+    "url": "/quotes/BTCUSDT?asset_class=crypto",
+    "status": 200,
+    "ms": 2307
+   }
+  ]
+ },
+ "P6-mixed-csv": {
+  "panel": "Portfolio · 5SymbolQuantityAvg cost / shareClassEquityCryptoNoteAddMarket value: ₹14,787.00 + $1,001.07·Total P&L: -₹6,223.00 (-29.62%) + +$101.07 (+11.23%)·mixed currencies — totals per currency·1 without a live quote·as of Oct 1, 2026, 5:30 AMRiskINRSharpe: -1.14Sortino: -1.53Max DD: -28.2%Calmar: -0.74VaR 95% (1d): 2.1%Beta: 0.90256d historyRELIANCE.NSTCS.NSINFY.NSRELIANCE.NS1.000.140.10TCS.NS0.141.000.76INFY.NS0.100.761.00USDSharpe: 1.19Sortino: 1.72Max DD: -13.8%Calmar: 2.13VaR 95% (1d): 2.",
+  "csv": {
+   "name": "vysted-portfolio-portfolio.csv",
+   "content": "Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note\nRELIANCE.NS,10,1200,equity,INR,1167.7,11677,-323,-2.6916666666666664,,\"'=HYPERLINK(\"\"http://example.invalid\"\",\"\"x\"\")\"\nAAPL,3,300,equity,USD,333.69000244140625,1001.0700073242188,101.07000732421875,11.230000813802084,,\"core, long\"\nTCS.NS,1,9000,equity,INR,2075,2075,-6925,-76.94444444444444,,'@SUM(1+1)\nINFY.NS,1,10,equity,INR,1035,1035,1025,10250,,'+cmd|' /C calc'!A0\nZZZZNOTREAL,1,10,equity,,,,,,,'-2+3"
+  },
+  "exportStatus": "Saved /fake/vysted-portfolio-portfolio.csvSymbolQtyAvg",
+  "bus": {
+   "positionCount": 5,
+   "totalValue": null,
+   "totalValueNote": "holdings span multiple currencies (INR, USD) — no cross-currency total; read per-holding values",
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "id": "h-0e754ed5-fd77-4bd9-a906-be6c2d7d96b6",
+     "symbol": "RELIANCE.NS",
+     "quantity": 10,
+     "costBasis": 1200,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 11677,
+     "pnl": -323
+    },
+    {
+     "id": "h-da6a0e5b-a04d-4b91-a794-86fa7d64bbd0",
+     "symbol": "AAPL",
+     "quantity": 3,
+     "costBasis": 300,
+     "assetClass": "equity",
+     "currency": "USD",
+     "marketValue": 1001.0700073242188,
+     "pnl": 101.07000732421875
+    },
+    {
+     "id": "h-ac433a55-211c-4a10-9204-e4ade4d9ed7b",
+     "symbol": "TCS.NS",
+     "quantity": 1,
+     "costBasis": 9000,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 2075,
+     "pnl": -6925
+    },
+    {
+     "id": "h-94d36328-b35d-408d-a365-48f941145588",
+     "symbol": "INFY.NS",
+     "quantity": 1,
+     "costBasis": 10,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 1035,
+     "pnl": 1025
+    },
+    {
+     "id": "h-cdeb3354-4957-4f36-b825-b9cced42f225",
+     "symbol": "ZZZZNOTREAL",
+     "quantity": 1,
+     "costBasis": 10,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": null,
+     "pnl": null
+    }
+   ]
+  }
+ },
+ "P7-quotes-down": {
+  "down": {
+   "panelText": "Portfolio · 1SymbolQuantityAvg cost / shareClassEquityCryptoNoteAddMarket value: — (no live quotes)·Total P&L: —·Concentration: —%·1 without a live quoteCouldn't refresh live quotes — values shown without market data.RetrySymbolQtyAvg costPriceMkt valP&LWtRELIANCE.NS10₹1,200.00————",
+   "bus": {
+    "positionCount": 1,
+    "totalValue": null,
+    "totalValueNote": "no live quotes resolved",
+    "activePortfolioId": "default",
+    "activePortfolioName": "Portfolio",
+    "holdings": [
+     {
+      "id": "h-f8aaa875-c885-4278-a618-5bc330766351",
+      "symbol": "RELIANCE.NS",
+      "quantity": 10,
+      "costBasis": 1200,
+      "assetClass": "equity",
+      "currency": "INR",
+      "marketValue": null,
+      "pnl": null
+     }
+    ]
+   }
+  },
+  "retryFound": true,
+  "afterRetry": "Portfolio · 1SymbolQuantityAvg cost / shareClassEquityCryptoNoteAddMarket value: ₹11,677.00·Total P&L: -₹323.00 (-2.69%)·Concentration: 100.0%·as of Oct 1, 2026, 5:30 AMRiskSharpe: -0.79Sortino: -1.08Max DD: -26.7%Calmar: -0.63VaR 95% (1d): 2.2%Beta: 0.94256d historySymbolQtyAvg costPriceMkt valP&LWtRELIANCE.NSEODWeekend10₹1,200.00₹1,167.70₹11,677.00-₹323.00 (-2.69%)100.0%"
+ },
+ "P9-agent": {
+  "openPanelSnapshot": {
+   "positionCount": 4,
+   "totalValue": null,
+   "totalValueNote": "holdings span multiple currencies (INR, USD) — no cross-currency total; read per-holding values",
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "id": "h-039492c4-b130-49b1-ab8f-7584f7736b67",
+     "symbol": "RELIANCE.NS",
+     "quantity": 10,
+     "costBasis": 1200,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 11677,
+     "pnl": -323
+    },
+    {
+     "id": "h-cc9960f6-0ab1-4b1d-ab61-b52e9b77f318",
+     "symbol": "TCS.NS",
+     "quantity": 5,
+     "costBasis": 2500,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 10375,
+     "pnl": -2125
+    },
+    {
+     "id": "h-4be6b5f8-0c93-4fa3-90dc-1a48123cf92e",
+     "symbol": "TCS.NS",
+     "quantity": 20,
+     "costBasis": 3900,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 41500,
+     "pnl": -36500
+    },
+    {
+     "id": "h-a1f341c0-45d8-4560-a813-619a646cdb6c",
+     "symbol": "AAPL",
+     "quantity": 2,
+     "costBasis": 190,
+     "assetClass": "equity",
+     "currency": "USD",
+     "marketValue": 667.3800048828125,
+     "pnl": 287.3800048828125
+    }
+   ]
+  },
+  "closedPanelSnapshot": {
+   "positionCount": 4,
+   "totalValue": null,
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "id": "h-039492c4-b130-49b1-ab8f-7584f7736b67",
+     "symbol": "RELIANCE.NS",
+     "quantity": 10,
+     "costBasis": 1200,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": null,
+     "pnl": null
+    },
+    {
+     "id": "h-cc9960f6-0ab1-4b1d-ab61-b52e9b77f318",
+     "symbol": "TCS.NS",
+     "quantity": 5,
+     "costBasis": 2500,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": null,
+     "pnl": null
+    },
+    {
+     "id": "h-4be6b5f8-0c93-4fa3-90dc-1a48123cf92e",
+     "symbol": "TCS.NS",
+     "quantity": 21,
+     "costBasis": 3900,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": null,
+     "pnl": null
+    },
+    {
+     "id": "h-a1f341c0-45d8-4560-a813-619a646cdb6c",
+     "symbol": "AAPL",
+     "quantity": 2,
+     "costBasis": 190,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": null,
+     "pnl": null
+    }
+   ]
+  },
+  "describe_update_by_symbol": {
+   "kind": "data-write",
+   "title": "Update TCS.NS in the portfolio",
+   "before": "Portfolio: unchanged",
+   "after": "can't apply — TCS.NS has 2 lots; name one by position_id: h-cc9960f6-0ab1-4b1d-ab61-b52e9b77f318 (×5 @ ₹2,500), h-4be6b5f8-0c93-4fa3-90dc-1a48123cf92e (×20 @ ₹3,900)"
+  },
+  "update_by_symbol_ambiguous": null,
+  "update_by_real_id": "Updated TCS.NS: ×21 @ ₹3,900",
+  "after_update_real": [
+   [
+    "RELIANCE.NS",
+    10,
+    1200,
+    null
+   ],
+   [
+    "TCS.NS",
+    5,
+    2500,
+    null
+   ],
+   [
+    "TCS.NS",
+    21,
+    3900,
+    "second lot"
+   ],
+   [
+    "AAPL",
+    2,
+    190,
+    null
+   ]
+  ],
+  "add_neg_cost": null,
+  "add_cost_string_spaces": null,
+  "add_no_cost": null,
+  "add_qty_bool": null,
+  "add_qty_huge": null,
+  "add_ok": "Added 2 HDFCBANK.NS @ ₹1,600 to the portfolio",
+  "delete_by_symbol": "Removed HDFCBANK.NS from the portfolio",
+  "delete_unknown_id": null,
+  "after_all": [
+   [
+    "RELIANCE.NS",
+    10,
+    1200
+   ],
+   [
+    "TCS.NS",
+    5,
+    2500
+   ],
+   [
+    "TCS.NS",
+    21,
+    3900
+   ],
+   [
+    "AAPL",
+    2,
+    190
+   ]
+  ],
+  "ledger": [],
+  "legacyImport": []
+ }
+}

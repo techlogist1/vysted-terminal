@@ -1,0 +1,20 @@
+[
+  {
+    "raw_id": "INT-pdd-readme-135-1",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "README.md:180-185 still reads 'The agent-native redesign is being specified; build follows operator review', while docs/CURRENT_STATE.md:53-57 records P1-P3 as shipped and the repo is on 004-r4-experience-rebuild. Holds as stated. One cited evidence path is dead: docs/redesign/P1_P3_BUILD_REPORT.md does not exist at HEAD (git log shows it was added in 60770cd and removed by d3d9456's public-release cleanup), and CURRENT_STATE.md:56 still links to it, so that doc has a dead link too.",
+    "evidence": "README.md:180-185, docs/CURRENT_STATE.md:1, docs/CURRENT_STATE.md:53-57",
+    "evidence_checked": "Read README Status section and CURRENT_STATE §0.5 header at HEAD 38919fd; checked that the P1_P3_BUILD_REPORT.md path exists (it does not) and ran git log on it. Docs-only claim, so no stack repro was needed.",
+    "repro_check": "grep -n '## Status' -A5 README.md -> 'agent-native redesign is being specified; build follows operator review'; find docs -iname '*P1_P3*' -> no result"
+  },
+  {
+    "raw_id": "INT-pdd-readme-135-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The count is right: catalog.py has 19 read_only=False entries, and HOST_ACTION_NAMES (src/lib/host-actions.ts:67-87) lists the same 19, while CURRENT_STATE.md:62-65 names only 4. The finding's safety note is wrong, though. The gate does NOT hold for all 19 in every mode: proposed-changes.ts:118 auto-accepts any change whose kind is not 'order' when autonomy is 'auto'. That covers the data-write kind (portfolio_add/update/delete_position, write_note, save_screen, save_layout; host-actions.ts:767-848) and the settings kind (set_region; host-actions.ts:858). agent-autonomy.ts:9-16 claims auto skips confirmation only for panel/chart/watchlist actions, so in auto mode the agent can delete a tracked-portfolio position with no confirmation. That is a stale-doc gap whose real consequence is an under-described trust surface for in-scope user data. After the trading removal, propose_order drops out and the surface is 18 tools.",
+    "evidence": "sidecar/services/agent_tools/catalog.py (19 x read_only=False), src/lib/host-actions.ts:67-87, src/lib/host-actions.ts:767-858, src/store/proposed-changes.ts:113-120, src/store/agent-autonomy.ts:1-17, docs/CURRENT_STATE.md:59-65",
+    "evidence_checked": "Opened catalog.py (grep count), host-actions.ts HOST_ACTION_NAMES and describeHostAction kinds, proposed-changes.ts stage/auto-accept path, agent-autonomy.ts header, and CURRENT_STATE §0.5. Code-only; I did not drive auto mode against :52152 because it is a frontend store behaviour.",
+    "repro_check": "grep -c 'read_only=False' sidecar/services/agent_tools/catalog.py -> 19; proposed-changes.ts:118 reads `if (described.kind !== \"order\" && autonomy === \"auto\") void get().accept(id)`, and portfolio_delete_position has kind 'data-write' (host-actions.ts:790-794), so it auto-applies in auto mode"
+  }
+]

@@ -1,0 +1,17 @@
+curl /llm/providers vs src/store/llm-providers.ts KNOWN_MODELS_BY_PROVIDER
+anthropic claude-opus-4-8 ['claude-opus-4-8', 'claude-sonnet-4-6', 'claude-haiku-4-5']
+openai gpt-4.1-mini ['gpt-4.1', 'gpt-4.1-mini', 'o4-mini']
+gemini gemini-2.5-pro ['gemini-2.5-pro', 'gemini-2.5-flash']
+groq llama-3.3-70b-versatile ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+ollama qwen2.5:7b ['qwen2.5:7b', 'llama3.1:8b']
+deepseek deepseek-chat ['deepseek-chat', 'deepseek-reasoner']
+xai grok-4 ['grok-4', 'grok-3']
+openrouter deepseek/deepseek-v4-flash ['minimax/minimax-m3', 'deepseek/deepseek-v4-flash', 'moonshotai/kimi-k2.6', 'deepseek/deepseek-v4-pro', 'qwen/qwen3.7-max', 'qwen/qwen3.7-plus', 'z-ai/glm-5.1', 'qwen/qwen3.6-flash', 'openrouter/auto']
+--- TS source (grep) ---
+
+CONFIRMED: src/store/model-selection.ts:14 imports "../../sidecar/config/model_registry.json" directly
+(REGISTRY_PROVIDERS = registry.providers), and src/store/llm-providers.ts DEFAULT_PROVIDERS is projected
+from REGISTRY_PROVIDERS (no hand-copied table). Live GET /llm/providers values match the registry JSON
+for all 8 providers (anthropic, openai, gemini, groq, ollama, deepseek, xai, openrouter).
+This is the certified fix (single-source-of-truth import), still present in candidate 1006c6da.
+VERDICT: holds

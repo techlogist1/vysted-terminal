@@ -1,0 +1,15 @@
+Live curl against my own RC1 sidecar (127.0.0.1:52320, candidate source, rc1-data-rc1-drive-composer-chat).
+
+GET /resolve?q=Mazagon Dock
+  -> resolved.symbol=MAZDOCK, confidence 0.92 (census's dead-ticker repro input now resolves cleanly)
+
+GET /macro/GDP?provider=worldbank  (R15-DATA-061's residual repro through batch 9)
+  -> HTTP 502 {"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+  (no raw openbb-mcp/World Bank library text — census/batch-9 leaked the raw upstream JSON-decode error text here)
+
+GET /quotes/ZZZZNOTREAL
+  -> HTTP 404 {"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+
+GET /history/XYZ%2FABC
+  -> HTTP 502 {"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+  (no raw "'Response' object has no attribute 'get'" AttributeError text)

@@ -1,0 +1,2 @@
+Committed pinned test: src/modules/chat/ChatSidebar.test.tsx:609 'a send with no key leaves no orphaned user turn and keeps the prompt (R15-UI-017)'; :597 surfaces-error variant.
+NOT RUN: vitest (role forbids running vitest/pytest suites).

@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_abe4ab4f2e744c00ab634d4fcdcee348", "name": "portfolio_delete_position", "input": {"position_id": "<nil>"}}
+[  35.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_abe4ab4f2e744c00ab634d4fcdcee348", "name": "portfolio_delete_position", "ok": true, "error": null}
+[  40.6s] done: {"kind": "done", "usage": {"input_tokens": 2863, "output_tokens": 64, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+You've proposed deleting TCS from your portfolio. To confirm, let's review the current state of your holdings in the terminal. 
+
+The action is pending confirmation in the proposal bar, and you can accept or reject it there. If you're ready to proceed, I can help guide you through the next steps.
+
+=== ok · 40.6s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 65, 'done': 1} · usage in=2863 out=64 · est $0.00000 · llama3.1:8b

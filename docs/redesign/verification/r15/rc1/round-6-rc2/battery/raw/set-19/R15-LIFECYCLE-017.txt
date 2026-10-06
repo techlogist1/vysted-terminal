@@ -1,0 +1,21 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ sed -n '/enrich/,+0p' /dev/null; grep -n 'logger.warning\|logger.exception\|emit(' sidecar/services/screener.py | sed -n 1,40p; grep -n 'LIFECYCLE-017' sidecar/tests/*.py | head
+exit=0
+598:        logger.warning("screener: unexpected fundamentals error for %s: %s", symbol, exc)
+613:        logger.warning("screener: unexpected quote error for %s: %s", symbol, exc)
+654:    def emit(phase: str, done: int, total: int, detail: str) -> None:
+1009:        emit("sweep", done, total, f"sweeping quotes {done:,}/{total:,}")
+1015:        logger.warning(
+1057:            emit("sweep", done, total, f"retrying misses {done:,}/{total:,}")
+1063:        logger.warning("screener: fallback retry hit its budget at %d/%d", done, total)
+1122:                    logger.warning(
+1133:                emit("enrich", done, total, f"enriching fundamentals {done:,}/{total:,}")
+1139:        logger.warning("screener: enrichment hit its budget at %d/%d", done, total)
+1175:    emit("universe", 1, 1, f"{universe.label}: {len(universe.symbols):,} symbols")
+1214:    emit("evaluate", 1, 1, f"evaluating {len(state.candidates):,} candidates")
+1248:        emit("prefilter", len(kept), before, f"prefilter kept {len(kept):,} of {before:,}")
+1264:            emit("prefilter", len(kept), before, f"post-sweep prune kept {len(kept):,}")
+1334:            emit("sweep", done, total, f"fetching {done:,}/{total:,}")
+1340:        logger.warning("screener: per-symbol fan-out hit the wall at %d/%d", done, total)
+1432:                logger.warning(
+sidecar/tests/test_b5_screener.py:73:    """R15-LIFECYCLE-017: an adapter bug (AttributeError) during phase E is

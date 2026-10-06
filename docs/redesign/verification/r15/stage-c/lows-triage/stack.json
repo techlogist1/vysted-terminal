@@ -1,0 +1,12 @@
+{
+  "up": true,
+  "pid": 61339,
+  "stdin_pid": 61338,
+  "wrapper_pid": 61336,
+  "port": 52350,
+  "sha": "e032be7dd164a504215055a1cd7b7b497dbd68e9",
+  "started_at": "2026-09-24T16:41:48Z",
+  "health_excerpt": {"status": "ok", "service": "vysted-sidecar", "version": "0.8.0", "providers": {"analyst_rating": "yfinance", "balance_sheet": "yfinance", "cash_flow": "yfinance", "fundamentals": "yfinance", "income_statement": "yfinance", "macro_series": "unavailable", "ohlcv": "ccxt (nse_direct, nse, bse, yfinance fallback)", "quote": "ccxt (nse_direct, nse, bse, yfinance fallback)", "openbb-mcp": "unavailable"}, "agents_degraded": []},
+  "log": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/lows-triage-e032be7-sidecar.log",
+  "reason": null
+}

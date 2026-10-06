@@ -1,0 +1,3 @@
+ERR SearchError Brave HTML search is blocking/rate-limiting right now (HTTP 429) — rotating to the next keyless engine 0.7s
+CURL 200
+EXIT

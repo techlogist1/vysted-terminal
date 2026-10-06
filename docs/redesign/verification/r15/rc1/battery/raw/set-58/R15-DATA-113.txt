@@ -1,0 +1,8 @@
+=== WIT estimates ===
+revenue_estimate_mean 244246846490.0 revenue_currency INR currency USD eps_estimate_mean 0.035
+=== TSM ===
+revenue_currency TWD
+=== HDB ===
+revenue_currency INR
+=== AAPL ===
+revenue_currency USD

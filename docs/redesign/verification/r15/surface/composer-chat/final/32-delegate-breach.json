@@ -1,0 +1,309 @@
+{
+  "mode": "breach",
+  "prompt": "Summarise what Cochin Shipyard does and its current P/E.",
+  "frames": [
+    {
+      "t": 2.026,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 4.034,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 6.039,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 8.042,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 10.045,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 12.049,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 14.053,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 16.057,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 18.059,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 20.062,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 22.065,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 24.068,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 26.071,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 28.074,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 30.075,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 32.079,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 34.082,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 36.085,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 38.088,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●ResearcherDelegate"
+    },
+    {
+      "t": 40.09,
+      "status": "error",
+      "cost": {
+        "tokens": 6212,
+        "spendUsd": 0,
+        "steps": 1
+      },
+      "detail": "step ceiling 1 reached (1 taken)",
+      "activity": [],
+      "rail": "●ResearcherDelegate6,212 tok · $0.0000step ceiling 1 reached (1 taken)"
+    }
+  ],
+  "finalRuns": [
+    {
+      "status": "error",
+      "detail": "step ceiling 1 reached (1 taken)",
+      "cost": {
+        "tokens": 6212,
+        "spendUsd": 0,
+        "steps": 1
+      },
+      "budget": {
+        "maxTokens": 120000,
+        "maxSpendUsd": 1,
+        "maxWallSeconds": 600,
+        "maxSteps": 1
+      },
+      "sidecarRunId": "c6cd59fcd89c4581808994663959eeca",
+      "provider": "ollama"
+    }
+  ],
+  "sidecarRun": {
+    "id": "c6cd59fcd89c4581808994663959eeca",
+    "agent_id": "researcher",
+    "agent_name": "AI Researcher",
+    "mode": "delegate",
+    "status": "error",
+    "cost": {
+      "tokens": 6212,
+      "spend_usd": 0,
+      "steps": 1
+    },
+    "budget": {
+      "max_tokens": 120000,
+      "max_spend_usd": 1,
+      "max_wall_seconds": 600,
+      "max_steps": 1
+    },
+    "provider": "ollama",
+    "model": "llama3.1:8b",
+    "plan": null,
+    "activity": [],
+    "detail": "step ceiling 1 reached (1 taken)",
+    "question": null,
+    "created_at": 1791024951,
+    "updated_at": 1791024991,
+    "transcript": [
+      {
+        "role": "user",
+        "content": "Summarise what Cochin Shipyard does and its current P/E."
+      }
+    ],
+    "checkpoint_messages": 1,
+    "answer": null,
+    "brief": null,
+    "host_actions": []
+  },
+  "chat": [
+    {
+      "role": "assistant",
+      "content": ""
+    }
+  ],
+  "proposed": [],
+  "domText": "Chat 1●ResearcherDelegate6,212 tok · $0.0000step ceiling 1 reached (1 taken)AI ResearcherSomething went wrong — step ceiling 1 reached (1 taken)NormalDeepUltraLlama3.1 8B"
+}

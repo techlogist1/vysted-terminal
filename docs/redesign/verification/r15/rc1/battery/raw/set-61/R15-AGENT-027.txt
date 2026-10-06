@@ -1,0 +1,7 @@
+openai 429 -> insufficient_credit
+gemini 400 -> context_overflow
+openrouter 403 -> insufficient_credit
+together 404 -> model_not_found
+ollama connect -> ollama_not_running | Ollama is not running.
+ollama timeout -> ollama_not_running | Ollama is not responding.
+openai dns fail -> network | Could not reach OpenAI — check your network.

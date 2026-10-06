@@ -1,0 +1,22 @@
+== vy.py invoke copilot "hi" --provider openai --model gpt-4o-mini --mode agent --autonomy ask --no-key --port 52359 ==
+[   0.0s] error: {"kind": "error", "message": "No OpenAI API key is set \u2014 add it in Settings.", "action": "Add your OpenAI API key in Settings.", "detail": "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.", "code": "auth"}
+[   0.0s] done: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 0.0s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · gpt-4o-mini
+
+== direct curl POST /llm/chat {provider:openai, model:gpt-4o-mini, no key header} ==
+data: {"kind": "error", "message": "No OpenAI API key is set \u2014 add it in Settings.", "action": "Add your OpenAI API key in Settings.", "detail": "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.", "code": "auth"}
+
+
+HTTP_CODE:200
+
+== groq leg ==
+vy.py's --provider choices are {openrouter, openai, deepseek, ollama} at this candidate sha —
+groq is not a CLI option, so the groq leg of the original repro could not be re-run through vy.py.
+The openai leg (both /agents/{id}/invoke via vy.py and a direct /llm/chat curl) is a full,
+independent re-run of the register's mechanism (SDK client constructor exception now reaches
+humanize() before the router's last-resort internal-error guard) and reproduces the certified
+fix on both call sites named in the entry.

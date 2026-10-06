@@ -1,0 +1,425 @@
+/**
+ * Research-brief contract (FR-074, PASS_B_RESEARCH B.5).
+ *
+ * The serialisable shape JARVIS' research pipeline emits and the BriefPanel
+ * renders. It is the single source of truth for the B+A research output surface:
+ * a markdown body with inline `[n]` citation chips, the sources behind those
+ * chips, the FAST/DEEP mode + cost metadata, and an honest `webAvailable` flag
+ * that lets the panel state "no web-search backend configured" rather than fake
+ * an error or an empty result.
+ *
+ * NO secrets cross this contract — like the rest of the workspace blob it carries
+ * only non-secret research output (the BYOK web-search key is keychain-only).
+ */
+
+import type { Fundamentals, Quote } from "./data";
+
+/**
+ * One leg of the research bundle's `structured` map — a provenance-tagged data
+ * pull (price / fundamentals / news / filings). Uniform shape so a consumer reads
+ * provenance the same way for every leg: `ok` + `provider` always, `data` when
+ * `ok`, `error` when not. `data`'s concrete shape depends on the leg.
+ */
+export interface BriefStructuredLeg<T = unknown> {
+  /** Whether this leg's pull succeeded. */
+  ok: boolean;
+  /** The serving provider (e.g. `yfinance`), for the FR-041 provenance badge. */
+  provider?: string | null;
+  /** The payload when `ok` (a `Quote` for price, `Fundamentals` for fundamentals, …). */
+  data?: T;
+  /** A short human reason when the leg failed. */
+  error?: string;
+  /**
+   * An honest disclosure that still rides an `ok: true` leg — e.g. the news
+   * leg's relevance gate (R13) dropped every returned item as off-entity and
+   * `data` is deliberately empty rather than fabricated filler.
+   */
+  note?: string;
+}
+
+/**
+ * The research bundle's `structured` map — the real, provenance-tagged numbers
+ * behind the brief (price/fundamentals/news/filings), used to render native
+ * metric cards rather than re-parse them out of prose. Optional + every leg
+ * optional: a DEEP run may carry only `resolved`, a structured-only run may have
+ * empty legs. NEVER fabricated — an absent/`ok:false` leg renders nothing.
+ */
+export interface BriefStructured {
+  /** The symbol-resolution result (instrument identity). */
+  resolved?: unknown;
+  /** Latest quote leg. */
+  price?: BriefStructuredLeg<Quote>;
+  /** Valuation-ratios leg. */
+  fundamentals?: BriefStructuredLeg<Fundamentals>;
+  /** Recent-news leg. */
+  news?: BriefStructuredLeg;
+  /** Filings-index leg. */
+  filings?: BriefStructuredLeg;
+  /**
+   * The metric-semantics leg (R10, D37/E8): values COMPUTED sidecar-side from
+   * the raw legs with explicit labels and bases, plus cross-source conflicts.
+   * `provider` is always `"derived"`. Absent on older briefs.
+   */
+  derived?: BriefStructuredLeg<BriefDerivedMetrics>;
+}
+
+/**
+ * One semantically-disciplined metric value (R10 semantics layer). Every number
+ * the brief states carries its label, basis, and (when computed) formula — so
+ * drawdown-from-high can never wear 52-week-change's label and a growth figure
+ * always names its base.
+ */
+export interface BriefDerivedValue {
+  /** The numeric value, or null when inputs were missing (never fabricated). */
+  value: number | null;
+  /** The exact display label (e.g. "Below 52-week high"). */
+  label: string;
+  /** The measurement basis (e.g. "TTM", "FY/FY", "vs 52w high", "of face value"). */
+  basis?: string;
+  /** The computation, when derived (e.g. "(52w high − price) / 52w high"). */
+  formula?: string;
+  /**
+   * How to render the value. `fraction` is a share of 1 (0.0142 renders as
+   * 1.42%). `percent` is the pre-R15 wire name for the same fraction, kept
+   * only so briefs persisted before the rename still render; the sidecar no
+   * longer emits it.
+   */
+  unit?: "fraction" | "currency" | "ratio" | "percent";
+  /**
+   * The sidecar's human rendering of {@link value} ("1.42%", "₹14,402 cr") —
+   * the string the model quotes. Present on every non-null value.
+   */
+  display?: string;
+  /**
+   * Why a null {@link value} is null (R13 JARVIS 2a) — a withheld/unavailable
+   * `field_meta` note ("provider value withheld as implausible") or a leg-level
+   * gap ("provider_error"/"rate_limited"). Present only on a null value; states
+   * the CAUSE so a missing metric never reads as a silent world-absence.
+   */
+  reason?: string;
+}
+
+/** A cross-source numeric disagreement the pipeline flagged instead of silently picking. */
+export interface BriefMetricConflict {
+  /** The metric in conflict (e.g. "dividend_yield", "market_cap"). */
+  field: string;
+  /**
+   * The disagreeing values with their provenance. `basis` names each side's
+   * measurement basis when the conflict is basis-bearing (R12 / D66 growth
+   * cross-check: provider-claimed mrq_yoy vs statement-computed quarterly YoY).
+   */
+  sources: { provider: string; value: number | string; basis?: string }[];
+  /** One human line on why this is flagged and what would reconcile it. */
+  note: string;
+  /**
+   * The quarter-end pair (ISO dates) a statement-computed figure compared
+   * (R12 / D66) — present only on the growth cross-check conflicts.
+   */
+  quarters?: { mrq: string; prior: string };
+  /**
+   * Conflict TYPE discriminator (R12 / D67) — e.g. "identity_conflict",
+   * "ownership_conflict", "growth_conflict". Names WHAT is in conflict.
+   */
+  kind?: string;
+  /**
+   * Conflict NATURE discriminator (R13 / D69) — ORTHOGONAL to {@link kind}:
+   * "definitional_expected" = the divergence is explained by a known
+   * definition/basis difference (insiders vs promoter-group; bank revenue
+   * line); "data_conflict" = a genuine cross-source contradiction. Absent is
+   * read as "data_conflict", so older briefs are unchanged.
+   */
+  conflict_kind?: "definitional_expected" | "data_conflict";
+  /** Token-set similarity behind an identity conflict (R12 / D67). */
+  similarity?: number;
+  /** The instrument the conflict names, when symbol-specific (R12 / D67). */
+  symbol?: string;
+}
+
+/** The semantics leg's payload — derived, labeled metrics + flagged conflicts. */
+export interface BriefDerivedMetrics {
+  /** (52w high − price) / 52w high — the true "off the high" figure. */
+  drawdown_from_high?: BriefDerivedValue;
+  /** Yahoo's 52-week price change — explicitly NOT drawdown. */
+  fifty_two_week_change?: BriefDerivedValue;
+  /** Reconciled dividend yield (fraction of price). */
+  dividend_yield?: BriefDerivedValue;
+  /** Dividend in listing currency per share. */
+  dividend_per_share?: BriefDerivedValue;
+  /**
+   * Trailing-12m dividend actually PAID (R11 / D56) — present ONLY when it
+   * diverges from `dividend_per_share` or a declared-but-unpaid dividend
+   * coexists (an agreeing figure with no declared leg emits nothing extra).
+   */
+  dividend_per_share_ttm?: BriefDerivedValue;
+  /**
+   * A declared-but-unpaid dividend (R13 / D57) — present ONLY when one is
+   * attached; paired with `dividend_per_share_ttm` in the PAID + DECLARED
+   * reconciliation.
+   */
+  dividend_declared?: BriefDerivedValue;
+  /** Revenue growth with its basis named. */
+  revenue_growth?: BriefDerivedValue;
+  /** Earnings growth with its basis named. */
+  earnings_growth?: BriefDerivedValue;
+  /**
+   * Growth computed from the provider's own quarterly income statements
+   * (R12 / D66) — present ONLY when it diverges from the provider scalar
+   * beyond tolerance (an agreeing figure emits no extra card). The provider
+   * values above are never replaced.
+   */
+  revenue_growth_computed?: BriefDerivedValue;
+  earnings_growth_computed?: BriefDerivedValue;
+  /**
+   * Reported vs adjusted net income (R13 / D70) — present ONLY when reported
+   * earnings carry a large one-off distortion (the reported-vs-adjusted PE/ROE
+   * trap: e.g. TI's PE 460 reported vs 43.9 adjusted). The paired
+   * `earnings_quality` conflict names the PE/ROE/EPS basis seam. The provider
+   * ratios are never replaced.
+   */
+  reported_net_income?: BriefDerivedValue;
+  normalized_net_income?: BriefDerivedValue;
+  /**
+   * 52-week high/low recomputed from the app's own exchange-direct daily
+   * history (R13 / D71) — present ONLY when the provider's 52-week pair diverges
+   * beyond tolerance (e.g. BI provider high 75 vs exchange 116). The paired
+   * `range_conflict` carries both figures; the provider scalar is never replaced.
+   */
+  fifty_two_week_high_exchange?: BriefDerivedValue;
+  fifty_two_week_low_exchange?: BriefDerivedValue;
+  /**
+   * Market cap from price × a NON-provider (BSE-derived) share count (R13 /
+   * D72) — present ONLY when the provider market cap diverges beyond tolerance
+   * from this witness (e.g. RBA ₹5,233 Cr vs ₹4,236 Cr during live stake churn).
+   * Breaks the circularity of the provider-share-count check; the provider
+   * market cap is never replaced.
+   */
+  market_cap_witness?: BriefDerivedValue;
+  /**
+   * The provider market cap with a scaled `display` (R15-AGENT-001) — it rides
+   * the derived leg for the model; the panel's raw grid renders its own card.
+   */
+  market_cap?: BriefDerivedValue;
+  /**
+   * Promoter shareholding from the exchange SHP filing (R13 / D68) — present
+   * ONLY when the filing carries a promoter figure; a divergence from the
+   * provider's `held_percent_insiders` is flagged as its own conflict, never
+   * substituted.
+   */
+  promoter_percent_exchange?: BriefDerivedValue;
+  /**
+   * Institutional shareholding from the exchange SHP filing (R13 / D68) —
+   * present ONLY when the filing carries an institutions figure; a divergence
+   * from the provider's `held_percent_institutions` is flagged as its own
+   * conflict, never substituted.
+   */
+  institutions_percent_exchange?: BriefDerivedValue;
+  /** Cross-source disagreements — flagged, never silently resolved. */
+  conflicts?: BriefMetricConflict[];
+}
+
+/**
+ * The execution record of the research run that produced a brief (R10, D38).
+ * Stamped at the tool boundary from the loop that ACTUALLY RAN — the brief's
+ * mode/depth badges derive from this and only this, never from request or UI
+ * state. Wire shape from the sidecar is snake_case; `briefFromInput` maps it.
+ */
+export interface BriefExecution {
+  /** Unique id of the research run (minted when the tool dispatched). */
+  runId: string;
+  /** The depth requested after the slider-floor/model-escalation merge. */
+  requestedDepth: "normal" | "deep" | "ultra";
+  /** The loop that actually executed. */
+  loop: "fast" | "iter" | "heavy" | "research-model";
+  /** The retrieval backend the run rode (mirrors `ResearchBriefData.backend`). */
+  backend?: string | null;
+  /** Epoch ms the run started/finished, when metered. */
+  startedAt?: number;
+  finishedAt?: number;
+  /** Why the run executed below the requested depth, when it did — never silent. */
+  degradedReason?: string | null;
+}
+
+/** One instrument candidate in an honest disambiguation (R10, D37). */
+export interface BriefCandidate {
+  symbol: string;
+  name: string;
+  exchange?: string | null;
+  /** Resolver confidence in [0,1]. */
+  score?: number;
+  /** The quote-routable form (e.g. "RELIANCE.NS") for one-click re-research. */
+  yahooSymbol?: string;
+}
+
+/**
+ * An explicit "which did you mean?" — rendered INSTEAD of a guessed brief when
+ * resolution lands between the reject and accept thresholds. Never co-exists
+ * with a researched body for the same run.
+ */
+export interface BriefDisambiguation {
+  query: string;
+  candidates: BriefCandidate[];
+}
+
+/**
+ * The category of a cited source, used for the quiet source-type badge in the
+ * sources rail (news / research / filing / web). The pipeline may emit it
+ * directly; when absent the panel derives it from the source's domain.
+ */
+export type BriefSourceType = "news" | "research" | "filing" | "web";
+
+/** One cited source behind an inline `[n]` chip in the brief body. */
+export interface BriefSource {
+  /** Canonical URL of the source. */
+  url: string;
+  /** Human-readable title shown in the sources tray. */
+  title: string;
+  /** A short snippet the brief drew from, shown under the title. */
+  excerpt: string;
+  /**
+   * The source's domain (e.g. `sec.gov`), used for the domain badge + favicon.
+   * Optional — when absent the panel derives it from {@link url}.
+   */
+  domain?: string;
+  /** Publication date as the backend reported it (wire `published_at`), shown
+   *  in the sources rail. Absent when no backend supplied one. */
+  publishedAt?: string;
+  /** The lane that gathered the source (wire `provider`, e.g. "via Perplexity
+   *  Sonar") — provenance, never part of {@link domain}. */
+  provider?: string;
+  /**
+   * The source's category (news / research / filing / web), shown as a small
+   * quiet badge in the sources rail. Optional — when absent the panel derives
+   * it client-side from {@link domain}/{@link url} (SEC → filing, known news
+   * domains → news, etc.).
+   */
+  sourceType?: BriefSourceType;
+}
+
+/**
+ * The kind of a single step in the research pipeline's trace. `distill`
+ * (IterResearch central-report rewrite) and `engine` (the honest backend /
+ * fallback line) are emitted by the sidecar and rendered by ResearchActivity.
+ */
+export type BriefStepKind =
+  | "plan"
+  | "tool"
+  | "search"
+  | "compress"
+  | "distill"
+  | "reflect"
+  | "synthesize"
+  | "engine";
+
+/** The terminal status of a single research step. */
+export type BriefStepStatus = "ok" | "error" | "skipped";
+
+/** One entry in the dev-only research step-log (plan → tool/search → synthesize). */
+export interface BriefStep {
+  /** Which stage of the pipeline this step belongs to. */
+  kind: BriefStepKind;
+  /** A one-line human description of what the step did. */
+  detail: string;
+  /** Wall-clock latency of the step in milliseconds, when measured. */
+  latencyMs?: number;
+  /** How the step resolved. */
+  status: BriefStepStatus;
+}
+
+/** The two research depths the pipeline renders in the mode badge. */
+export type BriefMode = "FAST" | "DEEP";
+
+/**
+ * The true depth TIER a brief was produced at (FR-115). The ONE research model
+ * escalates in place across these three internal tiers; the brief carries the
+ * tier it reached so the panel's "Go deeper" affordance knows the NEXT tier (and
+ * hides itself at `heavy`). `quick` ≙ FAST mode; `deep`/`heavy` ≙ DEEP mode.
+ * Optional — older briefs omit it and the panel derives the tier from `mode`.
+ */
+export type BriefDepth = "quick" | "deep" | "heavy";
+
+/**
+ * A complete research brief — the payload the BriefPanel renders and the
+ * workspace blob persists (`SerializedWorkspace.brief`).
+ */
+export interface ResearchBriefData {
+  /** The natural-language research question the brief answers. */
+  query: string;
+  /** The primary ticker the brief is about, when the query resolved to one. */
+  symbol?: string;
+  /** The depth the pipeline ran in (the mode badge: FAST | DEEP). */
+  mode: BriefMode;
+  /**
+   * The true depth tier reached (`quick` | `deep` | `heavy`). Drives the in-place
+   * "Go deeper" escalation (FR-115). Optional — derived from `mode` when absent.
+   */
+  depth?: BriefDepth;
+  /** The brief body, in markdown, with inline `[n]` citation markers. */
+  markdown: string;
+  /** The cited sources, indexed 1-based by the `[n]` markers in {@link markdown}. */
+  sources: BriefSource[];
+  /**
+   * The number of sources consulted. Usually `sources.length`, but the pipeline
+   * may report a higher count when it consulted more than it cited.
+   */
+  sourceCount: number;
+  /** Token + spend cost of the run, when the pipeline metered it. */
+  cost?: {
+    /** Total tokens consumed across the run. */
+    tokens?: number;
+    /** Total spend in USD across the run. */
+    spendUsd?: number;
+  };
+  /**
+   * Whether a web-search backend was available for this run. When `false` the
+   * brief was built from structured data only — the panel says so honestly
+   * (NOT an error, NOT an empty state). Reconciled with {@link sourceCount}: a
+   * brief that cited sources is never marked web-unavailable.
+   */
+  webAvailable: boolean;
+  /**
+   * Why the web round did not answer, when it didn't (`webAvailable === false`):
+   * `"rate_limited"` ⇒ a TRANSIENT throttle (the backend exists — the banner says
+   * "rate-limited, retrying"), anything else / absent ⇒ a genuine no-backend miss
+   * (the banner stays "structured data only"). NEVER a "no backend" claim for a
+   * transient throttle. Optional — older briefs omit it.
+   */
+  webReason?: string;
+  /**
+   * A free-form honest note from the pipeline (e.g. why web search was skipped).
+   * Surfaced prominently when {@link webAvailable} is `false`.
+   */
+  note?: string;
+  /**
+   * The retrieval backend that served this brief's web round (R9 two-tier
+   * model, Team A): `"searxng"`, `"keyless-fallback"`, or
+   * `"research-model:<model-id>"`. `keyless-fallback` — SearXNG not ready, the
+   * run silently fell back to the keyless engines — drives the brief panel's
+   * honest "limited keyless search" nudge banner; it never renders for the
+   * searxng / research-model backends. Optional — older briefs omit it.
+   */
+  backend?: string;
+  /** The dev-only research step trace, when the pipeline emitted one. */
+  steps?: BriefStep[];
+  /**
+   * The provenance-tagged structured bundle (price/fundamentals/news/filings)
+   * the pipeline gathered, used to render native metric cards. Optional — older
+   * briefs and structured-only runs may omit it; an absent leg renders nothing
+   * (never fabricated).
+   */
+  structured?: BriefStructured;
+  /**
+   * The execution record of the run that produced this brief (R10, D38). The
+   * mode/depth badges derive from `execution.loop` when present; structured
+   * carry-over between publishes requires a matching `execution.runId`.
+   * Optional — pre-R10 briefs omit it and render as archival.
+   */
+  execution?: BriefExecution;
+  /**
+   * Set when resolution needed an explicit human choice (R10, D37) — the panel
+   * renders the candidate chooser instead of a brief body. Mutually exclusive
+   * with a researched `markdown`.
+   */
+  disambiguation?: BriefDisambiguation;
+  /** Epoch milliseconds the brief was produced. */
+  createdAt: number;
+}

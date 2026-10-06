@@ -1,0 +1,3714 @@
+{
+ "slot": "P10",
+ "symbol": "VIYASH",
+ "manifest_name": "Viyash Scientific Ltd",
+ "exchange": "NSE+BSE",
+ "bse_code": "512529",
+ "collected_at": "2026-09-26T21:38:49+0530",
+ "sidecar": "http://127.0.0.1:52313",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52313/resolve?q=VIYASH",
+   "status": 200,
+   "elapsed_ms": 1,
+   "body": {
+    "ok": true,
+    "query": "VIYASH",
+    "region": "IN",
+    "resolved": {
+     "symbol": "VIYASH",
+     "name": "Viyash Scientific Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "VIYASH.NS",
+     "confidence": 1.0,
+     "isin": "INE807F01027",
+     "bse_code": "512529",
+     "industry": "Healthcare / Pharmaceuticals",
+     "former_name": "SEQUENT",
+     "board": "mainboard",
+     "exchange_group": "A",
+     "face_value": 2.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "VIYASH",
+      "name": "Viyash Scientific Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "VIYASH.NS",
+      "confidence": 1.0,
+      "isin": "INE807F01027",
+      "bse_code": "512529",
+      "industry": "Healthcare / Pharmaceuticals",
+      "former_name": "SEQUENT",
+      "board": "mainboard",
+      "exchange_group": "A",
+      "face_value": 2.0
+     },
+     {
+      "symbol": "VIYASH",
+      "name": "Viyash Scientific Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "VIYASH.BO",
+      "confidence": 1.0,
+      "isin": "INE807F01027",
+      "bse_code": "512529",
+      "industry": "Healthcare / Pharmaceuticals",
+      "former_name": "SEQUENT",
+      "board": "mainboard",
+      "exchange_group": "A",
+      "face_value": 2.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52313/resolve?q=Viyash+Scientific+Ltd",
+   "status": 200,
+   "elapsed_ms": 656,
+   "body": {
+    "ok": true,
+    "query": "Viyash Scientific Ltd",
+    "region": "IN",
+    "resolved": {
+     "symbol": "VIYASH",
+     "name": "Viyash Scientific Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "VIYASH.NS",
+     "confidence": 1.0,
+     "isin": "INE807F01027",
+     "bse_code": "512529",
+     "industry": "Healthcare / Pharmaceuticals",
+     "former_name": "SEQUENT",
+     "board": "mainboard",
+     "exchange_group": "A",
+     "face_value": 2.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "VIYASH",
+      "name": "Viyash Scientific Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "VIYASH.NS",
+      "confidence": 1.0,
+      "isin": "INE807F01027",
+      "bse_code": "512529",
+      "industry": "Healthcare / Pharmaceuticals",
+      "former_name": "SEQUENT",
+      "board": "mainboard",
+      "exchange_group": "A",
+      "face_value": 2.0
+     },
+     {
+      "symbol": "BOROSCI",
+      "name": "Borosil Scientific Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "BOROSCI.NS",
+      "confidence": 0.6809,
+      "isin": "INE02L001032",
+      "bse_code": "544184",
+      "industry": "Packaging & Containers",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 1.0
+     },
+     {
+      "symbol": "JSTL",
+      "name": "Jeevan Scientific Technology Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "JSTL.BO",
+      "confidence": 0.6415,
+      "isin": "INE237B01018",
+      "bse_code": "538837",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "VIVANZA",
+      "name": "Vivanza Biosciences Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "VIVANZA.BO",
+      "confidence": 0.6364,
+      "isin": "INE984E01035",
+      "bse_code": "530057",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 1.0
+     },
+     {
+      "symbol": "VSDCONF",
+      "name": "VSD Confin Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "VSDCONF.BO",
+      "confidence": 0.6286,
+      "isin": "INE489F01016",
+      "bse_code": "531696",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52313/resolve?q=512529",
+   "status": 200,
+   "elapsed_ms": 4,
+   "body": {
+    "ok": true,
+    "query": "512529",
+    "region": "IN",
+    "resolved": {
+     "symbol": "VIYASH",
+     "name": "Viyash Scientific Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "VIYASH.BO",
+     "confidence": 1.0,
+     "isin": "INE807F01027",
+     "bse_code": "512529",
+     "industry": "Healthcare / Pharmaceuticals",
+     "former_name": "SEQUENT",
+     "board": "mainboard",
+     "exchange_group": "A",
+     "face_value": 2.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "VIYASH",
+      "name": "Viyash Scientific Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "VIYASH.BO",
+      "confidence": 1.0,
+      "isin": "INE807F01027",
+      "bse_code": "512529",
+      "industry": "Healthcare / Pharmaceuticals",
+      "former_name": "SEQUENT",
+      "board": "mainboard",
+      "exchange_group": "A",
+      "face_value": 2.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52313/quotes/VIYASH?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 7427,
+   "body": {
+    "symbol": "VIYASH",
+    "price": 244.35,
+    "change": -1.6500000000000057,
+    "change_percent": -0.6707317073170755,
+    "volume": 1325870.0,
+    "open": null,
+    "high": null,
+    "low": null,
+    "prev_close": null,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-25T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52313/fundamentals/VIYASH",
+   "status": 200,
+   "elapsed_ms": 17327,
+   "body": {
+    "symbol": "VIYASH.NS",
+    "name": "Viyash Scientific Limited",
+    "sector": "Healthcare",
+    "industry": "Healthcare / Pharmaceuticals",
+    "sector_source": "resolver",
+    "currency": "INR",
+    "financial_currency": null,
+    "ratio_price": 244.35,
+    "market_cap": 107810988032.0,
+    "pe_ratio": 51.550636,
+    "forward_pe": 20.97425,
+    "peg_ratio": null,
+    "price_to_book": 3.6634185,
+    "price_to_sales": 3.01567,
+    "ev_to_ebitda": 16.268,
+    "book_value": 66.7,
+    "dividend_yield": 0.0,
+    "dividend_per_share": null,
+    "eps": 4.1899999999999995,
+    "beta": 0.975,
+    "fifty_two_week_high": 298.0,
+    "fifty_two_week_low": 178.13,
+    "fifty_two_week_change": 0.32669127,
+    "fifty_two_week_high_date": "2026-07-06",
+    "fifty_two_week_low_date": "2026-03-23",
+    "listing_date": "2016-03-10",
+    "first_trade_date": "2016-03-10",
+    "forward_pe_fiscal_year": "2027-03-31",
+    "roe": 0.07260070160010443,
+    "roa": null,
+    "gross_margin": 0.52325,
+    "operating_margin": 0.12474,
+    "profit_margin": 0.059120003,
+    "debt_to_equity": 0.15724,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "roce": 0.11209724789626717,
+    "basis": "consolidated",
+    "revenue_ttm": 31487200000.0,
+    "net_income_ttm": 1711600000.0,
+    "free_cash_flow": null,
+    "shares_outstanding": 441215420.0,
+    "revenue_growth": 1.143899234289339,
+    "earnings_growth": 3.6030747728860937,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.6703,
+    "held_percent_institutions": 0.09714,
+    "dividend_per_share_ttm": 0.0,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector_source": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ratio_price": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T10:00:02+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T10:00:02+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "pe_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T10:00:02+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T10:00:02+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T10:00:02+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_book": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T10:00:02+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T10:00:02+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ev_to_ebitda": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T10:00:02+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "book_value": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_yield": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": "no dividends paid (trailing 12m)",
+      "label": "no dividends paid (trailing 12m)",
+      "basis_note": null
+     },
+     "dividend_per_share": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "beta": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T10:00:02+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "listing_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "first_trade_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe_fiscal_year": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "roe": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "net income (TTM) / stockholders equity"
+     },
+     "roa": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "debt_to_equity": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "current_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "quick_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "roce": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "annual EBIT / (total assets - current liabilities)"
+     },
+     "basis": {
+      "status": "ok",
+      "provider": "exchange-filings",
+      "as_of": "2026-09-26T16:08:33.253323+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "free_cash_flow": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "consolidated, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": "exchange-filed (NSE) figure served; the provider's 162.5% disagrees with it \u2014 not served",
+      "label": "consolidated, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "held_percent_insiders": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": "yfinance insiders 67.03% disagrees with the NSE shareholding filing for the quarter ended 2026-06-30 (promoter group: 61.31%) beyond 3pp (insiders \u2260 promoter group); kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "held_percent_institutions": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:08:17.315711+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": "no dividends paid (trailing 12m)",
+      "label": "no dividends paid (trailing 12m)",
+      "basis_note": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52313/fundamentals/VIYASH/income",
+   "status": 200,
+   "elapsed_ms": 701,
+   "body": {
+    "symbol": "VIYASH.NS",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31"
+    ],
+    "lines": [
+     {
+      "label": "operating_revenue",
+      "values": {
+       "2026-03-31": 33569610000.0,
+       "2025-03-31": 29633990000.0,
+       "2024-03-31": 13663000000.0,
+       "2023-03-31": 14182750000.0
+      }
+     },
+     {
+      "label": "total_revenue",
+      "values": {
+       "2026-03-31": 33569610000.0,
+       "2025-03-31": 29633990000.0,
+       "2024-03-31": 13663000000.0,
+       "2023-03-31": 14182750000.0
+      }
+     },
+     {
+      "label": "cost_of_revenue",
+      "values": {
+       "2026-03-31": 17289990000.0,
+       "2025-03-31": 16263890000.0,
+       "2024-03-31": 8131150000.0,
+       "2023-03-31": 8985120000.0
+      }
+     },
+     {
+      "label": "gross_profit",
+      "values": {
+       "2026-03-31": 16279620000.0,
+       "2025-03-31": 13370100000.0,
+       "2024-03-31": 5531850000.0,
+       "2023-03-31": 5197630000.0
+      }
+     },
+     {
+      "label": "rent_and_landing_fees",
+      "values": {
+       "2026-03-31": 130740000.0,
+       "2025-03-31": 122290000.0,
+       "2024-03-31": 42460000.0,
+       "2023-03-31": 34040000.0
+      }
+     },
+     {
+      "label": "general_and_administrative_expense",
+      "values": {
+       "2026-03-31": 1048060000.0,
+       "2025-03-31": 956540000.0,
+       "2024-03-31": 553610000.0,
+       "2023-03-31": 540260000.0
+      }
+     },
+     {
+      "label": "selling_and_marketing_expense",
+      "values": {
+       "2026-03-31": 499470000.0,
+       "2025-03-31": 448430000.0,
+       "2024-03-31": 285880000.0,
+       "2023-03-31": 281330000.0
+      }
+     },
+     {
+      "label": "selling_general_and_admin_expense",
+      "values": {
+       "2026-03-31": 1547530000.0,
+       "2025-03-31": 1404970000.0,
+       "2024-03-31": 839490000.0,
+       "2023-03-31": 821590000.0
+      }
+     },
+     {
+      "label": "depreciation_income_statement",
+      "values": {
+       "2026-03-31": 1083720000.0,
+       "2025-03-31": 1212750000.0,
+       "2024-03-31": 509830000.0,
+       "2023-03-31": 451960000.0
+      }
+     },
+     {
+      "label": "amortization",
+      "values": {
+       "2026-03-31": 1252720000.0,
+       "2025-03-31": 1174370000.0,
+       "2024-03-31": 105570000.0,
+       "2023-03-31": 104970000.0
+      }
+     },
+     {
+      "label": "depreciation_and_amortization_in_income_statement",
+      "values": {
+       "2026-03-31": 2336440000.0,
+       "2025-03-31": 2387120000.0,
+       "2024-03-31": 615400000.0,
+       "2023-03-31": 556930000.0
+      }
+     },
+     {
+      "label": "other_operating_expenses",
+      "values": {
+       "2026-03-31": 2421130000.0,
+       "2025-03-31": 2326550000.0,
+       "2024-03-31": 1135810000.0,
+       "2023-03-31": 1206570000.0
+      }
+     },
+     {
+      "label": "operating_expense",
+      "values": {
+       "2026-03-31": 11774440000.0,
+       "2025-03-31": 11598220000.0,
+       "2024-03-31": 5161640000.0,
+       "2023-03-31": 5194780000.0
+      }
+     },
+     {
+      "label": "operating_income",
+      "values": {
+       "2026-03-31": 4505180000.0,
+       "2025-03-31": 1771880000.0,
+       "2024-03-31": 370210000.0,
+       "2023-03-31": 2850000.0
+      }
+     },
+     {
+      "label": "interest_income_non_operating",
+      "values": {
+       "2026-03-31": 92510000.0,
+       "2025-03-31": 68390000.0,
+       "2024-03-31": 6700000.0,
+       "2023-03-31": 12090000.0
+      }
+     },
+     {
+      "label": "interest_expense_non_operating",
+      "values": {
+       "2026-03-31": 637600000.0,
+       "2025-03-31": 793350000.0,
+       "2024-03-31": 464230000.0,
+       "2023-03-31": 297190000.0
+      }
+     },
+     {
+      "label": "total_other_finance_cost",
+      "values": {
+       "2026-03-31": 54470000.0,
+       "2025-03-31": 70310000.0,
+       "2024-03-31": 16630000.0,
+       "2023-03-31": 57980000.0
+      }
+     },
+     {
+      "label": "net_non_operating_interest_income_expense",
+      "values": {
+       "2026-03-31": -599560000.0,
+       "2025-03-31": -795270000.0,
+       "2024-03-31": -474160000.0,
+       "2023-03-31": -343080000.0
+      }
+     },
+     {
+      "label": "restructuring_and_mergern_acquisition",
+      "values": {
+       "2026-03-31": 442070000.0,
+       "2025-03-31": 42680000.0,
+       "2024-03-31": 228140000.0,
+       "2023-03-31": 421760000.0
+      }
+     },
+     {
+      "label": "impairment_of_capital_assets",
+      "values": {
+       "2026-03-31": 210000.0,
+       "2025-03-31": 2750000.0,
+       "2024-03-31": 1640000.0,
+       "2023-03-31": 1610000.0
+      }
+     },
+     {
+      "label": "write_off",
+      "values": {
+       "2026-03-31": 19960000.0,
+       "2025-03-31": 3720000.0,
+       "2024-03-31": 620000.0,
+       "2023-03-31": 1830000.0
+      }
+     },
+     {
+      "label": "other_special_charges",
+      "values": {
+       "2026-03-31": -68640000.0,
+       "2025-03-31": 577180000.0,
+       "2024-03-31": -31470000.0,
+       "2023-03-31": 169630000.0
+      }
+     },
+     {
+      "label": "special_income_charges",
+      "values": {
+       "2026-03-31": -393600000.0,
+       "2025-03-31": -626330000.0,
+       "2024-03-31": -198930000.0,
+       "2023-03-31": -798920000.0
+      }
+     },
+     {
+      "label": "other_non_operating_income_expenses",
+      "values": {
+       "2026-03-31": -152630000.0,
+       "2025-03-31": -144190000.0,
+       "2024-03-31": -90260000.0,
+       "2023-03-31": -123490000.0
+      }
+     },
+     {
+      "label": "total_pre_tax_income",
+      "values": {
+       "2026-03-31": 3490250000.0,
+       "2025-03-31": 131810000.0,
+       "2024-03-31": -546460000.0,
+       "2023-03-31": -1376580000.0
+      }
+     },
+     {
+      "label": "tax_provision",
+      "values": {
+       "2026-03-31": 1243740000.0,
+       "2025-03-31": -25860000.0,
+       "2024-03-31": -250330000.0,
+       "2023-03-31": -156810000.0
+      }
+     },
+     {
+      "label": "net_income_continuous_operations",
+      "values": {
+       "2026-03-31": 2246510000.0,
+       "2025-03-31": 157670000.0,
+       "2024-03-31": -296130000.0,
+       "2023-03-31": -1219770000.0
+      }
+     },
+     {
+      "label": "net_income_including_noncontrolling_interests",
+      "values": {
+       "2026-03-31": 2246510000.0,
+       "2025-03-31": 157670000.0,
+       "2024-03-31": -296130000.0,
+       "2023-03-31": -1219770000.0
+      }
+     },
+     {
+      "label": "minority_interests",
+      "values": {
+       "2026-03-31": -473660000.0,
+       "2025-03-31": 74520000.0,
+       "2024-03-31": -62560000.0,
+       "2023-03-31": 8180000.0
+      }
+     },
+     {
+      "label": "net_income",
+      "values": {
+       "2026-03-31": 1772850000.0,
+       "2025-03-31": 232190000.0,
+       "2024-03-31": -358690000.0,
+       "2023-03-31": -1211590000.0
+      }
+     },
+     {
+      "label": "otherunder_preferred_stock_dividend",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_income_attributable_to_common_shareholders",
+      "values": {
+       "2026-03-31": 1772850000.0,
+       "2025-03-31": 232190000.0,
+       "2024-03-31": -358690000.0,
+       "2023-03-31": -1211590000.0
+      }
+     },
+     {
+      "label": "diluted_ni_availto_com_stockholders",
+      "values": {
+       "2026-03-31": 1772850000.0,
+       "2025-03-31": 232190000.0,
+       "2024-03-31": -358690000.0,
+       "2023-03-31": -1211590000.0
+      }
+     },
+     {
+      "label": "basic_earnings_per_share",
+      "values": {
+       "2026-03-31": 4.09,
+       "2025-03-31": 0.54,
+       "2024-03-31": -1.44,
+       "2023-03-31": -4.88
+      }
+     },
+     {
+      "label": "diluted_earnings_per_share",
+      "values": {
+       "2026-03-31": 4.01,
+       "2025-03-31": 0.53,
+       "2024-03-31": -1.44,
+       "2023-03-31": -4.88
+      }
+     },
+     {
+      "label": "weighted_average_basic_shares_outstanding",
+      "values": {
+       "2026-03-31": 433657888.0,
+       "2025-03-31": 431324073.0,
+       "2024-03-31": 248624524.0,
+       "2023-03-31": 248471245.0
+      }
+     },
+     {
+      "label": "weighted_average_diluted_shares_outstanding",
+      "values": {
+       "2026-03-31": 441871165.0,
+       "2025-03-31": 436056212.0,
+       "2024-03-31": 249882809.0,
+       "2023-03-31": 250114401.0
+      }
+     },
+     {
+      "label": "rent_expense_supplemental",
+      "values": {
+       "2026-03-31": 130740000.0,
+       "2025-03-31": 122290000.0,
+       "2024-03-31": 42460000.0,
+       "2023-03-31": 34040000.0
+      }
+     },
+     {
+      "label": "total_expenses",
+      "values": {
+       "2026-03-31": 29064430000.0,
+       "2025-03-31": 27862110000.0,
+       "2024-03-31": 13292790000.0,
+       "2023-03-31": 14179900000.0
+      }
+     },
+     {
+      "label": "net_income_from_continuing_and_discontinued_operation",
+      "values": {
+       "2026-03-31": 1772850000.0,
+       "2025-03-31": 232190000.0,
+       "2024-03-31": -358690000.0,
+       "2023-03-31": -1211590000.0
+      }
+     },
+     {
+      "label": "normalized_income",
+      "values": {
+       "2026-03-31": 2019264797.0,
+       "2025-03-31": 706524000.0,
+       "2024-03-31": -219719000.0,
+       "2023-03-31": -300028899.0
+      }
+     },
+     {
+      "label": "interest_income",
+      "values": {
+       "2026-03-31": 92510000.0,
+       "2025-03-31": 68390000.0,
+       "2024-03-31": 6700000.0,
+       "2023-03-31": 12090000.0
+      }
+     },
+     {
+      "label": "interest_expense",
+      "values": {
+       "2026-03-31": 637600000.0,
+       "2025-03-31": 793350000.0,
+       "2024-03-31": 464230000.0,
+       "2023-03-31": 297190000.0
+      }
+     },
+     {
+      "label": "net_interest_income",
+      "values": {
+       "2026-03-31": -599560000.0,
+       "2025-03-31": -795270000.0,
+       "2024-03-31": -474160000.0,
+       "2023-03-31": -343080000.0
+      }
+     },
+     {
+      "label": "ebit",
+      "values": {
+       "2026-03-31": 4127850000.0,
+       "2025-03-31": 925160000.0,
+       "2024-03-31": -82230000.0,
+       "2023-03-31": -1079390000.0
+      }
+     },
+     {
+      "label": "ebitda",
+      "values": {
+       "2026-03-31": 6464290000.0,
+       "2025-03-31": 3312280000.0,
+       "2024-03-31": 533170000.0,
+       "2023-03-31": -522460000.0
+      }
+     },
+     {
+      "label": "reconciled_cost_of_revenue",
+      "values": {
+       "2026-03-31": 17289990000.0,
+       "2025-03-31": 16263890000.0,
+       "2024-03-31": 8131150000.0,
+       "2023-03-31": 8985120000.0
+      }
+     },
+     {
+      "label": "reconciled_depreciation",
+      "values": {
+       "2026-03-31": 2336440000.0,
+       "2025-03-31": 2387120000.0,
+       "2024-03-31": 615400000.0,
+       "2023-03-31": 556930000.0
+      }
+     },
+     {
+      "label": "net_income_from_continuing_operation_net_minority_interest",
+      "values": {
+       "2026-03-31": 1772850000.0,
+       "2025-03-31": 232190000.0,
+       "2024-03-31": -358690000.0,
+       "2023-03-31": -1211590000.0
+      }
+     },
+     {
+      "label": "total_unusual_items_excluding_goodwill",
+      "values": {
+       "2026-03-31": -382810000.0,
+       "2025-03-31": -677620000.0,
+       "2024-03-31": -198530000.0,
+       "2023-03-31": -798410000.0
+      }
+     },
+     {
+      "label": "total_unusual_items",
+      "values": {
+       "2026-03-31": -382810000.0,
+       "2025-03-31": -677620000.0,
+       "2024-03-31": -198530000.0,
+       "2023-03-31": -594320000.0
+      }
+     },
+     {
+      "label": "normalized_ebitda",
+      "values": {
+       "2026-03-31": 6847100000.0,
+       "2025-03-31": 3989900000.0,
+       "2024-03-31": 731700000.0,
+       "2023-03-31": 71860000.0
+      }
+     },
+     {
+      "label": "tax_rate_for_calcs",
+      "values": {
+       "2026-03-31": 0.3563,
+       "2025-03-31": 0.3,
+       "2024-03-31": 0.3,
+       "2023-03-31": 0.1139
+      }
+     },
+     {
+      "label": "tax_effect_of_unusual_items",
+      "values": {
+       "2026-03-31": -136395203.0,
+       "2025-03-31": -203286000.0,
+       "2024-03-31": -59559000.0,
+       "2023-03-31": -90938899.0
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52313/fundamentals/VIYASH/balance",
+   "status": 200,
+   "elapsed_ms": 495,
+   "body": {
+    "symbol": "VIYASH.NS",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31",
+     "2022-03-31"
+    ],
+    "lines": [
+     {
+      "label": "cash_financial",
+      "values": {
+       "2026-03-31": 2557570000.0,
+       "2025-03-31": 1305540000.0,
+       "2024-03-31": 643220000.0,
+       "2023-03-31": 414980000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cash_equivalents",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 19950000.0,
+       "2024-03-31": 4880000.0,
+       "2023-03-31": 760000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cash_and_cash_equivalents",
+      "values": {
+       "2026-03-31": 2557570000.0,
+       "2025-03-31": 1325490000.0,
+       "2024-03-31": 648100000.0,
+       "2023-03-31": 415740000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "short_term_investments",
+      "values": {
+       "2026-03-31": 139700000.0,
+       "2025-03-31": 169380000.0,
+       "2024-03-31": 39750000.0,
+       "2023-03-31": 510000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cash_cash_equivalents_and_short_term_investments",
+      "values": {
+       "2026-03-31": 2697270000.0,
+       "2025-03-31": 1494870000.0,
+       "2024-03-31": 687850000.0,
+       "2023-03-31": 416250000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "gross_accounts_receivable",
+      "values": {
+       "2026-03-31": 10560020000.0,
+       "2025-03-31": 8147320000.0,
+       "2024-03-31": 3389790000.0,
+       "2023-03-31": 3439690000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "allowance_for_doubtful_accounts_receivable",
+      "values": {
+       "2026-03-31": -107720000.0,
+       "2025-03-31": -82650000.0,
+       "2024-03-31": -33480000.0,
+       "2023-03-31": -30070000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "accounts_receivable",
+      "values": {
+       "2026-03-31": 10452300000.0,
+       "2025-03-31": 8064670000.0,
+       "2024-03-31": 3356310000.0,
+       "2023-03-31": 3409620000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "taxes_receivable",
+      "values": {
+       "2026-03-31": 47410000.0,
+       "2025-03-31": 2530000.0,
+       "2024-03-31": 3720000.0,
+       "2023-03-31": 35510000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_receivables",
+      "values": {
+       "2026-03-31": 16220000.0,
+       "2025-03-31": 100270000.0,
+       "2024-03-31": 4710000.0,
+       "2023-03-31": 7770000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "raw_materials",
+      "values": {
+       "2026-03-31": 3014770000.0,
+       "2025-03-31": 2636390000.0,
+       "2024-03-31": 1131910000.0,
+       "2023-03-31": 1315920000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "work_in_process",
+      "values": {
+       "2026-03-31": 1450370000.0,
+       "2025-03-31": 1292370000.0,
+       "2024-03-31": 533630000.0,
+       "2023-03-31": 489140000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "finished_goods",
+      "values": {
+       "2026-03-31": 3566890000.0,
+       "2025-03-31": 2893500000.0,
+       "2024-03-31": 1791240000.0,
+       "2023-03-31": 1650330000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_inventories",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 5840000.0,
+       "2024-03-31": 5540000.0,
+       "2023-03-31": 5500000.0,
+       "2022-03-31": 4970000.0
+      }
+     },
+     {
+      "label": "inventories",
+      "values": {
+       "2026-03-31": 8032030000.0,
+       "2025-03-31": 6822260000.0,
+       "2024-03-31": 3462320000.0,
+       "2023-03-31": 3460890000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "prepaid_assets",
+      "values": {
+       "2026-03-31": 1275120000.0,
+       "2025-03-31": 1195300000.0,
+       "2024-03-31": 528150000.0,
+       "2023-03-31": 454950000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "restricted_cash",
+      "values": {
+       "2026-03-31": 230000.0,
+       "2025-03-31": 77760000.0,
+       "2024-03-31": 50200000.0,
+       "2023-03-31": 1720000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_deferred_assets",
+      "values": {
+       "2026-03-31": 9910000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "assets_held_for_sale_current",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 285520000.0,
+       "2024-03-31": 119190000.0,
+       "2023-03-31": 100920000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "hedging_assets_current",
+      "values": {
+       "2026-03-31": 10000.0,
+       "2025-03-31": 260000.0,
+       "2024-03-31": 2080000.0,
+       "2023-03-31": 6430000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_current_assets",
+      "values": {
+       "2026-03-31": 14970000.0,
+       "2025-03-31": 69910000.0,
+       "2024-03-31": 17750000.0,
+       "2023-03-31": 4800000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_current_assets",
+      "values": {
+       "2026-03-31": 22545470000.0,
+       "2025-03-31": 18113350000.0,
+       "2024-03-31": 8228560000.0,
+       "2023-03-31": 7898860000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "properties",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "land_and_improvements",
+      "values": {
+       "2026-03-31": 2820130000.0,
+       "2025-03-31": 2883000000.0,
+       "2024-03-31": 573860000.0,
+       "2023-03-31": 657300000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "buildings_and_improvements",
+      "values": {
+       "2026-03-31": 4956900000.0,
+       "2025-03-31": 4602680000.0,
+       "2024-03-31": 1616660000.0,
+       "2023-03-31": 1522140000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "machinery_furniture_equipment",
+      "values": {
+       "2026-03-31": 11162510000.0,
+       "2025-03-31": 10096100000.0,
+       "2024-03-31": 3542960000.0,
+       "2023-03-31": 3336170000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_properties",
+      "values": {
+       "2026-03-31": 469760000.0,
+       "2025-03-31": 415200000.0,
+       "2024-03-31": 3001440000.0,
+       "2023-03-31": 3007410000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "construction_in_progress",
+      "values": {
+       "2026-03-31": 705480000.0,
+       "2025-03-31": 485990000.0,
+       "2024-03-31": 113340000.0,
+       "2023-03-31": 516050000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "plant_property_equipment_gross",
+      "values": {
+       "2026-03-31": 20114780000.0,
+       "2025-03-31": 18482970000.0,
+       "2024-03-31": 5846820000.0,
+       "2023-03-31": 6031660000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "accumulated_depreciation",
+      "values": {
+       "2026-03-31": -8030300000.0,
+       "2025-03-31": -7007200000.0,
+       "2024-03-31": -2732040000.0,
+       "2023-03-31": -2508190000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "plant_property_equipment_net",
+      "values": {
+       "2026-03-31": 12084480000.0,
+       "2025-03-31": 11475770000.0,
+       "2024-03-31": 3114780000.0,
+       "2023-03-31": 3523470000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "goodwill",
+      "values": {
+       "2026-03-31": 8687240000.0,
+       "2025-03-31": 7960830000.0,
+       "2024-03-31": 2349340000.0,
+       "2023-03-31": 2400420000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_intangible_assets",
+      "values": {
+       "2026-03-31": 980540000.0,
+       "2025-03-31": 2086870000.0,
+       "2024-03-31": 617210000.0,
+       "2023-03-31": 684260000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "goodwill_and_other_intangible_assets",
+      "values": {
+       "2026-03-31": 9667780000.0,
+       "2025-03-31": 10047700000.0,
+       "2024-03-31": 2966550000.0,
+       "2023-03-31": 3084680000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "financial_assets_designatedas_fair_value_through_profitor_loss_total",
+      "values": {
+       "2026-03-31": 190000.0,
+       "2025-03-31": 190000.0,
+       "2024-03-31": 8930000.0,
+       "2023-03-31": 50000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "available_for_sale_securities",
+      "values": {
+       "2026-03-31": 66400000.0,
+       "2025-03-31": 44880000.0,
+       "2024-03-31": 66530000.0,
+       "2023-03-31": 70960000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "investmentin_financial_assets",
+      "values": {
+       "2026-03-31": 66590000.0,
+       "2025-03-31": 45070000.0,
+       "2024-03-31": 75460000.0,
+       "2023-03-31": 71010000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_assets",
+      "values": {
+       "2026-03-31": 833650000.0,
+       "2025-03-31": 1124420000.0,
+       "2024-03-31": 783550000.0,
+       "2023-03-31": 453620000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_assets",
+      "values": {
+       "2026-03-31": 731070000.0,
+       "2025-03-31": 130310000.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_prepaid_assets",
+      "values": {
+       "2026-03-31": 178130000.0,
+       "2025-03-31": 168230000.0,
+       "2024-03-31": 199610000.0,
+       "2023-03-31": 103750000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_current_assets",
+      "values": {
+       "2026-03-31": 808600000.0,
+       "2025-03-31": 36600000.0,
+       "2024-03-31": 51580000.0,
+       "2023-03-31": -40000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_non_current_assets",
+      "values": {
+       "2026-03-31": 23738370000.0,
+       "2025-03-31": 23209280000.0,
+       "2024-03-31": 7175280000.0,
+       "2023-03-31": 7392370000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_assets",
+      "values": {
+       "2026-03-31": 46283870000.0,
+       "2025-03-31": 41322660000.0,
+       "2024-03-31": 15403840000.0,
+       "2023-03-31": 15291230000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "accounts_payable",
+      "values": {
+       "2026-03-31": 5972690000.0,
+       "2025-03-31": 4893340000.0,
+       "2024-03-31": 2512150000.0,
+       "2023-03-31": 2443400000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_tax_payable",
+      "values": {
+       "2026-03-31": 240610000.0,
+       "2025-03-31": 222570000.0,
+       "2024-03-31": 33430000.0,
+       "2023-03-31": 63410000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "dividends_payable",
+      "values": {
+       "2026-03-31": 230000.0,
+       "2025-03-31": 290000.0,
+       "2024-03-31": 290000.0,
+       "2023-03-31": 290000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_payable",
+      "values": {
+       "2026-03-31": 884450000.0,
+       "2025-03-31": 1449760000.0,
+       "2024-03-31": 139240000.0,
+       "2023-03-31": 69210000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "payables",
+      "values": {
+       "2026-03-31": 7097980000.0,
+       "2025-03-31": 6565960000.0,
+       "2024-03-31": 2685110000.0,
+       "2023-03-31": 2576310000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_provisions",
+      "values": {
+       "2026-03-31": 157130000.0,
+       "2025-03-31": 129200000.0,
+       "2024-03-31": 79640000.0,
+       "2023-03-31": 164200000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_debt",
+      "values": {
+       "2026-03-31": 1337190000.0,
+       "2025-03-31": 2554390000.0,
+       "2024-03-31": 3085600000.0,
+       "2023-03-31": 2477900000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 154970000.0,
+       "2025-03-31": 136140000.0,
+       "2024-03-31": 73170000.0,
+       "2023-03-31": 87270000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 1492160000.0,
+       "2025-03-31": 2690530000.0,
+       "2024-03-31": 3158770000.0,
+       "2023-03-31": 2565170000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_current_liabilities",
+      "values": {
+       "2026-03-31": 266630000.0,
+       "2025-03-31": 343570000.0,
+       "2024-03-31": 258000000.0,
+       "2023-03-31": 186020000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_liabilities",
+      "values": {
+       "2026-03-31": 9460040000.0,
+       "2025-03-31": 10152130000.0,
+       "2024-03-31": 6269900000.0,
+       "2023-03-31": 5587580000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_provisions",
+      "values": {
+       "2026-03-31": 403150000.0,
+       "2025-03-31": 328520000.0,
+       "2024-03-31": 217460000.0,
+       "2023-03-31": 214740000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt",
+      "values": {
+       "2026-03-31": 3020950000.0,
+       "2025-03-31": 3529050000.0,
+       "2024-03-31": 1427190000.0,
+       "2023-03-31": 1501080000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 384420000.0,
+       "2025-03-31": 323420000.0,
+       "2024-03-31": 290970000.0,
+       "2023-03-31": 369700000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 3405370000.0,
+       "2025-03-31": 3852470000.0,
+       "2024-03-31": 1718160000.0,
+       "2023-03-31": 1870780000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_liabilities",
+      "values": {
+       "2026-03-31": 327740000.0,
+       "2025-03-31": 43440000.0,
+       "2024-03-31": 68730000.0,
+       "2023-03-31": 122530000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_revenue",
+      "values": {
+       "2026-03-31": 1468910000.0,
+       "2025-03-31": 1286960000.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_current_liabilities",
+      "values": {
+       "2026-03-31": 71380000.0,
+       "2025-03-31": 9780000.0,
+       "2024-03-31": null,
+       "2023-03-31": 3700000.0,
+       "2022-03-31": 6768000.0
+      }
+     },
+     {
+      "label": "total_non_current_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 5676550000.0,
+       "2025-03-31": 5521170000.0,
+       "2024-03-31": 2004350000.0,
+       "2023-03-31": 2211750000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 15136590000.0,
+       "2025-03-31": 15673300000.0,
+       "2024-03-31": 8274250000.0,
+       "2023-03-31": 7799330000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "common_stock",
+      "values": {
+       "2026-03-31": 873700000.0,
+       "2025-03-31": 500600000.0,
+       "2024-03-31": 498860000.0,
+       "2023-03-31": 498860000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "capital_stock",
+      "values": {
+       "2026-03-31": 873700000.0,
+       "2025-03-31": 500600000.0,
+       "2024-03-31": 498860000.0,
+       "2023-03-31": 498860000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "additional_paid_in_capital",
+      "values": {
+       "2026-03-31": 10044220000.0,
+       "2025-03-31": 9204450000.0,
+       "2024-03-31": 9003240000.0,
+       "2023-03-31": 9003240000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "retained_earnings",
+      "values": {
+       "2026-03-31": -2581140000.0,
+       "2025-03-31": -4510080000.0,
+       "2024-03-31": 957120000.0,
+       "2023-03-31": 996850000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "treasury_stock",
+      "values": {
+       "2026-03-31": 24720000.0,
+       "2025-03-31": 24720000.0,
+       "2024-03-31": 24720000.0,
+       "2023-03-31": 57710000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_equity_interest",
+      "values": {
+       "2026-03-31": 2059140000.0,
+       "2025-03-31": 1799190000.0,
+       "2024-03-31": 773080000.0,
+       "2023-03-31": 563180000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_common_equity",
+      "values": {
+       "2026-03-31": 29110600000.0,
+       "2025-03-31": 24315870000.0,
+       "2024-03-31": 6565600000.0,
+       "2023-03-31": 6987780000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "minority_interest",
+      "values": {
+       "2026-03-31": 2036680000.0,
+       "2025-03-31": 1333490000.0,
+       "2024-03-31": 563990000.0,
+       "2023-03-31": 504120000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_equity_non_controlling_interests",
+      "values": {
+       "2026-03-31": 31147280000.0,
+       "2025-03-31": 25649360000.0,
+       "2024-03-31": 7129590000.0,
+       "2023-03-31": 7491900000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_capitalization",
+      "values": {
+       "2026-03-31": 32131550000.0,
+       "2025-03-31": 27844920000.0,
+       "2024-03-31": 7992790000.0,
+       "2023-03-31": 8488860000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "common_stock_equity",
+      "values": {
+       "2026-03-31": 29110600000.0,
+       "2025-03-31": 24315870000.0,
+       "2024-03-31": 6565600000.0,
+       "2023-03-31": 6987780000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "capital_lease_obligations",
+      "values": {
+       "2026-03-31": 539390000.0,
+       "2025-03-31": 459560000.0,
+       "2024-03-31": 364140000.0,
+       "2023-03-31": 456970000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_tangible_assets",
+      "values": {
+       "2026-03-31": 19442820000.0,
+       "2025-03-31": 14268170000.0,
+       "2024-03-31": 3599050000.0,
+       "2023-03-31": 3903100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "working_capital",
+      "values": {
+       "2026-03-31": 13085430000.0,
+       "2025-03-31": 7961220000.0,
+       "2024-03-31": 1958660000.0,
+       "2023-03-31": 2311280000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "invested_capital",
+      "values": {
+       "2026-03-31": 33468740000.0,
+       "2025-03-31": 30399310000.0,
+       "2024-03-31": 11078390000.0,
+       "2023-03-31": 10966760000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tangible_book_value",
+      "values": {
+       "2026-03-31": 19442820000.0,
+       "2025-03-31": 14268170000.0,
+       "2024-03-31": 3599050000.0,
+       "2023-03-31": 3903100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_debt",
+      "values": {
+       "2026-03-31": 4897530000.0,
+       "2025-03-31": 6543000000.0,
+       "2024-03-31": 4876930000.0,
+       "2023-03-31": 4435950000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_debt",
+      "values": {
+       "2026-03-31": 1800570000.0,
+       "2025-03-31": 4757950000.0,
+       "2024-03-31": 3864690000.0,
+       "2023-03-31": 3563240000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "share_issued",
+      "values": {
+       "2026-03-31": 436850810.0,
+       "2025-03-31": 250301995.0,
+       "2024-03-31": 249433495.0,
+       "2023-03-31": 249433495.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "ordinary_shares_number",
+      "values": {
+       "2026-03-31": 436438560.0,
+       "2025-03-31": 249889745.0,
+       "2024-03-31": 249021245.0,
+       "2023-03-31": 249433495.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "treasury_shares_number",
+      "values": {
+       "2026-03-31": 412250.0,
+       "2025-03-31": 412250.0,
+       "2024-03-31": 412250.0,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52313/fundamentals/VIYASH/cashflow",
+   "status": 200,
+   "elapsed_ms": 322,
+   "body": {
+    "symbol": "VIYASH.NS",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31",
+     "2022-03-31"
+    ],
+    "lines": [
+     {
+      "label": "net_income_from_continuing_operations",
+      "values": {
+       "2026-03-31": 3490250000.0,
+       "2025-03-31": 131810000.0,
+       "2024-03-31": -546460000.0,
+       "2023-03-31": -1376580000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "gain_loss_on_sale_of_ppe",
+      "values": {
+       "2026-03-31": -34440000.0,
+       "2025-03-31": -116690000.0,
+       "2024-03-31": -55420000.0,
+       "2023-03-31": -20420000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_foreign_currency_exchange_gain_loss",
+      "values": {
+       "2026-03-31": -66250000.0,
+       "2025-03-31": 71860000.0,
+       "2024-03-31": 153720000.0,
+       "2023-03-31": 114460000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "gain_loss_on_investment_securities",
+      "values": {
+       "2026-03-31": -10790000.0,
+       "2025-03-31": 51280000.0,
+       "2024-03-31": -400000.0,
+       "2023-03-31": -520000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "depreciation",
+      "values": {
+       "2026-03-31": 1083720000.0,
+       "2025-03-31": 1212750000.0,
+       "2024-03-31": 509830000.0,
+       "2023-03-31": 451960000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "amortization_cash_flow",
+      "values": {
+       "2026-03-31": 1252720000.0,
+       "2025-03-31": 1174370000.0,
+       "2024-03-31": 105570000.0,
+       "2023-03-31": 104970000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "depreciation_and_amortization",
+      "values": {
+       "2026-03-31": 2336440000.0,
+       "2025-03-31": 2387120000.0,
+       "2024-03-31": 615400000.0,
+       "2023-03-31": 556930000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "provisionand_write_offof_assets",
+      "values": {
+       "2026-03-31": 27080000.0,
+       "2025-03-31": 14210000.0,
+       "2024-03-31": 13770000.0,
+       "2023-03-31": 7560000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "stock_based_compensation",
+      "values": {
+       "2026-03-31": 362490000.0,
+       "2025-03-31": 561330000.0,
+       "2024-03-31": 222280000.0,
+       "2023-03-31": 354110000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_cash_items",
+      "values": {
+       "2026-03-31": 1058630000.0,
+       "2025-03-31": 1574290000.0,
+       "2024-03-31": 498080000.0,
+       "2023-03-31": 1191550000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_receivables",
+      "values": {
+       "2026-03-31": -2841040000.0,
+       "2025-03-31": -1915020000.0,
+       "2024-03-31": -87820000.0,
+       "2023-03-31": -412640000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_inventory",
+      "values": {
+       "2026-03-31": -1039010000.0,
+       "2025-03-31": 78880000.0,
+       "2024-03-31": 2860000.0,
+       "2023-03-31": 50790000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_payable",
+      "values": {
+       "2026-03-31": 589360000.0,
+       "2025-03-31": 1094770000.0,
+       "2024-03-31": -371360000.0,
+       "2023-03-31": -170130000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_other_current_assets",
+      "values": {
+       "2026-03-31": -950000.0,
+       "2025-03-31": -100000.0,
+       "2024-03-31": -400000.0,
+       "2023-03-31": 15850000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_working_capital",
+      "values": {
+       "2026-03-31": -3291640000.0,
+       "2025-03-31": -741470000.0,
+       "2024-03-31": -456720000.0,
+       "2023-03-31": -516130000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "taxes_refund_paid",
+      "values": {
+       "2026-03-31": -613290000.0,
+       "2025-03-31": -488670000.0,
+       "2024-03-31": -140560000.0,
+       "2023-03-31": -146430000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "operating_cash_flow",
+      "values": {
+       "2026-03-31": 3229130000.0,
+       "2025-03-31": 3447990000.0,
+       "2024-03-31": 305950000.0,
+       "2023-03-31": 168080000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "investments_in_property_plant_and_equipment",
+      "values": {
+       "2026-03-31": -1347240000.0,
+       "2025-03-31": -1080560000.0,
+       "2024-03-31": -308070000.0,
+       "2023-03-31": -861790000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "sale_of_ppe",
+      "values": {
+       "2026-03-31": 369080000.0,
+       "2025-03-31": 209990000.0,
+       "2024-03-31": 191520000.0,
+       "2023-03-31": 116710000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_ppe_purchase_and_sale",
+      "values": {
+       "2026-03-31": -978160000.0,
+       "2025-03-31": -870570000.0,
+       "2024-03-31": -116550000.0,
+       "2023-03-31": -745080000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "purchase_of_business",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": -3907000000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": -154400000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_business_purchase_and_sale",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": -3907000000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": -154400000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "purchase_of_investment",
+      "values": {
+       "2026-03-31": -562530000.0,
+       "2025-03-31": -200000000.0,
+       "2024-03-31": -82230000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "sale_of_investment",
+      "values": {
+       "2026-03-31": 601780000.0,
+       "2025-03-31": 440210000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 237560000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_investment_purchase_and_sale",
+      "values": {
+       "2026-03-31": 39250000.0,
+       "2025-03-31": 240210000.0,
+       "2024-03-31": -82230000.0,
+       "2023-03-31": 237560000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "dividends_received_cfi",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 0.0,
+       "2023-03-31": 10000.0,
+       "2022-03-31": 1490000.0
+      }
+     },
+     {
+      "label": "interest_received_cfi",
+      "values": {
+       "2026-03-31": 97730000.0,
+       "2025-03-31": 65210000.0,
+       "2024-03-31": 5730000.0,
+       "2023-03-31": 12330000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_other_investing_changes",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": -20000.0,
+       "2024-03-31": 133850000.0,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "investing_cash_flow",
+      "values": {
+       "2026-03-31": -841180000.0,
+       "2025-03-31": -4472150000.0,
+       "2024-03-31": -59200000.0,
+       "2023-03-31": -649580000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_issuance",
+      "values": {
+       "2026-03-31": 51630000.0,
+       "2025-03-31": 2761730000.0,
+       "2024-03-31": 548500000.0,
+       "2023-03-31": 575430000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_payments",
+      "values": {
+       "2026-03-31": -1036820000.0,
+       "2025-03-31": -2622150000.0,
+       "2024-03-31": -584650000.0,
+       "2023-03-31": -356260000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_long_term_debt_issuance",
+      "values": {
+       "2026-03-31": -985190000.0,
+       "2025-03-31": 139580000.0,
+       "2024-03-31": -36150000.0,
+       "2023-03-31": 219170000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "short_term_debt_payments",
+      "values": {
+       "2026-03-31": -1092470000.0,
+       "2025-03-31": -1502280000.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_short_term_debt_issuance",
+      "values": {
+       "2026-03-31": -1092470000.0,
+       "2025-03-31": -1502280000.0,
+       "2024-03-31": 584220000.0,
+       "2023-03-31": 557520000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_issuance_payments_of_debt",
+      "values": {
+       "2026-03-31": -2077660000.0,
+       "2025-03-31": -1362700000.0,
+       "2024-03-31": 548070000.0,
+       "2023-03-31": 776690000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "issuance_of_common_equity",
+      "values": {
+       "2026-03-31": 1719350000.0,
+       "2025-03-31": 3201270000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_common_stock_issuance",
+      "values": {
+       "2026-03-31": 1719350000.0,
+       "2025-03-31": 3201270000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "common_stock_dividend_paid",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": -123440000.0
+      }
+     },
+     {
+      "label": "cash_dividends_paid",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": -123440000.0
+      }
+     },
+     {
+      "label": "interest_paid_cff",
+      "values": {
+       "2026-03-31": -690210000.0,
+       "2025-03-31": -774300000.0,
+       "2024-03-31": -453460000.0,
+       "2023-03-31": -355710000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_other_financing_charges",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 100000.0,
+       "2024-03-31": 90000.0,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "financing_cash_flow",
+      "values": {
+       "2026-03-31": -1233340000.0,
+       "2025-03-31": 870350000.0,
+       "2024-03-31": -14390000.0,
+       "2023-03-31": 322280000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_change_in_cash_and_equivalents",
+      "values": {
+       "2026-03-31": 1154610000.0,
+       "2025-03-31": -153810000.0,
+       "2024-03-31": 232360000.0,
+       "2023-03-31": -159220000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "effect_of_exchange_rate_changes",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": -5020000.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "beginning_cash_position",
+      "values": {
+       "2026-03-31": 1402960000.0,
+       "2025-03-31": 1561790000.0,
+       "2024-03-31": 415740000.0,
+       "2023-03-31": 574960000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_cash_adjustment_outside_changein_cash",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 40000.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 14660000.0
+      }
+     },
+     {
+      "label": "end_cash_position",
+      "values": {
+       "2026-03-31": 2557570000.0,
+       "2025-03-31": 1402960000.0,
+       "2024-03-31": 648100000.0,
+       "2023-03-31": 415740000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "capital_expenditure",
+      "values": {
+       "2026-03-31": -1347240000.0,
+       "2025-03-31": -1080560000.0,
+       "2024-03-31": -308070000.0,
+       "2023-03-31": -861790000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "issuance_of_capital_stock",
+      "values": {
+       "2026-03-31": 1719350000.0,
+       "2025-03-31": 3201270000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "issuance_of_debt",
+      "values": {
+       "2026-03-31": 51630000.0,
+       "2025-03-31": 2761730000.0,
+       "2024-03-31": 548500000.0,
+       "2023-03-31": 575430000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "repayment_of_debt",
+      "values": {
+       "2026-03-31": -2129290000.0,
+       "2025-03-31": -4124430000.0,
+       "2024-03-31": -584650000.0,
+       "2023-03-31": -356260000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "free_cash_flow",
+      "values": {
+       "2026-03-31": 1881890000.0,
+       "2025-03-31": 2367430000.0,
+       "2024-03-31": -2120000.0,
+       "2023-03-31": -693710000.0,
+       "2022-03-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52313/fundamentals/VIYASH/ratings",
+   "status": 200,
+   "elapsed_ms": 280,
+   "body": {
+    "symbol": "VIYASH.NS",
+    "consensus": "buy",
+    "target_mean": 322.25,
+    "target_high": 334.0,
+    "target_low": 310.0,
+    "strong_buy": 0,
+    "buy": 4,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance",
+    "as_of": "2026-09-26T16:08:39.567863Z"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=VIYASH",
+   "status": 200,
+   "elapsed_ms": 5365,
+   "body": {
+    "symbol": "VIYASH",
+    "count": 21,
+    "patterns": [
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2026-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 61.31,
+      "fii_percent": 4.5,
+      "dii_percent": 3.75,
+      "institutions_percent": 8.25,
+      "public_percent": 38.6,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 30.34,
+      "employee_trusts_percent": 0.09,
+      "submission_date": "2026-07-20",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1697280_20072026061916_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2026-06-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2026-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 61.31,
+      "fii_percent": 2.94,
+      "dii_percent": 7.99,
+      "institutions_percent": 10.93,
+      "public_percent": 38.59,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.67,
+      "employee_trusts_percent": 0.09,
+      "submission_date": "2026-04-21",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1656342_21042026044705_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2026-03-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2025-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 61.41,
+      "fii_percent": 3.16,
+      "dii_percent": 7.36,
+      "institutions_percent": 10.52,
+      "public_percent": 38.49,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.97,
+      "employee_trusts_percent": 0.09,
+      "submission_date": "2026-01-21",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1607231_21012026050424_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-12-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2025-12-16",
+      "quarter_basis": null,
+      "promoter_percent": 61.43,
+      "fii_percent": 3.16,
+      "dii_percent": 7.35,
+      "institutions_percent": 10.51,
+      "public_percent": 38.48,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.97,
+      "employee_trusts_percent": 0.09,
+      "submission_date": "2025-12-23",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1589083_23122025060053_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-12-16",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2025-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 52.33,
+      "fii_percent": 5.91,
+      "dii_percent": 12.91,
+      "institutions_percent": 18.82,
+      "public_percent": 47.51,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.69,
+      "employee_trusts_percent": 0.16,
+      "submission_date": "2025-10-17",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1552242_17102025052936_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-09-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2025-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 52.61,
+      "fii_percent": 6.15,
+      "dii_percent": 12.99,
+      "institutions_percent": 19.14,
+      "public_percent": 47.23,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.1,
+      "employee_trusts_percent": 0.16,
+      "submission_date": "2025-07-21",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1489741_21072025081741_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-06-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2025-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 52.61,
+      "fii_percent": 6.05,
+      "dii_percent": 12.82,
+      "institutions_percent": 18.87,
+      "public_percent": 47.23,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.36,
+      "employee_trusts_percent": 0.16,
+      "submission_date": "2025-04-14",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_197089_1413819_14042025032510_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-03-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2024-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 52.61,
+      "fii_percent": 6.1,
+      "dii_percent": 12.02,
+      "institutions_percent": 18.12,
+      "public_percent": 47.23,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.11,
+      "employee_trusts_percent": 0.16,
+      "submission_date": "2025-01-21",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_195890_1354870_21012025025259_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2024-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 52.76,
+      "fii_percent": 6.45,
+      "dii_percent": 9.99,
+      "institutions_percent": 16.44,
+      "public_percent": 47.07,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 30.63,
+      "employee_trusts_percent": 0.17,
+      "submission_date": "2024-10-21",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_193568_1283940_21102024074320_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-09-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2024-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 52.78,
+      "fii_percent": 5.7,
+      "dii_percent": 8.06,
+      "institutions_percent": 13.76,
+      "public_percent": 47.05,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 33.3,
+      "employee_trusts_percent": 0.17,
+      "submission_date": "2024-07-17",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_189705_1304400_11112024062307_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-06-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2024-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 52.79,
+      "fii_percent": 6.16,
+      "dii_percent": 7.59,
+      "institutions_percent": 13.75,
+      "public_percent": 47.04,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 33.29,
+      "employee_trusts_percent": 0.17,
+      "submission_date": "2024-04-18",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_187577_1098820_18042024052655_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-03-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2023-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 52.79,
+      "fii_percent": 6.12,
+      "dii_percent": 7.23,
+      "institutions_percent": 13.35,
+      "public_percent": 47.04,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 33.7,
+      "employee_trusts_percent": 0.17,
+      "submission_date": "2024-01-18",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_184711_1026544_18012024022740_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2023-12-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2023-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 52.79,
+      "fii_percent": 6.03,
+      "dii_percent": 3.23,
+      "institutions_percent": 9.26,
+      "public_percent": 46.82,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 37.57,
+      "employee_trusts_percent": 0.39,
+      "submission_date": "2023-10-18",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_182064_957262_18102023123432_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2023-09-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2023-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 52.79,
+      "fii_percent": 6.26,
+      "dii_percent": 2.92,
+      "institutions_percent": 9.18,
+      "public_percent": 46.82,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 37.64,
+      "employee_trusts_percent": 0.39,
+      "submission_date": "2023-07-18",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_179348_889291_18072023120416_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2023-06-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2023-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 52.79,
+      "fii_percent": 5.9,
+      "dii_percent": 2.92,
+      "institutions_percent": 8.82,
+      "public_percent": 46.82,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 38.01,
+      "employee_trusts_percent": 0.39,
+      "submission_date": "2023-04-07",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_175893_811179_07042023050548_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2023-03-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2022-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 52.79,
+      "fii_percent": 6.25,
+      "dii_percent": 2.81,
+      "institutions_percent": 9.06,
+      "public_percent": 46.82,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 37.76,
+      "employee_trusts_percent": 0.39,
+      "submission_date": "2023-01-12",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_173968_763636_12012023025755_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2022-12-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2022-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 52.79,
+      "fii_percent": 6.25,
+      "dii_percent": 2.81,
+      "institutions_percent": 9.06,
+      "public_percent": 46.82,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 37.76,
+      "employee_trusts_percent": 0.39,
+      "submission_date": "2022-10-14",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_171150_726164_14102022025858_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2022-12-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2022-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 52.79,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": 46.82,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": 0.39,
+      "submission_date": "2022-07-12",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_169083_685537_12072022041437_WEB.xml",
+      "source": "NSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2022-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 53.02,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": 46.47,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": 0.51,
+      "submission_date": "2022-04-14",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_166887_634746_14042022101451_WEB.xml",
+      "source": "NSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2021-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 53.02,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": 46.44,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": 0.54,
+      "submission_date": "2022-01-13",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_164357_585783_13012022122323_WEB.xml",
+      "source": "NSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VIYASH",
+      "quarter_end": "2021-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 53.52,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": 45.88,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": 0.6,
+      "submission_date": "2021-10-08",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_161116_525698_08102021052931_WEB.xml",
+      "source": "NSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     }
+    ],
+    "coverage": "covered",
+    "note": null,
+    "provider": null,
+    "major_shareholders": [],
+    "source_url": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=VIYASH&limit=25",
+   "status": 200,
+   "elapsed_ms": 2211,
+   "body": {
+    "symbol": "VIYASH",
+    "exchange": null,
+    "count": 25,
+    "announcements": [
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange about Allotment of ESOP",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_18092026123227_ESOPSEintimation.pdf",
+      "ts": "2026-09-18T12:32:45+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Update on proposed acquisition of BioForLife Italia S.r.l",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_08092026184504_SE_Intimation.pdf",
+      "ts": "2026-09-08T18:45:37+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange about ESOP Allotment",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_04092026111802_ESOPSEintimation.pdf",
+      "ts": "2026-09-04T11:18:28+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "BSE",
+      "headline": "Disclosures under Reg. 29(2) of SEBI (SAST) Regulations, 2011",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/F7218042_3FA1_4701_861D_0CAA7CA0DA6D_142501.pdf",
+      "ts": "2026-08-27T14:25:07.543000+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange about Transcript",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_16082026111555_Transcriptsigned.pdf",
+      "ts": "2026-08-16T11:16:23+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange about Link of Earning call Recording",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_12082026193856_seinvestoraudiorecording.pdf",
+      "ts": "2026-08-12T19:41:32+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange about Copy of Newspaper Publication for Q1 FY 27 Financial Results.",
+      "category": "Copy of Newspaper Publication",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_12082026125655_Newspaper_Publication_-_Q1_FY_27.pdf",
+      "ts": "2026-08-12T12:58:13+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange about Investor Presentation",
+      "category": "Investor Presentation",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_12082026095511_Investor_Presentation_Q1FY27.pdf",
+      "ts": "2026-08-12T09:56:21+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has submitted the Exchange a copy Srutinizers report of  Annual General Meeting held on August 11, 2026. Further, the company has informed the Exchange regarding voting results.",
+      "category": "Shareholders meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_11082026203053_AGMVSLScrutinisersReportsigned.pdf",
+      "ts": "2026-08-11T20:31:36+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange regarding Proceedings of Annual General Meeting held on August 11, 2026",
+      "category": "Shareholders meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_11082026182331_SE_AGM_Outcome.pdf",
+      "ts": "2026-08-11T18:25:39+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange regarding a press release dated August 11, 2026, titled \"Press Release for Q1 FY 2026-27\".",
+      "category": "Press Release",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_11082026153705_Press_Release.pdf",
+      "ts": "2026-08-11T15:37:46+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange about General Updates Allotment of ESOP under Viyash Scientific Limited -Employee Stock Option Scheme 2026",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_11082026132620_Outcomefinal.pdf",
+      "ts": "2026-08-11T13:26:47+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "BSE",
+      "headline": "Unaudited Financial Results For Q1 FY 2026-2027",
+      "category": "Result",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f7301878-41dd-4a8f-abb0-f2afd64fd090.pdf",
+      "ts": "2026-08-11T13:10:32.527000+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has submitted to the Exchange, the financial results for the period ended Jun 30, 2026.",
+      "category": "Outcome of Board Meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_11082026130325_Outcomefinal.pdf",
+      "ts": "2026-08-11T13:05:29+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_03082026185852_SEEarningCallIntimationQ1FY27.pdf",
+      "ts": "2026-08-03T18:59:04+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/64e34ac1-f776-4802-a9e0-7ad883eaa3ee.pdf",
+      "ts": "2026-08-03T18:48:30.443000+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "BSE",
+      "headline": "Board Meeting Intimation for Quarterly Results For Q1 FY 2026-27",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f0808945-965c-4041-bbe0-62f8c80046ff.pdf",
+      "ts": "2026-08-03T18:44:47.903000+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange about ESOP Allotment",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_01082026181911_ESOPSEintimation.pdf",
+      "ts": "2026-08-01T18:21:09+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange about General Updates - Intimation under Regulation 30 of SEBILODR",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_21072026173844_SE_Intimation.pdf",
+      "ts": "2026-07-21T17:44:36+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "BSE",
+      "headline": "Intimation Under Regulation 30 Of SEBI LODR",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/49d9e233-8bb3-4833-ae81-fb861c74960a.pdf",
+      "ts": "2026-07-21T17:33:47.933000+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange about Copy of Newspaper Publication- 41st AGM",
+      "category": "Copy of Newspaper Publication",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_18072026162751_SEIntimationsigned.pdf",
+      "ts": "2026-07-18T16:27:59+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange about letter to  the shareholder",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_17072026185504_SE_shareholder_Letter.pdf",
+      "ts": "2026-07-17T18:55:57+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange regarding 'Business Responsibility and Sustainability Report for the Financial Year 2025-26'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_17072026170220_SE_BRSR.pdf",
+      "ts": "2026-07-17T17:02:35+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "NSE",
+      "headline": "Viyash Scientific Limited has informed the Exchange regarding Notice of Annual General Meeting to be held on August 11, 2026",
+      "category": "Shareholders meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/SEQUENT1_17072026165704_SEAnnual_Report_Notice.pdf",
+      "ts": "2026-07-17T16:57:33+05:30"
+     },
+     {
+      "symbol": "VIYASH",
+      "exchange": "BSE",
+      "headline": "Business Responsibility and Sustainability Reporting (BRSR)",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/db4f12a6-9708-4390-a2eb-03a99dceb555.pdf",
+      "ts": "2026-07-17T16:34:30.487000+05:30"
+     }
+    ],
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "windows": {
+     "NSE": {
+      "window_start": "2026-07-17",
+      "window_end": "2026-09-26"
+     },
+     "BSE": {
+      "window_start": "2026-07-17",
+      "window_end": "2026-09-26"
+     }
+    },
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52313/disclosures/results?symbol=VIYASH",
+   "status": 200,
+   "elapsed_ms": 875,
+   "body": {
+    "symbol": "VIYASH",
+    "count": 45,
+    "events": [
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2026",
+      "date": "2026-08-11",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results/Dividend",
+      "description": "To consider and approve the financial results for the period ended March 31, 2026 and dividend",
+      "date": "2026-05-19",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2025",
+      "date": "2026-02-05",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "VIYASH SCIENTIFIC LIMITED",
+      "purpose": "Increase in Authorised Capital",
+      "description": null,
+      "date": "2025-12-16",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "VIYASH SCIENTIFIC LIMITED",
+      "purpose": "Scheme of Arrangement",
+      "description": null,
+      "date": "2025-12-16",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the Unaudited Standalone and Consolidated Financial Results of the Company for the quarter and half year ended September 30, 2025.",
+      "date": "2025-11-14",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2025",
+      "date": "2025-08-08",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results/Dividend",
+      "description": "To consider and approve the financial results for the period ended March 31, 2025 and dividend",
+      "date": "2025-05-20",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "VIYASH SCIENTIFIC LIMITED",
+      "purpose": "Dividend",
+      "description": null,
+      "date": "2025-05-20",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2024",
+      "date": "2025-02-11",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2024",
+      "date": "2024-11-13",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2024",
+      "date": "2024-08-14",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results/Dividend",
+      "description": "To consider and approve the financial results for the period ended March 31, 2024 and dividend",
+      "date": "2024-05-15",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2023",
+      "date": "2024-02-13",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2023",
+      "date": "2023-11-06",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "Pursuant to Regulation 29(1) of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015, this is to inform you that the Meeting of the Board of Directors of SeQuent Scientific Limited is scheduled to be held on Thursday, August 10, 2023 to consider and approve the Standalone and Consolidated Unaudited Financial Results of the Company for the quarter ended June 30, 2023.",
+      "date": "2023-08-10",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results/Dividend",
+      "description": "To consider and approve the financial results for the period ended March 31, 2023 and dividend",
+      "date": "2023-05-23",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "Pursuant to Regulation 29(1) of the SEBI (Listing Obligations and Disclosure Requirements)Regulations, 2015, this is to inform you that the Meeting of the Board of Directors of SeQuent Scientific Limited is scheduled to be held on Tuesday, February 14, 2023, inter alia, to consider and approve the Standalone and Consolidated Unaudited Financial Results of the Company for the quarter and nine months ended December 31, 2022.",
+      "date": "2023-02-14",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial results",
+      "description": "Sequent Scientific Limited  has informed the Exchange that the Meeting of the Board of Directors of SeQuent Scientific Limited is scheduled to be held on Monday, November 07, 2022, to consider and approve the Standalone and Consolidated Unaudited Financial Results of the Company for the quarter and half year ended September 30, 2022.",
+      "date": "2022-11-07",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Other business matters",
+      "description": "Sequent Scientific Limited  has informed the Exchange that the Board of Directors at their Meeting scheduled to be held on November 07, 2022 will also evaluate a proposal for the issuance of equity shares through preferential issue to Persons other than Promoters, in accordance with Chapter V of the Securities and Exchange Board of India (Issue of Capital and Disclosure Requirements) Regulations 2018 and the Companies Act, 2013, as amended.",
+      "date": "2022-11-07",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial results",
+      "description": "Sequent Scientific Limited  has informed the Exchange about the Board Meeting to be held on Monday, August 08, 2022 to consider and approve the Standalone and Consolidated Unaudited Financial Results of the Company for the quarter ended June 30, 2022.",
+      "date": "2022-08-08",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial results",
+      "description": "Sequent Scientific Limited  has informed the Exchange about Board Meeting to be held on 25-May-2022 to consider financial statements for the period ended March 2022",
+      "date": "2022-05-25",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2021",
+      "date": "2022-02-11",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2021",
+      "date": "2021-11-01",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2021",
+      "date": "2021-08-10",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results/Dividend",
+      "description": "To consider and approve the financial results for the period ended March 31, 2021 and dividend\ufffd\ufffd",
+      "date": "2021-06-30",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2020",
+      "date": "2021-02-03",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results/Other business matters",
+      "description": "To consider and approve the financial results for the period ended September 30, 2020 and other business matters",
+      "date": "2020-11-06",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the Standalone and Consolidated Unaudited Financial Results of the Company for the quarter ended June 30, 2020",
+      "date": "2020-07-30",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the Standalone and Consolidated Audited Financial Results of the Company for the quarter and year ended March 31, 2020",
+      "date": "2020-05-12",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the Unaudited Standalone & Consolidated Financial Results for the quarter and nine months ended December 31, 2019",
+      "date": "2020-01-28",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the Standalone and Consolidated Unaudited Financial Results of the Company for the quarter and half year ended September 30, 2019",
+      "date": "2019-11-13",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2019",
+      "date": "2019-07-31",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results/Dividend",
+      "description": "To consider and approve, inter alia, the financial results for the period ended March 31, 2019 and dividend, if any.",
+      "date": "2019-05-14",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2018",
+      "date": "2019-02-01",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2018",
+      "date": "2018-11-02",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the unaudited financial results for the period ended Jun 30, 2018",
+      "date": "2018-08-09",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended March 31, 2018",
+      "date": "2018-05-24",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Results",
+      "description": "Inter-alia, to consider the Unaudited Financial Results of the Company for the Quarter and half year ended September 30, 2017.",
+      "date": "2017-11-09",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Results/Dividend",
+      "description": "The Company had informed the Exchange regarding a meeting of the Board of Directors of the Company schedule to be held November 09, 2017,  Inter-alia, to consider the Unaudited Financial Results of the Company for the Quarter and half year ended September 30, 2017. The Company has now informed the Exchange that the meeting of the Board of Directors shall also consider the declaration of Interim dividend, if any, for the financial year 2017-18. (Purpose Revised)",
+      "date": "2017-11-09",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Results/Dividend",
+      "description": "inter-alia, to consider the audited financial results of the Company for the year ended March 31, 2017 and declaration of dividend, if any , for the year 2016-17.",
+      "date": "2017-05-23",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Results",
+      "description": "inter-alia, to consider the un-audited financial results of the Company for the quarter ended December 31, 2016.",
+      "date": "2017-02-10",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Results",
+      "description": "Inter-alia, to consider the un-audited financial results of the Company for the quarter ended September 30, 2016. Company further confirm that, as per the Company's Code of Conduct for Insider Trading, the trading window for dealing in the securities of the Company is closed for the Company's Directors, Connected Persons and Designated Employees from October 18, 2016 to November 15, 2016.",
+      "date": "2016-11-10",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Results",
+      "description": "inter-alia, to consider the un-audited financial results of the Company for the quarter ended June 30, 2016.",
+      "date": "2016-08-12",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "VIYASH",
+      "company": "Viyash Scientific Limited",
+      "purpose": "Results/Dividend",
+      "description": "Inter-alia, to consider the audited financial results of the Company for the year ended March 31, 2016 and declaration of dividend, if any, for the year 2015-16.",
+      "date": "2016-05-14",
+      "exchange": "NSE"
+     }
+    ],
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

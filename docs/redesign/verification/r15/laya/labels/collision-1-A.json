@@ -1,0 +1,440 @@
+{
+ "shard": "collision-1",
+ "labels": [
+  {
+   "id": "collision-1",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "collision-2",
+   "answer": "no",
+   "confidence": 0.95
+  },
+  {
+   "id": "collision-3",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-4",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "regex named for KSE-100 index names"
+  },
+  {
+   "id": "collision-5",
+   "answer": "no",
+   "confidence": 0.8
+  },
+  {
+   "id": "collision-6",
+   "answer": "yes",
+   "confidence": 0.6
+  },
+  {
+   "id": "collision-7",
+   "answer": "yes",
+   "confidence": 0.75
+  },
+  {
+   "id": "collision-8",
+   "answer": "no",
+   "confidence": 0.95,
+   "note": "Karachi index, not KSE Ltd"
+  },
+  {
+   "id": "collision-9",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Karachi Stock Exchange"
+  },
+  {
+   "id": "collision-10",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Pakistan index"
+  },
+  {
+   "id": "collision-11",
+   "answer": "no",
+   "confidence": 0.95,
+   "note": "Karachi index"
+  },
+  {
+   "id": "collision-12",
+   "answer": "yes",
+   "confidence": 0.97
+  },
+  {
+   "id": "collision-13",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "collision-14",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "collision-15",
+   "answer": "yes",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-16",
+   "answer": "yes",
+   "confidence": 0.85,
+   "note": "former name of KSE Ltd"
+  },
+  {
+   "id": "collision-17",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "collision-18",
+   "answer": "yes",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-19",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "collision-20",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "US utility ITC Holdings"
+  },
+  {
+   "id": "collision-21",
+   "answer": "yes",
+   "confidence": 0.97
+  },
+  {
+   "id": "collision-22",
+   "answer": "yes",
+   "confidence": 0.5,
+   "note": "Indian ITC named only as non-match target"
+  },
+  {
+   "id": "collision-23",
+   "answer": "yes",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-24",
+   "answer": "no",
+   "confidence": 0.65,
+   "note": "Delta never named in passage"
+  },
+  {
+   "id": "collision-25",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "collision-26",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "named as colliding US data source"
+  },
+  {
+   "id": "collision-27",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "named as colliding US data source"
+  },
+  {
+   "id": "collision-28",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "named as colliding US data source"
+  },
+  {
+   "id": "collision-29",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "named as colliding US data source"
+  },
+  {
+   "id": "collision-30",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "named as colliding US data source"
+  },
+  {
+   "id": "collision-31",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "named as colliding US data source"
+  },
+  {
+   "id": "collision-32",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "named as colliding US data source"
+  },
+  {
+   "id": "collision-33",
+   "answer": "yes",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-34",
+   "answer": "no",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-35",
+   "answer": "yes",
+   "confidence": 0.6
+  },
+  {
+   "id": "collision-36",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "peripheral mention"
+  },
+  {
+   "id": "collision-37",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-38",
+   "answer": "yes",
+   "confidence": 0.6
+  },
+  {
+   "id": "collision-39",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "collision-40",
+   "answer": "no",
+   "confidence": 0.55,
+   "note": "US company not named"
+  },
+  {
+   "id": "collision-41",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-42",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-43",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-44",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "test-injected wrong rename target"
+  },
+  {
+   "id": "collision-45",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "named as wrong rename target"
+  },
+  {
+   "id": "collision-46",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "named as wrong rename target"
+  },
+  {
+   "id": "collision-47",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "named as wrong rename target"
+  },
+  {
+   "id": "collision-48",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "example query in latency measurement"
+  },
+  {
+   "id": "collision-49",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "example query in latency measurement"
+  },
+  {
+   "id": "collision-50",
+   "answer": "yes",
+   "confidence": 0.45,
+   "note": "which Reliance unstated"
+  },
+  {
+   "id": "collision-51",
+   "answer": "yes",
+   "confidence": 0.55,
+   "note": "example query in latency measurement"
+  },
+  {
+   "id": "collision-52",
+   "answer": "skip",
+   "confidence": 0.5,
+   "note": "JNPR entity undetermined; passage truncated"
+  },
+  {
+   "id": "collision-53",
+   "answer": "yes",
+   "confidence": 0.6
+  },
+  {
+   "id": "collision-54",
+   "answer": "yes",
+   "confidence": 0.6
+  },
+  {
+   "id": "collision-55",
+   "answer": "yes",
+   "confidence": 0.6
+  },
+  {
+   "id": "collision-56",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "collision-57",
+   "answer": "yes",
+   "confidence": 0.5,
+   "note": "appears only as wrong candidate"
+  },
+  {
+   "id": "collision-58",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "renamed Sequent"
+  },
+  {
+   "id": "collision-59",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-60",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-61",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-62",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-63",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-64",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-65",
+   "answer": "yes",
+   "confidence": 0.7
+  },
+  {
+   "id": "collision-66",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "collision-67",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "collision-68",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "collision-69",
+   "answer": "yes",
+   "confidence": 0.5,
+   "note": "appears only as wrong candidate"
+  },
+  {
+   "id": "collision-70",
+   "answer": "yes",
+   "confidence": 0.65,
+   "note": "ONC, renamed from BeiGene"
+  },
+  {
+   "id": "collision-71",
+   "answer": "yes",
+   "confidence": 0.75,
+   "note": "former name of ONC"
+  },
+  {
+   "id": "collision-72",
+   "answer": "yes",
+   "confidence": 0.6
+  },
+  {
+   "id": "collision-73",
+   "answer": "yes",
+   "confidence": 0.5,
+   "note": "only scrip code 506597 given"
+  },
+  {
+   "id": "collision-74",
+   "answer": "no",
+   "confidence": 0.5,
+   "note": "only scrip code 544774; name not given"
+  },
+  {
+   "id": "collision-75",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "collision-76",
+   "answer": "yes",
+   "confidence": 0.5,
+   "note": "appears only as wrong candidate"
+  },
+  {
+   "id": "collision-77",
+   "answer": "yes",
+   "confidence": 0.6
+  },
+  {
+   "id": "collision-78",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "collision-79",
+   "answer": "yes",
+   "confidence": 0.6
+  },
+  {
+   "id": "collision-80",
+   "answer": "yes",
+   "confidence": 0.7
+  }
+ ]
+}

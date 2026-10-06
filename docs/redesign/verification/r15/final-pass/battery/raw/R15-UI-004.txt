@@ -1,0 +1,9 @@
+# R15-UI-004 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'R15-UI-004' src/modules/portfolio/PortfolioPanel.test.tsx; grep -n 'export type QuoteFetchResult\|return { error:' src/modules/portfolio/api.ts
+--- output ---
+117:  it("R15-UI-004: a failed live-quote fetch shows the banner and Retry re-fetches", async () => {
+24:export type QuoteFetchResult = { quote: Quote } | { error: string };
+39:    return { error: err instanceof Error ? err.message : String(err) };
+
+EXIT=0 (0.0s)

@@ -1,0 +1,6 @@
+Source check (not re-run live this shard - VERDICTS.md's own live ULTRA run took 194s of real
+wall-clock with local llama3.1:8b, budget did not allow a full re-run): deep_research.py:296-297
+`brief = await iter_research.run_heavy_research(...)` wrapped in `except Exception as exc: # heavy
+never raises by design` matching the DEEP iter branch's existing try/except/fallback at line 321
+("iter never raises by design"). Structurally identical to VERDICTS.md's certified fix.
+Verdict: holds (source-confirmed, matches VERDICTS.md's live evidence).

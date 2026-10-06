@@ -1,0 +1,8 @@
+# ace7dd76 in-process FiledPeriods.cadence()
+$ python /tmp/b5_051.py
+2 quarters (Jan-Mar26, Apr-Jun26) -> quarterly-gap
+1 quarter (Jul-Sep26) -> quarterly-gap
+former-SME: Oct-Mar half + Apr-Jun + Jul-Sep -> quarterly
+pure half-yearly (Apr-Sep25, Oct-Mar26) -> half-yearly
+complete 4 quarters -> quarterly
+EXIT=0

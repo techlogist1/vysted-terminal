@@ -1,0 +1,5 @@
+## DATA-002 2026-09-25T04:00:29Z: AMAL under IN vs US, and bare history under IN
+resolve AMAL region=US -> AMAL Amalgamated Financial Corp. US ['AMAL/US', 'AMAL/NSE', 'AMAL/BSE']
+resolve AMAL region=IN -> AMAL Amal Limited NSE ['AMAL/NSE', 'AMAL/BSE', 'AMAL/US']
+history AMAL (bare, region IN header) -> AMAL nse_direct {'timestamp': '2026-09-24T00:00:00Z', 'open': 700.05, 'high': 714.35, 'low': 685.0, 'close': 687.65, 'volume': 14729.0}
+history AMAL (bare, region US header) -> AMAL yfinance {'timestamp': '2026-09-24T00:00:00-04:00', 'open': 46.7400016784668, 'high': 47.369998931884766, 'low': 46.630001068115234, 'close': 47.209999084472656, 'volume': 260000.0}

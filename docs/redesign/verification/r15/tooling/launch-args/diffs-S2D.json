@@ -1,0 +1,44 @@
+{
+ "tag": "diffs-S2D",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md, then docs/redesign/verification/r15/tooling/PROMPT_census.md's PACK section (for context on the pack), then docs/redesign/verification/r15/tooling/PROMPT_data_s2.md in full (the diff and refute stages are spec'd there; PROMPT_refute.md too for the refute stage). Continue from any existing output file; never restart.",
+ "stages": [
+  {
+   "label": "diff",
+   "model": "sonnet",
+   "effort": "high",
+   "prompt": "Slot \"{{id}}\" (symbol \"{{symbol}}\"). Pack: docs/redesign/verification/r15/battery/packs/{{id}}_{{symbol}}.json. Collected: docs/redesign/verification/r15/battery/collected/{{id}}_{{symbol}}.json. Run the DIFF stage of PROMPT_data_s2.md: diff all fields incl. the mandatory subtle tier (shareholding/promoter/FII/DII, declared vs paid dividends, 52w high+low, every as-of date). Write docs/redesign/verification/r15/battery/diffs/{{id}}_{{symbol}}.json and docs/redesign/verification/r15/census/raw/data-{{id}}_{{symbol}}.json (raw_id prefix DAT-{{id}}, area \"data\", subsystem \"{{id}}_{{symbol}}\"; empty array [] if zero qualifying mismatches). Return the RESULT object with count = raw findings written."
+  },
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Refute the diff findings for slot \"{{id}}\" (symbol \"{{symbol}}\"). Raw file: docs/redesign/verification/r15/census/raw/data-{{id}}_{{symbol}}.json ({{count}} findings per the diff stage's result). Output: docs/redesign/verification/r15/census/refute/data-{{id}}_{{symbol}}.json. Follow PROMPT_refute.md exactly (PROMPT_data_s2.md's REFUTE section states the raw/output path substitution and that you may re-fetch one pack source via curl). If the raw file is [], confirm and write [] as your verdict file. Return the RESULT object."
+  }
+ ],
+ "items": [
+  {
+   "id": "P19",
+   "symbol": "AMAL"
+  },
+  {
+   "id": "P20",
+   "symbol": "SMR"
+  },
+  {
+   "id": "S1",
+   "symbol": "DHOOTTRANS"
+  },
+  {
+   "id": "S2",
+   "symbol": "SMR"
+  },
+  {
+   "id": "S3",
+   "symbol": "VERTEX"
+  },
+  {
+   "id": "S4",
+   "symbol": "TTC"
+  }
+ ]
+}

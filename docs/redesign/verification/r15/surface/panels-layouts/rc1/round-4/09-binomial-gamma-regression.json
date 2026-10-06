@@ -1,0 +1,2 @@
+{"price":10.440278278758278,"greeks":{"delta":0.6366588814540495,"gamma":0.018841757737137643,"vega":37.477010828635215,"theta":-6.4296320407667595,"rho":53.20988991810918},"method":"binomial","monte_carlo_std_error":null,"duration_ms":8.801292045973241}
+HTTP 200

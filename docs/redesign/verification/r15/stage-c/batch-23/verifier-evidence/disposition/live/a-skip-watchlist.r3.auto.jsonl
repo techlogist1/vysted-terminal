@@ -1,0 +1,39 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_303cd408b47745cea751781f341b5e93", "name": "add_to_watchlist", "input": {"asset_class": "equity", "symbol": "NVDA"}}
+{"kind": "tool_result", "tool_call_id": "call_303cd408b47745cea751781f341b5e93", "name": "add_to_watchlist", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " added"}
+{"kind": "delta", "text": " NV"}
+{"kind": "delta", "text": "DA"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " watch"}
+{"kind": "delta", "text": "list"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " action"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " been"}
+{"kind": "delta", "text": " dispatched"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " panel"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " so"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " proposal"}
+{"kind": "delta", "text": " bar"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2880, "output_tokens": 32, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

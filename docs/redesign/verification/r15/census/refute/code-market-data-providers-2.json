@@ -1,0 +1,128 @@
+[
+  {
+    "raw_id": "COD-market-data-providers-2-1",
+    "verdict": "admitted",
+    "severity_final": "critical",
+    "reason": "Reproduced live: a 10-Q (0000320193-23-000077, filed 2023-08-04) comes back from GET /sec/filings/{acc} as form_type '10-K', filed_date = today's UTC date, company_name '' because get_filing re-lists only 40 recent filings (all Forms 3/4 for AAPL) and falls into the synthetic Filing branch; the sectioner is always sent form_type '10-K'. Also observed: edgar_url is built with the ticker in place of the CIK (/edgar/data/AAPL/...), a dead link, and sections came back empty with no signal; the result is cached 24h and fed verbatim to the agent's sec_filing_content tool.",
+    "evidence": "sidecar/services/sec_filings_provider.py:526-555, sidecar/services/sec_filings_provider.py:75 (_FILING_CONTENT_TTL 24h), sidecar/routers/sec_filings.py:114-124, sidecar/services/agent_tools/sec_tools.py:98-110, sidecar/models/sec.py:26-38",
+    "evidence_checked": "code read at HEAD d7b7167; live repro against :52152; EDGAR index for the accession confirms it is a 10-Q",
+    "repro_check": "curl '127.0.0.1:52152/sec/filings/0000320193-23-000077?identifier=AAPL' -> filing {form_type:'10-K', filed_date:'2026-09-22' (today UTC), company_name:'', edgar_url:'.../edgar/data/AAPL/...'}, 0 sections; same for 10-K 0000320193-23-000106 (filed_date today)"
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Server side confirmed: /quotes?symbols=RELIANCE.NS,TCS.NS returns Quote.symbol 'RELIANCE'/'TCS' and the watchlist joins on the requested spelling, so a suffixed entry renders blank. Scope corrected: the panel's primary add path (autocomplete pick) stores the BARE symbol ('RELIANCE', from /resolve/autocomplete), which joins fine; the blank row only hits a suffixed entry typed manually with no autocomplete candidate chosen, or added by the agent's add_to_watchlist host action, or restored from a blob \u2014 a real join bug, not the default IN experience, hence medium.",
+    "evidence": "sidecar/routers/quotes.py:65-95, sidecar/services/correctness_gate.py:76-90, src/modules/watchlist/api.ts:30-64, src/store/symbols.ts:44-55, src/modules/watchlist/WatchlistPanel.tsx:227-244, src/lib/symbol-autocomplete.ts:36-54, src/lib/host-actions.ts:1133-1138",
+    "evidence_checked": "code read; live GET /quotes and /resolve/autocomplete on :52152",
+    "repro_check": "curl '127.0.0.1:52152/quotes?symbols=RELIANCE.NS,TCS.NS,AAPL' -> symbols ['RELIANCE','TCS','AAPL']; curl '/resolve/autocomplete?q=reliance&region=IN' -> candidate symbol 'RELIANCE' (bare, yahoo_symbol 'RELIANCE.NS')"
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The matcher is verbatim \\b<symbol>\\b over title+summary and untagged items are dropped when symbols are requested; running it confirms RELIANCE.NS/TCS.NS never tag. Mechanism corrected and broadened: the news panel sends watchlist entries (usually bare, via autocomplete), and bare IN tickers that are not prose words fail too \u2014 HDFCBANK/SBIN/BAJFINANCE never match 'HDFC Bank'/'State Bank of India'/'Bajaj Finance' \u2014 so most IN watchlists get an empty feed; only tickers that coincide with a prose word (RELIANCE, TCS) survive. The agent news_tool bypasses this tagger (calls news_provider.fetch_news directly) and is unaffected.",
+    "evidence": "sidecar/routers/news.py:62-74, sidecar/routers/news.py:104-139, sidecar/services/news_provider.py:275-291, sidecar/services/agent_tools/news_tool.py:46, src/modules/news/NewsFeedPanel.tsx:170,224, src/store/symbols.ts:78-81",
+    "evidence_checked": "code read; ran routers.news._tag_symbols in the sidecar venv on sample items; live /news?symbols= on :52152 returned [] for RELIANCE.NS, RELIANCE, TCS.NS and even NVDA (per-symbol Yahoo feeds appear not to populate on the isolated stack), so the live repro is not decisive and the matcher test carries the verdict",
+    "repro_check": "_tag_symbols('Reliance Industries Q2...','RIL beats',['RELIANCE.NS']) -> []; ['RELIANCE'] -> ['RELIANCE']; ('HDFC Bank Q2...','State Bank of India and Bajaj Finance also rose',['HDFCBANK','SBIN','BAJFINANCE']) -> []"
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-4",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed: _coerce_form_type maps only 7 forms, rows returning None are skipped, and the limit is sent upstream before the drop, with no dropped/total count on FilingsListResponse. Live, INFY returns 18 of 40 requested rows, all Forms 3/4 and no 20-F/6-K; AAPL limit=10 returns 8 rows, all Forms 3/4 (its 10-K/10-Q/8-K are pushed out of the window by insider forms). Secondary: company_name comes back '' and cik echoes the ticker.",
+    "evidence": "sidecar/models/sec.py:23, sidecar/services/sec_filings_provider.py:217-236, sidecar/services/sec_filings_provider.py:285-291, sidecar/services/sec_filings_provider.py:486-504, sidecar/models/sec.py:143-151",
+    "evidence_checked": "code read; live GET /sec/filings on :52152",
+    "repro_check": "curl '127.0.0.1:52152/sec/filings?symbol=INFY' -> 18 filings, forms only {3,4}; curl '/sec/filings?symbol=AAPL&limit=10' -> 8 filings (2 silently dropped), forms only {3,4}"
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Structure confirmed: compare_symbols.py:142 and market_overview.py:111-113 gather without return_exceptions and the result-dict attribute reads (compare_symbols.py:87-110, market_overview.py:68-77) sit outside the try, so the docstring invariant is held by comment only. Severity corrected to low: it is reachable only through a Quote/Fundamentals field rename (declared pydantic fields), and even then the turn does not crash \u2014 agent_runtime wraps every tool invocation in except Exception and returns an {'ok': False} payload to the model; the loss is that one tool call's other symbols.",
+    "evidence": "sidecar/services/agent_tools/compare_symbols.py:43-110,142-144; sidecar/services/agent_tools/market_overview.py:55-77,111-114; sidecar/services/agent_runtime.py:648-671; sidecar/routers/quotes.py:84",
+    "evidence_checked": "code-only (latent, design finding); read the tool handlers and the runtime's dispatch guard",
+    "repro_check": "read agent_runtime.py:670-671 'except Exception as exc: payload = {ok: False, error: tool raised ...}' \u2014 a raise inside the gather becomes a tool error, not a crashed turn"
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The except-to-None fallback is real in both routers and the UI hides the badge on None (ChartPanel.tsx:1424, WatchlistPanel.tsx:75). Corrected: for QUOTES it cannot surface a stale value as live-looking, because the correctness gate already runs the same calendar check (is_rejectably_stale, >3 sessions) before labeling and rejects anything freshness_for would call 'stale' (freshness_for returns 'stale' only when lag > _STALE_REJECT_SESSIONS); a quote that reaches the label is at worst eod. The exposure is HISTORY (validate_series deliberately does not reject stale), and only if freshness_for raises there \u2014 no concrete raising input was found, so this is a latent unsafe default, low.",
+    "evidence": "sidecar/routers/quotes.py:43-49; sidecar/routers/history.py:46-52; sidecar/services/locale.py:227-267 (_STALE_REJECT_SESSIONS=3 at :127); sidecar/services/correctness_gate.py:93-114,117-127; src/modules/chart/ChartPanel.tsx:385,1424; src/modules/watchlist/WatchlistPanel.tsx:75",
+    "evidence_checked": "code-only; traced gate -> label ordering for quotes via provider_registry.py:536",
+    "repro_check": "no input found that makes freshness_for raise with a tz-aware Quote.timestamp; live /quotes returns freshness 'eod' for RELIANCE.NS/AAPL"
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-7",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Reproduced: for the same empty-series symbol /history returns 200 with bars [] and reason 'in_eod_only', while /indicators returns 502 'correctness gate: empty series'. The chart's indicator effect is not gated on an empty series, so the overlay shows '<msg> (502)' beside the chart's honest empty state; indicators also carry no freshness label.",
+    "evidence": "sidecar/routers/indicators.py:64-65; sidecar/routers/history.py:71-80; src/modules/chart/ChartPanel.tsx:562-590; src/modules/chart/api.ts:22-33",
+    "evidence_checked": "code read; live repro on :52152",
+    "repro_check": "curl '127.0.0.1:52152/history/QQQZZZ' -> HTTP200 bars [] reason in_eod_only; curl '/indicators/QQQZZZ?indicators=rsi' -> HTTP502 'correctness gate: empty series for QQQZZZ from yfinance'"
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Earnings envelopes (upcoming/history/surprises) are served from a 6-24h data_cache with no cache as_of \u2014 confirmed. Scope corrected: the news half is wrong \u2014 news_provider has no cache at all and every NewsItem carries published_at; the SEC list is a 1h cache whose rows each carry filed_date. And what is cached is dated historical events (reported_date, filed_date), not a value claiming to be current, so the gap hides a <=24h cache lag (e.g. a just-reported quarter missing on earnings day), not a stale price shown as live \u2014 low.",
+    "evidence": "sidecar/routers/earnings.py:36-38,68-138; sidecar/models/earnings.py:97,105-145; sidecar/models/news.py:15; sidecar/services/news_provider.py (no data_cache/TTL references); sidecar/services/sec_filings_provider.py:74,486-504",
+    "evidence_checked": "code-only; grep for cache use in news_provider returned nothing",
+    "repro_check": "grep -n 'data_cache\\|_TTL\\|cache' sidecar/services/news_provider.py -> no matches; models/earnings.py as_of only on EarningsEstimateDetail"
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Four near-identical cache/validate/fetch/502/set blocks confirmed at the cited ranges. Severity corrected to low: a same-file ~12-line repetition with no present defect; it is change amplification for a future edit, not something a user or the next maintainer trips on unaware (the copies sit adjacent).",
+    "evidence": "sidecar/routers/earnings.py:68-81,89-100,108-119,127-138",
+    "evidence_checked": "code-only (design finding)",
+    "repro_check": "read routers/earnings.py:47-138 \u2014 four copies differ only in cache key, TTL, model and provider fn"
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-10",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Repetition confirmed across analyst_tools/earnings_tools/sec_tools, and 'except (ProviderError, Exception)' has a redundant first member at the cited lines. Corrected: in the nine data handlers the ProviderError/Exception split is NOT one blanket catch \u2014 the two branches emit different messages ('provider error' vs 'unexpected error'), which is deliberate; the redundant-tuple sites are the degrade-to-None paths in compare_symbols/market_overview. Short handlers, no present defect -> low.",
+    "evidence": "sidecar/services/agent_tools/analyst_tools.py:32-89; sidecar/services/agent_tools/earnings_tools.py:29-98; sidecar/services/agent_tools/sec_tools.py:34-152; sidecar/services/agent_tools/compare_symbols.py:69,84; sidecar/services/agent_tools/market_overview.py:90",
+    "evidence_checked": "code-only (design finding)",
+    "repro_check": "read each handler; distinct error strings per branch"
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-11",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The two POST mutators exist ungated (system.py:215-233) and a no-body POST trips the Yahoo breaker with weight 3. Corrected: 'no auth gates it' is true of the ENTIRE sidecar surface (app.py has only CORS + a locale/config ContextVar middleware, no token), so these add no new trust boundary beyond every other loopback POST route, and the effect self-heals via the breaker's half-open path. A rig affordance in production, low.",
+    "evidence": "sidecar/routers/system.py:203-233; sidecar/services/provider_health.py:97-126; sidecar/app.py:218-301",
+    "evidence_checked": "code-only; did not POST to :52152 (would perturb the shared isolated stack)",
+    "repro_check": "would run: python3 scripts/r15/vy.py POST /system/provider-health/trip on an own sidecar, then GET /system/provider-health -> open; not run to avoid disturbing :52152"
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-12",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The pass-through and its false docstring are real (get_filing_sections just calls get_filing). The cost claim is refuted: no frontend code calls /sec/filings/{acc}/sections (src/store/sec.ts calls only /sec/filings, /sec/filings/{acc}, /sec/insider, /sec/filings/search), and get_filing caches the whole FilingDetail under sec:filing:{accession} for 24h, so a repeat call is a cache hit, not two upstream MCP calls. Residual: a dead route with a misleading comment \u2014 low.",
+    "evidence": "sidecar/services/sec_filings_provider.py:521-524,563-575; sidecar/services/sec_filings_provider.py:75; sidecar/routers/sec_filings.py:127-141; src/store/sec.ts:163,182,213,236",
+    "evidence_checked": "code read; grep across src/ and types/ for '/sections' found no caller",
+    "repro_check": "grep -rn '/sections' src types -> none; get_filing cache key 'sec:filing:{accession}', TTL 86400s"
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-13",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: range defaults to '6mo' and the handler returns list(series.bars)[-90:] with no bars_available/window marker, and the catalog description (catalog.py:147-159) advertises range 'e.g. 1mo, 6mo, 1y' without mentioning the cap \u2014 so range=1y also yields ~4.3 months of daily bars. Partial mitigation: each bar carries its timestamp, so the true window is derivable, but nothing tells the model to check.",
+    "evidence": "sidecar/services/agent_tools/price_data.py:32-79; sidecar/services/agent_tools/catalog.py:145-165",
+    "evidence_checked": "code-only",
+    "repro_check": "read price_data.py:59 'recent_bars = list(series.bars)[-90:]'; response keys: ok,symbol,timeframe,provider,quote,bars \u2014 no count/window fields"
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-14",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Reproduced by running routers.news._tag_symbols in the sidecar venv: case-insensitive \\bA\\b matches the article 'A'/'a', and \\bT\\b matches 'T-bill'. A watchlist holding A/T/F/C/etc. gets general headlines attributed and kept as that ticker's news. Same function as -3, opposite failure direction.",
+    "evidence": "sidecar/routers/news.py:62-74,115-122",
+    "evidence_checked": "code read; matcher executed on the finding's inputs",
+    "repro_check": "_tag_symbols('Nvidia unveils a new chip','A report from a bank',['A']) -> ['A']; ('Fed holds rates','The T-bill curve steepened',['T','F','C']) -> ['T']"
+  }
+]

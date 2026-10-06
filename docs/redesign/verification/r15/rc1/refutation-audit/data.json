@@ -1,0 +1,37 @@
+{
+ "group": "data",
+ "verdicts": [
+  {
+   "id": "R15-DATA-002",
+   "verdict": "partial",
+   "root_cause": "The per-listing pick reaches the Equity Overview but not the chart. src/components/CommandPalette.tsx:391 (and :207) call loadSymbolIntoChart(c.symbol) and drop c.exchange/region. src/lib/host-actions.ts:318 loadSymbolIntoChart and src/store/chart-command.ts:39 loadSymbol take no region. src/lib/sidecar-client.ts:341 history() sends no regionHeader(). In an IN session, picking 'AMAL US' charts /history/AMAL from nse_direct (687.65 INR) instead of Amalgamated (47.21 USD).",
+   "acceptance_test": "src/components/CommandPalette.test.tsx: with settings region IN and autocomplete candidates [AMAL/NSE, AMAL/US], selecting the 'AMAL US' Tickers row results in the chart's /history/AMAL request carrying header X-Vysted-Region: US (assert on the mocked sidecarGet/fetch headers). Selecting 'AMAL NSE' carries X-Vysted-Region: IN. Plus src/store/chart-command.test.ts: loadSymbol('AMAL', undefined, 'US') stores region 'US'.",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/data-R15-DATA-002.md",
+   "note": "The entry's EO repro holds at HEAD. With the per-call X-Vysted-Region header the sidecar serves the right company on quote, fundamentals and history (IN: Amal Ltd 687.65 INR; US: Amalgamated 47.21 USD). SMR under IN is SMR Jewels on every leg, including income (SMR.BO, March FYs). EquityOverviewPanel.test.tsx cross-region tests pass (vitest 5 files / 69 tests). The verifier's facts are correct, but the chart path was never in the fix (8f8f5f34 covered EO only), so this is the uncovered 'every data panel' half of the entry's title, not a regression."
+  },
+  {
+   "id": "R15-DATA-043",
+   "verdict": "partial",
+   "root_cause": "The top-K cut and the disclosure both ignore the currency grouping. sidecar/services/screener.py:423-429 sorts currency-grouped ('INR' before 'USD'). :815 rows = matched[:limit] cuts that order, so a top-K over mixed currencies keeps only the alphabetically-first currency group. :845-847 compute served_currencies over the served page rather than the matched set, so the 'ranked within each currency' note disappears exactly when the cut hides the other currency.",
+   "acceptance_test": "sidecar/tests/test_screener.py: run_screener(custom [AAPL(USD 3.5e12), RELIANCE.NS(INR 1.95e13), MSFT(USD 3e12), TCS.NS(INR 7.5e12)], sort market_cap desc, limit=2). Assert the coverage line contains 'ranked within each currency' (the spans are computed over matched, not the page). Also assert the served page is not a single-currency slice presented as the top-2, i.e. it contains at least one USD row, or the result carries an explicit per-currency-cut disclosure.",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/data-R15-DATA-043.md",
+   "note": "The entry's own repro holds: custom [AAPL, RELIANCE.NS] at the default limit is currency-grouped with the 'spans INR, USD — ranked within each currency' note, and pytest -k currency passes 2 tests. The verifier's limit repro reproduces live: limit=2 over [AAPL, RELIANCE.NS, MSFT, TCS.NS] returns RELIANCE.NS and TCS.NS with no note. It is reachable via the agent screener tool (default limit 50, caller limit passed through). ADJACENT (already filed as rc1-verifier:15, confirmed live): MANIKA.NS with Fundamentals.currency None sorts under key '' ahead of INR rows, so a null-market-cap row ranks #1 in a market_cap-desc screen (screener.py:424/426; currency is re-stamped only after the cut at :820-822). Register it separately."
+  },
+  {
+   "id": "R15-DATA-068",
+   "verdict": "partial",
+   "root_cause": "sidecar/routers/fundamentals.py:251: `rating, _ = await _cached(...)` discards the cache write time for the base GET /fundamentals/{symbol}/ratings consensus envelope, which is served from a 6 h cache (_TTL_RATINGS, :58). The AnalystRating model (sidecar/models/fundamentals.py:231) and its mirror types/data.ts:356 have no as_of field. The Equity Overview consensus block (src/modules/equity-overview/api.ts:115) therefore shows a possibly 6 h-old consensus with no timestamp.",
+   "acceptance_test": "sidecar/tests/test_analyst_extended_router.py (or a fundamentals-router test): GET /fundamentals/AAPL/ratings with a monkeypatched provider returns 200 with a non-null ISO 'as_of'. A second GET within the TTL (a cache hit) returns the SAME as_of as the first (the cache row's write time), not now(). The types/data.ts AnalystRating interface gains as_of?: string | null in the same commit.",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/data-R15-DATA-068.md",
+   "note": "Live at HEAD: /fundamentals/AAPL/ratings and /MSFT/ratings have no as_of. /ratings/individual, /ratings/history, /ratings/price-target-history, /earnings/AAPL/{history,surprises,estimates} and /earnings/upcoming all carry as_of. The frontend stores' 15-min TTL, refresh() and the As-of chip plus Refresh button are present, and their vitest passes. This residual was recorded in batch-10's own VERDICTS (batch-10/VERDICTS.md:29) and the register note, but the entry was still closed at f407107. The verifier is correct, but this is an unfixed stated part, not a regression."
+  },
+  {
+   "id": "R15-DATA-059",
+   "verdict": "regression_confirmed",
+   "root_cause": "sidecar/services/symbol_resolver.py:1377 `if inst.exchange not in (\"NSE\", \"BSE\"): return inst` returns before the former-name fallback (:1406-1411). That fallback only echoes inst.former_name, which only the name scan (:1064-1100) stamps. So a US ticker resolve (q=ONC, q=SIFY) never joins the bundled _former_names() 'us' index (:469), even though it contains ONC -> ['BeiGene, Ltd.'] and SIFY -> ['SIFY LTD','SATYAM INFOWAY LTD']. Separately, sidecar/services/resolver_masters/us_instruments.json rows are [ticker, name] only: the fix_shape step 'add ISIN/CUSIP to the US master' was never done, so isin is null for every US instrument.",
+   "acceptance_test": "sidecar/tests/test_symbol_resolver.py: resolve('ONC','US').best.former_name == 'BeiGene, Ltd.' and resolve('SIFY','US').best.former_name in ('SIFY LTD','SATYAM INFOWAY LTD') (the most recent former name). Once the US master carries ISINs: resolve('ONC','US').best.isin == 'US07725L1026' and resolve('SIFY','US').best.isin == 'US82655M2061'. A US candidate beside a same-ticker NSE row must still take no Indian ISIN (the existing R13 TCI guard test stays green).",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/data-R15-DATA-059.md",
+   "note": "The entry's literal repro, GET /resolve?q=ONC -> isin null and former_name null, reproduces unchanged at HEAD, as do the SIFY repros (P17-4/P17-5). It was never fixed rather than broken again: batch-11 certified only the name-query direction, which does hold live ('BeiGene' -> candidates ONC/BEIGF with former_name 'BeiGene, Ltd.'; 'Toss the Coin Private Limited' -> TTC BSE; pytest former-name tests 3 passed). 'board' is now a key on resolved instruments (null for US). listing_date is still absent from the schema; the stage-B refuter scoped that as a product-wide schema gap. The verifier's refutation is accurate."
+  }
+ ]
+}

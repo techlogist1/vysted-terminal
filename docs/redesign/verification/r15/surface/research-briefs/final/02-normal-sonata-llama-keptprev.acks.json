@@ -1,0 +1,8 @@
+[
+ {
+  "t": 49.6,
+  "tool": "publish_brief",
+  "tool_call_id": "call_2eddd5ae087e4b97a0f4359d28470dd2__autobrief",
+  "ack_http": "200 {\"ok\":true}"
+ }
+]

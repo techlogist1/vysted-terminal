@@ -1,0 +1,19 @@
+=== R15-UI-055: backend partial-flag contract (source read) + pinned vitest ===
+CMD: sed -n '941,951p' sidecar/services/screener.py
+    # ``partial`` now means "rows remain UNEVALUATED": a budget-cut run whose
+    # every row still served (live or labeled stale/snapshot) evaluated the
+    # whole universe — the honesty rides ``data_basis``/``throttled``, not a
+    # contradictory partial flag (D52). R15-UI-055: a symbol the run could not
+    # reach (throttled / timed out) is unevaluated just as a budget cut is; a
+    # verdict about the symbol itself (not_found, missing_field) is not.
+    partial = (state.partial and bool(skip_details)) or any(
+        d.reason in _UNREACHED_SKIP_REASONS for d in skip_details
+    )
+    throttled = state.throttled_seen or provider_health.is_open(provider_health.YAHOO)
+
+
+CMD: grep -n 'R15-UI-055' src/modules/screener/ScreenerResultsTable.test.tsx src/modules/screener/ScreenerPanel.test.tsx
+src/modules/screener/ScreenerResultsTable.test.tsx:336:  it("R15-UI-055: a run that evaluated nothing says so instead of blaming the filters", () => {
+src/modules/screener/ScreenerPanel.test.tsx:325:  it("R15-UI-055: throttled with no stale/snapshot rows shown claims no cached values", async () => {
+
+NOTE: own repro requires a Yahoo-throttled IP + the rendered table (GUI); R15-DATA-110 live run this round shows throttled:false, partial:false (Yahoo not currently throttled), so the throttled empty-state path cannot be live-triggered from this environment. Backend partial-flag semantics (any skip reason in {budget_exhausted,rate_limited,timeout} -> partial=true) confirmed present at screener.py:947-948, matching fix_shape. Frontend rendering assertion is GUI-only; pinned by the two vitest tests above.

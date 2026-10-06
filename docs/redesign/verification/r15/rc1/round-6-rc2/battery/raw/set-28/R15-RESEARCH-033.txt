@@ -1,0 +1,38 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p033.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+import asyncio
+from typing import Any
+from services.budget_guard import BudgetGuard
+from services.research import iter as it
+from services.research.models import ResearchBrief
+from services.research.target import ResearchTarget
+t=ResearchTarget(symbol="TCS",name="TCS Limited",exchange="NSE",asset_class="equity",confidence=1.0,region="IN")
+calls=[]
+real=it.run_iter_research
+async def explorer(task,**kw):
+    calls.append(task)
+    if len(calls)==2: raise RuntimeError("explorer boom")
+    return ResearchBrief(query=task,symbol="TCS",mode="deep",markdown="## angle")
+it.run_iter_research=explorer
+async def tc(n,a): return {"ok":False,"error":"stub"}
+async def llm(m): return ""
+em=[]
+b=asyncio.run(it.run_heavy_research("TCS thesis",angles=3,tool_call=tc,llm_call=llm,budget=BudgetGuard(max_steps=30),on_step=em.append,target=t,bound=True))
+print("brief type",type(b).__name__)
+for s in b.steps:
+    if s.status=="error" or "angle" in s.detail: print(s.status,s.detail)
+print("emitted error steps:",[s.detail for s in em if s.status=="error"])
+--- output ---
+heavy research explorer 2 (Competitive position, market, and demand for TCS thesis) crashed
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p033.py", line 12, in explorer
+    if len(calls)==2: raise RuntimeError("explorer boom")
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: explorer boom
+brief type ResearchBrief
+ok expert panel: 3 parallel angle(s)
+error explorer angle 2 (Competitive position, market, and demand for TCS) failed: RuntimeError: explorer boom
+ok synthesized 2 angle report(s) into one brief (single-call)
+emitted error steps: ['explorer angle 2 (Competitive position, market, and demand for TCS) failed: RuntimeError: explorer boom']
+EXIT=0

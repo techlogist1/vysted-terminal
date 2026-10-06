@@ -1,0 +1,20 @@
+copilot allow-list size: 50
+_READ_SAFE_PANEL_ACTIONS: ['add_to_watchlist', 'arrange_layout', 'open_company_overview', 'open_panel', 'set_chart_indicators', 'set_chart_symbol']
+  write_note: in allow-list=True is_read_only=False read-safe=False
+  write_screener_filters: in allow-list=True is_read_only=False read-safe=False
+  save_screen: in allow-list=True is_read_only=False read-safe=False
+  save_layout: in allow-list=True is_read_only=False read-safe=False
+  portfolio_add_position: in allow-list=True is_read_only=False read-safe=False
+  remove_from_watchlist: in allow-list=True is_read_only=False read-safe=False
+  set_region: in allow-list=True is_read_only=False read-safe=False
+read     signals=[] tools_sent=37 write_note=False write_screener_filters=False save_screen=False save_layout=False | Write a note on Cochin Shipyard: valuation looks stretched at ~54x trailing P/E; revisit after Q2 results.
+read     signals=[] tools_sent=37 write_note=False write_screener_filters=False save_screen=False save_layout=False | screen for Indian defence and shipbuilding stocks with P/E below 60 and market cap above 10000 crore
+read     signals=[] tools_sent=37 write_note=False write_screener_filters=False save_screen=False save_layout=False | screen for defence stocks P/E < 40
+read     signals=[] tools_sent=37 write_note=False write_screener_filters=False save_screen=False save_layout=False | Screen for cheap profitable tech
+read     signals=[] tools_sent=37 write_note=False write_screener_filters=False save_screen=False save_layout=False | find me low-P/E high-ROE names
+read     signals=[] tools_sent=37 write_note=False write_screener_filters=False save_screen=False save_layout=False | Save this screen as Defence value
+research signals=['\\bresearch\\b'] tools_sent=50 write_note=True write_screener_filters=True save_screen=True save_layout=True | Save my layout as research desk
+read     signals=[] tools_sent=37 write_note=False write_screener_filters=False save_screen=False save_layout=False | Note: BDL order inflow looks lumpy
+read     signals=[] tools_sent=37 write_note=False write_screener_filters=False save_screen=False save_layout=False | Jot down that HAL results are on 12 Nov
+edit     signals=['\\badd\\b'] tools_sent=50 write_note=True write_screener_filters=True save_screen=True save_layout=True | Add a note to COCHINSHIP
+edit     signals=['\\badd\\b', '\\bwatchlist\\b'] tools_sent=50 write_note=True write_screener_filters=True save_screen=True save_layout=True | Add both of them to my watchlist

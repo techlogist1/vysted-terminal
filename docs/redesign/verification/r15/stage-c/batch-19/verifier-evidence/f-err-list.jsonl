@@ -1,0 +1,41 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_d4c372e3c54d445ebc60729019ef08ee", "name": "price_data", "input": {"__vysted_invalid_args__": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}}
+{"kind": "tool_result", "tool_call_id": "call_d4c372e3c54d445ebc60729019ef08ee", "name": "price_data", "ok": false, "error": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+{"kind": "tool_use", "tool_call_id": "call_06b05f49d6ad496b88fe933f39408fdb", "name": "price_data", "input": {"symbol": "HDFCBANK.NS"}}
+{"kind": "heartbeat"}
+{"kind": "tool_result", "tool_call_id": "call_06b05f49d6ad496b88fe933f39408fdb", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_9048d3ecadc6407fbe33025064ddecea", "name": "price_data", "input": {"symbol": "ICICIBANK.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_9048d3ecadc6407fbe33025064ddecea", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "H"}
+{"kind": "delta", "text": "DF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "735"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "IC"}
+{"kind": "delta", "text": "IC"}
+{"kind": "delta", "text": "IB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "132"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "8"}
+{"kind": "done", "usage": {"input_tokens": 11136, "output_tokens": 25, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,24 @@
+{
+ "tag": "life-S2C",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. THEN read docs/redesign/verification/r15/tooling/PROMPT_surface_s2.md's LIFECYCLE section in full. A previous attempt at your task may have died to a usage wall or power loss: your sidecar, .md file, raw file and soak log may already exist - verify and continue, never restart. Before any pnpm/node/cargo command: export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$HOME/.cargo/bin:$PATH.",
+ "stages": [
+  {
+   "label": "lifecycle",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Answer question L6 of PROMPT_surface_s2.md's LIFECYCLE section. <port> = {{port}}, data dir = <scratchpad>/vysted-iso/seat-l6-longsession/data (cp -R <scratchpad>/vysted-iso/data into it per ISO_STACK.md). Boot your sidecar, start a DETACHED nohup soak loop (>=3h, realistic mixed requests) writing <scratchpad>/vysted-iso/soak/soak.log plus periodic vm_stat/ps memory samples, record the exact start command + how to read progress, and write the first 20 minutes' evidence now without blocking on the full 3 hours. Write docs/redesign/verification/r15/lifecycle/L6-longsession.md in L5-bounds.md's shape, and CENSUS/raw/life-l6-longsession.json (raw_id prefix LIFE-L6-LONGSESSION, area \"lifecycle\", empty [] allowed). Do NOT kill the soak's own detached process when your stage returns (it must keep running); only ever kill sidecars/processes you started for setup that are not the soak itself. Return the RESULT object with count = raw findings written."
+  },
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Refute the findings you (or a prior attempt) wrote for the L6 longsession soak. Raw file: docs/redesign/verification/r15/census/raw/life-l6-longsession.json. Output: docs/redesign/verification/r15/census/refute/life-l6-longsession.json. Follow PROMPT_surface_s2.md's REFUTE section (which points to PROMPT_refute.md) exactly, including the trading-scope removed_with_feature handling. If the raw file is [], confirm and write [] as your verdict file. Return the RESULT object."
+  }
+ ],
+ "items": [
+  {
+   "id": "l6-longsession",
+   "port": 52229
+  }
+ ]
+}

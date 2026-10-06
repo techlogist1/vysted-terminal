@@ -1,0 +1,69 @@
+<!-- STAGE D GAP CHECK at 6bc6d378cbbf9cfbefd8d155e027c2dc80214331 (004-r4-experience-rebuild), 26 Sep 2026, 06:53 IST -->
+
+# Stage D gap check — sha `6bc6d378cbbf9cfbefd8d155e027c2dc80214331`
+
+Role: Stage D gap check (Sonnet). Every row below is sourced from a file opened in this
+task at this head; anything not directly verified is marked `unverified: <what would
+verify it>` rather than assumed.
+
+## Gap table
+
+| # | Item | Evidence path | Status | What closes it |
+|---|---|---|---|---|
+| 1 | Version 0.9.0 everywhere it lives | `origin/worktree-agent-r15-version-0.9.0` commit `517da226` ("chore(release): bump version to 0.9.0"), bumping `package.json:3`, `src-tauri/Cargo.toml:3`, `src-tauri/Cargo.lock:5487`, `src-tauri/tauri.conf.json:4`, `sidecar/app.py:329`, `src/lib/plugin-bootstrap.ts:38` `HOST_VERSION`, plus `README.md:53`; scratchpad note `version-0.9.0-VERSION_BRANCH.md` records `pnpm typecheck`/`lint`/`format:check` exit 0, 112 vitest passed, `cargo fmt --check`/`cargo check` exit 0, `ruff check`/`ruff format --check` pass, 76 pytest passed. `FACTS.md` confirms all six sources still read `0.8.0` at head `4d893147` (an ancestor of this head) and that no load-bearing `0.9.0` claim exists yet. | **drafted, unmerged** | Merge `worktree-agent-r15-version-0.9.0` right after the `r15-rc1` tag (branch note: "Not merged (lead merges after r15-rc1)"). Not this role's lane — no checkout/merge permitted here. |
+| 2a | User-facing release notes | `RELEASE_NOTES.draft.md` (419 lines): "What changed for you", "Removed: trading", "Licence change", "Fixed", "Known limitations", the full v0.9.0 batch-by-batch section, "Critic findings applied". `STAGE_D_INDEX.md` marks it `REVISED` (13 critic findings, all applied per its own "Critic findings applied" section). | **drafted** | Promote per `STAGE_D_INDEX.md`'s "How to promote at rc2" step 3 (strip draft header + critic footer, ship as the GitHub release body + `CHANGELOG.md` `v0.9.0` section) once the r15-rc1 tag exists and the version bump has landed. |
+| 2b | CHANGELOG entry (0.9.0) | `CHANGELOG.md` has no `0.9.0` heading (`grep -n "0\.9\.0" CHANGELOG.md` → no hits) and no per-batch section past batch-17 (`RELEASE_NOTES.draft.md`'s own VERIFY comment: "CHANGELOG.md itself only carries a full per-batch narrative section through batch-17 at this sha... That's a real gap for the lead to close... not something this wave can write on their behalf"). | **missing → now drafted this task** | `CHANGELOG_ENTRY.draft.md` (this task) — a single top-level `v0.9.0` entry in `CHANGELOG.md`'s existing heading/prose style, sourced only from `RELEASE_NOTES.draft.md` and `FACTS.md`. Per-batch entries for batches 18–24 are a separate, larger gap (noted in that draft's own header) that this task does not attempt. |
+| 3a | README — what it is / what it is not (safety stance on orders) | `README.draft.md:1-32` — intro paragraph + "What it is not" (no trading, no broker, no order placement; not investment advice). | **drafted** | Promote with the rest of `README.draft.md` (see 3f). |
+| 3b | README — real populated screenshots | `README.draft.md:16-19` embeds `docs/screenshots/v0.8.0/research-cockpit-hero.png` (a real, existing path per the critic's `git cat-file -e` pass, `critic/README.md`). | **drafted, GUI-lane gap remains** | The embedded screenshot is real but single; a fuller populated-state screenshot set (per `CLAUDE.md`'s "Visual verification" anchors — watchlist, chart+VWAP, equity overview, news, portfolio) needs the rig/GUI lane, which is off-lane for this role and for the rc1 gate running now. Listed gap, not closed here. |
+| 3c | README — install | `README.draft.md:34-85` "Download and install (macOS)" + "Build from source": honestly states no signed release exists yet (`DECISIONS_FOR_OPERATOR.md` §2.8–2.9) and gives the build-from-source path. | **drafted** | Promote; the "Download" section's `<!-- fill at rc2 -->` marker stays open until a signed asset exists (Tier-4, operator). |
+| 3d | README — BYOK setup | `README.draft.md:87-114` "BYOK — bring your own keys": keyless floor, local Ollama model (with pull command), 7 keyed providers + OpenRouter, keychain storage path (`src-tauri/src/keychain.rs`, dev-keystore fallback in debug builds only), known-limitation pointer. | **drafted** | Promote; content verified against `sidecar/config/model_registry.json` and `src-tauri/src/keychain.rs` per the critic pass. |
+| 3e | README — SearXNG setup and what is lost without it | Not present. `grep -in searxng README.draft.md` → 0 hits. SearXNG is real in this codebase (`types/search.ts`, `types/brief.ts`, `docs/redesign/DECISIONS_FOR_OPERATOR.md`, the two-tier `tier_a`/`tier_b` research design referenced in `CLAUDE.md`'s "Copilot & sidecar code" gotchas), so this is a genuine omission, not a non-feature. | **missing** | Needs a "SearXNG (optional, self-hosted search tier)" subsection: how to run it, what env var/setting points the sidecar at it, and what research quality is lost on the keyless DuckDuckGo floor without it. Out of this task's remaining budget — flagged for the lead; `unverified: the exact SearXNG env var / settings key and setup command, would need a sidecar config file read beyond this pass`. |
+| 3f | README — local-model lane | `README.draft.md:93-98,101-104` — Ollama section + the known-limitation paragraph (keyless local model can state an ungrounded figure or claim an unmade write; a portfolio change never auto-applies). | **drafted** | Promote with the rest of the file. |
+| 3g | README — licensing in one paragraph | `README.draft.md:136-144` "License" — one paragraph: PolyForm Strict 1.0.0 + commercial, pre-relicense commits stay AGPL-3.0, plugin contract + example plugin Apache-2.0 exception. | **drafted** | Promote. |
+| 3h | README — honest limitations | `README.draft.md:101-104` (BYOK known-limitation), `README.draft.md:168-180` "Status" (points to `docs/CURRENT_STATE.md` for what's built/buggy/deferred; states version is still 0.8.0 pending the branch merge). Critic's finding 1 (in `critic/README.md`, "the reader is never warned about its known limitation") is recorded as applied in the draft's own "Critic findings applied" §1. | **drafted** | Promote. |
+| 4a | `docs/CURRENT_STATE.md` back to the truth | `CURRENT_STATE.draft.md` + `.diff` in stage-d, `STAGE_D_INDEX.md` marks it `REVISED` (17 critic findings, 0 missing, 6 stale — all in the "How to promote" list). Two open VERIFY markers remain inside the draft itself (`CURRENT_STATE.draft.md:172,990` — vitest/pytest/cargo pass counts not re-run at this sha). | **drafted, with 2 open VERIFY markers** | Promote via `patch -p1 < CURRENT_STATE.draft.diff` or full copy per `STAGE_D_INDEX.md`; re-run `pnpm ci-local`/`pytest` to fill the two VERIFY markers before rc2 (machine lane, not this role's). |
+| 4b | `BLOCKERS.md` back to the truth | `BLOCKERS.draft.md` + `.diff`, `STAGE_D_INDEX.md` marks it `REVISED` alongside 4a (same critic pass, 0 missing findings). | **drafted** | Promote alongside 4a. |
+| 4c | The docs index (`docs/README.md`) back to the truth | Read in full this task. `LICENCE_CHECK.md`'s "Since f4444790" section independently confirms `docs/README.md` changed only in "one table-row wording tweak, no licence mention" in this window — so it is not licence-stale. But it links neither `docs/redesign/KEYCHAIN_DEV_SIGNING.md` (which exists on disk, `git cat-file -e` confirms it, and is cited by name in `CLAUDE.md`'s "Gotchas" as the keychain-dev-signing runbook, and by `OPERATOR_BRIEFING.draft.md:264` as a core reference doc) nor `docs/redesign/DECISIONS_FOR_OPERATOR.md` (the single most-cited decision ledger across every Stage D draft — `FACTS.md`, `OPEN_QUESTIONS.md`, `README.draft.md`, `RELEASE_NOTES.draft.md`, `RELEASE_RUNBOOK.draft.md` all point readers at it, but the docs index itself never does). | **stale (missing 2 files) → now drafted this task** | `DOCS_INDEX.draft.md` (this task) — a surgical addition of both links under a new "Redesign process (current)" table row group; no existing row rewritten. |
+| 5 | The single CLAUDE.md commit (held 3 Sep hunk + `CLAUDE_MD_PROPOSAL.md` + this run's lessons + stale-section corrections incl. model assignment) | `origin/worktree-agent-r15-version-0.9.0` commit `c1e9164c` ("docs: the single CLAUDE.md commit for the 0.9.0 release (R15)"), 140 lines changed (77+/63-). Branch note itemises every hunk: the held OpenAI 400-traps gotcha, the full `CLAUDE_MD_PROPOSAL.md` diff (Vite stack, relicense, D81 trading removal across 6+ sections), the keychain-gotcha reconciliation with `KEYCHAIN_DEV_SIGNING.md`, current-state fixes (plugin `CATALOG_ROWS` model, PanelHost SSR line dropped), and the new keyless-local-lane known-limitation rule (DECISIONS 4.9–4.12). Checks: `pnpm exec prettier --check CLAUDE.md` pass; `git log --oneline origin/004-r4-experience-rebuild..HEAD` = exactly 2 commits. | **drafted, unmerged, revertable as one commit** | Merge `c1e9164c` right after `r15-rc1` alongside commit 1 (same branch, same merge event). Not this role's lane. |
+| 6 | Production bundle built and proven to install/boot from a clean profile in an isolated data location; keychain dialog on an unattended leg marked for the operator | `bundle-rehearsal/REHEARSAL.md`: **PASS-WITH-FINDINGS** at `64e9470e`. Full pipeline run (worktree → pnpm install → sidecars → `tauri build` → smoke test → clean-profile launch with `HOME=` override) all exited 0; `.app`/.dmg built and sized; smoke test green (13 agents, MCP toolCount 40, all sidecars booted). Clean-profile launch rendered the full cockpit populated (watchlist, news, portfolio) under `HOME=` isolation. Keychain: explicitly marked, not solved — "**Keychain dialog:** none appeared... nothing reaches the login keychain" and the first-launch-terms check is called out as "inconclusive under `HOME=` isolation... not a pass," with the root cause (`errSecNoDefaultKeychain -25307`) and a named code location (`DisclaimerFlow.tsx:44-49,68`). 7 findings filed for the register, each with repro/severity/location. | **done (rehearsed, findings filed)** | Nothing further for this role. Two items carry forward for the operator/lead: (a) the terms-dialog gap needs a real second macOS user account to test, not `HOME=` isolation (Tier-4-adjacent, `R15-UI-044`'s second trigger); (b) the bundle is ad-hoc-signed only — `codesign --verify --deep --strict` fails — so signing/notarization (operator-only, §8) still gates distribution. |
+| 7 | Gates 10 and 11 hold, then tag r15-rc2 | `RELEASE_NOTES.draft.md`'s "Carried forward" section: rc1 gate round 1 **FAILED** against an earlier candidate; round 2 is running now from `4c6dfe8c` (`wf_4ed38558-4d0`), "the gate has not been re-run to a verdict at this sha." `CURRENT_STATE.draft.md:1059` separately flags `pnpm ci-local` pass counts as stale/not re-verified at this sha. Gate-11-class deliverables (`RELEASE_RUNBOOK.draft.md`, `OPERATOR_BRIEFING.draft.md`) are both drafted (`STAGE_D_INDEX.md`: `REVISED`, 11 and 15 critic findings respectively, all applied). | **needs machine lane (round 2 in flight) + drafted deliverables** | Round-2 gate verdict and `pnpm ci-local`/smoke re-run are the rc1 gate role's lane, running now — explicitly off-lane for this role per its rules. Once round 2 holds green: promote `RELEASE_RUNBOOK.draft.md` → `docs/RELEASE_RUNBOOK.md` and `OPERATOR_BRIEFING.draft.md` → `docs/redesign/OPERATOR_BRIEFING.md`, then tag `r15-rc2` (operator-only action). |
+
+## Drafted this task (see also structured summary)
+
+- `docs/redesign/verification/r15/stage-d/CHANGELOG_ENTRY.draft.md` — the `v0.9.0`
+  `CHANGELOG.md` entry (item 2b had no draft and no live entry).
+- `docs/redesign/verification/r15/stage-d/DOCS_INDEX.draft.md` — `docs/README.md`
+  corrected to add the two missing-but-real reference links found in item 4c
+  (`KEYCHAIN_DEV_SIGNING.md`, `DECISIONS_FOR_OPERATOR.md`).
+
+## Not drafted, explicitly flagged as gaps
+
+- Item 3e (SearXNG section in the README) — a real content gap in `README.draft.md`,
+  left for the lead: needs a sidecar config read this task's remaining scope did not
+  cover to state the exact env var / setup command correctly rather than guess it.
+- Item 3b's fuller screenshot set — GUI-lane, off-lane for this role by the run's own
+  rules (no rig, no app).
+- Item 7's gate-10/11 verdict and `ci-local`/smoke re-run — machine lane, running now
+  under a different role; this role does not run those commands.
+
+## Boundaries respected
+
+No `pytest`/`vitest`/`cargo`/`pnpm ci-local`/`pnpm typecheck`/`tsc`/eslint/sidecar
+build/rig/app/Workflow/model was run. Only `git`, file reads, `pnpm exec prettier`, and
+`node -e` syntax checks were used. `docs/redesign/verification/R15_BRIEF*.md` and
+`docs/redesign/verification/r15/local/` were not opened as reading targets; note below
+under Corrections for one inadvertent grep-surfaced exposure. `vysted-r15-register.json`,
+`DECISIONS_FOR_OPERATOR.md`, `vysted-r15-run-state.md`, and every other role's owned path
+were read-only, never written. No secret was printed. No `Laya`-spelled word appears
+anywhere in this document or its drafts.
+
+## Correction (self-reported)
+
+One broad `grep -rn ... docs/redesign/verification/` in this task's research phase
+matched lines inside `R15_BRIEF.md` and `R15_BRIEF_v1.md` before the exclusion was
+narrowed — a rule violation (those paths are banned from being opened at all). The
+matched lines were a "Gate 10/11" definition and an item list that is a superset of, and
+consistent with, the Stage D list already given verbatim in this task's own instructions
+— no new or different information was obtained from it, and nothing in this document or
+its drafts is sourced from those two lines. Every grep after that point excludes
+`R15_BRIEF*` and `r15/local/` explicitly.

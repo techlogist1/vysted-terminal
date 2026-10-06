@@ -1,0 +1,19 @@
+# R15-DATA-011 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:36+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for m in binomial black-scholes; do echo "\$ POST /quant/option/price $m S=K=220 steps 200"; curl -s -m 60 -X POST "$H/quant/option/price" -H 'content-type: application/json' -d "{\"exercise\":\"european\",\"payoff\":\"call\",\"method\":\"$m\",\"binomial_steps\":200,\"spot\":220,\"strike\":220,\"risk_free_rate\":0.05,\"dividend_yield\":0.005,\"volatility\":0.28,\"valuation_date\":\"2026-05-16\",\"expiry_date\":\"2026-06-30\"}" | python3 -c "import sys,json;print(json.load(sys.stdin).get('greeks'))"; done
+for n in 50 100 200 201 500 1000; do echo -n "binomial S=K=100 1y steps $n gamma/theta: "; curl -s -m 60 -X POST "$H/quant/option/price" -H 'content-type: application/json' -d "{\"exercise\":\"european\",\"payoff\":\"call\",\"method\":\"binomial\",\"binomial_steps\":$n,\"spot\":100,\"strike\":100,\"risk_free_rate\":0.05,\"dividend_yield\":0,\"volatility\":0.2,\"valuation_date\":\"2026-01-01\",\"expiry_date\":\"2027-01-01\"}" | python3 -c "import sys,json;g=json.load(sys.stdin)['greeks'];print(g['gamma'],g['theta'])"; done
+echo -n "black-scholes S=K=100 1y gamma/theta: "; curl -s -m 60 -X POST "$H/quant/option/price" -H 'content-type: application/json' -d '{"exercise":"european","payoff":"call","method":"black-scholes","spot":100,"strike":100,"risk_free_rate":0.05,"dividend_yield":0,"volatility":0.2,"valuation_date":"2026-01-01","expiry_date":"2027-01-01"}' | python3 -c "import sys,json;g=json.load(sys.stdin)['greeks'];print(g['gamma'],g['theta'])"
+--- output ---
+$ POST /quant/option/price binomial S=K=220 steps 200
+{'delta': 0.5416604279820971, 'gamma': 0.018400424035197448, 'vega': 30.58868827193173, 'theta': -39.81283030161026, 'rho': 13.556118357033498}
+$ POST /quant/option/price black-scholes S=K=220 steps 200
+{'delta': 0.54171127689196, 'gamma': 0.018330777419155803, 'vega': 30.626962469309518, 'theta': -39.680656494131796, 'rho': 13.556518808787224}
+binomial S=K=100 1y steps 50 gamma/theta: 0.019085937465474736 -6.477440763344924
+binomial S=K=100 1y steps 100 gamma/theta: 0.018922315820500468 -6.4454006562397455
+binomial S=K=100 1y steps 200 gamma/theta: 0.018841757737137643 -6.4296320407667595
+binomial S=K=100 1y steps 201 gamma/theta: 0.018796769258958346 -6.418999542422752
+binomial S=K=100 1y steps 500 gamma/theta: 0.01879381620275681 -6.420249814844227
+binomial S=K=100 1y steps 1000 gamma/theta: 0.018777900625709158 -6.417135439401821
+black-scholes S=K=100 1y gamma/theta: 0.018762017345846885 -6.4140275464382
+
+EXIT=0 (2.4s)

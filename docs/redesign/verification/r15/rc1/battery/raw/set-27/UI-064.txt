@@ -1,0 +1,2 @@
+=== UI-064: chart overlay/indicator color ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/modules/chart/ChartPanel.tsx:1095:        priceScaleId: compareNormalize ? "left" : "right",

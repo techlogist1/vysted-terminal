@@ -1,0 +1,17 @@
+=== R15-UI-010 repro: register's exact curl cases against own sidecar :52362 ===
+curl -sS -X POST http://127.0.0.1:52362/backtest/run -d '{"strategyId":"mean_reversion","symbols":["AAPL"],"startDate":"2024-01-01","endDate":"2024-02-01","initialCapital":100000,"params":{"window":0}}'
+  -> {"detail":"`window` must be between 5 and 200"}
+curl (window=-5) -> {"detail":"`window` must be between 5 and 200"}
+curl (window="") -> {"detail":"`window` must be an integer"}
+
+-- backend source: sidecar/routers/backtest.py:46-48 calls validate_params()
+   and turns ValueError into HTTPException(422, str(exc)); backtest_strategies.py
+   validate_params() checks type + [minimum,maximum] from paramsSchema BEFORE
+   the strategy ever calls int()/fmean/maxlen, so the raw Python exceptions
+   named in the register (StatisticsError, ValueError: maxlen, invalid literal)
+   can no longer reach the router.
+-- frontend source: strategy-picker.tsx:100-198 renders minimum/maximum from
+   the schema and clamps on blur (clampToRange, onBlur handler).
+
+VERDICT: holds. All three register cases now return a readable 422 detail
+naming the param and its bound/type, never a raw Python exception string.

@@ -1,0 +1,7 @@
+COMMAND: pnpm exec vitest run src/modules/chat/ComposerPlusMenu.test.tsx (candidate 949c3c9f)
+EXIT: 0
+OUTPUT (relevant):
+ ✓ src/modules/chat/ComposerPlusMenu.test.tsx > ComposerPlusMenu > the AUTO hint names every change kind on the side autoApplies puts it 12ms
+
+SOURCE CHECK: src/modules/chat/ComposerPlusMenu.tsx:32-36 — the hint is rendered FROM autoApplies/PROPOSED_CHANGE_KINDS (instant = kinds where autoApplies is true, staged = the rest), so the copy cannot drift from the predicate. types/proposed-change.ts holds the one declaration (AUTO_APPLIED_KINDS).
+VERDICT: holds. The whitelist function (autoApplies) exists as one shared declaration and the UI hint is derived from it, matching the certified fix.

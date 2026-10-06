@@ -1,0 +1,3 @@
+ok: True
+bars_returned: 90 bars_available: 127 window_start: 2026-05-19T00:00:00-04:00
+PASS: truncation to 90 is now disclosed via bars_returned/bars_available/window_start

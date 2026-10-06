@@ -1,0 +1,27 @@
+cwd=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-9bc600e-fix-int/sidecar sha=633f844071d972b337f4c3526d86555c80df0568
+== entry repro legs
+openai 429 credit balance exhausted                     code='insufficient_credit' msg='Your OpenAI account is out of credit or quota.' action='Add credit or check your plan, or switch provider in Settings.'
+openai 400 maximum context length                       code='context_overflow' msg='The conversation is too long for this OpenAI model.' action='Start a new chat or pick a model with a larger context window.'
+groq 413                                                code='unknown' msg='Something went wrong with Groq.' action='Try again or switch provider in Settings.'
+ollama ConnectError                                     code='ollama_not_running' msg='Ollama is not running.' action='Start Ollama (open the app or run `ollama serve`), then try again.'
+gemini ClientError 400 API_KEY_INVALID                  code='auth' msg='The Google Gemini API key was rejected — check it in Settings.' action='Re-enter the API key in Settings.'
+xai BadRequest 400 Incorrect API key                    code='auth' msg='The xAI API key was rejected — check it in Settings.' action='Re-enter the API key in Settings.'
+openrouter 400 not a valid model id                     code='model_not_found' msg='The requested model is not available on OpenRouter — pick another model.' action='Choose a different model in Settings.'
+openrouter 429 shared pool                              code='free_pool_busy' msg="OpenRouter's free-model pool is busy right now." action='Try again shortly, or pick a paid model in Settings.'
+   user_id scrubbed: True | detail: Error code: 429 - {'error': {'message': 'Provider returned error', 'code': 429, 'metadata': {'raw': 'google/gemma-4-31b-it:free is temporarily rate-limited upst
+== fresh cases
+anthropic 400 prompt is too long                        code='context_overflow' msg='The conversation is too long for this Anthropic model.' action='Start a new chat or pick a model with a larger context window.'
+openai 429 insufficient_quota (real body)               code='insufficient_credit' msg='Your OpenAI account is out of credit or quota.' action='Add credit or check your plan, or switch provider in Settings.'
+groq 400 model_decommissioned                           code='model_not_found' msg='The requested model is not available on Groq — pick another model.' action='Choose a different model in Settings.'
+openai 400 invalid key via 401 AuthenticationError      code='auth' msg='The OpenAI API key was rejected — check it in Settings.' action='Re-enter the API key in Settings.'
+gemini 400 context (input token count)                  code='context_overflow' msg='The conversation is too long for this Google Gemini model.' action='Start a new chat or pick a model with a larger context window.'
+gemini 429 per-minute RESOURCE_EXHAUSTED                code='insufficient_credit' msg='Your Google Gemini account is out of credit or quota.' action='Add credit or check your plan, or switch provider in Settings.'
+openai 429 plain rate limit                             code='rate_limit' msg='OpenAI is rate-limiting your account — try again in a minute.' action='Wait a moment, then try again.'
+stream_chat sig: (messages: 'list[LLMMessage]', model: 'str', api_key: 'str | None' = None, **kwargs: 'Any') -> 'AsyncIterator[LLMStreamEvent]'
+== live: real OllamaProvider against a dead port 127.0.0.1:52699 (no Ollama traffic)
+(eval):1: command not found: timeout
+== bare 413 (entry leg verbatim: exc(status_code=413), no body)
+groq unknown 'Something went wrong with Groq.' 'Try again or switch provider in Settings.'
+openai unknown 'Something went wrong with OpenAI.' 'Try again or switch provider in Settings.'
+== live: real OllamaProvider against a dead port 127.0.0.1:52699 (no Ollama traffic)
+event kind='error' message='Ollama is not running.' action='Start Ollama (open the app or run `ollama serve`), then try again.' detail='All connection attempts failed' code='ollama_not_running'

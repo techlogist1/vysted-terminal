@@ -1,0 +1,18 @@
+=== R15-UI-052: onboarding copy false promises ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/OnboardingFlow.tsx:240:          <span className="text-positive font-medium">It already works — no key, no account.</span>{" "}
+      </div>
+
+      <div className="border-positive/25 bg-positive/5 flex items-start gap-3 rounded-none border px-4 py-3">
+        <Check className="text-positive mt-1 size-4 shrink-0" aria-hidden="true" />
+        <p className="text-charcoal-200 text-caption font-mono leading-relaxed">
+          <span className="text-positive font-medium">It already works — no key, no account.</span>{" "}
+          Live quotes, charts, news and screeners run right now. Pick a path below to turn on the AI
+          agent (and its web research), or explore first.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <PathCard
+          icon={<Zap className="text-charcoal-300 size-4" aria-hidden="true" />}
+          title="Connect a model"
+          tag="most power"

@@ -1,0 +1,10 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  24.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_0d77e8f3841d4e10a6b12727b6fec16c", "name": "financial_statements", "input": {"period": "quarterly", "statement": "income", "symbol": "SIFY.US"}}
+[  28.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_0d77e8f3841d4e10a6b12727b6fec16c", "name": "financial_statements", "ok": true, "error": null}
+[  31.0s] done: {"kind": "done", "usage": {"input_tokens": 2896, "output_tokens": 33, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The tool did not return a value for SIFY's revenue last quarter. The terminal's data does not include the quarterly revenue figures in USD for this company.
+
+=== ok · 31.0s · events {'heartbeat': 2, 'tool_use': 1, 'tool_result': 1, 'delta': 33, 'done': 1} · usage in=2896 out=33 · est $0.00000 · llama3.1:8b

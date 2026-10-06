@@ -1,0 +1,9 @@
+COMMAND: pnpm exec vitest run src/modules/notes/NotesPanel.test.tsx src/store/notes.test.ts (candidate 949c3c9f)
+EXIT: 0
+OUTPUT (relevant):
+ ✓ src/modules/notes/NotesPanel.test.tsx > NotesPanel — the notes store is authoritative > shows an agent write_note into the open note, and the next keystroke keeps it 116ms
+ ✓ src/modules/notes/NotesPanel.test.tsx > NotesPanel — the notes store is authoritative > a scope switch inside the debounce window saves each scope's own text 32ms
+ ✓ src/store/notes.test.ts > notes store > appendGeneral (R10 write_note seam) > appends to an empty note without leading blank lines 0ms
+
+SOURCE CHECK (src/modules/notes/NotesPanel.tsx:150-211): store is authoritative. flush() writes `pending` (store then .md) keyed to the scope captured at edit time; `if (!pending) return` only short-circuits when there is NO pending edit object, not when its `md` is the empty string, so select-all+Delete (pending={scope,md:""}) still flushes `""` to the store (fixes sub-repro 2). Programmatic reloads call editor.commands.setContent(storeNote, {emitUpdate:false}) (line 207) so they never re-trigger the user-edit handler (fixes sub-repro 3's setContent side-effect concern). `useEffect(() => flush, [flush])` (line 211) is a cleanup function that runs flush on unmount, so a pending edit is saved before unmount (fixes sub-repro 4). Sub-repro 1 (agent write visible + survives next keystroke) and 3 (scope-switch-inside-debounce) are directly pinned by the two passing tests above.
+VERDICT: holds. All 4 original sub-repros are fixed in source; 2 are pinned by committed vitest, 2 (empty-clear persistence, unmount flush) verified by direct source read of flush()/cleanup logic since no dedicated vitest names them (matches batch-3 cert which ran these as scratch checks, not committed tests).

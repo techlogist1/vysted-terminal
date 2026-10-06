@@ -1,0 +1,29 @@
+cmd: sed -n 131,156p docs/MCP_INTEGRATION.md @e032be7
+
+## Claude Desktop
+
+Claude Desktop's `claude_desktop_config.json` does **not** accept HTTP
+servers directly. Use the `mcp-remote` bridge (npm package) to translate
+between Claude Desktop's stdio expectation and Vysted's HTTP transport.
+
+Locate the config file:
+
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+Add the Vysted server:
+
+```json
+{
+  "mcpServers": {
+    "vysted": {
+      "command": "npx",
+      "args": ["mcp-remote", "http://127.0.0.1:<sidecar-port>/mcp/"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop. The Vysted tools appear in the slash-command
+
+cmd: find docs/screenshots -iname '*claude*' -o -iname '*desktop*' => (see below)

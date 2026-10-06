@@ -1,0 +1,21 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  58.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_6865ff5087c64f008469b83d9e0acd35", "name": "financial_statements", "input": {"statement": "income", "period": "annual", "symbol": "SIFYUS"}}
+[  63.9s] tool_result: {"kind": "tool_result", "tool_call_id": "call_6865ff5087c64f008469b83d9e0acd35", "name": "financial_statements", "ok": true, "error": null}
+[  73.9s] heartbeat: {"kind": "heartbeat"}
+[  83.9s] heartbeat: {"kind": "heartbeat"}
+[  93.9s] heartbeat: {"kind": "heartbeat"}
+[  99.4s] done: {"kind": "done", "usage": {"input_tokens": 2902, "output_tokens": 77, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The ADR-to-ordinary-share ratio is not available from this session's sources.
+
+However, I can tell you that SIFY's TTM revenue is unavailable. The tool result does not contain any information about SIFY's TTM revenue in USD. 
+
+To find the answer to your question, we would need to fetch additional data from a reliable source.
+
+=== ok · 99.4s · events {'heartbeat': 8, 'tool_use': 1, 'tool_result': 1, 'delta': 57, 'done': 1} · usage in=2902 out=77 · est $0.00000 · llama3.1:8b
+rmdir: /tmp/vysted-r15-ollama.lock: No such file or directory

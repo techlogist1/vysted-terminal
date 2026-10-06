@@ -1,0 +1,52 @@
+=== docs/CURRENT_STATE.md:358-365 screener bullet ===
+- **`screener.py` + `screener_universes/`** — fan-out filter engine. Universes:
+  `sp500` (full S&P 500 — 506 symbols, a static snapshot dated 2026-06-04 that
+  has drifted from current membership, R15-LEAD-013 open),
+  `nifty50` (50), `crypto-top50` (50, reseeded from the bundled snapshot on
+  cache expiry — a live "refresh from ccxt" worker still does **not exist**),
+  `custom`. Criteria support **nested AND/OR** via `CriterionGroup`
+  (`models/screener.py`, `combinator: "and"|"or"`) — OR-grouping is no longer
+  reserved/unimplemented.
+
+=== grep universe in CURRENT_STATE.md ===
+297:| POST                | `/screener/run`                                                                            | Run screener (`ScreenerRequest`)                 | `screener.run_screener`; universe failure → 502, unknown → 400             |
+298:| GET                 | `/screener/universe`                                                                       | Resolve universe (`?id=`)                        | `screener.resolve_universe`; `custom` → 400                                |
+358:- **`screener.py` + `screener_universes/`** — fan-out filter engine. Universes:
+532:| screener        | `ScreenerPanel.tsx`            | yes              | `/screener/run`, `/screener/universe`                           |
+
+=== nse-all/bse-all/india-all in code (screener_universe_india.py) ===
+"""Full-market India screener universes from the bundled resolver masters (R10, D40).
+
+Resolves the three India universe ids the contracts commit added to
+``models/screener.py``:
+
+  - ``nse-all``   — every NSE master row (EQ + ETF) as ``SYMBOL.NS`` (~2,675).
+  - ``bse-all``   — BSE master rows with STATUS == "Active" as ``SYMBOL.BO``
+    (the liquidity ``group`` is retained in the per-symbol meta).
+  - ``india-all`` — the union, NSE listing preferred: a BSE row whose SYMBOL
+    also appears in the NSE master is skipped (dual-listings screen once,
+    on the deeper-liquidity venue).
+
+The masters are the same bundled JSON snapshots the symbol resolver reads
+(``services.resolver_masters`` via :mod:`importlib.resources` — offline,
+deterministic, test-stable); ``india_sector_map.json`` rides the same package
+and supplies the build-time sector / shares_outstanding seed the fundamentals
+store warms from.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+from functools import lru_cache
+from importlib import resources
+from typing import Any
+
+from models.screener import ScreenerUniverse, ScreenerUniverseId
+from services.errors import ProviderError
+
+logger = logging.getLogger(__name__)
+
+_INDIA_UNIVERSE_IDS: frozenset[str] = frozenset({"nse-all", "bse-all", "india-all"})
+
+

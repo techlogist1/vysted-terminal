@@ -1,0 +1,9 @@
+[   2.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_6012ddc6b05f45b69027cd3b230ba70e", "name": "portfolio_add_position", "input": {"cost_basis": 415, "symbol": "ITC", "quantity": 40}}
+[   2.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_6012ddc6b05f45b69027cd3b230ba70e", "name": "portfolio_add_position", "ok": true, "error": null}
+[   6.2s] research_step: {"kind": "research_step", "tool_call_id": "call_6012ddc6b05f45b69027cd3b230ba70e", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position ITC. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[   6.2s] done: {"kind": "done", "usage": {"input_tokens": 2925, "output_tokens": 42, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I've added 40 ITC shares to your holdings at ₹415 each. The total amount spent on these shares is ₹16,600. This change will be applied after you review and accept it.
+
+=== ok · 6.2s · events {'tool_use': 1, 'tool_result': 1, 'delta': 43, 'research_step': 1, 'done': 1} · usage in=2925 out=42 · est $0.00000 · llama3.1:8b

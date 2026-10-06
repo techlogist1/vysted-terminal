@@ -1,0 +1,21 @@
+# R15-CODE-RESEARCH-009 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:23+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- test_one_search_with_lite_fallback_takes_one_pac sidecar/tests/test_ddg_backend.py | head -3; test -f sidecar/tests/test_ddg_backend.py || echo 'MISSING sidecar/tests/test_ddg_backend.py'
+[exit 0] [0.00s]
+276:def test_one_search_with_lite_fallback_takes_one_pacing_slot() -> None:
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-RESEARCH-009\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+sidecar/tests/test_ddg_backend.py:242:# --- R15-CODE-RESEARCH-009: pacing moved out of ddg.py to the caller --------
+sidecar/services/search/registry.py:48:    (R15-CODE-RESEARCH-009).
+sidecar/services/search/registry.py:81:    else paces it (R15-CODE-RESEARCH-009). The paced lane stays a
+sidecar/services/search/ddg.py:268:        No pacing lives HERE (R15-CODE-RESEARCH-009): this used to take a
+Binary file sidecar/services/search/__pycache__/registry.cpython-313.pyc matches
+Binary file sidecar/services/search/__pycache__/ddg.cpython-313.pyc matches
+

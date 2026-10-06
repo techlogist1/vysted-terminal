@@ -1,0 +1,83 @@
+[
+  {
+    "raw_id": "INT-deferred-42-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Signing, the updater and publishing really are unbuilt: tauri.conf.json has no signing keys and createUpdaterArtifacts:false (:45), build.yml runs `pnpm tauri build` labelled '(unsigned)' (:76-77) and only uploads CI artifacts (:79-84), with no Releases publish step and no Homebrew cask. Two details are wrong. (a) AppImage and .deb ARE built: tauri.conf.json:32 lists targets deb/appimage/nsis/app/dmg and the ubuntu matrix leg of build.yml builds and uploads them; what is missing is signing and publishing, not the Linux build. (b) Per BLOCKERS.md:305-307 the landing page lives in a separate operator-owned private repo, so its absence from this repo proves nothing; the real evidence is that terminal.vysted.com returns NXDOMAIN, so it is not deployed. Severity stays high for a public 0.9.0: unsigned binaries plus no updater path means users cannot install cleanly and cannot receive fixes.",
+    "evidence": "src-tauri/tauri.conf.json:32,45,47-52; .github/workflows/build.yml:13,76-84; BLOCKERS.md:293-311; `host terminal.vysted.com` -> NXDOMAIN",
+    "evidence_checked": "Opened tauri.conf.json and all three workflows. Grepped the workflows for signing, release, cache, Homebrew and AppImage. Read BLOCKERS.md launch-ops items 1-7. Ran a DNS lookup and a curl against terminal.vysted.com.",
+    "repro_check": "grep -n 'SignPath|TAURI_SIGNING|APPLE_CERT|release' .github/workflows/*.yml -> only the artifact path at build.yml:83; `host terminal.vysted.com` -> NXDOMAIN; tauri.conf.json:32 targets include deb+appimage (built, unsigned, not published)."
+  },
+  {
+    "raw_id": "INT-deferred-42-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The coverage gap is real: package.json has no playwright dependency, the repo has no playwright.config.* and no e2e spec outside node_modules, and the in-webview drag check has recurred as NEEDS-MANUAL-CHECK in R7:39, in R12:54 (where it is called 'permanent') and in R15_GATE2 (canvas gesture drag). I corrected the severity from high to medium. Nothing shows the drag is broken. The mechanism it depends on (dragDropEnabled:false at tauri.conf.json:23) is present, and the missing piece is verification, not a failing core flow. That makes it a maintainer or regression-risk gap, which is medium on the COMMON scale ('high' is reserved for a core flow that breaks or silently degrades).",
+    "evidence": "src-tauri/tauri.conf.json:23; docs/redesign/verification/R7_RUN_REPORT.md:39; docs/redesign/verification/R12_RUN_REPORT.md:54; docs/redesign/verification/R15_GATE2.md:72; package.json (no playwright)",
+    "evidence_checked": "Grepped package.json for playwright. Ran find for playwright.config.* and *.spec.ts outside node_modules (the only hits were tiptap vendored specs inside worktree node_modules). Read R7 NEEDS-MANUAL-CHECK items 1-6 and grepped the R12/R13/R15 reports for drag. There is no GUI lane, so the drag itself could not be exercised.",
+    "repro_check": "grep -in playwright package.json -> none; find . -path ./node_modules -prune -o -name 'playwright.config.*' -print -> none; the drag itself is NEEDS-GUI (not driven)."
+  },
+  {
+    "raw_id": "INT-deferred-42-3",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed end to end. The catalog advertises an optional `highlight` arg to 'spotlight' a metric (catalog.py:997-1013). host-actions.ts:1078-1079 reads it and passes it to openCompanyOverview, which stores it in useEquityCommandStore (host-actions.ts:284, equity-command.ts:31-33). The only consumer, EquityOverviewPanel.tsx:822-833, reads only `equityCommand.symbol`, and nothing under src/modules/ reads `highlightMetric`. It is worse than silent: the host-action result string (host-actions.ts:1080-1081, 'spotlighting <metric>') and the proposal preview (host-actions.ts:690-699, '<metric> spotlighted') both tell the user and the model that a highlight happened when none did.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:997-1013; src/lib/host-actions.ts:274-285,690-699,1074-1081; src/store/equity-command.ts:21-33; src/modules/equity-overview/EquityOverviewPanel.tsx:628,822-833",
+    "evidence_checked": "Read every cited line. Grepped src, types and sidecar for highlightMetric and highlight_metric: the hits were only host-actions.ts and equity-command.ts, with no reader in the modules.",
+    "repro_check": "grep -rn highlightMetric src --include=*.tsx -> no hits in any panel; the consumer effect at EquityOverviewPanel.tsx:822-833 uses only equityCommand.symbol."
+  },
+  {
+    "raw_id": "INT-deferred-42-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "No axe-core, Lighthouse, jest-axe or vitest-axe exists in package.json, .github/workflows or scripts, and the BLOCKERS entry is still open (it is at BLOCKERS.md:274, not :262 as cited). A cheap contrast computation on the tokens gives positive evidence of a real defect, which strengthens the finding. text-charcoal-600 (#484848, tokens.css:40, commented 'strong border / disabled fg') is used as TEXT in about 38 places, e.g. DataTable null cells (DataTable.tsx:166), the command-palette 'recent' label (CommandPalette.tsx:498) and research step latency (BriefPanel.tsx:297). Its contrast is about 1.98:1 on the #161616 panel surface, which breaks the design's own 'hard requirement' floor of at least 3:1 even for labels (R4_DESIGN_LANGUAGE.md:271-277). --color-sage-500 (#767676) is also below 4.5:1 on panel surfaces (3.98:1).",
+    "evidence": "BLOCKERS.md:274; styles/tokens.css:35,40,41,74; docs/redesign/R4_DESIGN_LANGUAGE.md:271-286,366; src/components/DataTable.tsx:166; src/components/CommandPalette.tsx:498; src/modules/research/BriefPanel.tsx:297",
+    "evidence_checked": "Grepped package.json, the workflows and scripts for axe/lighthouse (none). Read the §7 accessibility floors. Computed WCAG contrast ratios for the token hex values in python3. Counted text-* usages of charcoal-600 and sage-500 in src/**/*.tsx.",
+    "repro_check": "python3 WCAG ratio of #484848 on #161616 -> 1.98:1 (floor 3:1); grep -rn 'text-charcoal-600|text-sage-500' src --include=*.tsx -> 38 lines."
+  },
+  {
+    "raw_id": "INT-deferred-42-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The dead field is real. WorkflowRunRequest declares mode and resume_from (models/workflow.py:73-74), mirrored in types/workflow.ts:83-89, but run_workflow calls workflow_engine.run_workflow(payload.spec, inputs=payload.inputs, ...) and never reads either field (routers/workflow.py:39-56). A resume-from request therefore silently runs the full graph. I corrected the severity to low. The only in-product caller hard-codes mode:'full' (NodeEditorPanel.tsx:389), and the MCP run_workflow tool takes only spec_json (MCP_INTEGRATION.md:128), so no user flow can send resume-from. Only a hand-written REST caller would hit it. The smallest fix stays the same: 400 on an unimplemented mode, or delete the field from both mirrors.",
+    "evidence": "sidecar/models/workflow.py:66-74; sidecar/routers/workflow.py:39-56; types/workflow.ts:83-89; src/modules/node-editor/NodeEditorPanel.tsx:386-390; docs/MCP_INTEGRATION.md:128",
+    "evidence_checked": "Read the model, the router and the TS mirror. Grepped src, types and sidecar for resume-from, resumeFrom and resume_from (declarations only) and for /workflow/run callers (only NodeEditorPanel, which sends mode 'full'). I did not POST, because a non-GET goes only through vy.py and the code path settles the claim.",
+    "repro_check": "grep -rn 'resume_from|resumeFrom' sidecar src types -> only the model and type declarations; NodeEditorPanel.tsx:389 body = {spec, mode: 'full'}."
+  },
+  {
+    "raw_id": "INT-deferred-42-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "It is true that no artifact proves Claude Desktop consuming Vysted through mcp-remote; r9/claude-desktop-full.png sits among design-reference captures (claude-composer, cursor-*, linear-web) and is not proof. The 'why it matters' is overstated, though. The protocol interop the finding says was never demonstrated has been proven live: the code/mcp-servers census drove a real `POST /mcp/ initialize` on :52152 and got a full capability handshake, and GET /mcp/status on :52152 returns ready:true with toolCount:36. A stdio transport also exists (MCP_INTEGRATION.md:77-99), so mcp-remote is not the only route for Claude Desktop. What is left is the lack of a client-specific end-to-end demo, which is low. Separately, the doc's claim at MCP_INTEGRATION.md:155-156 that tools appear in Claude Desktop's slash-command picker as `/vysted__price_data` likely describes the UI inaccurately and deserves a check during that demo.",
+    "evidence": "docs/MCP_INTEGRATION.md:24-37,77-99,131-156; docs/redesign/references/r9/ (directory listing); docs/redesign/verification/r15/census/code/mcp-servers.md:97-105,216-219; GET http://127.0.0.1:52152/mcp/status",
+    "evidence_checked": "Read the MCP_INTEGRATION.md HTTP, stdio and Claude Desktop sections. Listed the r9 references dir. Read the prior census's live initialize-handshake evidence. Ran GET /mcp/status against :52152. I did not open Claude Desktop (no GUI lane).",
+    "repro_check": "curl -s 127.0.0.1:52152/mcp/status -> {\"ready\":true,\"toolCount\":36,\"endpoint\":\"/mcp\",\"protocolVersion\":\"2025-06-18\"}; the Claude Desktop demo itself is NEEDS-GUI."
+  },
+  {
+    "raw_id": "INT-deferred-42-7",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed: there is no actions/cache step for the PyInstaller outputs. The only caches are pnpm (setup-node `cache: pnpm`) and Swatinem/rust-cache. It is slightly worse than stated. Cold sidecar builds run in ALL THREE workflows, not just build/test: lint.yml:67-68 also runs ensure-all-sidecars.mjs, so every push pays about 9 cold builds (3 workflows x 3 OSes). Still CI cost only, so low.",
+    "evidence": ".github/workflows/build.yml:41,63,70-71; .github/workflows/test.yml:37,58,65-66; .github/workflows/lint.yml:37,60,67-68; BLOCKERS.md:337-340",
+    "evidence_checked": "Read build.yml in full and grepped all three workflows for cache and sidecar steps.",
+    "repro_check": "grep -n cache .github/workflows/*.yml -> only pnpm and rust-cache; grep -n ensure-all-sidecars .github/workflows/*.yml -> lint, test and build."
+  },
+  {
+    "raw_id": "INT-deferred-42-8",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "DEFAULT_SYMBOLS (symbols.ts:21-28) is SPY, QQQ, BTC/USDT, ETH/USDT, NVDA, AAPL, which exactly matches the governing product spec at BLUEPRINT.md:325 ('Watchlist (pre-loaded: SPY, QQQ, BTC, ETH, NVDA, AAPL)'), and the code comment cites that spec. The 'AAPL primary anchor' convention is a screenshot-capture anchor list (CLAUDE.md Visual verification; BLOCKERS.md:327-329 ties it to matching screenshots), not a product behaviour, so the order contradicts no product promise and the reorder would change no decision. Side note for the lead, not a verdict on this finding: the materially relevant fact is that the Indian-markets product's default watchlist contains zero Indian symbols.",
+    "evidence": "src/store/symbols.ts:10-28; docs/BLUEPRINT.md:325; BLOCKERS.md:327-329",
+    "evidence_checked": "Read symbols.ts and the BLUEPRINT §5.1 watchlist line. Grepped for other default-watchlist definitions (none).",
+    "repro_check": "grep -n 'pre-loaded' docs/BLUEPRINT.md -> :325 SPY, QQQ, BTC, ETH, NVDA, AAPL == the DEFAULT_SYMBOLS order."
+  },
+  {
+    "raw_id": "INT-deferred-42-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "It is correct that Brave and Mojeek are covered only by an inline HTML fixture (test_brave_backend.py:19,67) and that no scheduled workflow re-validates live markup (no schedule or cron in .github/workflows). The consequence is overstated: markup drift does not by itself make the default tier return zero results. DDG is the primary engine (keyless.py:53 ENGINE_CHAIN = ddg, brave, mojeek), and a zero-row parse rotates to the next engine (keyless.py:170-176). brave.py:8-13 also uses layered selectors so class drift degrades fields before rows. The real mechanism is narrower but still silent. A drifted parser returns an empty SUCCESS, which calls breaker.record_success() (keyless.py:163) and is logged only as 'no results'. The breaker never benches it and tier_status stays healthy, so the fallback is dead exactly in the DDG-throttled case it exists for. The same fixture-only gap applies to the primary DDG parser.",
+    "evidence": "sidecar/services/search/keyless.py:50-53,150-189; sidecar/services/search/brave.py:8-13,79-84; sidecar/tests/test_brave_backend.py:19,67,93",
+    "evidence_checked": "Read the keyless rotation loop, the brave.py parse contract and the brave test fixtures. Listed the search tests and grepped the workflows for schedule and cron. I made no live SERP fetch (WebSearch budget rules; it is not needed to settle the mechanism).",
+    "repro_check": "Code-path: brave._parse(drifted html) -> [] -> keyless.py:163 record_success, :175 'no results', continue -> DDG answer is returned if DDG is up; if DDG is throttled -> empty 'found nothing' at :186-189 instead of an error."
+  }
+]

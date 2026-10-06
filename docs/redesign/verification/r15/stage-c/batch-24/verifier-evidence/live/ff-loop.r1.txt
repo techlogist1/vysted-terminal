@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  39.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_e5bc8add4050444abfc5553fcfdee120", "name": "price_data", "input": {"range": "1mo", "symbol": "HDFCBANK.NS", "timeframe": "1d", "asset_class": "equity"}}
+[  39.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_e5bc8add4050444abfc5553fcfdee120", "name": "price_data", "ok": true, "error": null}
+[  49.8s] heartbeat: {"kind": "heartbeat"}
+[  56.3s] done: {"kind": "done", "usage": {"input_tokens": 4729, "output_tokens": 47, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of HDFCBANK.NS is ₹735.6. The stock closed at ₹720.3 on September 24th and has been fluctuating between ₹710.85 and ₹739.75 since then.
+
+=== ok · 56.3s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 47, 'done': 1} · usage in=4729 out=47 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,112 @@
+[
+ {
+  "raw_id": "SURF-COMPOSER-CHAT-1",
+  "title": "Local-lane (Ollama) tool calls that leak as literal JSON text are never rescued or executed — silent no-op, 3/3 repro",
+  "severity": "high",
+  "area": "agent",
+  "subsystem": "sidecar/services/llm (ollama adapter) + chat composer",
+  "repro": "drive copilot/ollama llama3.1:8b through a multi-turn conversation on /agents/copilot/invoke; ask it to (a) write a note (turn 4) and (b) retry a failed screener_run call after a validation error (turn 5) -> both times the model emits `{\"name\": \"<tool>\", \"parameters\": {...}}` as a plain `delta` text chunk instead of an SSE `tool_use` event; the tool is never invoked, no error is surfaced, the chat just renders the raw JSON blob as prose",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/13-multiturn-t4-note.jsonl, 13b-multiturn-t4-note-retry.jsonl, 14-multiturn-t5-screen.jsonl; sidecar/services/llm/openai.py:267 (_rescue_content_leaked_tool_call) and :824 (only call site) vs sidecar/services/llm/ollama.py (no such rescue anywhere in the file), docs/redesign/verification/r15/surface/composer-chat/15-ask-autonomy-chart.jsonl",
+  "notes": "The OpenAI adapter has a specific rescue path for exactly this failure mode (a weak/local model emitting the tool call as content instead of a structured call) but the Ollama adapter — the shipped default local lane — has none, so on Ollama the failure is silent: no error frame, no retry, no indication to the user that their note/screen was never created. Smallest fix: port _rescue_content_leaked_tool_call (or an adapter-agnostic version of it) into the Ollama streaming path, or apply it centrally after every adapter yields its stream. [Agent B amendment] Two different mechanisms feed this symptom: turn 4 (write_note, 13/13b) is NOT a leak of an offered tool — the intent gate stripped write_note before the call (see SURF-COMPOSER-CHAT-5, 52-intent-gate-probe.txt: 37 tools sent, write_note absent), so a rescue alone would dispatch a tool the runtime deliberately withheld. The genuine offered-tool leaks are turn 5's second screener_run (14) and set_chart_indicators in the ASK drive (docs/redesign/verification/r15/surface/composer-chat/15-ask-autonomy-chart.jsonl). Rescue must check the leaked name against the tools actually sent."
+ },
+ {
+  "raw_id": "SURF-COMPOSER-CHAT-2",
+  "title": "compare_symbols never resolves a company name to a ticker, so a wrong hand-typed/invented symbol reads as 'no quote available' instead of the real cause (unresolved name)",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "sidecar/services/agent_tools/compare_symbols.py",
+  "repro": "ask the composer 'How does Cochin Shipyard compare with Mazagon Dock on valuation?' after a prior turn already named both companies; model calls compare_symbols with symbols=[COCHINSHIP, MAZAGONDOCK] (MAZAGONDOCK is not a real ticker — GET /resolve?q=Mazagon+Dock resolves to MAZDOCK at 0.92 confidence) -> tool answer for the invented ticker is a bare fetch failure, so the model tells the user 'Mazagon Dock does not have a current quote available', which reads as a data-availability gap rather than a wrong-ticker/unresolved-name problem",
+  "evidence": "sidecar/services/agent_tools/compare_symbols.py:43-58 (_compare_one calls provider_registry.get_quote(symbol, asset_class) directly, no symbol_resolver/resolve_symbol call anywhere in the file); docs/redesign/verification/r15/surface/composer-chat/11-multiturn-t2.jsonl, .stdout.txt; live repro GET http://127.0.0.1:52217/resolve?q=Mazagon%20Dock -> {\"resolved\":{\"symbol\":\"MAZDOCK\",...,\"confidence\":0.92}}",
+  "notes": "Every other name-bearing agent surface (the chat's own name resolution, resolve_symbol tool) exists and works; compare_symbols is the one comparison-style tool that skips it. Smallest fix: run each input through symbol_resolver before provider_registry.get_quote in _compare_one, and only fail the symbol if resolution itself has no confident match."
+ },
+ {
+  "raw_id": "SURF-COMPOSER-CHAT-3",
+  "title": "GET /quotes/{symbol} leaks a raw yfinance internal AttributeError as the 502 body for an unresolvable/invalid ticker instead of a clean not-found message",
+  "severity": "low",
+  "area": "data",
+  "subsystem": "sidecar/services/yfinance_provider.py get_quote / _provider_error",
+  "repro": "GET /quotes/MAZAGONDOCK (any ticker yfinance's fast_info path chokes on) -> HTTP 502 {\"detail\":\"yfinance quote failed for 'MAZAGONDOCK': 'PriceHistory' object has no attribute '_dividends'\"}",
+  "evidence": "live repro: curl -s -o /dev/null -w 'HTTP %{http_code}\\n' http://127.0.0.1:52217/quotes/MAZAGONDOCK -> HTTP 502, body above; sidecar/services/yfinance_provider.py:233-250 (get_quote catches bare Exception from yf.Ticker(...).fast_info and wraps it via _provider_error) and :53-64 (_provider_error just interpolates str(exc) into the message, no classification for 'ticker doesn't exist' vs a real provider outage)",
+  "notes": "The message is a leaked yfinance library internal (an AttributeError inside its own fast_info property, not something vysted code raised on purpose), not a data-correctness bug — no wrong price is shown — but it is the kind of raw exception text a user or an agent parsing the error would have to make sense of. Smallest fix: in _provider_error, special-case AttributeError/KeyError from the yfinance layer as kind='not_found' with a fixed 'symbol not recognised' message, the same way rate-limits already get their own kind."
+ },
+ {
+  "raw_id": "SURF-COMPOSER-CHAT-4",
+  "title": "GET /quotes batch endpoint silently drops a symbol that fails to resolve, with no per-symbol error signal to the caller",
+  "severity": "low",
+  "area": "data",
+  "subsystem": "sidecar/routers/quotes.py get_quotes",
+  "repro": "GET /quotes?symbols=COCHINSHIP,MAZAGONDOCK -> 200 with a one-element array (COCHINSHIP only); MAZAGONDOCK is silently absent, no count mismatch signal, no per-symbol error field",
+  "evidence": "live repro: curl http://127.0.0.1:52217/quotes?symbols=COCHINSHIP,MAZAGONDOCK -> single-item array; sidecar/routers/quotes.py:64-88 (get_quotes: `asyncio.gather(*tasks, return_exceptions=True)` then filters to `isinstance(result, Quote)`, dropping exception results with no trace of which symbol/why)",
+  "notes": "The module docstring/comment at quotes.py:1-4 and the function docstring both say this skip-on-failure behaviour is DELIBERATE (backs the watchlist panel; matches prior sequential skip-on-failure semantics), so this may be intended UX, not a bug — flagging because the batch response gives a caller (agent tool or a future consumer other than the watchlist) zero way to distinguish 'this symbol has no data right now' from 'this symbol was silently dropped', which is a real ambiguity for anything built on top of this endpoint later. Smallest fix if judged worth doing: return `{symbol, quote|null, error?}` per requested symbol instead of a bare filtered array."
+ },
+ {
+  "raw_id": "SURF-COMPOSER-CHAT-5",
+  "title": "Intent gate classifies 'write a note', the composer's own /screener expansion and 'save' asks as read, stripping the very tools they need",
+  "severity": "high",
+  "area": "agent",
+  "subsystem": "sidecar/services/planner.py classify_intent + agent_runtime tool gate",
+  "repro": "POST /agents/copilot/invoke (ollama llama3.1:8b, autonomy auto) with 'Write a note on Cochin Shipyard: valuation looks stretched at ~54x trailing P/E; revisit after Q2 results.' -> no write_note in the tool list sent to the model (it types the call as JSON text, 2/2); '/screener defence stocks P/E < 40' expands (slash-commands.ts:188) to 'screen for …' -> read -> write_screener_filters stripped, model flails with screener_run; classify_intent over write/screen/save prompts: all 'read' with 37 of 50 tools; 'Save my layout as research desk' only escapes via the word 'research'",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/52-intent-gate-probe.txt, docs/redesign/verification/r15/surface/composer-chat/13-multiturn-t4-note.jsonl, 13b-multiturn-t4-note-retry.jsonl, 14-multiturn-t5-screen.jsonl; sidecar/services/planner.py:61-110 (_BUILD/_EDIT/_READ signal tables have no write/note/screen/save/filter cue), :167 (classify_intent defaults to read); sidecar/services/agent_runtime.py:76-85 (_READ_SAFE_PANEL_ACTIONS omits write_note/write_screener_filters/save_layout/save_screen), :1282-1304 (read intent strips every other non-read-only tool)",
+  "notes": "The tool-strip is meant to keep a question from mutating state, but its default is 'read' and its cue list only knows chart/watchlist/layout verbs, so three advertised composer flows (notes, the /screener slash command, saving a layout/screen) silently lose their tool on every provider. The user gets JSON text or an unrelated read tool and no note/screen. Smallest fix: add write|note|jot|screen|filter|save|remember cues to _EDIT_SIGNALS (or treat any prompt from a slash-command expansion as its command's intent), and keep write_note/write_screener_filters in the read-safe set since both are review-staged host actions."
+ },
+ {
+  "raw_id": "SURF-COMPOSER-CHAT-6",
+  "title": "Stop does not stop: closing the stream leaves the running research tool executing for minutes (LLM + web calls continue)",
+  "severity": "high",
+  "area": "agent",
+  "subsystem": "sidecar/services/agent_runtime.py _dispatch_tool_with_progress",
+  "repro": "drive a deep research prompt on /agents/copilot/invoke (ollama), close the HTTP connection at 170 s (the composer's stop square aborts the fetch) -> sidecar keeps 3 Ollama connections until 07:51:35 and 1 until 07:54:06, outbound HTTPS rises to 9-11 twice, Ollama GIN log records /api/chat completions at 07:51:33/:35/:53, 07:52:00, 07:53:00, 07:54:06 — ~3 min of work for a stopped chat",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/40-stop-midstream.jsonl, docs/redesign/verification/r15/surface/composer-chat/40-stop-midstream-watch.txt; sidecar/services/agent_runtime.py:724-765 (tool runs as asyncio.create_task(_run()) at :752; the finally at :764 only resets the step sink and never cancels task)",
+  "notes": "Code-read finding COD-agent-runtime-4, now proven live. On the local lane this holds the single Ollama slot (next prompt queues behind a ghost run); on a paid lane it keeps spending after the user pressed stop. Smallest fix: in the generator's finally, `if not task.done(): task.cancel()` and await it with suppress(CancelledError), and make the research engines cancellation-clean."
+ },
+ {
+  "raw_id": "SURF-COMPOSER-CHAT-7",
+  "title": "add_to_watchlist applies whatever string the model invents — a dead ticker (MAZAGONDOCK) lands in the watchlist",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "src/lib/host-actions.ts add_to_watchlist apply",
+  "repro": "turn 3 'Add both of them — Cochin Shipyard and Mazagon Dock — to my watchlist.' (ollama, auto) -> tool_use add_to_watchlist{symbol:'MAZAGONDOCK'} (real NSE symbol MAZDOCK) -> frontend replay: applyHostAction returns 'Added MAZAGONDOCK to your watchlist'; GET /quotes/MAZAGONDOCK -> 502 (yfinance AttributeError), batch /quotes silently drops it, so the row never prices",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/12-multiturn-t3-watchlist.jsonl, docs/redesign/verification/r15/surface/composer-chat/replay-turns-1-4.json; src/lib/host-actions.ts:1133-1139 (addSymbol with no resolve/validate), src/store/symbols.ts:44 (addSymbol stores verbatim)",
+  "notes": "The resolver exists (/symbols/resolve, used by research) but the watchlist host action bypasses it, so a model's guessed ticker becomes durable user state that shows as a permanently blank row. Smallest fix: resolve the symbol (sidecar-side in the tool handler or before addSymbol) and return a failed ack/'could not resolve MAZAGONDOCK — did you mean MAZDOCK?' instead of applying."
+ },
+ {
+  "raw_id": "SURF-COMPOSER-CHAT-8",
+  "title": "On the local (Ollama) lane every host action is unconfirmable: empty tool_call_id means no ack, so applied changes are narrated as 'pending confirmation'",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "sidecar/services/llm/ollama.py + src/lib/host-actions.ts ackHostAction",
+  "repro": "any auto host action on ollama (12-multiturn-t3-watchlist add_to_watchlist x2, 16-multiturn-t6-arrange arrange_layout) -> tool_use.tool_call_id is '' -> ackHostAction returns early -> runtime result 'dispatched_unconfirmed' -> model: '… pending confirmation' for a change that was applied (replay label 'Added … to your watchlist')",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/12-multiturn-t3-watchlist.jsonl (_ack_skipped rows), docs/redesign/verification/r15/surface/composer-chat/16-multiturn-t6-arrange.jsonl; sidecar/services/llm/ollama.py:212 (tool_call_id=… or ''), src/lib/host-actions.ts:1452-1457 (early return on empty toolCallId)",
+  "notes": "The read-back contract (the model may only claim what the panel confirmed) is unusable on the default local lane: the user sees 'pending' for work that happened and the model can never truthfully say done. Same root as SURF-RESEARCH-BRIEFS-9 and COD-llm-adapters (Ollama empty ids). Smallest fix: synthesize a uuid tool_call_id in the Ollama adapter when the model supplies none."
+ },
+ {
+  "raw_id": "SURF-COMPOSER-CHAT-9",
+  "title": "Chat narrates derived money figures 10-100x wrong: fraction-valued 'percent' metrics read as percent, raw-rupee market cap misscaled",
+  "severity": "critical",
+  "area": "agent",
+  "subsystem": "sidecar/services/research/semantics.py derived units -> model narration",
+  "repro": "'research KPIT Technologies' (ollama, normal) -> chat: 'dividend yield of 0.0142%' and 'market cap of ₹1.44 lakh crores' while the brief panel (replay) shows 'Dividend yield 1.42%' and 'INR 144.02B' (screener.in 2026-09-23: yield 1.42%, mcap ₹14,504 cr); COCHINSHIP turn 1: 'revenue growth of 0.024%, earnings growth of -0.193%' (true 2.4% / -19.3%)",
+  "evidence": "docs/redesign/verification/r15/surface/research-briefs/10-normal-kpit.stdout.txt, docs/redesign/verification/r15/surface/composer-chat/10-multiturn-t1.stdout.txt, docs/redesign/verification/r15/surface/composer-chat/replay-turns-1-4.json (panel metrics); sidecar/services/research/semantics.py:392,569,584,889 (fraction values labelled unit:'percent'); src/modules/research/brief-blocks.tsx:194-205 (panel multiplies correctly, the model sees only the raw fraction + 'percent')",
+  "notes": "The bundle hands the model value 0.0142 with unit 'percent', which any reader (human or LLM) takes as 0.0142%. The panel and chat then disagree by 100x on the same screen, and the chat is the one quoted. Smallest fix: emit unit 'fraction' (or pre-scale to percent points) in semantics.py and give market cap in crore with the unit spelled, so narration is right by construction."
+ },
+ {
+  "raw_id": "SURF-COMPOSER-CHAT-10",
+  "title": "ASK autonomy: model says 'I've set BDL' for a change the runtime returned as awaiting_user_review",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "agent_runtime ASK staging + copilot prompt",
+  "repro": "autonomy ask, 'Pull up Bharat Dynamics on the chart and add the RSI indicator' -> set_chart_symbol{BDL} result status awaiting_user_review ('do not claim it is done') -> model: 'I've set Bharat Dynamics (BDL) as the new symbol on your chart'; set_chart_indicators then leaks as text (never staged)",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/15-ask-autonomy-chart.jsonl, docs/redesign/verification/r15/surface/composer-chat/15-ask-autonomy-chart.stdout.txt; sidecar/services/agent_runtime.py:174 (instruction), :1198-1215 (awaiting_user_review result)",
+  "notes": "The ASK mode's whole promise is that nothing changes until the user approves; the narration tells the user it already did. The runtime already post-checks brief publishes (divergence notices) but not staged host actions. Smallest fix: append a deterministic 'Staged for your review: …' notice (or rewrite the claim) when any tool result in the turn is awaiting_user_review."
+ },
+ {
+  "raw_id": "SURF-COMPOSER-CHAT-11",
+  "title": "Delegate resume drops the user's provider/model (loads the agent default live) and the paused/answer state is unreachable",
+  "severity": "medium",
+  "area": "lifecycle",
+  "subsystem": "sidecar/services/run_manager.py resume_run/pause_run",
+  "repro": "launch a delegate run with ollama llama3.1:8b and max_tokens 2000 -> error 'token ceiling 2000 reached (10126 used)' -> POST /runs/{id}/resume -> Ollama log 07:46:58 loads 'Qwen2.5 7B Instruct' (evicting llama); POST /runs/{B}/answer on any run -> 409 'not awaiting an answer' — no code path ever pauses a run",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/30-delegate-launch.txt, docs/redesign/verification/r15/surface/composer-chat/31-delegate-lifecycle.txt; sidecar/services/run_manager.py:406-407 (resume passes provider=None, model=None), :301 (pause_run — no caller outside tests)",
+  "notes": "Live confirmation of COD-runs-durable-delegate-2 and -10. Resuming a budget-stopped run silently switches models (different quality, different cost lane on a key provider), and the agents rail's human-in-the-loop answer box can never appear. Smallest fix: persist provider/model on the run row and pass them on resume; either wire pause_run to an ask_user tool or remove the paused UI."
+ }
+]

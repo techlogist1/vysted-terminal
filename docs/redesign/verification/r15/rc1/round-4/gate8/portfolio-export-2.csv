@@ -1,0 +1,3 @@
+Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note
+AAPL,8,310,equity,USD,341.07000732421875,2728.56005859375,248.56005859375,10.0225830078125,,
+TCS.NS,3,2500,equity,INR,2082,6246,-1254,-16.72,,"core IT hold, gate8 r4"

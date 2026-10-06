@@ -1,0 +1,7 @@
+CMD: in-process row_relevant on the literal repro + held-back + fresh cases (target GE / GE Aerospace, non-IN)
+literal -> True
+held-back SM -> True
+fresh CF -> True
+fresh MP -> True
+still-irrelevant AI -> False
+control ON -> True

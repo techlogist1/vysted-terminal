@@ -1,0 +1,2 @@
+src exit=1
+bin exit=1

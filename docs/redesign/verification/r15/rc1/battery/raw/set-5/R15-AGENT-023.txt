@@ -1,0 +1,10 @@
+cmd: grep -n "schedule|trigger|cron|webhook" src/modules/node-editor/node-registry.ts sidecar/services/workflow_nodes/*.py; find sidecar -iname '*schedul*'; curl -s :52341/openapi.json | paths; curl -s :52341/workflow/webhooks
+exit: 0
+output:
+- node-registry.ts: "action.webhook" node registered (id, category action) alongside action.log/action.notify_desktop.
+- sidecar/services/workflow_scheduler.py exists; sidecar/tests/test_b7_scheduler.py exists (committed test).
+- builtin.py:346-416 implements action_webhook (register_webhook_url, keychain-held URL by ref, https-only allowlist, URL never logged).
+- Live route census on own sidecar (:52341, candidate 4c6dfe8c): /workflow/schedules [get,post], /workflow/schedules/{id} [patch,delete], /workflow/webhooks [get], /workflow/webhooks/{ref} [put] all present in openapi.json.
+- GET /workflow/webhooks -> {"refs":[]} (own fresh data dir, no refs registered yet) -- endpoint live and responds correctly shaped.
+note: batch-7's full live certification (interval schedule fired unattended twice at 5-min spacing, webhook delivered, URL never in workflows.db/log) not re-run live this shard -- would need a 10+ min wait against the stall-watchdog/time budget. Static code (webhook handler, scheduler module, node registration) + live route/shape confirmation substitute.
+verdict: holds

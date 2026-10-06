@@ -1,0 +1,81 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_aaef10462e314c3c86699e67af1f7463", "name": "price_data", "input": {"__vysted_invalid_args__": "invalid arguments for price_data: '' is not one of ['1d', '1h', '1wk', '1mo']; call again with valid args"}}
+{"kind": "tool_result", "tool_call_id": "call_aaef10462e314c3c86699e67af1f7463", "name": "price_data", "ok": false, "error": "invalid arguments for price_data: '' is not one of ['1d', '1h', '1wk', '1mo']; call again with valid args"}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " specify"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " time"}
+{"kind": "delta", "text": " frame"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " want"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " W"}
+{"kind": "delta", "text": "IP"}
+{"kind": "delta", "text": "RO"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " do"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " calling"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "price"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": "`"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " valid"}
+{"kind": "delta", "text": " argument"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " such"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "d"}
+{"kind": "delta", "text": "\","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "h"}
+{"kind": "delta", "text": "\","}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "wk"}
+{"kind": "delta", "text": "\"."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "For"}
+{"kind": "delta", "text": " example"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "`"}
+{"kind": "tool_use", "tool_call_id": "call_5eb77dc3b52b476798aa517b4e2fb5c7", "name": "price_data", "input": {"symbol": "WIPRO.NS", "interval": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_5eb77dc3b52b476798aa517b4e2fb5c7", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " W"}
+{"kind": "delta", "text": "IP"}
+{"kind": "delta", "text": "RO"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "164"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "02"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6906, "output_tokens": 16, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

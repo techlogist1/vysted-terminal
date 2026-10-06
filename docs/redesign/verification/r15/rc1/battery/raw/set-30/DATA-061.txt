@@ -1,0 +1,12 @@
+=== DATA-061: quotes not found ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP:404
+=== fundamentals not found ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP:404
+=== macro GDP (still raw text residual expected) ===
+{"detail":"provider is required for a series id"}
+HTTP:422
+=== macro GDP with world-bank provider ===
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP:502

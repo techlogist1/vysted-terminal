@@ -1,0 +1,24 @@
+=== docs/CURRENT_STATE.md ~320-331 (candidate source, read-only) ===
+All under `sidecar/services/`. `provider_registry.py` resolves by **standard
+model key** (`quote`, `ohlcv`, `fundamentals`, `income_statement`, …), walking
+installed providers in **preference order** until one succeeds — `asset_class`
+is a resolution _hint_ layered on top, not the dispatch switch (FR-035/053; a
+`ProviderDeclaration` table — id, model-keys served, preference rank,
+credential/availability gate, region gate — is the single source of truth, and
+`active_providers()` at `/health` derives from it rather than being
+hand-maintained). `get_quote`/`get_history` stay **synchronous** (ccxt/yfinance
+providers, wrapped in `asyncio.to_thread`); openbb-backed methods stay `async`
+— two resolvers (sync/async) share one declaration table and the same
+preference-order fallthrough. For region `IN`, three keyless providers
+outrank the broad default on `quote`/`ohlcv`: `nse_direct` (rank 15,
+=== provider_registry.py preference order excerpt ===
+7:…) that walks installed providers in a PREFERENCE ORDER, trying each until one
+160:    # nse_direct — the exchange-direct anti-bot lane (curl_cffi cookie dance,
+161:    # R7 Component 2), region-scoped to IN and ranked ABOVE the jugaad lane
+164:    # jugaad → bse → gated yfinance. Serves quote + ohlcv only.
+166:        id="nse_direct",
+167:        rank=15,
+178:    # nse (jugaad-data) — the keyless India equity/ETF default, region-scoped to
+184:        rank=20,
+203:        rank=25,
+219:        rank=50,

@@ -1,0 +1,6 @@
+== tools/call propose_order
+data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"Unknown tool: 'propose_order'"}],"isError":true}}
+== tools/call place_order
+data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"Unknown tool: 'place_order'"}],"isError":true}}
+== tools/call portfolio_add_position
+data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"Unknown tool: 'portfolio_add_position'"}],"isError":true}}

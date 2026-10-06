@@ -1,0 +1,6 @@
+Register total entries: 652 (counts.entries=652)
+R15-RESEARCH-* ids found in register: match count for requested ids = 0 of 12
+Highest R15-RESEARCH-* id number actually present in the register: 042
+Requested ids: ['R15-RESEARCH-044', 'R15-RESEARCH-046', 'R15-RESEARCH-048', 'R15-RESEARCH-050', 'R15-RESEARCH-052', 'R15-RESEARCH-054', 'R15-RESEARCH-056', 'R15-RESEARCH-058', 'R15-RESEARCH-060', 'R15-RESEARCH-062', 'R15-RESEARCH-064', 'R15-RESEARCH-066']
+Found (should be empty): []
+Also checked docs['rejections'] (76 entries, keys raw_id/reason) for any of these ids: none matched.

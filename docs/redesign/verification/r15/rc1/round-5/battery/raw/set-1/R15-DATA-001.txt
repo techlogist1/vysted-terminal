@@ -1,0 +1,8 @@
+Commands: curl http://127.0.0.1:52352/fundamentals/{DAL,CHTR,SAFE}/income (region defaults to IN on this data dir)
+Exit: 0, HTTP 200 for all three.
+Observed:
+- DAL -> symbol echoed "DAL.BO", periods end 2026/2025/2024/2023-03-31 (Indian FY), operating_revenue ~1.85-3.7 crore-scale (20.6M-37.4M units) -- NOT Delta Air Lines' USD tens-of-billions with a Dec FY end.
+- CHTR -> symbol "CHTR.BO", March FY-end, revenue ~400M-842M units -- NOT Charter Communications' USD ~55B.
+- SAFE -> symbol "SAFE.BO", March FY-end, revenue ~13.7M-36.5M units -- NOT Safehold's USD scale.
+All three now resolve to the Indian BSE listing (region-scoped .BO suffix), matching the fundamentals route's own identity, not the US ticker-collision company.
+Verdict: HOLDS. The critical wrong-entity-ticker-collision class (openbb-mcp winning income/balance/cashflow with no region scope / no identity validator) is gone for the register's own DAL/CHTR/SAFE repro set.

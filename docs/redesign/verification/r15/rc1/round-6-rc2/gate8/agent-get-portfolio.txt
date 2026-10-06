@@ -1,0 +1,17 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_7ded0d3a76574555b396b6255b28f8fe", "name": "get_portfolio", "input": {}}
+[  35.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_7ded0d3a76574555b396b6255b28f8fe", "name": "get_portfolio", "ok": true, "error": null}
+[  40.8s] done: {"kind": "done", "usage": {"input_tokens": 1978, "output_tokens": 81, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Your portfolio has 2 holdings:
+
+1. AAPL: quantity = 8, cost basis = ₹200
+   market value = ₹2669.52, profit and loss (P/L) = ₹1069.52
+2. MSFT: quantity = 3, cost basis = ₹400
+   market value = ₹1552.59, P/L = ₹352.59
+
+=== ok · 40.8s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 82, 'done': 1} · usage in=1978 out=81 · est $0.00000 · llama3.1:8b
+EXIT=0

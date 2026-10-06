@@ -1,0 +1,101 @@
+[
+  {
+    "raw_id": "COD-resolver-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "critical",
+    "reason": "Holds, and is LIVE rather than merely structural: with today's real NSE symbolchange.csv (1,052 parsed hops) 15 BSE-only tickers are rewritten to an unrelated NSE company at confidence 1.0 (e.g. SHREE Shree Marutinandan Tubes -> AJMERA Ajmera Realty, HSIL Hemant Surgical -> AGI, WORTH Worth Investment -> WORTHPERI), every one with a different ISIN, and the isolated stack serves exactly this. Correction to scope and fix: a CURRENT NSE listing whose ticker was reused is also rewritten (DTIL Dhunseri Tea & Industries -> DVL via a 2010 hop), so the proposed 'inst.symbol not in _nse_master()' guard is incomplete; the sound gate is ISIN equality (old row's ISIN vs the new symbol's) with the ticker-only join kept as fallback where either ISIN is unknown.",
+    "evidence": "sidecar/services/symbol_resolver.py:797, sidecar/services/symbol_resolver.py:799, sidecar/services/symbol_resolver.py:806-812, sidecar/services/symbol_resolver.py:673, sidecar/services/nse_symbol_change.py:245-273, sidecar/services/nse_symbol_change.py:323-366, sidecar/app.py:134, sidecar/routers/resolve.py:91, https://nsearchives.nseindia.com/content/equities/symbolchange.csv",
+    "evidence_checked": "Read _rename_instrument/_annotate_renamed_symbols and nse_symbol_change.lookup_current; fetched the live symbolchange.csv via curl into scratch; ran a script over the shipped masters with that map; GET /resolve against :52152.",
+    "repro_check": "curl ':52152/resolve?q=SHREE&region=IN' -> resolved AJMERA 'Ajmera Realty & Infra India Limited' confidence 1.0 note 'SHREE was renamed to AJMERA on NSE (effective 2009-06-23)'; same for HSIL->AGI and DTIL->DVL; the scratch script listed 15 BSE-only collisions, 8 with a proven different ISIN."
+  },
+  {
+    "raw_id": "COD-resolver-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Holds: resolve_symbol awaits nothing and calls the synchronous resolver on the event loop, the dispatcher just awaits the handler, and yfinance 1.3.0's Search defaults to timeout=30 with no override passed, while both routers offload to a thread. Correction to scope: fundamentals.py reaches _canonicalize only on the failure fallback after the fetch retries, not on every call, and measured master-only stalls on this machine were ~150-380 ms rather than 313-897 ms; the 30 s worst case (master miss plus hung upstream) still stands, after which the 60 s cooldown damps repeats.",
+    "evidence": "sidecar/services/agent_tools/resolve_symbol.py:70, sidecar/services/agent_tools/__init__.py:62-67, sidecar/services/agent_tools/fundamentals.py:119, sidecar/services/agent_tools/fundamentals.py:196, sidecar/routers/resolve.py:93, sidecar/routers/fundamentals.py:73, sidecar/services/symbol_resolver.py:1001",
+    "evidence_checked": "Read both tools, the dispatcher and both routers; timed resolve() with _live_lookup stubbed; inspected yf.Search signature in the sidecar venv.",
+    "repro_check": "sidecar/.venv/bin/python scratch/r2.py -> infosys 159 ms, tata steel 238 ms, 'reliance q4 results' 358 ms, 'hdfc bank limited results' 379 ms; yfinance 1.3.0 Search(..., timeout=30, raise_errors=True)."
+  },
+  {
+    "raw_id": "COD-resolver-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The structural claim holds: autocomplete() runs neither the rename lane nor enrichment, so the picker offers GUJGASLTD (retired 2026-07-01 per the live CSV) while /resolve answers GUJENERGY, and isin/bse_code/industry/former_name are always null on the autocomplete wire. The palette and watchlist then use c.symbol directly. Correction: the claimed consequence 'the chart loads a dead symbol' does not reproduce, because /quotes/GUJGASLTD and /history/GUJGASLTD both return live data (230.4, 248 bars to 2026-09-22), and the frontend SymbolCandidate type never reads the null identity keys. So the harm is an inconsistent, stale-labelled identity rather than a broken core flow, and it is downgraded to medium.",
+    "evidence": "sidecar/services/symbol_resolver.py:919-968, sidecar/services/symbol_resolver.py:673, sidecar/routers/resolve.py:141-145, src/components/CommandPalette.tsx:384, src/modules/watchlist/WatchlistPanel.tsx:228, src/lib/symbol-autocomplete.ts:17-25",
+    "evidence_checked": "Read autocomplete() and the router; traced the frontend consumers; GETs against :52152 for autocomplete, resolve, quotes and history.",
+    "repro_check": "curl ':52152/resolve/autocomplete?q=GUJGAS&region=IN' -> GUJGASLTD, isin/industry/former_name null; '/resolve?q=GUJGASLTD' -> GUJENERGY former_name GUJGASLTD; '/quotes/GUJGASLTD' -> price 230.4 nse_direct; '/history/GUJGASLTD' -> 248 bars."
+  },
+  {
+    "raw_id": "COD-resolver-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: masters are lru_cached but resolve()/_resolve_masters has no result memo, so each non-ticker query re-runs the banded scan with SequenceMatcher over every master row, while only the network rung has an LRU. A repeated 'infosys' costs the same both times.",
+    "evidence": "sidecar/services/symbol_resolver.py:747-755, sidecar/services/symbol_resolver.py:592-595, sidecar/services/symbol_resolver.py:124-128, sidecar/services/symbol_resolver.py:676, sidecar/services/symbol_resolver.py:379-387",
+    "evidence_checked": "Read _resolve_masters/_name_score and the cache helpers; timed repeated calls in the sidecar venv with _live_lookup stubbed.",
+    "repro_check": "scratch/r2.py: resolve('infosys','IN') 159 ms then 151 ms on the repeat; 'TATASTEEL' 0.0 ms; autocomplete 2.6 ms."
+  },
+  {
+    "raw_id": "COD-resolver-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Mechanism confirmed: the three builders default band=BAND_FUZZY, autocomplete takes the default, and an exact-ticker autocomplete row is score 1.0 / band 0, which decide() maps to 'disambiguate'. Downgraded because, as the finding itself concedes, no production path feeds autocomplete rows to decide() and the band is not on the autocomplete wire, so this is a latent trap with no present consequence.",
+    "evidence": "sidecar/services/symbol_resolver.py:468, sidecar/services/symbol_resolver.py:483, sidecar/services/symbol_resolver.py:497, sidecar/services/symbol_resolver.py:952, sidecar/services/symbol_resolver.py:961, sidecar/services/symbol_resolver.py:965, sidecar/services/resolution_policy.py:124, sidecar/routers/resolve.py:27-54",
+    "evidence_checked": "Read the builders, autocomplete and decide; ran the repro in the sidecar venv.",
+    "repro_check": "scratch/r2.py: autocomplete('TATASTEEL','IN')[0] -> TATASTEEL 1.0 band 0; decide(...) -> 'disambiguate'."
+  },
+  {
+    "raw_id": "COD-resolver-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: the two projections are hand-copied with the same 10 keys, confidence is rounded to 4 places in the router and 3 in the agent tool, and only the router emits the 'rename' provenance block, so the agent receives former_name but never the effective date or the note.",
+    "evidence": "sidecar/routers/resolve.py:27-54, sidecar/services/agent_tools/resolve_symbol.py:25-41",
+    "evidence_checked": "Read both functions side by side.",
+    "repro_check": "code read: routers/resolve.py:36 round(score, 4) plus :47-53 rename block, versus resolve_symbol.py:33 round(score, 3) with no rename key."
+  },
+  {
+    "raw_id": "COD-resolver-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Mechanism confirmed: the except tuple catches only FileNotFoundError/ModuleNotFoundError, lru_cache never caches a raised exception, the resolve router has no try/except, and app.py registers a handler only for ProviderError, so a JSONDecodeError would 500 on every call and contradict the 'missing/garbled degrades to {}' docstring. Downgraded because the only trigger is a corrupt bundled master that is read-only in the package, and a truncated onefile extraction fails PyInstaller's own archive decompression before this code runs. This is a docstring-vs-code correctness gap, not a defect hit in normal use.",
+    "evidence": "sidecar/services/symbol_resolver.py:366-376, sidecar/services/symbol_resolver.py:305-316, sidecar/routers/resolve.py:93, sidecar/app.py:312",
+    "evidence_checked": "Read _load_master, the sector-map docstring, the router and the app's exception handlers. No corrupt-file repro was run, because it would mean mutating a shipped master.",
+    "repro_check": "would run: monkeypatch resources.files to return a truncated JSON, call resolve('infosys','IN') -> JSONDecodeError propagates (code path confirmed by reading)."
+  },
+  {
+    "raw_id": "COD-resolver-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The design contradiction holds: _residual_tie treats equal bare symbols as one instrument, the enrichment guard says the opposite across exchanges, dedup uses (symbol, exchange), and ISIN drives no identity decision. Correction: this is not purely latent. Same-region ticker collisions exist, and /resolve?q=FOCUS returns NSE 'Focus Lighting and Fixtures' AND BSE 'Focus Business Solution' both carrying the identical ISIN INE0DXR01010 and bse_code 543312. Two distinct companies cannot share an ISIN, so the ticker-string join is already stamping one company's identity on the other. The same root cause also drives COD-resolver-1.",
+    "evidence": "sidecar/services/resolution_policy.py:33-39, sidecar/services/resolution_policy.py:81-96, sidecar/services/symbol_resolver.py:870-885, sidecar/services/symbol_resolver.py:837-844, sidecar/services/symbol_resolver.py:696-699",
+    "evidence_checked": "Read the policy and the resolver identity paths; scanned the shipped masters for NSE/BSE same-string tickers with dissimilar names (41 hits, mostly ETF label variants, FOCUS a genuine distinct pair); GET /resolve?q=FOCUS on :52152.",
+    "repro_check": "curl ':52152/resolve?q=FOCUS&region=IN' -> FOCUS NSE 'Focus Lighting and Fixtures Limited' INE0DXR01010 543312 and FOCUS BSE 'Focus Business Solution Ltd' INE0DXR01010 543312, needs_disambiguation false."
+  },
+  {
+    "raw_id": "COD-resolver-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The producer defect holds: enrich_nse_sectors.py writes rec['industry'] and appends 4-key partial records, which the shipped-map tests forbid ('industry' not in rec; set(rec) == 7 canonical keys). Correction: the enrichment is not entirely unread, because the resolver reads industry_raw OR sector and the script's sector IS consumed; only the industry string is orphaned. A re-run only touches the sectorless NSE symbols, and the resulting violation is caught by the test before shipping rather than going out silently. Downgraded to low: the next maintainer is blocked by a red test, but no user is affected.",
+    "evidence": "sidecar/services/resolver_masters/enrich_nse_sectors.py:50, sidecar/services/resolver_masters/enrich_nse_sectors.py:63-71, sidecar/services/symbol_resolver.py:893, sidecar/tests/test_india_sector_map.py:56-75",
+    "evidence_checked": "Read the script, the resolver's reader and the shipped-map tests; checked the DECISIONS/DECISIONS_FOR_OPERATOR history of the script (7a1cd8f).",
+    "repro_check": "code read only (running the script would crawl yfinance and rewrite the shipped map): :70 rec['industry'] = industry, :66 rec = {'symbol': sym}; the test at :62/:75 would fail on the output."
+  },
+  {
+    "raw_id": "COD-resolver-10",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: _live_lookup caches the result, including an empty successful search, under (query, region) with only a 128-entry LRU bound and no timestamp, so a negative result persists for the sidecar's lifetime. Because the masters are bundled snapshots, the live rung is the ONLY path to a post-snapshot listing, which makes a stale negative a real miss.",
+    "evidence": "sidecar/services/symbol_resolver.py:124-128, sidecar/services/symbol_resolver.py:988-996, sidecar/services/symbol_resolver.py:1033-1037",
+    "evidence_checked": "Read the live-lookup cache and cooldown code.",
+    "repro_check": "code read: a cache hit at :991-994 returns before any freshness check, and the insert at :1034 stores list(out) even when out == []."
+  },
+  {
+    "raw_id": "COD-resolver-11",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds: Resolution.needs_disambiguation has no non-test caller (the only other hit is a docstring in agent_runtime.py:812, and the routers/tools build the wire key from decide()), and DISAMBIGUATION_THRESHOLD is imported and exported in __all__ with no consumer outside tests.",
+    "evidence": "sidecar/services/symbol_resolver.py:254-258, sidecar/services/symbol_resolver.py:86, sidecar/services/symbol_resolver.py:1042, sidecar/services/agent_runtime.py:812",
+    "evidence_checked": "Grepped sidecar/ and plugins/ for attribute access and for the constant outside tests.",
+    "repro_check": "grep -rn '\\.needs_disambiguation\\b' sidecar --include=*.py | grep -v /tests/ -> no hits; grep DISAMBIGUATION_THRESHOLD outside tests -> only the definition, __all__ and docstrings."
+  }
+]

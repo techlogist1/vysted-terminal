@@ -1,0 +1,18 @@
+# R15-CODE-AGENT-020 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:18+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+from services.llm import get_provider
+for p in ('gemini','groq','openai','ollama'):
+    try:
+        o=get_provider(p, base_url='https://proxy.internal/v1')
+        print(p, type(o).__name__, {k:v for k,v in vars(o).items() if 'url' in k.lower() or 'base' in k.lower()})
+    except Exception as e:
+        print(p, 'raises', type(e).__name__, str(e)[:200])
+PY
+--- output ---
+gemini GeminiProvider {'_base_url': 'https://proxy.internal/v1'}
+groq GroqProvider {'_base_url': 'https://proxy.internal/v1'}
+openai OpenAIProvider {'_base_url': 'https://proxy.internal/v1'}
+ollama OllamaProvider {'_base_url': 'https://proxy.internal/v1'}
+
+EXIT=0 (1.0s)

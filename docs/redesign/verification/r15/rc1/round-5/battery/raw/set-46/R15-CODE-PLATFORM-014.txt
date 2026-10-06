@@ -1,0 +1,5 @@
+CMD: grep for committed pinned tests naming R15-CODE-PLATFORM-014.
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+138:  it("loadPlugin honours a persisted disabled config (no initialize)", async () => {
+175:  it("loadPlugin is idempotent, while reloadPlugin re-runs initialize with fresh secrets", async () => {
+VERDICT: ci_pinned

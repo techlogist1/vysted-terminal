@@ -1,0 +1,24 @@
+candidate sha: 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+method: source read of src/modules/node-editor/NodeEditorPanel.tsx +
+src/store/workflow.ts at this sha, plus the live workflow run's SSE shape
+(from R15-CODE-PLATFORM-002.txt in this directory) confirming the notify
+node's output carries the exact intent shape the store's appendEvent checks.
+
+grep -n "useWorkflowStore|appendEvent|consumeSse|runWorkflow" NodeEditorPanel.tsx:
+  60:import { useWorkflowStore } from "@/store/workflow";
+  413:      await useWorkflowStore.getState().runWorkflow(spec, undefined, {
+  (no private consumeSse parser remains in the file — 0 matches)
+
+src/store/workflow.ts:
+  234:  appendEvent: (event) => { ... }
+  299:      get().appendEvent(event);   // inside runWorkflow's own SSE loop
+  211:    outputs.intent !== "desktop-notification"  (appendEvent's notify-intent gate)
+
+live run (see R15-CODE-PLATFORM-002.txt): notify_desktop node-output carried
+{"notified":true, ..., "intent":"desktop-notification"} — exactly the shape
+appendEvent enqueues into pendingNotifications, which the mounted desktop
+notification bridge (src/lib/desktop-notification.ts, src/app/page.tsx:43)
+drains. NodeEditorPanel now drives the single store client; the dead private
+SSE parser is gone.
+
+verdict: holds

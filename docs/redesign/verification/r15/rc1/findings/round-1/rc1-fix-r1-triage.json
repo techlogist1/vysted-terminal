@@ -1,0 +1,12 @@
+[
+  {
+    "key": "rc1-fix-r1-triage:1",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": null,
+    "title": "nse_provider.get_archive_text and _SessionHolder.ensure wait on the process-wide throttle while holding the module _lock, contra the R15-DATA-066 pace-before-lock rule",
+    "repro": "Static read at 4097dac4: sidecar/services/nse_provider.py:747-749 (with _lock: session = _holder.ensure(); _throttle.wait()) and :259-261 (ensure() calls _throttle.wait() and is itself called under _lock from _get_json:325). A queued archive fetch therefore holds _lock for its whole pacing sleep, blocking every other nse_direct caller. Outside the fix-r1 entries; recorded as an issue, not put in any diff.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/fix-r1/PLAN.md",
+    "suspected_files": ["sidecar/services/nse_provider.py"]
+  }
+]

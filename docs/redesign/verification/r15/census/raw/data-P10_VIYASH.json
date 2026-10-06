@@ -1,0 +1,52 @@
+[
+  {
+    "raw_id": "DAT-P10-1",
+    "title": "resolve() returns former_name: null for VIYASH despite a primary-sourced Jan-2026 rename (Sequent Scientific -> Viyash Scientific)",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P10_VIYASH",
+    "repro": "GET http://127.0.0.1:52152/resolve?q=VIYASH (and q=Viyash+Scientific+Ltd, q=512529) -> resolved.former_name is null in all 3 calls",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P10_VIYASH.json:30, :86, :194 (former_name: null in every resolve() call); outside truth: NSE circular NSE/CML/72374 (https://nsearchives.nseindia.com/content/circulars/CML72374.pdf), 'name and symbol of Sequent Scientific Limited will be changed w.e.f. January 23, 2026', quoted in docs/redesign/verification/r15/battery/packs/P10_VIYASH.json:27",
+    "notes": "The resolve() response schema has a dedicated former_name field, so rename-tracking is a stated capability, not an absent feature -- it is simply not populated for this entity 8 months after a primary-sourced, exchange-circular rename. A user searching the old name/symbol ('SEQUENT') the way they have known this stock for a decade would get no 'formerly known as' hint anywhere in the identity payload. Smallest fix shape: backfill former_name from the same corporate-actions/name-change source the collector used (NSE circular feed), keyed by ISIN (which the pack notes is the only stable join key across the rename)."
+  },
+  {
+    "raw_id": "DAT-P10-2",
+    "title": "TTM net profit (net_income_ttm) is ~21% below the best-corroborated consolidated outside value, on the same basis and period",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P10_VIYASH",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/VIYASH -> net_income_ttm = 2,113,449,984 INR (211.34 cr); outside consolidated TTM-to-Jun-2026 net profit = 267 cr",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P10_VIYASH.json:273 (net_income_ttm); outside: docs/redesign/verification/r15/battery/packs/P10_VIYASH.json:232-239 (net_profit_ttm 267 cr, screener.in consolidated, https://www.screener.in/company/VIYASH/consolidated/), corroborated by summing the pack's own consolidated quarterly net_profit series at packs/P10_VIYASH.json:260 (Sep25 73 + Dec25 49 + Mar26 66 + Jun26 79 = 267)",
+    "notes": "Both figures are on the consolidated TTM basis (not the standalone 79 cr figure, which the app value also does not match), so this is not the documented consolidated-vs-standalone trap. App's 211.34 cr sits between the app's own FY2026 annual 'Net Income' (177.29 cr, attributable to owners) and 'Net Income Including Noncontrolling Interests' (224.65 cr) at collected:777-801 -- suggesting the TTM aggregation window or minority-interest treatment differs from screener's, but no basis is disclosed anywhere in the response. A bottom-line profit figure off by ~21% with no stated basis is money-relevant data a user would take as true. Smallest fix: label the TTM net-income figure's basis (owners vs incl. minority interest) and/or reconcile the trailing-quarter aggregation against the same quarterly filings screener uses."
+  },
+  {
+    "raw_id": "DAT-P10-3",
+    "title": "ROE and ROCE are silently blank/absent in /fundamentals where the world has sourced, corroborated values",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P10_VIYASH",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/VIYASH -> roe: null (field_meta status 'unavailable', reason 'provider did not publish this field'); roce is not present as a key anywhere in the response body or field_meta at all",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P10_VIYASH.json:264, :419-425 (roe null/unavailable); :244-541 (no 'roce' key anywhere in the /fundamentals response or its field_meta block); outside: docs/redesign/verification/r15/battery/packs/P10_VIYASH.json:186-210 (roe 7.39% corroborated by Upstox 7.07% and stockscans 8.0%; roce 13.4% corroborated by Upstox 13.01% and stockscans 12.6%, all https://www.screener.in/company/VIYASH/consolidated/ and cited aggregators)",
+    "notes": "Three independent consolidated-basis outside sources cluster ROE at 7-8% and ROCE at ~13%, so this is not a case of genuinely unpublished data -- it is unavailable from this app's provider (yfinance) specifically. ROCE is worse than ROE: it is not even represented as an 'unavailable' field, it is absent from the schema for this call entirely. Both are core equity-screening ratios. Smallest fix: source ROE/ROCE from a provider that publishes them for Indian smallcaps (yfinance is documented elsewhere in this repo's gotchas as an unreliable fundamentals source for this segment) or compute ROCE server-side from the balance-sheet lines already being pulled (EBIT / (total assets - current liabilities), both already present in the same response's related /balance call)."
+  },
+  {
+    "raw_id": "DAT-P10-4",
+    "title": "Dividend TTM/yield show 'unavailable' rather than a confirmed 0, indistinguishable from a genuine data gap",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P10_VIYASH",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/VIYASH -> dividend_per_share_ttm: null, dividend_yield: null, both field_meta status 'unavailable' / reason 'provider did not publish this field'",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P10_VIYASH.json:281, :370-383 (dividend_per_share_ttm and dividend_yield both null/unavailable); outside: docs/redesign/verification/r15/battery/packs/P10_VIYASH.json:300-323 (paid_trailing_12m_per_share = 0 and yield = 0.0%, both sourced to screener.in and corroborated by Upstox's identical 0.00%, with the pack noting a 0% payout ratio across FY22-FY26)",
+    "notes": "Unlike the last_declared_per_share field (a genuine gap on both app and outside sides, since no dividend has ever been declared), the trailing-12m-paid and yield fields DO have a sourced, positive world value: a confirmed zero. The app's 'unavailable / provider did not publish' framing is indistinguishable in the UI from a real data gap, when the true state is a confirmed non-payer. Smallest fix: when a provider omits dividend_yield/dividend_per_share_ttm for an equity with no dividend history, default-fill 0 (with provenance) rather than leaving the field unavailable, or have the field_meta reason say 'no dividend paid' vs 'provider gap' distinctly."
+  },
+  {
+    "raw_id": "DAT-P10-5",
+    "title": "face_value is not present anywhere in the collected identity/fundamentals payloads despite being the pack's flagged trap field",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P10_VIYASH",
+    "repro": "grep 'face_value' across all /resolve and /fundamentals/VIYASH response bodies collected for this symbol -> no match",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P10_VIYASH.json (no face_value key in the resolve bodies at lines 15-61, 71-169, 179-217, nor in the fundamentals body at lines 244-541); outside: docs/redesign/verification/r15/battery/packs/P10_VIYASH.json:291-298 (face_value 2 INR, https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv, corroborated by screener.in)",
+    "notes": "The pack calls this out explicitly as a trap: VIYASH's face value is 2 INR, not the common 10 INR default, so any downstream per-share computation that silently assumes face value 10 would be off by 5x. This finding only establishes that face_value is absent from every collected response for this symbol, not that any specific per-share figure is miscomputed from a wrong assumed face value -- that would need a code-level check, out of scope for this data diff. Smallest fix: surface face_value in the /fundamentals or /resolve identity payload from the NSE equity master, which the sidecar already has access to per the collector's own successful fetch of EQUITY_L.csv."
+  }
+]

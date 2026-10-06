@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  21.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_6a5b84f2f943465b84f133a33ef3013f", "name": "get_portfolio", "input": {}}
+[  21.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_6a5b84f2f943465b84f133a33ef3013f", "name": "get_portfolio", "ok": true, "error": null}
+[  24.3s] done: {"kind": "done", "usage": {"input_tokens": 1658, "output_tokens": 61, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I couldn't retrieve your portfolio information. The terminal's data does not include this information.
+
+However, I can suggest researching each holding with its cost basis if you'd like to have a detailed look at them. This will help us track the performance of each stock in real-time. Shall we begin?
+
+=== ok · 24.3s · events {'heartbeat': 2, 'tool_use': 1, 'tool_result': 1, 'delta': 63, 'done': 1} · usage in=1658 out=61 · est $0.00000 · llama3.1:8b

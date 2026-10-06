@@ -1,0 +1,92 @@
+[
+ {
+  "raw_id": "DAT-S4-1",
+  "verdict": "admitted",
+  "severity_final": "critical",
+  "reason": "Holds exactly and re-reproduces live. The three statement routes pass the bare user symbol to the registry. The registry resolves them with validator=None, and openbb-mcp (rank 10, no region scope) wins. Its _normalize_symbol only swaps dots for dashes, so Yahoo answers 'TTC' with The Toro Company (FYE 31-Oct, revenue about USD 4.5bn). The Equity Overview sends the same symbol to /fundamentals and the three statement routes, so it renders Toro's statements beneath a 'Toss the Coin Limited' header. The top-level /fundamentals escapes only because its correctness gate and screener-completeness acceptor push it on to yfinance TTC.BO. Same root cause as DAT-P2-1/P3-1/P4-1/P6-1/P9-1.",
+  "evidence": "sidecar/routers/fundamentals.py:177-192 (no region/exchange input), sidecar/services/provider_registry.py:127-137 (openbb-mcp rank 10, no region), sidecar/services/provider_registry.py:495-514 (statements resolved with validator None), sidecar/services/provider_registry.py:473-492 (fundamentals gets _fundamentals_validator + accept), sidecar/services/openbb_mcp_provider.py:260-262 (_normalize_symbol dot->dash only), sidecar/services/openbb_mcp_provider.py:437-468 (bare symbol to equity_fundamental_*), src/modules/equity-overview/api.ts:100-108 (same symbol to fundamentals + statements), src/modules/equity-overview/EquityOverviewPanel.tsx:1111 (StatementTable renders income)",
+  "evidence_checked": "Opened the router, registry, openbb provider and overview loader/panel. Re-ran GET /fundamentals/TTC/income and /fundamentals/TTC on :52152 at 2026-09-23T01:33Z.",
+  "repro_check": "curl -s 127.0.0.1:52152/fundamentals/TTC/income returned provider 'openbb-mcp', symbol 'TTC', periods 2025-10-31..2022-10-31, total_revenue 4,510,400,000 (FY2025-10-31). curl -s 127.0.0.1:52152/fundamentals/TTC returned symbol 'TTC.BO', name 'Toss the Coin Limited', provider yfinance, revenue_ttm 146,963,008."
+ },
+ {
+  "raw_id": "DAT-S4-2",
+  "verdict": "admitted_with_correction",
+  "severity_final": "medium",
+  "reason": "The promoter leg holds, but the framing and the institutions leg do not. held_percent_insiders is Yahoo's heldPercentInsiders, a different definition from the SEBI promoter group. Even so, its 16.5pp gap to the exchange's 58.67% is far outside the app's own 3pp definitional band, so the app's own rule treats it as a data conflict. The Equity Overview shows 'Insiders 75.20%' with status ok and no exchange figure or flag beside it, and the screener pickers label the field 'Insider/promoter holding'. Corrections: (1) this is not 'two panels' contradicting each other, because no frontend panel calls /disclosures/shareholding; the exchange promoter figure surfaces only in research briefs, where the conflict is already disclosed. (2) Institutions 4.57% vs 5.83% (a 1.28x ratio) is inside the app's 2x tolerance and definitionally different, so it is not a contradiction. Medium, matching DAT-P8-4.",
+  "evidence": "sidecar/services/yfinance_provider.py:398-399 (heldPercentInsiders/Institutions passthrough), src/modules/equity-overview/EquityOverviewPanel.tsx:136-143 ('Insiders'/'Institutions' from yfinance), src/modules/screener/ScreenerCriteriaBuilder.tsx:57 and src/modules/screener/CriterionGroupEditor.tsx:51 ('Insider/promoter holding (frac)'), sidecar/services/research/semantics.py:76-91 (2pp promoter / 3pp definitional / 2x institutions bands), sidecar/services/research/semantics.py:537-599 (_ownership_leg discloses, never replaces); grep of src/ for 'disclosures/shareholding' finds no caller",
+  "evidence_checked": "Opened the yfinance mapping, the overview panel, the screener pickers and the semantics ownership leg. Re-ran /fundamentals/TTC and /disclosures/shareholding?symbol=TTC on :52152, and pulled yfinance TTC.BO info locally.",
+  "repro_check": "At 2026-09-23T01:34Z, /fundamentals/TTC returned held_percent_insiders 0.75197 and held_percent_institutions 0.04571 (meta ok), and /disclosures/shareholding returned Mar-2026 promoter 58.67 and institutions 5.83. yf.Ticker('TTC.BO').info gives the same 0.75197/0.04571. 75.20-58.67 = 16.53pp > 3pp, so the promoter conflict fires. 5.83/4.57 = 1.28 < 2x, so there is no institutions conflict."
+ },
+ {
+  "raw_id": "DAT-S4-3",
+  "verdict": "admitted_with_correction",
+  "severity_final": "medium",
+  "reason": "The 502 is real and structural. get_results_calendar is NSE-only with no BSE lane (unlike shareholding), and the router maps its ProviderError to a 502 with a misleading 'not a known NSE instrument' detail for every BSE-only name. Same root cause as DAT-P4-4/P6-3/P8-2 (not new evidence of a separate defect). The severity is overstated: no frontend panel calls /disclosures/results, and the only in-product consumer (research fetch_results_calendar) soft-fails to ok:false. The route serves board-meeting/results dates, not results figures, so it is a calendar gap plus a dishonest 502, not a core flow break.",
+  "evidence": "sidecar/services/corporate_disclosures.py:335-358 (nse_provider.get_results_calendar only), sidecar/routers/disclosures.py:74-92 (ProviderError -> 502), sidecar/services/research/disclosures.py:184-201 (soft-fail consumer); grep of src/ for 'disclosures/results' finds no caller",
+  "evidence_checked": "Opened the service, the router and the research consumer. Grepped the frontend. Re-ran the repro on :52152.",
+  "repro_check": "curl -s '127.0.0.1:52152/disclosures/results?symbol=TTC' returned HTTP 502 {\"detail\":\"nse_direct: 'TTC' is not a known NSE instrument\"} (2026-09-23T01:35Z)."
+ },
+ {
+  "raw_id": "DAT-S4-4",
+  "verdict": "admitted_with_correction",
+  "severity_final": "high",
+  "reason": "The thin feed is real, but the mechanism is a hard 30-day window, not a lossy fetch. _fetch_bse_announcements requests only the last _BSE_ANN_WINDOW_DAYS=30 days. BSE's own index for the scrip has exactly 2 filings inside that window (the two the app returns), and the next-older ones (the 15-Aug newspaper publication, and the 14-Aug Annual Report, AGM notice and book closure) all fall outside it by construction. So the app returns 100% of its window, and the '66 filings over 27 months' comparison sets it against a scope it never requests. The response carries no window field, so the bound is silent. Research counts on limit=50 to reach a quarter-old results filing, which the window defeats: for this half-yearly SME filer, the latest (May-2026) results filing can never reach research. Severity stays high, matching DAT-P7-1; same root cause as DAT-P7-1/DAT-P9-5.",
+  "evidence": "sidecar/services/corporate_disclosures.py:85-88 (_BSE_ANN_WINDOW_DAYS = 30), sidecar/services/corporate_disclosures.py:130-146 (strPrevDate = today - 30d), sidecar/services/research/disclosures.py:32-37 (_ANNOUNCEMENT_LIMIT=50 to reach a quarter-old results filing); https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260701&strScrip=544303&strSearch=P&strToDate=20260923&strType=C&subcategory=-1 (fetched 2026-09-23T01:35:41Z)",
+  "evidence_checked": "Opened the BSE announcements lane and the research limit. Re-fetched the pack's BSE AnnSubCategoryGetData source (my one pack re-fetch) for 2026-07-01..2026-09-23. Re-ran the app route on :52152.",
+  "repro_check": "BSE returned 8 rows: 09-12 and 09-11 (AGM results), 08-15 (Reg 30 newspaper), four on 08-14 (Letter to Members, Book Closure, AGM Notice, Reg 34 Annual Report) and 07-14 (Reg 74(5)). curl '127.0.0.1:52152/disclosures/announcements?symbol=TTC&limit=25' returned count 2, sources ['BSE'], errors {} (only 09-12 and 09-11), and the response keys carry no window field."
+ },
+ {
+  "raw_id": "DAT-S4-5",
+  "verdict": "refuted",
+  "severity_final": "medium",
+  "reason": "dividend_per_share_ttm is a research-derived field by design. yfinance_provider lists it in _DERIVED_FIELDS and deliberately leaves it null and unstamped on the raw /fundamentals route. The research FAST snapshot fills it from dividend_history.get_dividend_ttm on the resolved listing. For TTC.BO that returns 5.0 (status 'paid'), exactly the pack's paid_trailing_12m_per_share. No frontend panel renders the field off /fundamentals; the overview shows dividend_per_share, which is 8.0 and matches the FY26 total. The diff read a derived field off a route that never populates it. Same as DAT-P4-7.",
+  "evidence": "sidecar/services/yfinance_provider.py:165-181 (_DERIVED_FIELDS incl. dividend_per_share_ttm, excluded from field_meta), sidecar/models/fundamentals.py:105-111, sidecar/services/dividend_history.py:92-127 (_sum_trailing_dividends), sidecar/services/research/fast.py:207-231 (_apply_dividend_ttm), src/modules/equity-overview/EquityOverviewPanel.tsx:132 (overview shows dividend_per_share only)",
+  "evidence_checked": "Opened the model, the derived-field exclusion, dividend_history and the research wiring, and grepped the frontend. Ran the app's own get_dividend_ttm locally on TTC.BO. Re-ran /fundamentals/TTC on :52152.",
+  "repro_check": "sidecar/.venv/bin/python3 -c \"...asyncio.run(dividend_history.get_dividend_ttm('TTC.BO'))\" printed DividendTTM(value=5.0, status='paid') on the yfinance series 2025-06-06 0.5 / 2025-07-11 2.5 / 2026-03-13 5.0. /fundamentals/TTC gave dividend_per_share 8.0 and dividend_per_share_ttm null (2026-09-23T01:34Z)."
+ },
+ {
+  "raw_id": "DAT-S4-6",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds. The Fundamentals model carries roe and roa but has no ROCE field, and no code in sidecar/, src/ or types/ computes or renders ROCE, so the pack's screener ROCE of 27.0% can never surface. This is a product-wide schema gap (same as DAT-P6-5/P13-9/S3-5), not TTC-specific, so it should be deduplicated at merge.",
+  "evidence": "sidecar/models/fundamentals.py:46-118 (roe/roa, no roce); word-bounded grep of sidecar/models, sidecar/services, src, types for 'roce' returns nothing; docs/redesign/verification/r15/battery/packs/S4_TTC.json roce (27.0, screener)",
+  "evidence_checked": "Grepped the models, services, frontend and types. Re-ran /fundamentals/TTC on :52152.",
+  "repro_check": "curl -s 127.0.0.1:52152/fundamentals/TTC returned no 'roce' key ('roce' in body is False) while roe 0.19914 is present (2026-09-23T01:34Z)."
+ },
+ {
+  "raw_id": "DAT-S4-7",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "The null is real, but the mechanism is not a per-quarter parsing or mapping gap. The Mar-2026 SEBI XBRL the app fetches has no InstitutionsForeignMember context at all: the company's filing simply omits the zero foreign category, while the Mar-2025 filing carried 0.48. parse_shp_xbrl leaves a missing category absent by documented design, so it does not fabricate a zero. The same row does make 0.00 derivable: institutions_percent 5.83 equals dii_percent 5.83. The residual is a cheap improvement (infer FII 0 when institutions equals domestic). No UI or research consumer reads fii_percent, so it is low.",
+  "evidence": "sidecar/services/bse_provider.py:597-604 (_SHP_CATEGORY incl. InstitutionsForeignMember), sidecar/services/bse_provider.py:694-766 (parse_shp_xbrl: missing category absent), sidecar/services/bse_provider.py:769-795 (fii only when foreign member present); https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/544303_214202616839_SP.html (fetched 2026-09-23T01:35:06Z, 0 occurrences of 'InstitutionsForeign'; InstitutionsMember and InstitutionsDomesticMember present); grep of sidecar/services/research, agent_tools and src for fii_percent finds nothing",
+  "evidence_checked": "Opened the XBRL parser and the category map. Fetched the app's own Mar-2026 XBRL source and grepped it for the foreign-institutions member. Re-ran /disclosures/shareholding?symbol=TTC on :52152, and grepped for consumers.",
+  "repro_check": "curl '127.0.0.1:52152/disclosures/shareholding?symbol=TTC' returned 2026-03-31 fii null, dii 5.83, institutions 5.83, and 2025-03-31 fii 0.48 (2026-09-23T01:34Z). grep -c InstitutionsForeign on the fetched Mar-2026 XBRL printed 0."
+ },
+ {
+  "raw_id": "DAT-S4-8",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "The field-level claim is a definitional difference. Instrument.former_name is the retired SYMBOL, filled only from the NSE symbol-change lane, not a legal-name history. TTC's ticker never changed, so null is correct by design (as ruled in DAT-P8-7/P11-1). A real but small residual does exist, verified live: querying the pre-conversion legal name 'Toss the Coin Private Limited' (or 'Pvt Ltd') returns ok:false with zero candidates. The resolver normalizes pvt to private but does not strip 'private' as a corporate suffix. 'Toss the Coin' and 'Toss the Coin Limited' both bind correctly, so the harm is limited to text using the pre-IPO private-company name. That makes it low.",
+  "evidence": "sidecar/services/symbol_resolver.py:239 (former_name = retired symbol), sidecar/services/symbol_resolver.py:896 (former_name = inst.rename.renamed_from), sidecar/services/symbol_resolver.py:158-186 (suffix strip list incl. limited/ltd; pvt->private equivalence, private not stripped)",
+  "evidence_checked": "Opened the resolver dataclass, the rename wiring and the suffix normalization. Ran /resolve with four name variants and q=TTC on :52152.",
+  "repro_check": "curl '127.0.0.1:52152/resolve?q=Toss+the+Coin+Private+Limited' returned {ok:false, candidates:[]} (same for 'Pvt Ltd'), while q=Toss+the+Coin+Limited and q=Toss+the+Coin bound TTC/BSE/INE0XAY01012 at confidence 1.0 (2026-09-23T01:35Z)."
+ },
+ {
+  "raw_id": "DAT-S4-9",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "The gap is real: the only face_value in the codebase belongs to the bond pricer, and the Fundamentals and resolve payloads carry no equity face value, while BSE and screener agree on Rs 10. Downgraded to low, consistent with DAT-P7-6/P12-5/P15-4. No app computation uses an equity face value, and TTC has had no split or bonus, so the missing field changes no decision here. It is a product-wide missing reference field, to be deduplicated at merge.",
+  "evidence": "sidecar/models/quant.py:152 (only face_value: bond pricer), sidecar/models/fundamentals.py:46-118 (no face_value); grep of sidecar/models, sidecar/services, routers/fundamentals.py for face_value",
+  "evidence_checked": "Grepped the models and services, and re-ran /fundamentals/TTC on :52152.",
+  "repro_check": "curl -s 127.0.0.1:52152/fundamentals/TTC returned no 'face_value' key (checked 'face_value' in body -> False, 2026-09-23T01:34Z)."
+ },
+ {
+  "raw_id": "DAT-S4-10",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "Holds as a schema fact. Fundamentals carries only fifty_two_week_high/low scalars with no per-leg date, and field_meta.as_of is the fetch timestamp for both legs. The research range leg compares against the exchange series but also emits no extreme dates. The values match BSE exactly (445.0 / 135.0), and the drawdown the notes describe is computable from price vs the correct high and low without dates. So this is low, consistent with DAT-P1-5/P9-7, not medium.",
+  "evidence": "sidecar/models/fundamentals.py:77-79 (fifty_two_week_high/low/change, no dates), sidecar/services/yfinance_provider.py:377-378 (info passthrough), sidecar/services/yfinance_provider.py:190-213 (field_meta as_of = fetch time), sidecar/services/research/semantics.py:760-785 (range leg, values only)",
+  "evidence_checked": "Opened the model, the yfinance mapping, the field_meta stamping and the research range leg. Re-ran /fundamentals/TTC on :52152.",
+  "repro_check": "curl -s 127.0.0.1:52152/fundamentals/TTC returned 445.0/135.0, and both field_meta legs carry as_of 2026-09-23T01:33:58Z (the fetch time); yfinance TTC.BO info fiftyTwoWeekHigh/Low is 445.0/135.0."
+ }
+]

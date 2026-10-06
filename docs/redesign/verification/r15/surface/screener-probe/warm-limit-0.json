@@ -1,0 +1,15 @@
+{
+ "label": "warm-limit-0",
+ "path": "/screener/run/stream",
+ "request": {
+  "universe": "nse-all",
+  "criteria": [],
+  "limit": 0
+ },
+ "http": 422,
+ "wall_s": 0.14,
+ "progress_frames": [],
+ "result": {
+  "http_error_body": "{\"detail\":[{\"type\":\"greater_than_equal\",\"loc\":[\"body\",\"limit\"],\"msg\":\"Input should be greater than or equal to 1\",\"input\":0,\"ctx\":{\"ge\":1}}]}"
+ }
+}

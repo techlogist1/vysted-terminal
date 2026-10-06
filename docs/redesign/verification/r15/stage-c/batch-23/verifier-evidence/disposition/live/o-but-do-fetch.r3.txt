@@ -1,0 +1,8 @@
+[   1.9s] done: {"kind": "done", "usage": {"input_tokens": 2739, "output_tokens": 32, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I've fetched the current price of TCS.NS: ₹1,065.45 per share.
+
+Would you like to know more about TCS?
+
+=== ok · 1.9s · events {'delta': 31, 'done': 1} · usage in=2739 out=32 · est $0.00000 · llama3.1:8b

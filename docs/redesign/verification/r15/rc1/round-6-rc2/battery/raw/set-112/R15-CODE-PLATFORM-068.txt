@@ -1,0 +1,17 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p068.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+from services import workflow_engine
+from services.workflow_nodes import register_all
+register_all(); expected=set(workflow_engine.registered_node_types()); workflow_engine.reset_registry_for_tests()
+print("registry after reset:",len(workflow_engine.registered_node_types()))
+from app import create_app
+create_app()
+got=set(workflow_engine.registered_node_types())
+print("after create_app() alone:",len(got),"== register_all():",got==expected)
+print("sample:",sorted(got)[:4])
+--- output ---
+registry after reset: 0
+after create_app() alone: 24 == register_all(): True
+sample: ['action.log', 'action.notify_desktop', 'action.webhook', 'ai.agent_invoke']
+EXIT=0

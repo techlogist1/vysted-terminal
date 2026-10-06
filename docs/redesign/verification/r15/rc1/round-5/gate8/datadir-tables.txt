@@ -1,0 +1,11 @@
+# sqlite tables in the rc1-gate8 data dir (copy of rc1-round-5-seed-data), 2026-09-27 13:32:06 IST
+== custom_agents.db: custom_agents 
+== data_cache.db: cache meta 
+== delegate_runs.db: runs 
+== fundamentals_cache.db: fundamentals 
+== plugins.db: plugin_configs 
+== portfolio.db: positions 
+== workflows.db: schedules workflows 
+== audit_log.db present: no
+== any table named like audit/order/broker/margin/paper: 0
+== portfolio.db positions rows: 0

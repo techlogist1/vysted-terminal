@@ -1,0 +1,11 @@
+# candidate ca6ec990, candidate venv, in-process: strip_invalid_markers(strip_model_bibliography(expand_marker_groups(md))[0], 5); last line iter._remap_markers with merged order [3,1,2]
+'Revenue grew 18% [2-4].' -> ('Revenue grew 18% [2-4].', 0)
+'Revenue grew 18% [2–4].' -> ('Revenue grew 18% [2–4].', 0)
+'Order book [7-9].' -> ('Order book [7-9].', 0)
+'Margin 10.98% [New findings][2].' -> ('Margin 10.98% [New findings][2].', 0)
+'Margin 10.98% [Web evidence][9].' -> ('Margin 10.98% [Web evidence].', 1)
+'Yield 0.43% [basis: fraction of price].' -> ('Yield 0.43%.', 1)
+'BDL [NSE: BDL] trades at 1155 [1].' -> ('BDL trades at 1155 [1].', 1)
+'He said [the Company] expects growth [1].' -> ('He said expects growth [1].', 1)
+'Sales rose [1, 3-4].' -> ('Sales rose [1, 3-4].', 0)
+remap x [1-2] y [1, 2]. -> x [1-2] y [2][3].

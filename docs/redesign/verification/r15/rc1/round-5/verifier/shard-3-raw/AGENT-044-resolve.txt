@@ -1,0 +1,15 @@
+# AGENT-044: the host's add_to_watchlist resolution calls GET /resolve?q=<raw> (host-actions.ts:2101) and adds reply.resolved.symbol, else fails with candidates. Own sidecar :52603, region header IN
+== /resolve?q=MAZAGONDOCK
+ resolved: None | needs_disambiguation False | cands []
+== /resolve?q=HINDAERONAUTICS
+ resolved: None | needs_disambiguation True | cands [('HAL', 'IN'), ('TCX', 'US'), ('STIM', 'US')]
+== /resolve?q=BHARATELEC
+ resolved: None | needs_disambiguation True | cands [('BHARATFORG', 'IN'), ('BHARATSE', 'IN'), ('BHARATGEAR', 'IN'), ('ALT', 'US')]
+== /resolve?q=ZOMATOLTD
+ resolved: None | needs_disambiguation True | cands [('ETERNAL', 'IN'), ('FLUIDOM', 'IN'), ('ROBU', 'IN'), ('POM', 'US')]
+== /resolve?q=RELIANCEIND
+ resolved: None | needs_disambiguation True | cands [('NV20BEES', 'IN'), ('RPOWER', 'IN'), ('RS', 'US'), ('QTZM', 'US')]
+== /resolve?q=Cochin Shipyard
+ resolved: ('COCHINSHIP', 'IN', 'Cochin Shipyard Limited', 1.0) | needs_disambiguation False | cands [('COCHINSHIP', 'IN')]
+== /resolve?q=QQQQXYZ
+ resolved: None | needs_disambiguation False | cands []

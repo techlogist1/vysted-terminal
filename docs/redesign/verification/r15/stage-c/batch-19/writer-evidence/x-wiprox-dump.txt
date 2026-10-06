@@ -1,0 +1,24 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  37.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_4611df47131242dcbd8daa18557a811d", "name": "fundamentals", "input": {"symbol": "WIPRO.NS"}}
+[  42.5s] tool_result: {"kind": "tool_result", "tool_call_id": "call_4611df47131242dcbd8daa18557a811d", "name": "fundamentals", "ok": true, "error": null}
+[  52.5s] heartbeat: {"kind": "heartbeat"}
+[  62.5s] heartbeat: {"kind": "heartbeat"}
+[  74.9s] done: {"kind": "done", "usage": {"input_tokens": 5899, "output_tokens": 157, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Here are some key metrics for Wipro Limited (WIPRO.NS):
+
+* Market Cap: ₹162,271 crore
+* PE Ratio: 13.04
+* Forward PE: 11.80
+* Dividend Yield: 0.049%
+* Earnings Per Share (EPS): ₹12.62
+* Beta: 0.39
+
+Note that the PE ratio is flagged as "trailing EPS 12.58 disagrees by 6% with the payload's net income / shares outstanding...". This means that there may be a discrepancy between the reported earnings and the actual earnings, which could affect the accuracy of the PE ratio.
+
+Also, note that some metrics are marked as "unavailable" because they were not published by the provider.
+
+=== ok · 74.9s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 157, 'done': 1} · usage in=5899 out=157 · est $0.00000 · llama3.1:8b

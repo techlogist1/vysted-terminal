@@ -1,0 +1,4 @@
+GET /indicators/suggested?symbol=RELIANCE
+status=200
+---
+{"indicators":["ma","volume","rsi","macd"]}

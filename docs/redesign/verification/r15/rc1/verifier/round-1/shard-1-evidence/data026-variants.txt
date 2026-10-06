@@ -1,0 +1,5 @@
+NVDA/income/quarterly: NVDA openbb-mcp ['2026-07-31', '2026-04-30', '2026-01-31', '2025-10-31', '2025-07-31'] lines= 42 gaps= [] 
+TITANBIO/income/quarterly: TITANBIO.BO openbb-mcp ['2026-06-30', '2026-03-31', '2025-12-31', '2025-09-30', '2025-06-30'] lines= 40 gaps= [] 
+TITANBIO.BO/income/annual: TITANBIO.BO openbb-mcp ['2026-03-31', '2025-03-31', '2024-03-31', '2023-03-31', '2022-03-31'] lines= 53 gaps= [] 
+DIXON/cashflow/quarterly: DIXON.NS openbb-mcp ['2026-03-31', '2025-12-31'] lines= 30 gaps= [] 
+DIXON/income/quarterly: DIXON.NS openbb-mcp ['2026-06-30', '2026-03-31', '2025-12-31', '2025-09-30', '2025-06-30', '2025-03-31'] lines= 41 gaps= ['2025-09-30'] 

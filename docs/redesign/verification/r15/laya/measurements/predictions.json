@@ -1,0 +1,7206 @@
+{
+  "research-1": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9255,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9255
+    },
+    "latency_ms": 80.87611198425293
+  },
+  "research-2": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8147,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8147
+    },
+    "latency_ms": 121.97113037109375
+  },
+  "research-3": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9072,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9072
+    },
+    "latency_ms": 65.29784202575684
+  },
+  "research-4": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8372,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8372
+    },
+    "latency_ms": 47.9581356048584
+  },
+  "research-5": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.895,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.895
+    },
+    "latency_ms": 35.69316864013672
+  },
+  "research-6": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8618,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8618
+    },
+    "latency_ms": 47.888994216918945
+  },
+  "research-7": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8794,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8794
+    },
+    "latency_ms": 46.45586013793945
+  },
+  "research-8": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.854,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.854
+    },
+    "latency_ms": 34.64674949645996
+  },
+  "research-9": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8535,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8535
+    },
+    "latency_ms": 35.03704071044922
+  },
+  "research-10": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8246,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8246
+    },
+    "latency_ms": 35.39681434631348
+  },
+  "research-11": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8184,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8184
+    },
+    "latency_ms": 35.08615493774414
+  },
+  "research-12": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8
+    },
+    "latency_ms": 32.382965087890625
+  },
+  "research-13": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7643,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7643
+    },
+    "latency_ms": 77.28075981140137
+  },
+  "research-14": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8383,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8383
+    },
+    "latency_ms": 51.21588706970215
+  },
+  "research-15": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.587,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.587
+    },
+    "latency_ms": 46.91886901855469
+  },
+  "research-16": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8194,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8194
+    },
+    "latency_ms": 46.190738677978516
+  },
+  "research-17": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8533,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8533
+    },
+    "latency_ms": 46.80013656616211
+  },
+  "research-18": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8112,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8112
+    },
+    "latency_ms": 46.52810096740723
+  },
+  "research-19": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7941,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7941
+    },
+    "latency_ms": 46.73886299133301
+  },
+  "research-20": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8999,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8999
+    },
+    "latency_ms": 107.11288452148438
+  },
+  "research-21": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8097,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8097
+    },
+    "latency_ms": 47.39499092102051
+  },
+  "research-22": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8482,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8482
+    },
+    "latency_ms": 65.20605087280273
+  },
+  "research-23": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.818,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.818
+    },
+    "latency_ms": 49.93891716003418
+  },
+  "research-24": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6521,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.6521
+    },
+    "latency_ms": 47.6229190826416
+  },
+  "research-25": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8968,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8968
+    },
+    "latency_ms": 49.732208251953125
+  },
+  "research-26": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8599,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8599
+    },
+    "latency_ms": 106.70685768127441
+  },
+  "research-27": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8218,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8218
+    },
+    "latency_ms": 165.23218154907227
+  },
+  "research-28": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6781,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.6781
+    },
+    "latency_ms": 52.573204040527344
+  },
+  "research-29": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8571,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8571
+    },
+    "latency_ms": 56.732177734375
+  },
+  "research-30": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8282,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8282
+    },
+    "latency_ms": 60.636043548583984
+  },
+  "research-31": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7789,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7789
+    },
+    "latency_ms": 47.71733283996582
+  },
+  "research-32": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6404,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.6404
+    },
+    "latency_ms": 55.25779724121094
+  },
+  "research-33": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8029,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8029
+    },
+    "latency_ms": 38.923025131225586
+  },
+  "research-34": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8776,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8776
+    },
+    "latency_ms": 44.16680335998535
+  },
+  "research-35": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.759,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.759
+    },
+    "latency_ms": 40.33374786376953
+  },
+  "research-36": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9008,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9008
+    },
+    "latency_ms": 61.07187271118164
+  },
+  "research-37": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8544,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8544
+    },
+    "latency_ms": 46.95701599121094
+  },
+  "research-38": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9208,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9208
+    },
+    "latency_ms": 220.57175636291504
+  },
+  "research-39": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9268,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9268
+    },
+    "latency_ms": 106.48894309997559
+  },
+  "research-40": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8573,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8573
+    },
+    "latency_ms": 46.01097106933594
+  },
+  "research-41": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8742,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8742
+    },
+    "latency_ms": 50.0338077545166
+  },
+  "research-42": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8706,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8706
+    },
+    "latency_ms": 46.37026786804199
+  },
+  "research-43": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8601,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8601
+    },
+    "latency_ms": 46.10896110534668
+  },
+  "research-44": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8062,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8062
+    },
+    "latency_ms": 45.953989028930664
+  },
+  "research-45": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.861,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.861
+    },
+    "latency_ms": 46.208858489990234
+  },
+  "research-46": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.935,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.935
+    },
+    "latency_ms": 46.06914520263672
+  },
+  "research-47": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8522,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8522
+    },
+    "latency_ms": 70.36614418029785
+  },
+  "research-48": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9007,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9007
+    },
+    "latency_ms": 47.59573936462402
+  },
+  "research-49": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6963,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.6963
+    },
+    "latency_ms": 39.90483283996582
+  },
+  "research-50": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8448,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8448
+    },
+    "latency_ms": 39.217233657836914
+  },
+  "research-51": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7936,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7936
+    },
+    "latency_ms": 36.01408004760742
+  },
+  "research-52": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9093,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9093
+    },
+    "latency_ms": 143.52989196777344
+  },
+  "research-53": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8489,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8489
+    },
+    "latency_ms": 121.35767936706543
+  },
+  "research-54": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8858,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8858
+    },
+    "latency_ms": 80.62481880187988
+  },
+  "research-55": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8722,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8722
+    },
+    "latency_ms": 107.90395736694336
+  },
+  "research-56": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8727,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8727
+    },
+    "latency_ms": 35.71009635925293
+  },
+  "research-57": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7419,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7419
+    },
+    "latency_ms": 37.44912147521973
+  },
+  "research-58": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8465,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8465
+    },
+    "latency_ms": 52.67214775085449
+  },
+  "research-59": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8178,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8178
+    },
+    "latency_ms": 106.88400268554688
+  },
+  "research-60": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8603,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8603
+    },
+    "latency_ms": 100.80385208129883
+  },
+  "research-61": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8447,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8447
+    },
+    "latency_ms": 86.17401123046875
+  },
+  "research-62": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8531,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8531
+    },
+    "latency_ms": 62.432050704956055
+  },
+  "research-63": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8084,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8084
+    },
+    "latency_ms": 61.05804443359375
+  },
+  "research-64": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8881,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8881
+    },
+    "latency_ms": 48.44093322753906
+  },
+  "research-65": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8816,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8816
+    },
+    "latency_ms": 54.9619197845459
+  },
+  "research-66": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7796,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.2204
+    },
+    "latency_ms": 47.70183563232422
+  },
+  "research-67": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8384,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8384
+    },
+    "latency_ms": 47.91593551635742
+  },
+  "research-68": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7873,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7873
+    },
+    "latency_ms": 50.65774917602539
+  },
+  "research-69": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8729,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8729
+    },
+    "latency_ms": 50.24003982543945
+  },
+  "research-70": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8719,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8719
+    },
+    "latency_ms": 46.84281349182129
+  },
+  "research-71": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8607,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8607
+    },
+    "latency_ms": 48.42376708984375
+  },
+  "research-72": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8874,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8874
+    },
+    "latency_ms": 76.23100280761719
+  },
+  "research-73": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8605,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8605
+    },
+    "latency_ms": 47.69301414489746
+  },
+  "research-74": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8304,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8304
+    },
+    "latency_ms": 76.13205909729004
+  },
+  "research-75": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8659,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8659
+    },
+    "latency_ms": 34.79909896850586
+  },
+  "research-76": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.747,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.747
+    },
+    "latency_ms": 59.654951095581055
+  },
+  "research-77": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9534,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9534
+    },
+    "latency_ms": 215.76404571533203
+  },
+  "research-78": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9511,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9511
+    },
+    "latency_ms": 99.31111335754395
+  },
+  "research-79": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9037,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9037
+    },
+    "latency_ms": 148.4670639038086
+  },
+  "research-81": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9411,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9411
+    },
+    "latency_ms": 162.9183292388916
+  },
+  "research-82": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9257,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9257
+    },
+    "latency_ms": 136.16704940795898
+  },
+  "research-83": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 1.0,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 1.0
+    },
+    "latency_ms": 107.42497444152832
+  },
+  "research-84": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9192,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9192
+    },
+    "latency_ms": 182.9359531402588
+  },
+  "research-85": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9598,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9598
+    },
+    "latency_ms": 91.36199951171875
+  },
+  "research-86": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.826,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.826
+    },
+    "latency_ms": 293.5519218444824
+  },
+  "research-87": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.88,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.12
+    },
+    "latency_ms": 51.939964294433594
+  },
+  "research-88": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.821,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.179
+    },
+    "latency_ms": 42.980194091796875
+  },
+  "research-89": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9949,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.0051
+    },
+    "latency_ms": 136.72900199890137
+  },
+  "research-90": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8803,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1197
+    },
+    "latency_ms": 196.63310050964355
+  },
+  "research-91": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.934,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.066
+    },
+    "latency_ms": 167.96302795410156
+  },
+  "research-92": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9574,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.0426
+    },
+    "latency_ms": 147.53103256225586
+  },
+  "research-93": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8554,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1446
+    },
+    "latency_ms": 62.37006187438965
+  },
+  "research-94": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.935,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.065
+    },
+    "latency_ms": 54.95715141296387
+  },
+  "research-95": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9988,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.0012
+    },
+    "latency_ms": 84.20610427856445
+  },
+  "research-96": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8931,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1069
+    },
+    "latency_ms": 52.55126953125
+  },
+  "research-97": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9807,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.0193
+    },
+    "latency_ms": 55.47618865966797
+  },
+  "research-98": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8888,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1112
+    },
+    "latency_ms": 197.63994216918945
+  },
+  "research-99": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8128,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1872
+    },
+    "latency_ms": 58.209896087646484
+  },
+  "research-100": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.5753,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.5753
+    },
+    "latency_ms": 64.90612030029297
+  },
+  "research-101": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8668,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1332
+    },
+    "latency_ms": 79.02216911315918
+  },
+  "research-102": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9085,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.0915
+    },
+    "latency_ms": 62.654972076416016
+  },
+  "research-103": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7943,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.2057
+    },
+    "latency_ms": 61.87081336975098
+  },
+  "research-104": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.971,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.029
+    },
+    "latency_ms": 53.86090278625488
+  },
+  "research-105": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7209,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7209
+    },
+    "latency_ms": 65.49501419067383
+  },
+  "research-106": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.916,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.084
+    },
+    "latency_ms": 59.97109413146973
+  },
+  "collision-1": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9412,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9412
+    },
+    "latency_ms": 48.76995086669922
+  },
+  "collision-2": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.869,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.131
+    },
+    "latency_ms": 35.57705879211426
+  },
+  "collision-3": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6595,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.6595
+    },
+    "latency_ms": 90.48914909362793
+  },
+  "collision-4": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8337,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8337
+    },
+    "latency_ms": 50.57191848754883
+  },
+  "collision-5": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8677,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1323
+    },
+    "latency_ms": 85.76488494873047
+  },
+  "collision-6": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8132,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8132
+    },
+    "latency_ms": 46.05603218078613
+  },
+  "collision-7": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8531,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8531
+    },
+    "latency_ms": 50.72808265686035
+  },
+  "collision-8": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8207,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1793
+    },
+    "latency_ms": 30.508041381835938
+  },
+  "collision-9": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8891,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1109
+    },
+    "latency_ms": 22.835969924926758
+  },
+  "collision-10": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.903,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.097
+    },
+    "latency_ms": 21.824121475219727
+  },
+  "collision-11": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6721,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.6721
+    },
+    "latency_ms": 21.688222885131836
+  },
+  "collision-12": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9321,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9321
+    },
+    "latency_ms": 105.7441234588623
+  },
+  "collision-13": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8771,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8771
+    },
+    "latency_ms": 40.750980377197266
+  },
+  "collision-14": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8128,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8128
+    },
+    "latency_ms": 51.32913589477539
+  },
+  "collision-15": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7919,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7919
+    },
+    "latency_ms": 36.47303581237793
+  },
+  "collision-16": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.702,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.702
+    },
+    "latency_ms": 51.19919776916504
+  },
+  "collision-17": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8569,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8569
+    },
+    "latency_ms": 20.635128021240234
+  },
+  "collision-18": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8765,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8765
+    },
+    "latency_ms": 23.04697036743164
+  },
+  "collision-19": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8229,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8229
+    },
+    "latency_ms": 31.436920166015625
+  },
+  "collision-20": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.5213,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.5213
+    },
+    "latency_ms": 33.19573402404785
+  },
+  "collision-21": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8977,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8977
+    },
+    "latency_ms": 30.848979949951172
+  },
+  "collision-22": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7359,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.2641
+    },
+    "latency_ms": 48.40826988220215
+  },
+  "collision-23": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8814,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8814
+    },
+    "latency_ms": 33.2188606262207
+  },
+  "collision-24": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8032,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1968
+    },
+    "latency_ms": 94.06685829162598
+  },
+  "collision-25": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9532,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9532
+    },
+    "latency_ms": 68.00413131713867
+  },
+  "collision-33": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9221,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9221
+    },
+    "latency_ms": 385.33782958984375
+  },
+  "collision-34": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8969,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8969
+    },
+    "latency_ms": 95.4740047454834
+  },
+  "collision-37": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9337,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.0663
+    },
+    "latency_ms": 58.866024017333984
+  },
+  "collision-39": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9513,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9513
+    },
+    "latency_ms": 71.63214683532715
+  },
+  "collision-40": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8925,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8925
+    },
+    "latency_ms": 77.23188400268555
+  },
+  "collision-41": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 1.0,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 1.0
+    },
+    "latency_ms": 76.79390907287598
+  },
+  "collision-43": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9306,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.0694
+    },
+    "latency_ms": 82.2138786315918
+  },
+  "collision-53": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8716,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1284
+    },
+    "latency_ms": 58.08901786804199
+  },
+  "collision-54": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8503,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1497
+    },
+    "latency_ms": 51.41091346740723
+  },
+  "collision-55": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8212,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1788
+    },
+    "latency_ms": 52.05583572387695
+  },
+  "collision-56": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.942,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.942
+    },
+    "latency_ms": 66.44105911254883
+  },
+  "collision-58": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9072,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.0928
+    },
+    "latency_ms": 37.11700439453125
+  },
+  "collision-59": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8354,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8354
+    },
+    "latency_ms": 47.20020294189453
+  },
+  "collision-60": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8332,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8332
+    },
+    "latency_ms": 47.34206199645996
+  },
+  "collision-61": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.924,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.924
+    },
+    "latency_ms": 48.796892166137695
+  },
+  "collision-62": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9608,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9608
+    },
+    "latency_ms": 46.52714729309082
+  },
+  "collision-63": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8084,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8084
+    },
+    "latency_ms": 37.77027130126953
+  },
+  "collision-64": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9999,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.0001
+    },
+    "latency_ms": 73.75597953796387
+  },
+  "collision-65": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9251,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.0749
+    },
+    "latency_ms": 35.104990005493164
+  },
+  "collision-66": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9068,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9068
+    },
+    "latency_ms": 67.16322898864746
+  },
+  "collision-67": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9898,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9898
+    },
+    "latency_ms": 63.020944595336914
+  },
+  "collision-68": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7882,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7882
+    },
+    "latency_ms": 50.47011375427246
+  },
+  "collision-70": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8732,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1268
+    },
+    "latency_ms": 98.72317314147949
+  },
+  "collision-71": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.905,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.095
+    },
+    "latency_ms": 61.28811836242676
+  },
+  "collision-72": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6348,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.6348
+    },
+    "latency_ms": 38.40303421020508
+  },
+  "collision-74": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.918,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.082
+    },
+    "latency_ms": 68.24517250061035
+  },
+  "collision-75": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9139,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9139
+    },
+    "latency_ms": 80.84607124328613
+  },
+  "collision-77": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.892,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.892
+    },
+    "latency_ms": 71.11501693725586
+  },
+  "collision-78": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6889,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.6889
+    },
+    "latency_ms": 39.80588912963867
+  },
+  "collision-79": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.566,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.434
+    },
+    "latency_ms": 169.89803314208984
+  },
+  "collision-80": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7616,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7616
+    },
+    "latency_ms": 42.266130447387695
+  },
+  "collision-81": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9039,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9039
+    },
+    "latency_ms": 38.7418270111084
+  },
+  "collision-82": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9673,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.0327
+    },
+    "latency_ms": 35.26473045349121
+  },
+  "collision-83": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6261,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.3739
+    },
+    "latency_ms": 36.08989715576172
+  },
+  "collision-84": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6792,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.3208
+    },
+    "latency_ms": 66.11299514770508
+  },
+  "collision-85": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9108,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9108
+    },
+    "latency_ms": 47.75810241699219
+  },
+  "collision-86": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.967,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.967
+    },
+    "latency_ms": 47.15585708618164
+  },
+  "collision-87": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8344,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8344
+    },
+    "latency_ms": 51.193952560424805
+  },
+  "collision-88": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8662,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8662
+    },
+    "latency_ms": 48.94685745239258
+  },
+  "collision-89": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8806,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8806
+    },
+    "latency_ms": 36.50403022766113
+  },
+  "collision-90": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8233,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8233
+    },
+    "latency_ms": 34.98196601867676
+  },
+  "collision-91": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8643,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8643
+    },
+    "latency_ms": 34.441232681274414
+  },
+  "collision-92": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6861,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.6861
+    },
+    "latency_ms": 34.69491004943848
+  },
+  "collision-93": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.5969,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.5969
+    },
+    "latency_ms": 39.089202880859375
+  },
+  "collision-94": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6119,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.6119
+    },
+    "latency_ms": 35.52412986755371
+  },
+  "collision-95": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6458,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.6458
+    },
+    "latency_ms": 35.08138656616211
+  },
+  "collision-96": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8908,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8908
+    },
+    "latency_ms": 35.347938537597656
+  },
+  "collision-97": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9299,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9299
+    },
+    "latency_ms": 36.322832107543945
+  },
+  "collision-98": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9177,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9177
+    },
+    "latency_ms": 39.2758846282959
+  },
+  "collision-99": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8971,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8971
+    },
+    "latency_ms": 35.5532169342041
+  },
+  "collision-100": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9274,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.0726
+    },
+    "latency_ms": 39.350032806396484
+  },
+  "collision-101": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8149,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1851
+    },
+    "latency_ms": 47.447919845581055
+  },
+  "collision-102": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9245,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9245
+    },
+    "latency_ms": 46.91815376281738
+  },
+  "collision-103": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9411,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9411
+    },
+    "latency_ms": 46.324968338012695
+  },
+  "collision-104": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9006,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9006
+    },
+    "latency_ms": 35.2938175201416
+  },
+  "collision-105": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7809,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.2191
+    },
+    "latency_ms": 47.113895416259766
+  },
+  "collision-106": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9445,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9445
+    },
+    "latency_ms": 47.068119049072266
+  },
+  "collision-107": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9306,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9306
+    },
+    "latency_ms": 47.58405685424805
+  },
+  "collision-108": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9073,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9073
+    },
+    "latency_ms": 47.70708084106445
+  },
+  "collision-109": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8835,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.1165
+    },
+    "latency_ms": 57.042837142944336
+  },
+  "collision-110": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.866,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.866
+    },
+    "latency_ms": 46.90670967102051
+  },
+  "collision-111": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6663,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.3337
+    },
+    "latency_ms": 44.473886489868164
+  },
+  "collision-112": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6352,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.6352
+    },
+    "latency_ms": 48.53487014770508
+  },
+  "collision-113": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8102,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8102
+    },
+    "latency_ms": 46.521663665771484
+  },
+  "collision-114": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8348,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8348
+    },
+    "latency_ms": 56.596994400024414
+  },
+  "collision-115": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8866,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8866
+    },
+    "latency_ms": 47.651052474975586
+  },
+  "collision-116": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9388,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9388
+    },
+    "latency_ms": 48.111915588378906
+  },
+  "collision-117": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.896,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.104
+    },
+    "latency_ms": 40.985822677612305
+  },
+  "collision-118": {
+    "task": "entity_match",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.6938,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.3062
+    },
+    "latency_ms": 36.131858825683594
+  },
+  "composer-1": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "read",
+      "probabilities": {
+        "read": 1.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.2254,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.1454,
+        "edit": 0.1004,
+        "build": 0.1321,
+        "research": 0.6221
+      }
+    },
+    "latency_ms": 34.3930721282959
+  },
+  "composer-2": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "read",
+      "probabilities": {
+        "read": 1.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0594,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.2329,
+        "edit": 0.2177,
+        "build": 0.1326,
+        "research": 0.4169
+      }
+    },
+    "latency_ms": 30.699968338012695
+  },
+  "composer-3": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.1568,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.2672,
+        "edit": 0.519,
+        "build": 0.1217,
+        "research": 0.0921
+      }
+    },
+    "latency_ms": 31.79478645324707
+  },
+  "composer-4": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.6671,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.0283,
+        "edit": 0.8842,
+        "build": 0.0734,
+        "research": 0.0141
+      }
+    },
+    "latency_ms": 32.549142837524414
+  },
+  "composer-5": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "build",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 1.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0335,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.2807,
+        "edit": 0.1324,
+        "build": 0.2589,
+        "research": 0.3279
+      }
+    },
+    "latency_ms": 21.07381820678711
+  },
+  "composer-6": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "build",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 1.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.3241,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.0642,
+        "edit": 0.6611,
+        "build": 0.2234,
+        "research": 0.0513
+      }
+    },
+    "latency_ms": 26.191234588623047
+  },
+  "composer-7": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "build",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 1.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.1029,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "build",
+      "probabilities": {
+        "read": 0.1345,
+        "edit": 0.3126,
+        "build": 0.438,
+        "research": 0.115
+      }
+    },
+    "latency_ms": 30.598163604736328
+  },
+  "composer-8": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "research",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 1.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0144,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "read",
+      "probabilities": {
+        "read": 0.3117,
+        "edit": 0.1834,
+        "build": 0.2247,
+        "research": 0.2802
+      }
+    },
+    "latency_ms": 22.522926330566406
+  },
+  "composer-9": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "read",
+      "probabilities": {
+        "read": 1.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0031,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "build",
+      "probabilities": {
+        "read": 0.2584,
+        "edit": 0.2174,
+        "build": 0.2811,
+        "research": 0.2431
+      }
+    },
+    "latency_ms": 21.835803985595703
+  },
+  "composer-10": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "read",
+      "probabilities": {
+        "read": 1.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0985,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "read",
+      "probabilities": {
+        "read": 0.3741,
+        "edit": 0.3434,
+        "build": 0.2129,
+        "research": 0.0696
+      }
+    },
+    "latency_ms": 20.048856735229492
+  },
+  "composer-11": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "build",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 1.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.4619,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "build",
+      "probabilities": {
+        "read": 0.0606,
+        "edit": 0.0891,
+        "build": 0.788,
+        "research": 0.0622
+      }
+    },
+    "latency_ms": 36.20767593383789
+  },
+  "composer-12": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "research",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 1.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.7947,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.0349,
+        "edit": 0.0115,
+        "build": 0.0135,
+        "research": 0.9401
+      }
+    },
+    "latency_ms": 22.6898193359375
+  },
+  "composer-13": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "research",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 1.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.7673,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.0261,
+        "edit": 0.0263,
+        "build": 0.0159,
+        "research": 0.9317
+      }
+    },
+    "latency_ms": 21.040916442871094
+  },
+  "composer-14": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "research",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 1.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.7949,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.0163,
+        "edit": 0.0168,
+        "build": 0.0251,
+        "research": 0.9419
+      }
+    },
+    "latency_ms": 21.59571647644043
+  },
+  "composer-15": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "research",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 1.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.8673,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.0175,
+        "edit": 0.0117,
+        "build": 0.0052,
+        "research": 0.9656
+      }
+    },
+    "latency_ms": 23.396730422973633
+  },
+  "composer-16": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "research",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 1.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.9166,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.0084,
+        "edit": 0.0079,
+        "build": 0.0031,
+        "research": 0.9806
+      }
+    },
+    "latency_ms": 22.80592918395996
+  },
+  "composer-17": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "read",
+      "probabilities": {
+        "read": 1.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0248,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "build",
+      "probabilities": {
+        "read": 0.2839,
+        "edit": 0.2855,
+        "build": 0.2876,
+        "research": 0.143
+      }
+    },
+    "latency_ms": 27.866125106811523
+  },
+  "composer-18": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.091,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "build",
+      "probabilities": {
+        "read": 0.1784,
+        "edit": 0.3303,
+        "build": 0.3988,
+        "research": 0.0925
+      }
+    },
+    "latency_ms": 21.244049072265625
+  },
+  "composer-19": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0391,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.2256,
+        "edit": 0.347,
+        "build": 0.2937,
+        "research": 0.1337
+      }
+    },
+    "latency_ms": 21.361827850341797
+  },
+  "composer-20": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.6454,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.0352,
+        "edit": 0.8821,
+        "build": 0.0454,
+        "research": 0.0373
+      }
+    },
+    "latency_ms": 20.531892776489258
+  },
+  "composer-21": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0955,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.2058,
+        "edit": 0.4067,
+        "build": 0.309,
+        "research": 0.0785
+      }
+    },
+    "latency_ms": 21.05402946472168
+  },
+  "composer-22": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.6088,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.0347,
+        "edit": 0.8596,
+        "build": 0.0803,
+        "research": 0.0254
+      }
+    },
+    "latency_ms": 21.207094192504883
+  },
+  "composer-23": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0433,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.3182,
+        "edit": 0.3194,
+        "build": 0.2433,
+        "research": 0.1191
+      }
+    },
+    "latency_ms": 20.288944244384766
+  },
+  "composer-24": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.263,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.0926,
+        "edit": 0.5811,
+        "build": 0.2868,
+        "research": 0.0395
+      }
+    },
+    "latency_ms": 20.982027053833008
+  },
+  "composer-25": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.5878,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.0209,
+        "edit": 0.8298,
+        "build": 0.1328,
+        "research": 0.0165
+      }
+    },
+    "latency_ms": 20.836830139160156
+  },
+  "composer-26": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0028,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "read",
+      "probabilities": {
+        "read": 0.2759,
+        "edit": 0.2645,
+        "build": 0.2401,
+        "research": 0.2195
+      }
+    },
+    "latency_ms": 21.104812622070312
+  },
+  "composer-27": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.2755,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.1034,
+        "edit": 0.6238,
+        "build": 0.2285,
+        "research": 0.0443
+      }
+    },
+    "latency_ms": 20.389080047607422
+  },
+  "composer-28": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.8538,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.0099,
+        "edit": 0.9609,
+        "build": 0.0227,
+        "research": 0.0064
+      }
+    },
+    "latency_ms": 20.966768264770508
+  },
+  "composer-29": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "read",
+      "probabilities": {
+        "read": 1.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0194,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "read",
+      "probabilities": {
+        "read": 0.3056,
+        "edit": 0.3042,
+        "build": 0.2178,
+        "research": 0.1724
+      }
+    },
+    "latency_ms": 21.093130111694336
+  },
+  "composer-30": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "build",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 1.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0669,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "build",
+      "probabilities": {
+        "read": 0.1824,
+        "edit": 0.1458,
+        "build": 0.4362,
+        "research": 0.2355
+      }
+    },
+    "latency_ms": 21.069765090942383
+  },
+  "composer-31": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "build",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 1.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.2419,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "build",
+      "probabilities": {
+        "read": 0.1228,
+        "edit": 0.1618,
+        "build": 0.6312,
+        "research": 0.0841
+      }
+    },
+    "latency_ms": 20.560026168823242
+  },
+  "composer-32": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "build",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 1.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0169,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.1844,
+        "edit": 0.2483,
+        "build": 0.2318,
+        "research": 0.3356
+      }
+    },
+    "latency_ms": 20.77007293701172
+  },
+  "composer-35": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0281,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.2999,
+        "edit": 0.3369,
+        "build": 0.1829,
+        "research": 0.1804
+      }
+    },
+    "latency_ms": 21.61407470703125
+  },
+  "composer-36": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0203,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.1725,
+        "edit": 0.3254,
+        "build": 0.2839,
+        "research": 0.2182
+      }
+    },
+    "latency_ms": 20.972013473510742
+  },
+  "composer-37": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.6734,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.0239,
+        "edit": 0.8854,
+        "build": 0.0774,
+        "research": 0.0134
+      }
+    },
+    "latency_ms": 30.778884887695312
+  },
+  "composer-38": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "research",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 1.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.6948,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.0387,
+        "edit": 0.034,
+        "build": 0.0242,
+        "research": 0.9031
+      }
+    },
+    "latency_ms": 21.1641788482666
+  },
+  "composer-39": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "research",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 1.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0439,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.2833,
+        "edit": 0.1291,
+        "build": 0.2258,
+        "research": 0.3618
+      }
+    },
+    "latency_ms": 21.38209342956543
+  },
+  "composer-40": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "research",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 1.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0099,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "build",
+      "probabilities": {
+        "read": 0.2625,
+        "edit": 0.1876,
+        "build": 0.3012,
+        "research": 0.2487
+      }
+    },
+    "latency_ms": 20.79319953918457
+  },
+  "composer-41": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "build",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 1.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.1045,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "build",
+      "probabilities": {
+        "read": 0.1498,
+        "edit": 0.2643,
+        "build": 0.4695,
+        "research": 0.1165
+      }
+    },
+    "latency_ms": 20.728111267089844
+  },
+  "composer-42": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "build",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 1.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0437,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.268,
+        "edit": 0.3103,
+        "build": 0.3082,
+        "research": 0.1134
+      }
+    },
+    "latency_ms": 20.409107208251953
+  },
+  "composer-43": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "build",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 1.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0399,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.263,
+        "edit": 0.1267,
+        "build": 0.2607,
+        "research": 0.3496
+      }
+    },
+    "latency_ms": 20.328998565673828
+  },
+  "composer-44": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "build",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 1.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.6664,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.0173,
+        "edit": 0.8792,
+        "build": 0.0877,
+        "research": 0.0159
+      }
+    },
+    "latency_ms": 22.231101989746094
+  },
+  "composer-45": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "build",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 1.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.1151,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.1535,
+        "edit": 0.5127,
+        "build": 0.18,
+        "research": 0.1537
+      }
+    },
+    "latency_ms": 20.840883255004883
+  },
+  "composer-46": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "edit",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 1.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0364,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.2058,
+        "edit": 0.3934,
+        "build": 0.2134,
+        "research": 0.1875
+      }
+    },
+    "latency_ms": 20.39504051208496
+  },
+  "composer-47": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "read",
+      "probabilities": {
+        "read": 1.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0074,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.2161,
+        "edit": 0.2218,
+        "build": 0.255,
+        "research": 0.3071
+      }
+    },
+    "latency_ms": 20.495176315307617
+  },
+  "composer-48": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "read",
+      "probabilities": {
+        "read": 1.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.033,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.3182,
+        "edit": 0.1925,
+        "build": 0.1601,
+        "research": 0.3292
+      }
+    },
+    "latency_ms": 20.097970962524414
+  },
+  "composer-49": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "read",
+      "probabilities": {
+        "read": 1.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0393,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.2835,
+        "edit": 0.3351,
+        "build": 0.2576,
+        "research": 0.1238
+      }
+    },
+    "latency_ms": 20.254850387573242
+  },
+  "composer-50": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "read",
+      "probabilities": {
+        "read": 1.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0495,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "build",
+      "probabilities": {
+        "read": 0.1412,
+        "edit": 0.2735,
+        "build": 0.3893,
+        "research": 0.196
+      }
+    },
+    "latency_ms": 21.008014678955078
+  },
+  "composer-51": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "build",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 1.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.5993,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "edit",
+      "probabilities": {
+        "read": 0.0124,
+        "edit": 0.8304,
+        "build": 0.1392,
+        "research": 0.018
+      }
+    },
+    "latency_ms": 23.79584312438965
+  },
+  "composer-52": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "research",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 1.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.1882,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.095,
+        "edit": 0.1026,
+        "build": 0.2423,
+        "research": 0.5601
+      }
+    },
+    "latency_ms": 23.618221282958984
+  },
+  "composer-53": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "research",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 1.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.2765,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.1912,
+        "edit": 0.0764,
+        "build": 0.0846,
+        "research": 0.6478
+      }
+    },
+    "latency_ms": 23.543119430541992
+  },
+  "composer-54": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "research",
+      "probabilities": {
+        "read": 0.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 1.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.6645,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.0604,
+        "edit": 0.0267,
+        "build": 0.0253,
+        "research": 0.8876
+      }
+    },
+    "latency_ms": 23.233890533447266
+  },
+  "composer-55": {
+    "task": "composer_intent",
+    "qid": "q1",
+    "gold": {
+      "label": "read",
+      "probabilities": {
+        "read": 1.0,
+        "edit": 0.0,
+        "build": 0.0,
+        "research": 0.0
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "confidence": 0.0135,
+      "action": {
+        "act_probability": 1.0
+      },
+      "choice": "research",
+      "probabilities": {
+        "read": 0.2417,
+        "edit": 0.1904,
+        "build": 0.2414,
+        "research": 0.3265
+      }
+    },
+    "latency_ms": 24.19590950012207
+  },
+  "news-1": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7996,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7996
+    },
+    "latency_ms": 38.20300102233887
+  },
+  "news-2": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7574,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7574
+    },
+    "latency_ms": 39.90912437438965
+  },
+  "news-3": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.791,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.791
+    },
+    "latency_ms": 34.65723991394043
+  },
+  "news-4": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8043,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8043
+    },
+    "latency_ms": 35.60805320739746
+  },
+  "news-5": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9469,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9469
+    },
+    "latency_ms": 46.26917839050293
+  },
+  "news-6": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8084,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8084
+    },
+    "latency_ms": 44.944047927856445
+  },
+  "news-7": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8912,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8912
+    },
+    "latency_ms": 35.722970962524414
+  },
+  "news-8": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9335,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9335
+    },
+    "latency_ms": 33.15615653991699
+  },
+  "news-9": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9204,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9204
+    },
+    "latency_ms": 34.474849700927734
+  },
+  "news-10": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9333,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9333
+    },
+    "latency_ms": 47.2109317779541
+  },
+  "news-11": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9089,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9089
+    },
+    "latency_ms": 48.909902572631836
+  },
+  "news-12": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9223,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9223
+    },
+    "latency_ms": 49.54195022583008
+  },
+  "news-13": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8574,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8574
+    },
+    "latency_ms": 34.76095199584961
+  },
+  "news-14": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8683,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8683
+    },
+    "latency_ms": 34.77621078491211
+  },
+  "news-15": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9003,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9003
+    },
+    "latency_ms": 42.20008850097656
+  },
+  "news-16": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8516,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8516
+    },
+    "latency_ms": 34.728288650512695
+  },
+  "news-17": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.792,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.792
+    },
+    "latency_ms": 36.06605529785156
+  },
+  "news-18": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.862,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.862
+    },
+    "latency_ms": 37.19925880432129
+  },
+  "news-19": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9368,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9368
+    },
+    "latency_ms": 35.51483154296875
+  },
+  "news-20": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8868,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8868
+    },
+    "latency_ms": 37.336111068725586
+  },
+  "news-21": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9147,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9147
+    },
+    "latency_ms": 35.063982009887695
+  },
+  "news-22": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8935,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8935
+    },
+    "latency_ms": 33.38289260864258
+  },
+  "news-23": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8559,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8559
+    },
+    "latency_ms": 43.11490058898926
+  },
+  "news-24": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8853,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8853
+    },
+    "latency_ms": 35.56084632873535
+  },
+  "news-25": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7678,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7678
+    },
+    "latency_ms": 38.32411766052246
+  },
+  "news-26": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8144,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8144
+    },
+    "latency_ms": 34.47604179382324
+  },
+  "news-27": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8727,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8727
+    },
+    "latency_ms": 40.12298583984375
+  },
+  "news-28": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8062,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8062
+    },
+    "latency_ms": 34.040212631225586
+  },
+  "news-29": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9499,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9499
+    },
+    "latency_ms": 50.12917518615723
+  },
+  "news-30": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8818,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8818
+    },
+    "latency_ms": 34.42215919494629
+  },
+  "news-31": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9485,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9485
+    },
+    "latency_ms": 45.65310478210449
+  },
+  "news-32": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9021,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9021
+    },
+    "latency_ms": 36.49592399597168
+  },
+  "news-33": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9035,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9035
+    },
+    "latency_ms": 38.166046142578125
+  },
+  "news-34": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8426,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8426
+    },
+    "latency_ms": 33.42914581298828
+  },
+  "news-35": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8459,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8459
+    },
+    "latency_ms": 33.531904220581055
+  },
+  "news-36": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9501,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9501
+    },
+    "latency_ms": 37.4751091003418
+  },
+  "news-37": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9164,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9164
+    },
+    "latency_ms": 37.631988525390625
+  },
+  "news-38": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8902,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8902
+    },
+    "latency_ms": 34.61599349975586
+  },
+  "news-39": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8763,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8763
+    },
+    "latency_ms": 33.255815505981445
+  },
+  "news-40": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8868,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8868
+    },
+    "latency_ms": 31.727075576782227
+  },
+  "news-41": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8774,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8774
+    },
+    "latency_ms": 35.39419174194336
+  },
+  "news-42": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8874,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8874
+    },
+    "latency_ms": 31.805992126464844
+  },
+  "news-43": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8209,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8209
+    },
+    "latency_ms": 34.17801856994629
+  },
+  "news-44": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8866,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8866
+    },
+    "latency_ms": 35.331010818481445
+  },
+  "news-45": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8607,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8607
+    },
+    "latency_ms": 35.98785400390625
+  },
+  "news-46": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.93,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.93
+    },
+    "latency_ms": 34.90495681762695
+  },
+  "news-47": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8626,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8626
+    },
+    "latency_ms": 34.53421592712402
+  },
+  "news-48": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8663,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8663
+    },
+    "latency_ms": 36.37290000915527
+  },
+  "news-49": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9153,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9153
+    },
+    "latency_ms": 35.43901443481445
+  },
+  "news-50": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8572,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8572
+    },
+    "latency_ms": 34.74092483520508
+  },
+  "news-51": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8816,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8816
+    },
+    "latency_ms": 32.89794921875
+  },
+  "news-52": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8921,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8921
+    },
+    "latency_ms": 31.857967376708984
+  },
+  "news-53": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8214,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8214
+    },
+    "latency_ms": 32.42897987365723
+  },
+  "news-54": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8193,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8193
+    },
+    "latency_ms": 32.55510330200195
+  },
+  "news-55": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8634,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8634
+    },
+    "latency_ms": 32.06992149353027
+  },
+  "news-56": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8816,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8816
+    },
+    "latency_ms": 34.44194793701172
+  },
+  "news-57": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8705,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8705
+    },
+    "latency_ms": 34.57498550415039
+  },
+  "news-58": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9135,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9135
+    },
+    "latency_ms": 35.81690788269043
+  },
+  "news-59": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8426,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8426
+    },
+    "latency_ms": 31.790971755981445
+  },
+  "news-60": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8425,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8425
+    },
+    "latency_ms": 35.008907318115234
+  },
+  "news-61": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8879,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8879
+    },
+    "latency_ms": 35.22300720214844
+  },
+  "news-62": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8297,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8297
+    },
+    "latency_ms": 32.34410285949707
+  },
+  "news-63": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8093,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8093
+    },
+    "latency_ms": 32.176971435546875
+  },
+  "news-64": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8119,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8119
+    },
+    "latency_ms": 31.826019287109375
+  },
+  "news-65": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8745,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8745
+    },
+    "latency_ms": 43.38884353637695
+  },
+  "news-66": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8978,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8978
+    },
+    "latency_ms": 35.431861877441406
+  },
+  "news-67": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8443,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8443
+    },
+    "latency_ms": 35.318613052368164
+  },
+  "news-68": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8215,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8215
+    },
+    "latency_ms": 31.428813934326172
+  },
+  "news-69": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7474,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7474
+    },
+    "latency_ms": 35.160064697265625
+  },
+  "news-70": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.86,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.86
+    },
+    "latency_ms": 31.464099884033203
+  },
+  "news-71": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7823,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7823
+    },
+    "latency_ms": 32.17816352844238
+  },
+  "news-72": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.881,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.881
+    },
+    "latency_ms": 33.60891342163086
+  },
+  "news-73": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9538,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9538
+    },
+    "latency_ms": 32.38487243652344
+  },
+  "news-74": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8362,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8362
+    },
+    "latency_ms": 36.08107566833496
+  },
+  "news-75": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7871,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7871
+    },
+    "latency_ms": 32.08112716674805
+  },
+  "news-76": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8348,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8348
+    },
+    "latency_ms": 31.99601173400879
+  },
+  "news-77": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9481,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9481
+    },
+    "latency_ms": 173.75683784484863
+  },
+  "news-78": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8017,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8017
+    },
+    "latency_ms": 183.2270622253418
+  },
+  "news-79": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9276,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9276
+    },
+    "latency_ms": 230.4837703704834
+  },
+  "news-80": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8318,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8318
+    },
+    "latency_ms": 97.63407707214355
+  },
+  "news-81": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.888,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.888
+    },
+    "latency_ms": 89.91408348083496
+  },
+  "news-82": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9267,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9267
+    },
+    "latency_ms": 100.96073150634766
+  },
+  "news-83": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8422,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8422
+    },
+    "latency_ms": 492.6908016204834
+  },
+  "news-84": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.8787,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.8787
+    },
+    "latency_ms": 553.8837909698486
+  },
+  "news-85": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "yes",
+      "probabilities": {
+        "true": 1.0,
+        "false": 0.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.7647,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.7647
+    },
+    "latency_ms": 196.9606876373291
+  },
+  "news-86": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9721,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9721
+    },
+    "latency_ms": 153.2599925994873
+  },
+  "news-87": {
+    "task": "holding_relevance",
+    "qid": "q1",
+    "gold": {
+      "label": "no",
+      "probabilities": {
+        "true": 0.0,
+        "false": 1.0
+      }
+    },
+    "answer": {
+      "type": "noul",
+      "confidence": 0.9454,
+      "action": {
+        "act_probability": 1.0
+      },
+      "noul": 0.9454
+    },
+    "latency_ms": 748.4610080718994
+  }
+}

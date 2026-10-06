@@ -1,0 +1,78 @@
+$ sed greeks.py compute_greeks; grep price_european_bs
+"""Standalone Greeks dashboard helper — always Black-Scholes analytic.
+
+The Greeks Dashboard panel hits this surface independently of the
+generic option pricer so the user can sweep inputs without picking
+"black-scholes" each time. The analytic engine is the natural fit —
+delta/gamma/vega/theta/rho are exact closed-form values, and the BS
+price comes along for free so the panel can display both.
+"""
+
+from __future__ import annotations
+
+from models.quant import GreeksRequest, GreeksResult, OptionPricingRequest
+
+from ._common import holds_ql_lock
+from .options import price_european_bs
+
+
+@holds_ql_lock
+def compute_greeks(req: GreeksRequest) -> GreeksResult:
+    """Compute analytic Greeks for a European vanilla option.
+
+    Delegates to :func:`.options.price_european_bs` — the Greeks Dashboard
+    panel hits this surface independently of the generic option pricer so
+    the user can sweep inputs without picking "black-scholes" each time
+    (:class:`GreeksRequest` is the option-pricer's request shape minus
+    ``exercise``/``method``), but the engine call itself must stay one
+    definition (R15-CODE-PLATFORM-042). Returns Greeks per the QuantLib
+    internal convention (vega per unit-vol, theta per year); the panels
+    convert to vega per 1 vol point and theta per calendar day
+    (src/modules/quant/units.ts).
+    """
+    req.validate_domain()
+    option_req = OptionPricingRequest(
+        exercise="european",
+        payoff=req.payoff,
+        spot=req.spot,
+        strike=req.strike,
+        risk_free_rate=req.risk_free_rate,
+        dividend_yield=req.dividend_yield,
+        volatility=req.volatility,
+        valuation_date=req.valuation_date,
+        expiry_date=req.expiry_date,
+        method="black-scholes",
+    )
+    result = price_european_bs(option_req)
+    assert result.greeks is not None  # black-scholes always populates greeks
+
+    return GreeksResult(
+        greeks=result.greeks,
+        price=result.price,
+        duration_ms=result.duration_ms,
+    )
+
+
+__all__ = ["compute_greeks"]
+27:from __future__ import annotations
+29:import time
+31:import QuantLib as ql
+33:from models.quant import Greeks, OptionPricingRequest, OptionPricingResult
+35:from ._common import build_bsm_process, holds_ql_lock, ql_option_type, to_ql_date
+53:def price_european_bs(req: OptionPricingRequest) -> OptionPricingResult:
+100:def _build_binomial_option(req: OptionPricingRequest, steps: int) -> ql.VanillaOption:
+127:def _price_binomial_npv(req: OptionPricingRequest, steps: int) -> float:
+132:def _greeks_binomial(req: OptionPricingRequest, steps: int) -> Greeks:
+169:def price_american_binomial(req: OptionPricingRequest) -> OptionPricingResult:
+194:def price_european_mc(req: OptionPricingRequest) -> OptionPricingResult:
+253:def price(req: OptionPricingRequest) -> OptionPricingResult:
+
+$ POST /quant/option/greeks
+{"detail":[{"type":"extra_forbidden","loc":["body","exercise"],"msg":"Extra inputs are not permitted","input":"european"},{"type":"extra_forbidden","loc":["body","method"],"msg":"Extra inputs are not permitted","input":"black-scholes"}]}
+HTTP 422
+$ POST price BS
+{"price":4.636485649403124,"greeks":{"delta":0.5697421379584193,"gamma":0.03912260779322356,"vega":19.72208173685791,"theta":-10.441407965966642,"rho":13.191975313622933},"method":"black-scholes","monte_carlo_std_error":null,"duration_ms":0.15674997121095657}
+HTTP 200
+$ POST /quant/option/greeks (no exercise/method)
+{"greeks":{"delta":0.5697421379584193,"gamma":0.03912260779322356,"vega":19.72208173685791,"theta":-10.441407965966642,"rho":13.191975313622933},"price":4.636485649403124,"duration_ms":0.12295797932893038}
+HTTP 200

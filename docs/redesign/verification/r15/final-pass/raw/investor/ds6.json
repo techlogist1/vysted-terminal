@@ -1,0 +1,3241 @@
+{
+ "hist ^NSEI": [
+  200,
+  {
+   "symbol": "^NSEI",
+   "timeframe": "1d",
+   "bars": [
+    {
+     "timestamp": "2026-09-02T00:00:00+05:30",
+     "open": 23858.0,
+     "high": 23914.44921875,
+     "low": 23786.80078125,
+     "close": 23914.44921875,
+     "volume": 318900.0
+    },
+    {
+     "timestamp": "2026-09-03T00:00:00+05:30",
+     "open": 23997.94921875,
+     "high": 24025.400390625,
+     "low": 23873.44921875,
+     "close": 23873.44921875,
+     "volume": 239100.0
+    },
+    {
+     "timestamp": "2026-09-04T00:00:00+05:30",
+     "open": 23910.900390625,
+     "high": 24005.75,
+     "low": 23895.849609375,
+     "close": 23897.69921875,
+     "volume": 231400.0
+    },
+    {
+     "timestamp": "2026-09-07T00:00:00+05:30",
+     "open": 23883.150390625,
+     "high": 23890.0,
+     "low": 23737.900390625,
+     "close": 23779.150390625,
+     "volume": 205900.0
+    },
+    {
+     "timestamp": "2026-09-08T00:00:00+05:30",
+     "open": 23743.099609375,
+     "high": 23758.94921875,
+     "low": 23623.099609375,
+     "close": 23635.099609375,
+     "volume": 230100.0
+    },
+    {
+     "timestamp": "2026-09-09T00:00:00+05:30",
+     "open": 23522.05078125,
+     "high": 23571.55078125,
+     "low": 23431.5,
+     "close": 23431.5,
+     "volume": 352900.0
+    },
+    {
+     "timestamp": "2026-09-10T00:00:00+05:30",
+     "open": 23446.599609375,
+     "high": 23494.94921875,
+     "low": 23380.099609375,
+     "close": 23477.80078125,
+     "volume": 253200.0
+    },
+    {
+     "timestamp": "2026-09-11T00:00:00+05:30",
+     "open": 23270.30078125,
+     "high": 23448.099609375,
+     "low": 23231.400390625,
+     "close": 23398.099609375,
+     "volume": 293000.0
+    },
+    {
+     "timestamp": "2026-09-15T00:00:00+05:30",
+     "open": 23576.150390625,
+     "high": 23592.849609375,
+     "low": 23118.599609375,
+     "close": 23118.599609375,
+     "volume": 338800.0
+    },
+    {
+     "timestamp": "2026-09-16T00:00:00+05:30",
+     "open": 23201.599609375,
+     "high": 23284.75,
+     "low": 23116.099609375,
+     "close": 23217.599609375,
+     "volume": 261600.0
+    },
+    {
+     "timestamp": "2026-09-17T00:00:00+05:30",
+     "open": 23195.25,
+     "high": 23363.55078125,
+     "low": 23193.650390625,
+     "close": 23270.599609375,
+     "volume": 259700.0
+    },
+    {
+     "timestamp": "2026-09-18T00:00:00+05:30",
+     "open": 23334.69921875,
+     "high": 23389.150390625,
+     "low": 23286.599609375,
+     "close": 23346.400390625,
+     "volume": 375300.0
+    },
+    {
+     "timestamp": "2026-09-21T00:00:00+05:30",
+     "open": 23330.19921875,
+     "high": 23466.80078125,
+     "low": 23314.80078125,
+     "close": 23414.30078125,
+     "volume": 213600.0
+    },
+    {
+     "timestamp": "2026-09-22T00:00:00+05:30",
+     "open": 23454.05078125,
+     "high": 23489.0,
+     "low": 23285.75,
+     "close": 23329.0,
+     "volume": 244100.0
+    },
+    {
+     "timestamp": "2026-09-23T00:00:00+05:30",
+     "open": 23352.150390625,
+     "high": 23466.900390625,
+     "low": 23349.55078125,
+     "close": 23446.80078125,
+     "volume": 237600.0
+    },
+    {
+     "timestamp": "2026-09-24T00:00:00+05:30",
+     "open": 23221.80078125,
+     "high": 23281.94921875,
+     "low": 23046.150390625,
+     "close": 23063.099609375,
+     "volume": 271700.0
+    },
+    {
+     "timestamp": "2026-09-25T00:00:00+05:30",
+     "open": 23035.0,
+     "high": 23162.69921875,
+     "low": 23020.94921875,
+     "close": 23140.5,
+     "volume": 242700.0
+    },
+    {
+     "timestamp": "2026-09-28T00:00:00+05:30",
+     "open": 23064.900390625,
+     "high": 23080.25,
+     "low": 22762.19921875,
+     "close": 22780.25,
+     "volume": 261500.0
+    },
+    {
+     "timestamp": "2026-09-29T00:00:00+05:30",
+     "open": 22732.44921875,
+     "high": 22753.25,
+     "low": 22569.650390625,
+     "close": 22716.19921875,
+     "volume": 603200.0
+    },
+    {
+     "timestamp": "2026-09-30T00:00:00+05:30",
+     "open": 22665.0,
+     "high": 22809.349609375,
+     "low": 22595.19921875,
+     "close": 22620.44921875,
+     "volume": 379000.0
+    },
+    {
+     "timestamp": "2026-10-01T00:00:00+05:30",
+     "open": 22543.69921875,
+     "high": 22610.599609375,
+     "low": 22217.30078125,
+     "close": 22421.94921875,
+     "volume": 463600.0
+    }
+   ],
+   "provider": "yfinance",
+   "freshness": "eod",
+   "reason": null,
+   "partial": false,
+   "coverage_start": null
+  }
+ ],
+ "quote ^NSEI": [
+  200,
+  {
+   "symbol": "^NSEI",
+   "price": 22421.95,
+   "change": -198.49921874999927,
+   "change_percent": -0.8775211174208869,
+   "volume": 0.0,
+   "open": null,
+   "high": null,
+   "low": null,
+   "prev_close": null,
+   "currency": "INR",
+   "market_state": null,
+   "timestamp": "2026-10-01T10:01:12Z",
+   "provider": "yfinance",
+   "freshness": "eod"
+  }
+ ],
+ "earn ^NSEI": [
+  200,
+  {
+   "symbol": "^NSEI",
+   "history": [],
+   "as_of": "2026-10-03T09:39:02.356142Z"
+  }
+ ],
+ "news ^NSEI": [
+  200,
+  [
+   {
+    "id": "222f6fd3e1a62a4c",
+    "title": "Indian AI Stocks To Watch In September 2026",
+    "summary": "Indian shares have been under pressure, with the Sensex recently falling over 1,000 points and the Nifty50 slipping below 22,900 as foreign investors sell and oil worries grow. That kind of broad pullback can hide potential bargains in artificial intelligence related businesses. This article highlights three stocks from a focused screener of underpriced AI plays that could interest investors looking beyond short term volatility. The three AI related stocks in this article are only a starter...",
+    "url": "https://finance.yahoo.com/technology/ai/articles/indian-ai-stocks-watch-september-090902535.html?.tsrc=rss",
+    "source": "Yahoo! Finance: ^NSEI News",
+    "published_at": "2026-09-28T09:09:02Z",
+    "symbols": [
+     "^NSEI"
+    ],
+    "sentiment": 0.6808,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "f7ca1be3b6510eec",
+    "title": "Global funds retreat from Indian stocks as some cut exposure to zero - Bloomberg",
+    "summary": "Investing.com -- Global investors are pulling back from Indian equities, with some money managers cutting their allocations to zero as weak earnings, elevated valuations, and the lack of a major artificial-intelligence investment theme reduce the market\u2019s appeal, Bloomberg reported on Saturday.",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/global-funds-retreat-indian-stocks-054744514.html?.tsrc=rss",
+    "source": "Yahoo! Finance: ^NSEI News",
+    "published_at": "2026-09-12T05:47:44Z",
+    "symbols": [
+     "^NSEI"
+    ],
+    "sentiment": -0.7184,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "9b41c77889c57d43",
+    "title": "Indian shares set to open higher; Fed chair speech, closing auction volatility in focus",
+    "summary": "Aug 28 (Reuters) - Indian shares are expected to open higher on Friday after two straight sessions of losses, although caution may persist ahead of a speech by the Federal Reserve chair and after",
+    "url": "https://sg.finance.yahoo.com/news/indian-shares-set-open-higher-023719785.html?.tsrc=rss",
+    "source": "Yahoo! Finance: ^NSEI News",
+    "published_at": "2026-08-28T02:37:19Z",
+    "symbols": [
+     "^NSEI"
+    ],
+    "sentiment": 0.3818,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "b4d510e1da1cac13",
+    "title": "India's HDFC Bank slips to 2-1/2-year low as legal, leadership woes linger",
+    "summary": "By Bharath Rajeswaran and Vivek Kumar M Aug 27 (Reuters) - Shares of HDFC Bank, India's top private lender, fell for a third straight session on Thursday, dragging the country's benchmark stock index",
+    "url": "https://sg.finance.yahoo.com/news/indias-hdfc-bank-slips-2-091645918.html?.tsrc=rss",
+    "source": "Yahoo! Finance: ^NSEI News",
+    "published_at": "2026-08-27T10:44:12Z",
+    "symbols": [
+     "^NSEI"
+    ],
+    "sentiment": 0.1027,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "4f1d9672e43684cb",
+    "title": "India equity outlook cut again as foreign funds seek value elsewhere in Asia: Reuters poll",
+    "summary": "By Vivek Mishra BENGALURU, Aug 26 (Reuters) - India's stock market will trade lower by the middle of next year than it did at the start of 2026, according to a Reuters poll of equity analysts \u2014 the",
+    "url": "https://sg.finance.yahoo.com/news/india-equity-outlook-cut-again-092251458.html?.tsrc=rss",
+    "source": "Yahoo! Finance: ^NSEI News",
+    "published_at": "2026-08-26T17:31:28Z",
+    "symbols": [
+     "^NSEI"
+    ],
+    "sentiment": -0.2263,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "bd9dce23593b88c9",
+    "title": "Indian shares open lower as Middle East tensions persist, Nifty expiry looms",
+    "summary": "Aug 25 (Reuters) - Indian shares opened marginally lower on Tuesday as investors assessed tensions in the Middle East and the impact on oil supplies, while caution persisted ahead of the monthly",
+    "url": "https://sg.finance.yahoo.com/news/indian-shares-seen-lower-mideast-022201814.html?.tsrc=rss",
+    "source": "Yahoo! Finance: ^NSEI News",
+    "published_at": "2026-08-25T03:47:53Z",
+    "symbols": [
+     "^NSEI"
+    ],
+    "sentiment": -0.4601,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "7427107c7c33e4e5",
+    "title": "India Prices $10 Billion of Equity Deals in August, a Record Month",
+    "summary": "India priced almost $10 billion of equity deals in August, its best month ever, led by the government's LIC stake sale.",
+    "url": "https://beincrypto.com/india-equity-deals-record-august/?.tsrc=rss",
+    "source": "Yahoo! Finance: ^NSEI News",
+    "published_at": "2026-08-24T07:41:44Z",
+    "symbols": [
+     "^NSEI"
+    ],
+    "sentiment": 0.6369,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "1cbe8365ce53b218",
+    "title": "Indian shares likely to open higher; caution ahead of new Iran sanctions",
+    "summary": "Aug 24 (Reuters) - Indian shares were expected to open marginally higher on Monday, following two consecutive weekly losses, although sentiment will remain cautious as investors await details of",
+    "url": "https://sg.finance.yahoo.com/news/indian-shares-likely-open-higher-022143046.html?.tsrc=rss",
+    "source": "Yahoo! Finance: ^NSEI News",
+    "published_at": "2026-08-24T02:21:43Z",
+    "symbols": [
+     "^NSEI"
+    ],
+    "sentiment": 0.1779,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "a2e032457e577f0d",
+    "title": "Global shocks, IPO wave could temper India's earnings-led market revival, Abakkus Investment says",
+    "summary": "Aug 19 (Reuters) - Robust profit growth for India's Nifty 50 companies has brightened the outlook for domestic markets, but global risk aversion and a strong IPO pipeline could temper a broader rally",
+    "url": "https://sg.finance.yahoo.com/news/global-shocks-ipo-wave-could-114233988.html?.tsrc=rss",
+    "source": "Yahoo! Finance: ^NSEI News",
+    "published_at": "2026-08-19T11:42:33Z",
+    "symbols": [
+     "^NSEI"
+    ],
+    "sentiment": -0.2732,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "0111b4319f8a7482",
+    "title": "Indian shares set for muted start as Middle East risks weigh",
+    "summary": "Aug 14 (Reuters) - Indian shares are expected to open little changed on Friday as reduced possibilities of a U.S.",
+    "url": "https://sg.finance.yahoo.com/news/indian-shares-set-muted-start-022759830.html?.tsrc=rss",
+    "source": "Yahoo! Finance: ^NSEI News",
+    "published_at": "2026-08-14T02:27:59Z",
+    "symbols": [
+     "^NSEI"
+    ],
+    "sentiment": 0.3182,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   }
+  ]
+ ],
+ "rat ^NSEI": [
+  200,
+  {
+   "symbol": "^NSEI",
+   "consensus": null,
+   "target_mean": null,
+   "target_high": null,
+   "target_low": null,
+   "strong_buy": 0,
+   "buy": 0,
+   "hold": 0,
+   "sell": 0,
+   "strong_sell": 0,
+   "provider": "yfinance",
+   "as_of": "2026-10-03T09:39:07.888942Z"
+  }
+ ],
+ "hist BHP.AX": [
+  200,
+  {
+   "symbol": "BHP.AX",
+   "timeframe": "1d",
+   "bars": [
+    {
+     "timestamp": "2026-09-02T00:00:00+10:00",
+     "open": 63.86709568436283,
+     "high": 64.07261255813869,
+     "low": 62.87865098677631,
+     "close": 63.27011489868164,
+     "volume": 8174214.0
+    },
+    {
+     "timestamp": "2026-09-03T00:00:00+10:00",
+     "open": 63.630001068115234,
+     "high": 64.16000366210938,
+     "low": 63.2400016784668,
+     "close": 63.779998779296875,
+     "volume": 8669790.0
+    },
+    {
+     "timestamp": "2026-09-04T00:00:00+10:00",
+     "open": 63.720001220703125,
+     "high": 63.720001220703125,
+     "low": 61.970001220703125,
+     "close": 62.25,
+     "volume": 6747774.0
+    },
+    {
+     "timestamp": "2026-09-07T00:00:00+10:00",
+     "open": 62.77000045776367,
+     "high": 63.56999969482422,
+     "low": 62.5,
+     "close": 62.93000030517578,
+     "volume": 5923786.0
+    },
+    {
+     "timestamp": "2026-09-08T00:00:00+10:00",
+     "open": 63.04999923706055,
+     "high": 63.189998626708984,
+     "low": 62.404998779296875,
+     "close": 62.54999923706055,
+     "volume": 5852628.0
+    },
+    {
+     "timestamp": "2026-09-09T00:00:00+10:00",
+     "open": 63.88999938964844,
+     "high": 64.58000183105469,
+     "low": 63.790000915527344,
+     "close": 64.58000183105469,
+     "volume": 7990305.0
+    },
+    {
+     "timestamp": "2026-09-10T00:00:00+10:00",
+     "open": 63.790000915527344,
+     "high": 63.91999816894531,
+     "low": 62.1150016784668,
+     "close": 63.439998626708984,
+     "volume": 7680694.0
+    },
+    {
+     "timestamp": "2026-09-11T00:00:00+10:00",
+     "open": 60.5,
+     "high": 61.13999938964844,
+     "low": 60.27000045776367,
+     "close": 60.869998931884766,
+     "volume": 7950459.0
+    },
+    {
+     "timestamp": "2026-09-14T00:00:00+10:00",
+     "open": 60.68000030517578,
+     "high": 60.75,
+     "low": 59.88999938964844,
+     "close": 60.59000015258789,
+     "volume": 6593698.0
+    },
+    {
+     "timestamp": "2026-09-15T00:00:00+10:00",
+     "open": 59.59000015258789,
+     "high": 59.77000045776367,
+     "low": 58.970001220703125,
+     "close": 59.25,
+     "volume": 7891370.0
+    },
+    {
+     "timestamp": "2026-09-16T00:00:00+10:00",
+     "open": 59.599998474121094,
+     "high": 60.20000076293945,
+     "low": 59.25,
+     "close": 60.20000076293945,
+     "volume": 6658462.0
+    },
+    {
+     "timestamp": "2026-09-17T00:00:00+10:00",
+     "open": 61.0,
+     "high": 61.0,
+     "low": 59.75,
+     "close": 60.209999084472656,
+     "volume": 11308664.0
+    },
+    {
+     "timestamp": "2026-09-18T00:00:00+10:00",
+     "open": 60.90999984741211,
+     "high": 61.060001373291016,
+     "low": 60.369998931884766,
+     "close": 61.04999923706055,
+     "volume": 17133189.0
+    },
+    {
+     "timestamp": "2026-09-21T00:00:00+10:00",
+     "open": 60.63999938964844,
+     "high": 60.939998626708984,
+     "low": 60.459999084472656,
+     "close": 60.779998779296875,
+     "volume": 4246860.0
+    },
+    {
+     "timestamp": "2026-09-22T00:00:00+10:00",
+     "open": 60.5,
+     "high": 61.375,
+     "low": 60.47999954223633,
+     "close": 61.220001220703125,
+     "volume": 5687714.0
+    },
+    {
+     "timestamp": "2026-09-23T00:00:00+10:00",
+     "open": 61.83000183105469,
+     "high": 62.689998626708984,
+     "low": 61.75,
+     "close": 62.06999969482422,
+     "volume": 7354781.0
+    },
+    {
+     "timestamp": "2026-09-24T00:00:00+10:00",
+     "open": 60.47999954223633,
+     "high": 61.130001068115234,
+     "low": 60.34000015258789,
+     "close": 61.02000045776367,
+     "volume": 7669696.0
+    },
+    {
+     "timestamp": "2026-09-25T00:00:00+10:00",
+     "open": 60.45000076293945,
+     "high": 60.84000015258789,
+     "low": 60.31999969482422,
+     "close": 60.720001220703125,
+     "volume": 6511835.0
+    },
+    {
+     "timestamp": "2026-09-28T00:00:00+10:00",
+     "open": 60.900001525878906,
+     "high": 60.959999084472656,
+     "low": 59.7599983215332,
+     "close": 59.79999923706055,
+     "volume": 8255663.0
+    },
+    {
+     "timestamp": "2026-09-29T00:00:00+10:00",
+     "open": 60.09000015258789,
+     "high": 60.630001068115234,
+     "low": 59.9900016784668,
+     "close": 60.630001068115234,
+     "volume": 5727042.0
+    },
+    {
+     "timestamp": "2026-09-30T00:00:00+10:00",
+     "open": 60.529998779296875,
+     "high": 61.30500030517578,
+     "low": 60.45000076293945,
+     "close": 60.81999969482422,
+     "volume": 9355885.0
+    },
+    {
+     "timestamp": "2026-10-01T00:00:00+10:00",
+     "open": 61.47999954223633,
+     "high": 61.5,
+     "low": 60.2599983215332,
+     "close": 60.2599983215332,
+     "volume": 9925386.0
+    },
+    {
+     "timestamp": "2026-10-02T00:00:00+10:00",
+     "open": 60.52000045776367,
+     "high": 61.209999084472656,
+     "low": 60.43000030517578,
+     "close": 61.209999084472656,
+     "volume": 7394485.0
+    }
+   ],
+   "provider": "yfinance",
+   "freshness": "eod",
+   "reason": null,
+   "partial": false,
+   "coverage_start": null
+  }
+ ],
+ "quote BHP.AX": [
+  200,
+  {
+   "symbol": "BHP.AX",
+   "price": 61.209999084472656,
+   "change": 0.9500007629394531,
+   "change_percent": 1.5765031354140968,
+   "volume": 7394485.0,
+   "open": null,
+   "high": null,
+   "low": null,
+   "prev_close": null,
+   "currency": "AUD",
+   "market_state": null,
+   "timestamp": "2026-10-02T06:18:01Z",
+   "provider": "yfinance",
+   "freshness": "eod"
+  }
+ ],
+ "earn BHP.AX": [
+  200,
+  {
+   "symbol": "BHP.AX",
+   "history": [],
+   "as_of": "2026-10-03T09:39:15.647691Z"
+  }
+ ],
+ "news BHP.AX": [
+  200,
+  [
+   {
+    "id": "2f6cf20f717d3054",
+    "title": "Basic Materials Roundup: Market Talk",
+    "summary": "Find insight on Uranium Energy, Glencore, BHP and more in the latest Market Talks covering Basic Materials.",
+    "url": "https://in.finance.yahoo.com/m/bb627fb0-dc9f-345f-b120-2e4e858addf5/basic-materials-roundup%3A.html?.tsrc=rss",
+    "source": "Yahoo! Finance: BHP.AX News",
+    "published_at": "2026-10-02T21:25:00Z",
+    "symbols": [
+     "BHP.AX"
+    ],
+    "sentiment": 0.2732,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "285a35e43f61af77",
+    "title": "BofA Securities names top mining stocks as copper outlook brightens",
+    "summary": "Investing.com -- BofA Securities has updated its mining sector rankings, elevating several major producers as the investment bank raised its long-term copper price forecast by 20% to $12,000 per ton for 2026. The upgrade reflects persistent supply issues that continue to push copper prices higher, even as analysts monitor risks from potential energy shocks and data center capital expenditure pauses.",
+    "url": "https://finance.yahoo.com/markets/commodities/articles/bofa-securities-names-top-mining-190437796.html?.tsrc=rss",
+    "source": "Yahoo! Finance: BHP.AX News",
+    "published_at": "2026-10-01T19:04:37Z",
+    "symbols": [
+     "BHP.AX"
+    ],
+    "sentiment": 0.6249,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "fa431a5b7a3fe659",
+    "title": "TECK or BHP: Which Is the Better Value Stock Right Now?",
+    "summary": "TECK vs. BHP: Which Stock Is the Better Value Option?",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/teck-bhp-better-value-stock-144003299.html?.tsrc=rss",
+    "source": "Yahoo! Finance: BHP.AX News",
+    "published_at": "2026-09-29T14:40:03Z",
+    "symbols": [
+     "BHP.AX"
+    ],
+    "sentiment": 0.8738,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "a1efa0e5706a46af",
+    "title": "Could BHP (BHP)\u2019s Copper Exposure Outweigh its Rising Capital Costs?",
+    "summary": "BHP Group Limited (NYSE:BHP) has initiated a progressive resumption of activities at its Escondida asset in Chile, the world\u2019s largest copper mine, following a temporary site-wide suspension triggered by a fatal maintenance accident. The company suspended mining operations to conduct safety assessments, evaluate workforce readiness, and secure required clearance from Chilean regulatory authorities. Operated by [\u2026]",
+    "url": "https://finance.yahoo.com/markets/commodities/articles/could-bhp-bhp-copper-exposure-011519300.html?.tsrc=rss",
+    "source": "Yahoo! Finance: BHP.AX News",
+    "published_at": "2026-09-29T01:15:19Z",
+    "symbols": [
+     "BHP.AX"
+    ],
+    "sentiment": -0.4404,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "18012a2dde9bc550",
+    "title": "Miners bound to megadeal playbook in pursuit of global scale",
+    "summary": "By Clara Denina LONDON, Sept 28 (Reuters) - Mining companies are set on building scale through M&amp;A and partnerships to tackle financial and geopolitical hurdles, despite several thwarted megadeals",
+    "url": "https://ca.finance.yahoo.com/news/miners-bound-megadeal-playbook-pursuit-170756126.html?.tsrc=rss",
+    "source": "Yahoo! Finance: BHP.AX News",
+    "published_at": "2026-09-28T17:07:56Z",
+    "symbols": [
+     "BHP.AX"
+    ],
+    "sentiment": 0.0191,
+    "sentiment_label": "neutral",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "221a477e9fb4b436",
+    "title": "Top 3 Australian Dividend Stocks With Yield Over 3%",
+    "summary": "Australian dividend stocks are back in focus after the AI boom pushed local government bond yields toward 5.5%, making income harder to judge and volatility harder to ignore. Reliable payouts that clear 3% and show strong cover suddenly look more attractive than ever. This article walks through three high yielding dividend powerhouses from our screen and explains why their income profiles may appeal to investors seeking steadier cash flow. The three stocks in this article are only a starter...",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/top-3-australian-dividend-stocks-231150816.html?.tsrc=rss",
+    "source": "Yahoo! Finance: BHP.AX News",
+    "published_at": "2026-09-27T23:11:50Z",
+    "symbols": [
+     "BHP.AX"
+    ],
+    "sentiment": 0.8122,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "45a4ff1dcbc87e39",
+    "title": "Can Freeport-McMoRan's Growth Projects Drive the Next Expansion Wave?",
+    "summary": "FCX advances major expansion projects, lifting copper capacity and output as its organic pipeline targets the next growth phase.",
+    "url": "https://finance.yahoo.com/markets/commodities/articles/freeport-mcmorans-growth-projects-drive-111600222.html?.tsrc=rss",
+    "source": "Yahoo! Finance: BHP.AX News",
+    "published_at": "2026-09-25T11:16:00Z",
+    "symbols": [
+     "BHP.AX"
+    ],
+    "sentiment": 0.6369,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "93fee24e3f09bfbd",
+    "title": "BHP suspends activities at Escondida mine after maintenance accident",
+    "summary": "The incident happened during maintenance work, with the site\u2019s union saying a front-end loader was involved.",
+    "url": "https://www.mining-technology.com/news/bhp-suspends-activities-escondida-mine/?.tsrc=rss",
+    "source": "Yahoo! Finance: BHP.AX News",
+    "published_at": "2026-09-24T10:38:19Z",
+    "symbols": [
+     "BHP.AX"
+    ],
+    "sentiment": -0.4767,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "3b321316b4dd3e65",
+    "title": "GoComet launches Nova, an AI-native execution layer for enterprise logistics, at Odyssey Singapore",
+    "summary": "Last week at Odyssey, its flagship gathering of the leaders who run global supply chains, GoComet launched Nova, an AI-native execution layer for enterprise logistics. The Singapore edition was attended by over 150 supply chain and logistics leaders from global enterprises, including Shell, BHP, Bayer, L'Or\u00e9al and DP World.",
+    "url": "https://finance.yahoo.com/technology/ai/articles/gocomet-launches-nova-ai-native-010000514.html?.tsrc=rss",
+    "source": "Yahoo! Finance: BHP.AX News",
+    "published_at": "2026-09-24T01:00:00Z",
+    "symbols": [
+     "BHP.AX"
+    ],
+    "sentiment": 0.2263,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "1f785a9f612d8aa1",
+    "title": "World's largest copper mine halts operations after worker death",
+    "summary": "SANTIAGO, Sept 23 () - Operations at the world's largest copper mine, BHP's Escondida \u200cmine in Chile, were suspended \u200con Wednesday after a worker was killed in an \u200baccident, the firm said. BHP said the worker had been killed while carrying out maintenance work.",
+    "url": "https://finance.yahoo.com/news/fatal-accident-occurs-bhps-chile-181850851.html?.tsrc=rss",
+    "source": "Yahoo! Finance: BHP.AX News",
+    "published_at": "2026-09-23T19:40:51Z",
+    "symbols": [
+     "BHP.AX"
+    ],
+    "sentiment": -0.9517,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   }
+  ]
+ ],
+ "rat BHP.AX": [
+  200,
+  {
+   "symbol": "BHP.AX",
+   "consensus": "hold",
+   "target_mean": 60.87447,
+   "target_high": 70.64185,
+   "target_low": 43.425144,
+   "strong_buy": 2,
+   "buy": 3,
+   "hold": 10,
+   "sell": 1,
+   "strong_sell": 1,
+   "provider": "yfinance",
+   "as_of": "2026-10-03T09:39:20.184168Z"
+  }
+ ],
+ "hist 0700.HK": [
+  200,
+  {
+   "symbol": "0700.HK",
+   "timeframe": "1d",
+   "bars": [
+    {
+     "timestamp": "2026-09-02T00:00:00+08:00",
+     "open": 439.0,
+     "high": 441.3999938964844,
+     "low": 435.0,
+     "close": 438.20001220703125,
+     "volume": 21341328.0
+    },
+    {
+     "timestamp": "2026-09-03T00:00:00+08:00",
+     "open": 444.20001220703125,
+     "high": 445.6000061035156,
+     "low": 433.0,
+     "close": 433.0,
+     "volume": 17387096.0
+    },
+    {
+     "timestamp": "2026-09-04T00:00:00+08:00",
+     "open": 442.3999938964844,
+     "high": 447.6000061035156,
+     "low": 440.0,
+     "close": 442.79998779296875,
+     "volume": 24025286.0
+    },
+    {
+     "timestamp": "2026-09-07T00:00:00+08:00",
+     "open": 440.6000061035156,
+     "high": 442.6000061035156,
+     "low": 438.20001220703125,
+     "close": 438.3999938964844,
+     "volume": 10442987.0
+    },
+    {
+     "timestamp": "2026-09-08T00:00:00+08:00",
+     "open": 437.0,
+     "high": 439.79998779296875,
+     "low": 435.0,
+     "close": 435.3999938964844,
+     "volume": 10414838.0
+    },
+    {
+     "timestamp": "2026-09-09T00:00:00+08:00",
+     "open": 436.20001220703125,
+     "high": 438.3999938964844,
+     "low": 432.79998779296875,
+     "close": 434.0,
+     "volume": 17643957.0
+    },
+    {
+     "timestamp": "2026-09-10T00:00:00+08:00",
+     "open": 430.0,
+     "high": 430.79998779296875,
+     "low": 425.0,
+     "close": 425.6000061035156,
+     "volume": 22333165.0
+    },
+    {
+     "timestamp": "2026-09-11T00:00:00+08:00",
+     "open": 419.3999938964844,
+     "high": 430.79998779296875,
+     "low": 419.3999938964844,
+     "close": 428.3999938964844,
+     "volume": 15628379.0
+    },
+    {
+     "timestamp": "2026-09-14T00:00:00+08:00",
+     "open": 423.79998779296875,
+     "high": 435.3999938964844,
+     "low": 423.79998779296875,
+     "close": 430.6000061035156,
+     "volume": 11363985.0
+    },
+    {
+     "timestamp": "2026-09-15T00:00:00+08:00",
+     "open": 428.0,
+     "high": 446.0,
+     "low": 428.0,
+     "close": 438.79998779296875,
+     "volume": 21791117.0
+    },
+    {
+     "timestamp": "2026-09-16T00:00:00+08:00",
+     "open": 438.79998779296875,
+     "high": 438.79998779296875,
+     "low": 432.6000061035156,
+     "close": 433.3999938964844,
+     "volume": 12686315.0
+    },
+    {
+     "timestamp": "2026-09-17T00:00:00+08:00",
+     "open": 426.20001220703125,
+     "high": 431.0,
+     "low": 425.0,
+     "close": 426.0,
+     "volume": 16185147.0
+    },
+    {
+     "timestamp": "2026-09-18T00:00:00+08:00",
+     "open": 428.0,
+     "high": 430.3999938964844,
+     "low": 419.0,
+     "close": 419.0,
+     "volume": 28796138.0
+    },
+    {
+     "timestamp": "2026-09-21T00:00:00+08:00",
+     "open": 424.6000061035156,
+     "high": 434.79998779296875,
+     "low": 423.0,
+     "close": 430.0,
+     "volume": 19669333.0
+    },
+    {
+     "timestamp": "2026-09-22T00:00:00+08:00",
+     "open": 442.79998779296875,
+     "high": 463.3999938964844,
+     "low": 442.0,
+     "close": 451.6000061035156,
+     "volume": 70723438.0
+    },
+    {
+     "timestamp": "2026-09-23T00:00:00+08:00",
+     "open": 453.3999938964844,
+     "high": 454.3999938964844,
+     "low": 438.6000061035156,
+     "close": 441.0,
+     "volume": 22309793.0
+    },
+    {
+     "timestamp": "2026-09-24T00:00:00+08:00",
+     "open": 435.0,
+     "high": 439.79998779296875,
+     "low": 433.3999938964844,
+     "close": 438.3999938964844,
+     "volume": 14277944.0
+    },
+    {
+     "timestamp": "2026-09-25T00:00:00+08:00",
+     "open": 433.79998779296875,
+     "high": 437.20001220703125,
+     "low": 431.20001220703125,
+     "close": 436.6000061035156,
+     "volume": 9113746.0
+    },
+    {
+     "timestamp": "2026-09-28T00:00:00+08:00",
+     "open": 441.3999938964844,
+     "high": 447.0,
+     "low": 438.6000061035156,
+     "close": 439.79998779296875,
+     "volume": 15335550.0
+    },
+    {
+     "timestamp": "2026-09-29T00:00:00+08:00",
+     "open": 439.3999938964844,
+     "high": 439.3999938964844,
+     "low": 431.6000061035156,
+     "close": 432.0,
+     "volume": 18015236.0
+    },
+    {
+     "timestamp": "2026-09-30T00:00:00+08:00",
+     "open": 430.0,
+     "high": 432.20001220703125,
+     "low": 424.3999938964844,
+     "close": 431.0,
+     "volume": 22634903.0
+    },
+    {
+     "timestamp": "2026-10-02T00:00:00+08:00",
+     "open": 422.0,
+     "high": 425.0,
+     "low": 419.79998779296875,
+     "close": 421.20001220703125,
+     "volume": 19108045.0
+    }
+   ],
+   "provider": "yfinance",
+   "freshness": "eod",
+   "reason": null,
+   "partial": false,
+   "coverage_start": null
+  }
+ ],
+ "quote 0700.HK": [
+  200,
+  {
+   "symbol": "0700.HK",
+   "price": 421.20001220703125,
+   "change": -9.79998779296875,
+   "change_percent": -2.2737790702943736,
+   "volume": 19108045.0,
+   "open": null,
+   "high": null,
+   "low": null,
+   "prev_close": null,
+   "currency": "HKD",
+   "market_state": null,
+   "timestamp": "2026-10-02T08:08:07Z",
+   "provider": "yfinance",
+   "freshness": "eod"
+  }
+ ],
+ "earn 0700.HK": [
+  200,
+  {
+   "symbol": "0700.HK",
+   "history": [
+    {
+     "fiscal_period": null,
+     "period_end": "2026-06-30",
+     "reported_date": "2026-08-12",
+     "eps_actual": 7.433,
+     "eps_estimate_mean": 7.23544,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "HKD",
+     "revenue_currency": null
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2026-03-31",
+     "reported_date": "2026-05-13",
+     "eps_actual": 7.364,
+     "eps_estimate_mean": 7.23466,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "HKD",
+     "revenue_currency": null
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2025-12-31",
+     "reported_date": "2026-03-18",
+     "eps_actual": 6.966,
+     "eps_estimate_mean": 6.86455,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "HKD",
+     "revenue_currency": null
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2025-09-30",
+     "reported_date": "2025-11-13",
+     "eps_actual": 7.575,
+     "eps_estimate_mean": 7.03248,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "HKD",
+     "revenue_currency": null
+    }
+   ],
+   "as_of": "2026-10-03T09:39:26.821402Z"
+  }
+ ],
+ "news 0700.HK": [
+  200,
+  [
+   {
+    "id": "3d6dc863d1458161",
+    "title": "Oracle Lands Major Cloud Deal With Tencent: Report",
+    "summary": "Oracle stock wavered following a report that the tech giant landed a $7 billion cloud deal with Tencent.",
+    "url": "https://in.finance.yahoo.com/m/6d7fc8f7-2512-388c-a95b-478bfddbaf70/oracle-lands-major-cloud-deal.html?.tsrc=rss",
+    "source": "Yahoo! Finance: 0700.HK News",
+    "published_at": "2026-10-01T14:09:09Z",
+    "symbols": [
+     "0700.HK"
+    ],
+    "sentiment": 0.0,
+    "sentiment_label": "neutral",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "acfb6f16db02460e",
+    "title": "Tencent Signs Major Lease Deal With Oracle to Access 100,000 Advanced AI Chips",
+    "summary": "Key Stats for Oracle StockPrice change for Oracle stock in last 1 year : -52%$ORCL Stock Price as of Sep. 30: $13752-Week High: $323$ORCL Stock Price Target: $238What Happened?Tencent has signed its largest overseas lease deal with Oracle (ORCL:NYSE), the Financial Times reported on Wednesday.",
+    "url": "https://www.tikr.com/blog/tencent-oracle-lease-deal-100000-ai-chips?ref=yahoofinance&.tsrc=rss",
+    "source": "Yahoo! Finance: 0700.HK News",
+    "published_at": "2026-10-01T13:44:52Z",
+    "symbols": [
+     "0700.HK"
+    ],
+    "sentiment": 0.25,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "31f14f3aad720407",
+    "title": "Tencent leases 100,000 AI chips from Oracle in $7 billion deal",
+    "summary": "The Chinese tech giant agreed to a five-year lease across multiple Oracle data centers in Southeast Asia, with an upfront payment of about 30%",
+    "url": "https://qz.com/tencent-oracle-ai-chips-lease-deal-100126?.tsrc=rss",
+    "source": "Yahoo! Finance: 0700.HK News",
+    "published_at": "2026-10-01T11:10:16Z",
+    "symbols": [
+     "0700.HK"
+    ],
+    "sentiment": 0.2732,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "da100f07b72d435e",
+    "title": "Why Is ORCL Stock Jumping Over 2.5% In Overnight Trading?",
+    "summary": "Tencent has reportedly signed a $7 billion, five-year cloud deal with Oracle.",
+    "url": "https://stocktwits.com/news-articles/markets/equity/why-is-orcl-stock-jumping-over-2-5-in-overnight-trading/cZDirDpRBLH?.tsrc=rss",
+    "source": "Yahoo! Finance: 0700.HK News",
+    "published_at": "2026-10-01T04:17:46Z",
+    "symbols": [
+     "0700.HK"
+    ],
+    "sentiment": 0.0,
+    "sentiment_label": "neutral",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "c1127f326bb69393",
+    "title": "Tencent leases 100,000 chips from Oracle for $7 bln- FT",
+    "summary": "Investing.com-- Tencent signed a $7 billion lease deal with Oracle to gain access to about 100,000 advanced artificial intelligence chips, as the Chinese internet giant races to catch up in the AI race, the Financial Times reported on Thursday.",
+    "url": "https://finance.yahoo.com/technology/ai/articles/tencent-leases-100-000-chips-035844927.html?.tsrc=rss",
+    "source": "Yahoo! Finance: 0700.HK News",
+    "published_at": "2026-10-01T03:58:44Z",
+    "symbols": [
+     "0700.HK"
+    ],
+    "sentiment": 0.8176,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "d11bc809acaf3078",
+    "title": "Cava recruits CMO from outside the restaurant world",
+    "summary": "John Ludeke, who was previously chief brand officer of men\u2019s grooming brand Dr. Squatch, will lead marketing at the fast-casual chain.",
+    "url": "https://www.nrn.com/fast-casual/cava-recruits-cmo-from-outside-the-restaurant-world?.tsrc=rss",
+    "source": "Yahoo! Finance: 0700.HK News",
+    "published_at": "2026-09-30T20:00:00Z",
+    "symbols": [
+     "0700.HK"
+    ],
+    "sentiment": 0.0,
+    "sentiment_label": "neutral",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "4e422b0edc58b290",
+    "title": "2 China-Focused ETFs For After the Trump-Xi Summit",
+    "summary": "After the Trump-Xi summit, China ETFs KWEB and FXI offer different risk profiles, with KWEB tied to tech and consumer trends and FXI reflecting the broader Chinese economy.",
+    "url": "https://www.marketbeat.com/articles/2-china-focused-etfs-for-after-the-trump-xi-summit/?utm_source=yahoofinance&utm_medium=yahoofinance&.tsrc=rss",
+    "source": "Yahoo! Finance: 0700.HK News",
+    "published_at": "2026-09-28T16:40:00Z",
+    "symbols": [
+     "0700.HK"
+    ],
+    "sentiment": -0.2732,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "2531b2aec0c94c42",
+    "title": "Ashoka WhiteOak Emerging Markets Trust Plc - Monthly Update - August 2026",
+    "summary": "Ashoka WhiteOak Emerging Markets Trust Plc - Monthly Update - August 2026",
+    "url": "https://uk.finance.yahoo.com/news/ashoka-whiteoak-emerging-markets-trust-060000172.html?.tsrc=rss",
+    "source": "Yahoo! Finance: 0700.HK News",
+    "published_at": "2026-09-28T06:00:00Z",
+    "symbols": [
+     "0700.HK"
+    ],
+    "sentiment": 0.765,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "a8dd03ab595b62d9",
+    "title": "Zacks Investment Ideas feature highlights: Alibaba, Baidu, Kingsoft Cloud, Tencent, Hesai, Pony AI and WeRide",
+    "summary": "BABA, BIDU, KC, TCEHY and HSAI highlight China's expanding AI ecosystem, while PONY and WRD add autonomous-driving exposure.",
+    "url": "https://finance.yahoo.com/technology/ai/articles/zacks-investment-ideas-feature-highlights-053000331.html?.tsrc=rss",
+    "source": "Yahoo! Finance: 0700.HK News",
+    "published_at": "2026-09-28T05:30:00Z",
+    "symbols": [
+     "0700.HK"
+    ],
+    "sentiment": 0.34,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "e5af63eb4329c70d",
+    "title": "WashU endowment chief Scott Wilson warns on OpenAI and Anthropic",
+    "summary": "Scott Wilson argues the frontier AI labs have taken on enormous spending commitments just as cheaper Chinese models close the performance gap",
+    "url": "https://qz.com/washu-endowment-openai-anthropic-trouble-092526?.tsrc=rss",
+    "source": "Yahoo! Finance: 0700.HK News",
+    "published_at": "2026-09-25T11:51:42Z",
+    "symbols": [
+     "0700.HK"
+    ],
+    "sentiment": -0.3008,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   }
+  ]
+ ],
+ "rat 0700.HK": [
+  200,
+  {
+   "symbol": "0700.HK",
+   "consensus": "buy",
+   "target_mean": 662.8402,
+   "target_high": 884.5782,
+   "target_low": 427.73022,
+   "strong_buy": 7,
+   "buy": 33,
+   "hold": 3,
+   "sell": 1,
+   "strong_sell": 0,
+   "provider": "yfinance",
+   "as_of": "2026-10-03T09:39:30.924628Z"
+  }
+ ],
+ "hist 7203.T": [
+  200,
+  {
+   "symbol": "7203.T",
+   "timeframe": "1d",
+   "bars": [
+    {
+     "timestamp": "2026-09-02T00:00:00+09:00",
+     "open": 3105.1288136744934,
+     "high": 3136.5930701778448,
+     "low": 3068.7482670924933,
+     "close": 3080.54736328125,
+     "volume": 26793300.0
+    },
+    {
+     "timestamp": "2026-09-03T00:00:00+09:00",
+     "open": 3109.061795540333,
+     "high": 3128.7269555374255,
+     "low": 3064.815185546875,
+     "close": 3064.815185546875,
+     "volume": 22107500.0
+    },
+    {
+     "timestamp": "2026-09-04T00:00:00+09:00",
+     "open": 3073.6645797833494,
+     "high": 3089.3967081507626,
+     "low": 3029.41796875,
+     "close": 3029.41796875,
+     "volume": 21768900.0
+    },
+    {
+     "timestamp": "2026-09-07T00:00:00+09:00",
+     "open": 3057.932359956648,
+     "high": 3067.7649398921994,
+     "low": 3036.3006840984335,
+     "close": 3044.166748046875,
+     "volume": 12938800.0
+    },
+    {
+     "timestamp": "2026-09-08T00:00:00+09:00",
+     "open": 2989.1044640601312,
+     "high": 2989.1044640601312,
+     "low": 2918.801513671875,
+     "close": 2918.801513671875,
+     "volume": 30560900.0
+    },
+    {
+     "timestamp": "2026-09-09T00:00:00+09:00",
+     "open": 2900.6111034597466,
+     "high": 2945.3493425131087,
+     "low": 2890.286894447432,
+     "close": 2921.259521484375,
+     "volume": 24802100.0
+    },
+    {
+     "timestamp": "2026-09-10T00:00:00+09:00",
+     "open": 2910.443739040581,
+     "high": 2943.87451171875,
+     "low": 2895.6948687413887,
+     "close": 2943.87451171875,
+     "volume": 18691400.0
+    },
+    {
+     "timestamp": "2026-09-11T00:00:00+09:00",
+     "open": 2901.102854528273,
+     "high": 2989.1044493360278,
+     "low": 2900.6112255070007,
+     "close": 2980.255126953125,
+     "volume": 27282400.0
+    },
+    {
+     "timestamp": "2026-09-14T00:00:00+09:00",
+     "open": 2975.3387267561984,
+     "high": 3004.836466942149,
+     "low": 2963.5396306818184,
+     "close": 2974.35546875,
+     "volume": 22994300.0
+    },
+    {
+     "timestamp": "2026-09-15T00:00:00+09:00",
+     "open": 2974.355395208799,
+     "high": 2991.0707809008813,
+     "low": 2959.6065254804907,
+     "close": 2970.42236328125,
+     "volume": 19958900.0
+    },
+    {
+     "timestamp": "2026-09-16T00:00:00+09:00",
+     "open": 2992.0540692964346,
+     "high": 3016.6355190934805,
+     "low": 2965.506103515625,
+     "close": 2965.506103515625,
+     "volume": 17508600.0
+    },
+    {
+     "timestamp": "2026-09-17T00:00:00+09:00",
+     "open": 2965.5061896166367,
+     "high": 2991.0708981478147,
+     "low": 2960.589899514487,
+     "close": 2983.204833984375,
+     "volume": 20929600.0
+    },
+    {
+     "timestamp": "2026-09-18T00:00:00+09:00",
+     "open": 2992.0541128615705,
+     "high": 2999.920176911157,
+     "low": 2948.790760588843,
+     "close": 2974.35546875,
+     "volume": 46568200.0
+    },
+    {
+     "timestamp": "2026-09-24T00:00:00+09:00",
+     "open": 2951.740482380431,
+     "high": 2968.455868190047,
+     "low": 2914.376678805995,
+     "close": 2919.29296875,
+     "volume": 33817300.0
+    },
+    {
+     "timestamp": "2026-09-25T00:00:00+09:00",
+     "open": 2939.941336017206,
+     "high": 2952.7236896520635,
+     "low": 2929.125498326173,
+     "close": 2939.44970703125,
+     "volume": 21084000.0
+    },
+    {
+     "timestamp": "2026-09-28T00:00:00+09:00",
+     "open": 2952.7237569060776,
+     "high": 2973.3721747865397,
+     "low": 2936.5,
+     "close": 2936.5,
+     "volume": 26063800.0
+    },
+    {
+     "timestamp": "2026-09-29T00:00:00+09:00",
+     "open": 2925.0,
+     "high": 2925.5,
+     "low": 2881.0,
+     "close": 2881.5,
+     "volume": 34117700.0
+    },
+    {
+     "timestamp": "2026-09-30T00:00:00+09:00",
+     "open": 2906.0,
+     "high": 2931.5,
+     "low": 2878.0,
+     "close": 2920.0,
+     "volume": 29166700.0
+    },
+    {
+     "timestamp": "2026-10-01T00:00:00+09:00",
+     "open": 2900.0,
+     "high": 2942.5,
+     "low": 2894.5,
+     "close": 2925.0,
+     "volume": 26937700.0
+    },
+    {
+     "timestamp": "2026-10-02T00:00:00+09:00",
+     "open": 2884.0,
+     "high": 2890.0,
+     "low": 2853.0,
+     "close": 2856.5,
+     "volume": 30938400.0
+    }
+   ],
+   "provider": "yfinance",
+   "freshness": "eod",
+   "reason": null,
+   "partial": false,
+   "coverage_start": null
+  }
+ ],
+ "quote 7203.T": [
+  200,
+  {
+   "symbol": "7203.T",
+   "price": 2856.5,
+   "change": -74.5,
+   "change_percent": -2.5417946093483454,
+   "volume": 30938400.0,
+   "open": null,
+   "high": null,
+   "low": null,
+   "prev_close": null,
+   "currency": "JPY",
+   "market_state": null,
+   "timestamp": "2026-10-02T06:30:00Z",
+   "provider": "yfinance",
+   "freshness": "eod"
+  }
+ ],
+ "earn 7203.T": [
+  200,
+  {
+   "symbol": "7203.T",
+   "history": [
+    {
+     "fiscal_period": null,
+     "period_end": "2026-06-30",
+     "reported_date": "2026-08-04",
+     "eps_actual": 120.69,
+     "eps_estimate_mean": 82.0203,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "JPY",
+     "revenue_currency": null
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2026-03-31",
+     "reported_date": "2026-05-08",
+     "eps_actual": 62.7,
+     "eps_estimate_mean": 52.655,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "JPY",
+     "revenue_currency": null
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2025-12-31",
+     "reported_date": "2026-02-06",
+     "eps_actual": 96.48,
+     "eps_estimate_mean": 74.04519,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "JPY",
+     "revenue_currency": null
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2025-09-30",
+     "reported_date": "2025-11-05",
+     "eps_actual": 71.51,
+     "eps_estimate_mean": 50.07575,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "JPY",
+     "revenue_currency": null
+    }
+   ],
+   "as_of": "2026-10-03T09:39:37.484272Z"
+  }
+ ],
+ "news 7203.T": [
+  200,
+  [
+   {
+    "id": "6ea8145f5149239c",
+    "title": "'Too late' for Europe, Ford CEO warns as Chinese cars eye U.S.",
+    "summary": "Ford competes with Chinese carmakers and partners with them, too. That makes Ford\u2019s CEO warning on who gets into America hard to ignore.",
+    "url": "https://www.thestreet.com/automotive/ford-ceo-chinese-automakers-us-warning?.tsrc=rss",
+    "source": "Yahoo! Finance: 7203.T News",
+    "published_at": "2026-10-02T18:33:00Z",
+    "symbols": [
+     "7203.T"
+    ],
+    "sentiment": -0.6908,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "9392e9868eebbb6b",
+    "title": "Did Gas Vehicle Sales Just Dip Below 50% For The First Time?",
+    "summary": "Electric vehicles are rising: The latest EV sales reports diverge, but all signs point to soaring fuel prices destroying demand for gas cars.",
+    "url": "https://in.finance.yahoo.com/m/eba35632-5984-35ae-af10-75260f26317c/did-gas-vehicle-sales-just.html?.tsrc=rss",
+    "source": "Yahoo! Finance: 7203.T News",
+    "published_at": "2026-10-02T17:06:38Z",
+    "symbols": [
+     "7203.T"
+    ],
+    "sentiment": -0.7684,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "13f816280fd256ce",
+    "title": "Toyota Is Now Within 38,000 Vehicles of Taking GM\u2019s U.S. Sales Crown",
+    "summary": "Toyota is closing in on GM's U.S. sales crown, and the fuel Americans put in their cars may be the deciding factor. The race between Detroit and Tokyo is tighter than it has been in years, and one product launch could flip the outcome.",
+    "url": "https://247wallst.com/investing/2026/10/02/toyota-is-now-within-38000-vehicles-of-taking-gms-u-s-sales-crown/?.tsrc=rss",
+    "source": "Yahoo! Finance: 7203.T News",
+    "published_at": "2026-10-02T16:44:01Z",
+    "symbols": [
+     "7203.T"
+    ],
+    "sentiment": 0.0,
+    "sentiment_label": "neutral",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "183c237b58dfe0b3",
+    "title": "General Motors Reports 5% Drop in Q3 Vehicle Sales as EV Demand Wanes",
+    "summary": "Key Stats for General Motors StockPrice change for General Motors stock in last 6 months: 9%$GM Stock Price as of Oct. 1: $7952-Week High: $92$GM Stock Price Target: $104What Happened?General Motors (GM:NYSE) reported a 5.",
+    "url": "https://www.tikr.com/blog/general-motors-stock-q3-sales-drop-ev-demand-wanes?ref=yahoofinance&.tsrc=rss",
+    "source": "Yahoo! Finance: 7203.T News",
+    "published_at": "2026-10-02T13:35:52Z",
+    "symbols": [
+     "7203.T"
+    ],
+    "sentiment": -0.3818,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "99cd01741affc735",
+    "title": "Ford's quarterly US sales dip after phasing out some models",
+    "summary": "Oct 2 (Reuters) - Ford said on Friday its third-quarter sales fell 6.6%, as the Detroit automaker phased out its Escape and Lincoln Corsair crossover models.",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/fords-quarterly-us-sales-dip-131622961.html?.tsrc=rss",
+    "source": "Yahoo! Finance: 7203.T News",
+    "published_at": "2026-10-02T13:16:22Z",
+    "symbols": [
+     "7203.T"
+    ],
+    "sentiment": 0.1779,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "17b9ca1b8d6390e3",
+    "title": "Toyota, Honda forced to halt production in Thailand due to floods",
+    "summary": "Heavy monsoon rains this week have disrupted component supply chains.",
+    "url": "https://www.just-auto.com/news/toyota-honda-forced-to-halt-production-in-thailand-due-to-floods/?.tsrc=rss",
+    "source": "Yahoo! Finance: 7203.T News",
+    "published_at": "2026-10-02T09:39:21Z",
+    "symbols": [
+     "7203.T"
+    ],
+    "sentiment": -0.4588,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "0e6daf700545a71d",
+    "title": "American Car Buyers Rediscover Sedans, Small SUVs as Gas Prices Bite",
+    "summary": "In the third quarter, overall sales stalled, with GM reporting a 5.5% overall decline.",
+    "url": "https://in.finance.yahoo.com/m/32e83588-d2bc-3d0d-a0b2-c8b1df914249/american-car-buyers.html?.tsrc=rss",
+    "source": "Yahoo! Finance: 7203.T News",
+    "published_at": "2026-10-01T18:57:00Z",
+    "symbols": [
+     "7203.T"
+    ],
+    "sentiment": -0.2023,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "9a517e2fdb42f2c3",
+    "title": "GM Q3 2026 U.S. sales fall 5.5% as EV demand drops",
+    "summary": "Toyota narrowed the gap with GM to fewer than 136,000 units after its own electrified vehicle sales rose 28.5%",
+    "url": "https://qz.com/gm-us-auto-sales-third-quarter-ev-decline-100126?.tsrc=rss",
+    "source": "Yahoo! Finance: 7203.T News",
+    "published_at": "2026-10-01T17:09:29Z",
+    "symbols": [
+     "7203.T"
+    ],
+    "sentiment": -0.128,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "1be8169c7d8e65f9",
+    "title": "Toyota Battery Center of North America Unveiled at Michigan R&D Campus",
+    "summary": "The next chapter of Toyota's electrification transformation begins today with the opening of the Toyota Battery Center of North America (TBC) in Saline, Michigan. The new facility gives Toyota's Michigan-based battery teams increased capabilities to evaluate and develop technology across the full battery-development cycle, from sourcing raw materials to customer applications to recycling.",
+    "url": "https://finance.yahoo.com/technology/articles/toyota-battery-center-north-america-170000084.html?.tsrc=rss",
+    "source": "Yahoo! Finance: 7203.T News",
+    "published_at": "2026-10-01T17:00:00Z",
+    "symbols": [
+     "7203.T"
+    ],
+    "sentiment": 0.2732,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "5b8fb26ebd2a2c66",
+    "title": "Toyota Motor North America Reports September, Third Quarter 2026 U.S. Sales Results",
+    "summary": "Toyota Motor North America (TMNA) today reported September 2026 U.S. sales of 201,306 vehicles, up 8.4 percent on a volume basis and up 4.0 percent on a daily selling rate (DSR) basis compared to September 2025. Sales of electrified vehicles for the month totaled 117,215, up 37.8 percent on a volume basis and up 32.2 percent on a DSR basis, representing 58.2 percent of total sales volume.",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/toyota-motor-north-america-reports-160000769.html?.tsrc=rss",
+    "source": "Yahoo! Finance: 7203.T News",
+    "published_at": "2026-10-01T16:00:00Z",
+    "symbols": [
+     "7203.T"
+    ],
+    "sentiment": 0.0,
+    "sentiment_label": "neutral",
+    "provider": "rss",
+    "via_symbol_feed": true
+   }
+  ]
+ ],
+ "rat 7203.T": [
+  200,
+  {
+   "symbol": "7203.T",
+   "consensus": "buy",
+   "target_mean": 3698.6316,
+   "target_high": 4900.0,
+   "target_low": 2930.0,
+   "strong_buy": 4,
+   "buy": 10,
+   "hold": 5,
+   "sell": 0,
+   "strong_sell": 0,
+   "provider": "yfinance",
+   "as_of": "2026-10-03T09:39:41.694194Z"
+  }
+ ],
+ "hist VOD.L": [
+  200,
+  {
+   "symbol": "VOD.L",
+   "timeframe": "1d",
+   "bars": [
+    {
+     "timestamp": "2026-09-02T00:00:00+01:00",
+     "open": 119.55000305175781,
+     "high": 120.3499984741211,
+     "low": 117.56400299072266,
+     "close": 119.4000015258789,
+     "volume": 106434739.0
+    },
+    {
+     "timestamp": "2026-09-03T00:00:00+01:00",
+     "open": 120.25,
+     "high": 124.0,
+     "low": 119.80000305175781,
+     "close": 122.30000305175781,
+     "volume": 80542006.0
+    },
+    {
+     "timestamp": "2026-09-04T00:00:00+01:00",
+     "open": 125.0,
+     "high": 127.0999984741211,
+     "low": 123.25,
+     "close": 125.5999984741211,
+     "volume": 59318011.0
+    },
+    {
+     "timestamp": "2026-09-07T00:00:00+01:00",
+     "open": 124.5,
+     "high": 125.5,
+     "low": 124.30000305175781,
+     "close": 125.44999694824219,
+     "volume": 15407984.0
+    },
+    {
+     "timestamp": "2026-09-08T00:00:00+01:00",
+     "open": 125.5,
+     "high": 128.35000610351562,
+     "low": 124.89299774169922,
+     "close": 128.25,
+     "volume": 63792120.0
+    },
+    {
+     "timestamp": "2026-09-09T00:00:00+01:00",
+     "open": 128.39999389648438,
+     "high": 129.60000610351562,
+     "low": 126.80000305175781,
+     "close": 126.80000305175781,
+     "volume": 89092037.0
+    },
+    {
+     "timestamp": "2026-09-10T00:00:00+01:00",
+     "open": 127.4000015258789,
+     "high": 129.1999969482422,
+     "low": 125.94100189208984,
+     "close": 128.64999389648438,
+     "volume": 38094997.0
+    },
+    {
+     "timestamp": "2026-09-11T00:00:00+01:00",
+     "open": 128.10000610351562,
+     "high": 129.75,
+     "low": 127.5999984741211,
+     "close": 128.75,
+     "volume": 38069514.0
+    },
+    {
+     "timestamp": "2026-09-14T00:00:00+01:00",
+     "open": 128.75,
+     "high": 130.6999969482422,
+     "low": 128.26400756835938,
+     "close": 130.35000610351562,
+     "volume": 43513270.0
+    },
+    {
+     "timestamp": "2026-09-15T00:00:00+01:00",
+     "open": 129.8000030517578,
+     "high": 131.4499969482422,
+     "low": 128.6999969482422,
+     "close": 131.1999969482422,
+     "volume": 41360730.0
+    },
+    {
+     "timestamp": "2026-09-16T00:00:00+01:00",
+     "open": 130.9499969482422,
+     "high": 131.39999389648438,
+     "low": 128.89999389648438,
+     "close": 131.39999389648438,
+     "volume": 61147348.0
+    },
+    {
+     "timestamp": "2026-09-17T00:00:00+01:00",
+     "open": 131.0,
+     "high": 132.07200622558594,
+     "low": 130.0500030517578,
+     "close": 131.75,
+     "volume": 91181996.0
+    },
+    {
+     "timestamp": "2026-09-18T00:00:00+01:00",
+     "open": 130.8000030517578,
+     "high": 130.89999389648438,
+     "low": 124.5999984741211,
+     "close": 126.1500015258789,
+     "volume": 118737498.0
+    },
+    {
+     "timestamp": "2026-09-21T00:00:00+01:00",
+     "open": 126.4000015258789,
+     "high": 127.9000015258789,
+     "low": 125.9000015258789,
+     "close": 127.9000015258789,
+     "volume": 109045606.0
+    },
+    {
+     "timestamp": "2026-09-22T00:00:00+01:00",
+     "open": 128.0,
+     "high": 128.39999389648438,
+     "low": 125.1500015258789,
+     "close": 125.1500015258789,
+     "volume": 97140730.0
+    },
+    {
+     "timestamp": "2026-09-23T00:00:00+01:00",
+     "open": 125.0999984741211,
+     "high": 125.3499984741211,
+     "low": 122.5,
+     "close": 124.25,
+     "volume": 35901926.0
+    },
+    {
+     "timestamp": "2026-09-24T00:00:00+01:00",
+     "open": 124.4000015258789,
+     "high": 126.30000305175781,
+     "low": 124.1500015258789,
+     "close": 125.30000305175781,
+     "volume": 85472839.0
+    },
+    {
+     "timestamp": "2026-09-25T00:00:00+01:00",
+     "open": 124.75,
+     "high": 127.30000305175781,
+     "low": 124.75,
+     "close": 125.80000305175781,
+     "volume": 52512523.0
+    },
+    {
+     "timestamp": "2026-09-28T00:00:00+01:00",
+     "open": 126.30000305175781,
+     "high": 127.5,
+     "low": 125.4000015258789,
+     "close": 125.44999694824219,
+     "volume": 22087796.0
+    },
+    {
+     "timestamp": "2026-09-29T00:00:00+01:00",
+     "open": 124.6500015258789,
+     "high": 125.0999984741211,
+     "low": 122.75,
+     "close": 123.9000015258789,
+     "volume": 78596246.0
+    },
+    {
+     "timestamp": "2026-09-30T00:00:00+01:00",
+     "open": 124.1500015258789,
+     "high": 125.05000305175781,
+     "low": 122.69999694824219,
+     "close": 122.69999694824219,
+     "volume": 42121102.0
+    },
+    {
+     "timestamp": "2026-10-01T00:00:00+01:00",
+     "open": 122.0,
+     "high": 124.0999984741211,
+     "low": 120.1500015258789,
+     "close": 124.0999984741211,
+     "volume": 101902821.0
+    },
+    {
+     "timestamp": "2026-10-02T00:00:00+01:00",
+     "open": 124.5,
+     "high": 128.10000610351562,
+     "low": 124.0999984741211,
+     "close": 126.80000305175781,
+     "volume": 52629315.0
+    }
+   ],
+   "provider": "yfinance",
+   "freshness": "eod",
+   "reason": null,
+   "partial": false,
+   "coverage_start": null
+  }
+ ],
+ "quote VOD.L": [
+  200,
+  {
+   "symbol": "VOD.L",
+   "price": 126.80000305175781,
+   "change": 2.700003051757818,
+   "change_percent": 2.1756672455743904,
+   "volume": 52629315.0,
+   "open": null,
+   "high": null,
+   "low": null,
+   "prev_close": null,
+   "currency": "GBp",
+   "market_state": null,
+   "timestamp": "2026-10-02T15:36:52Z",
+   "provider": "yfinance",
+   "freshness": "eod"
+  }
+ ],
+ "earn VOD.L": [
+  200,
+  {
+   "symbol": "VOD.L",
+   "history": [],
+   "as_of": "2026-10-03T09:39:48.389146Z"
+  }
+ ],
+ "news VOD.L": [
+  200,
+  [
+   {
+    "id": "2820786656d7528d",
+    "title": "Deutsche Bank raises Vodafone target as fewer risks sharpen upside case",
+    "summary": "Deutsche Bank has raised its target price for Vodafone Group PLC (LSE:VOD), the telecommunications group, to 160p from 150p and kept a 'buy' rating as it sees fewer risks weighing on the shares. The bank said Vodafone\u2019s valuation now places greater emphasis on remaining risks than potential...",
+    "url": "https://www.proactiveinvestors.com/companies/news/1099384/deutsche-bank-raises-vodafone-target-as-fewer-risks-sharpen-upside-case-1099384.html?.tsrc=rss",
+    "source": "Yahoo! Finance: VOD.L News",
+    "published_at": "2026-09-30T15:00:00Z",
+    "symbols": [
+     "VOD.L"
+    ],
+    "sentiment": -0.1531,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "d2f88d037ee53deb",
+    "title": "First Orion and Vodafone Continue European Expansion of Branded Calling with Launch in Ireland",
+    "summary": "Ireland Launch Demonstrates a Scalable Approach to Branded Calling Across Vodafone Markets Key Takeaways First Orion and Vodafone are expanding INFORM\u00ae Branded Calling to Ireland, building on launches in the United Kingdom and Germany.Ireland is supported through the same Vodafone CAMARA-based API integration already incorporated into First Orion\u2019s platform, with no additional integration or development work required from First Orion.The launch advances First Orion and Vodafone\u2019s efforts to expa",
+    "url": "https://finance.yahoo.com/technology/articles/first-orion-vodafone-continue-european-120000445.html?.tsrc=rss",
+    "source": "Yahoo! Finance: VOD.L News",
+    "published_at": "2026-09-30T12:00:00Z",
+    "symbols": [
+     "VOD.L"
+    ],
+    "sentiment": 0.4404,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "37d3d02ce4a8131a",
+    "title": "BT blocked from offering broadband discounts",
+    "summary": "BT has been blocked from offering rival broadband providers discounted access to its network over concerns that the plans would threaten competition.",
+    "url": "https://uk.finance.yahoo.com/news/bt-blocked-offering-broadband-discounts-135609983.html?.tsrc=rss",
+    "source": "Yahoo! Finance: VOD.L News",
+    "published_at": "2026-09-28T13:56:09Z",
+    "symbols": [
+     "VOD.L"
+    ],
+    "sentiment": -0.6808,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "729727416b20a276",
+    "title": "ASTS Stock Eyes Best Month Since May: New German Filing Puts 344-Satellite BlueBird Plan In Focus",
+    "summary": "Germany amended its D-BLUEBIRD filing last week, with an earlier ITU record listing 344 proposed satellites.",
+    "url": "https://stocktwits.com/news-articles/markets/equity/asts-stock-new-german-filing-344-satellite-bluebird-plan-focus/cZMSjcoRBfV?.tsrc=rss",
+    "source": "Yahoo! Finance: VOD.L News",
+    "published_at": "2026-09-28T05:25:54Z",
+    "symbols": [
+     "VOD.L"
+    ],
+    "sentiment": 0.6369,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "908ae6ceb9ca005f",
+    "title": "Down 23%, what the heck\u2019s going on with the BT share price?",
+    "summary": "Discover why the BT share price has been falling -- and whether this represents an excellent buying opportunity for any long-term investors. The post Down 23%, what the heck\u2019s going on with the BT share price? appeared first on The Twelfth Magpie.",
+    "url": "https://www.twelfthmagpie.com/2026/09/23/what-the-hecks-going-on-with-the-bt-share-price/?.tsrc=rss",
+    "source": "Yahoo! Finance: VOD.L News",
+    "published_at": "2026-09-23T15:10:10Z",
+    "symbols": [
+     "VOD.L"
+    ],
+    "sentiment": 0.897,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "e67349c9aff703c8",
+    "title": "Picsart Partners with Zappi to Unveil Vera - The Latest AI Agent, Bringing Real-World Consumer Insights into the Creative Workflow",
+    "summary": "MIAMI, September 22, 2026--Picsart (AI media) and Zappi launch Vera, an AI agent that helps creators validate ads and understand audiences before committing media spend.",
+    "url": "https://finance.yahoo.com/technology/ai/articles/picsart-partners-zappi-unveil-vera-120000686.html?.tsrc=rss",
+    "source": "Yahoo! Finance: VOD.L News",
+    "published_at": "2026-09-22T12:00:00Z",
+    "symbols": [
+     "VOD.L"
+    ],
+    "sentiment": 0.8074,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "20d5e4b0037cdcdd",
+    "title": "eBay Upgraded, Airbnb Downgraded: Updated Rankings on Top Blue-Chip Stocks",
+    "summary": "During these busy times, it pays to stay on top of the latest profit opportunities. And today\u2019s blog post should be a great place to start. After taking a close look at the latest data on institutional buying pressure and each company\u2019s fundamental health, I decided to revise my Stock Grader recommendations for 95 big blue chips. Chances are that you have at least one of these stocks in your portfolio, so you may want to give this list a skim and act accordingly. This Week\u2019s Ratings Changes: Upg",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/ebay-upgraded-airbnb-downgraded-updated-170520320.html?.tsrc=rss",
+    "source": "Yahoo! Finance: VOD.L News",
+    "published_at": "2026-09-21T17:05:20Z",
+    "symbols": [
+     "VOD.L"
+    ],
+    "sentiment": 0.9074,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "e44a21fb17ac2c91",
+    "title": "Which offer better value today: Vodafone or BT shares?",
+    "summary": "After a strong run, BT shares have slowed, while Vodafone has been flying. Harvey Jones runs the rule over these two FTSE 100 telecom stocks. The post Which offer better value today: Vodafone or BT shares? appeared first on The Twelfth Magpie.",
+    "url": "https://www.twelfthmagpie.com/2026/09/20/which-offer-better-value-today-vodafone-or-bt-shares/?.tsrc=rss",
+    "source": "Yahoo! Finance: VOD.L News",
+    "published_at": "2026-09-20T08:07:52Z",
+    "symbols": [
+     "VOD.L"
+    ],
+    "sentiment": 0.9575,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "85593f014a87fe22",
+    "title": "Artificial Intelligence and Green City Transition Forum successfully held at GreenCities 2026",
+    "summary": "Malaga, Spain--(Newsfile Corp. - September 18, 2026) - On September 15th, Artificial Intelligence and Green City Transition Innovation Forum was successfully held in GreenCities 2026. The forum is co-hosted by NSGC and BIC EURONOVA. This year, GreenCities bringing together representatives from more than 80 global city governments, international organizations, universities, research institutions, testing and certification agencies, as well as important enterprises including Telef\u00f3nica, Vodafone,.",
+    "url": "https://finance.yahoo.com/technology/ai/articles/artificial-intelligence-green-city-transition-033000424.html?.tsrc=rss",
+    "source": "Yahoo! Finance: VOD.L News",
+    "published_at": "2026-09-19T03:30:00Z",
+    "symbols": [
+     "VOD.L"
+    ],
+    "sentiment": 0.9524,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": true
+   },
+   {
+    "id": "9b31ffda6850e822",
+    "title": "FTSE 100 today: Stocks drop as Hormuz tanker hit, Aramco cuts Europe supply",
+    "summary": "Investing.com -- British and European stocks extended their losses on Friday after a tanker was hit by an unknown projectile in the Strait of Hormuz and Saudi Aramco told European refiners they will receive no crude allocations next month, deepening fears the U.S.-Iran war is tightening its grip on global oil supply.",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/ftse-100-today-stocks-slip-074400145.html?.tsrc=rss",
+    "source": "Yahoo! Finance: VOD.L News",
+    "published_at": "2026-09-18T07:44:00Z",
+    "symbols": [
+     "VOD.L"
+    ],
+    "sentiment": -0.8658,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": true
+   }
+  ]
+ ],
+ "rat VOD.L": [
+  200,
+  {
+   "symbol": "VOD.L",
+   "consensus": "buy",
+   "target_mean": 122.24156,
+   "target_high": 158.44475,
+   "target_low": 85.10966,
+   "strong_buy": 1,
+   "buy": 6,
+   "hold": 5,
+   "sell": 1,
+   "strong_sell": 3,
+   "provider": "yfinance",
+   "as_of": "2026-10-03T09:39:53.208905Z"
+  }
+ ],
+ "hist RELIANCE.NS": [
+  200,
+  {
+   "symbol": "RELIANCE",
+   "timeframe": "1d",
+   "bars": [
+    {
+     "timestamp": "2026-08-26T00:00:00Z",
+     "open": 1310.0,
+     "high": 1315.6,
+     "low": 1298.0,
+     "close": 1298.0,
+     "volume": 5744474.0
+    },
+    {
+     "timestamp": "2026-08-27T00:00:00Z",
+     "open": 1305.0,
+     "high": 1308.4,
+     "low": 1282.2,
+     "close": 1282.2,
+     "volume": 11271497.0
+    },
+    {
+     "timestamp": "2026-08-28T00:00:00Z",
+     "open": 1284.9,
+     "high": 1291.8,
+     "low": 1280.0,
+     "close": 1287.0,
+     "volume": 6830228.0
+    },
+    {
+     "timestamp": "2026-08-31T00:00:00Z",
+     "open": 1278.7,
+     "high": 1297.6,
+     "low": 1271.0,
+     "close": 1277.0,
+     "volume": 34871137.0
+    },
+    {
+     "timestamp": "2026-09-01T00:00:00Z",
+     "open": 1285.0,
+     "high": 1311.8,
+     "low": 1280.0,
+     "close": 1309.0,
+     "volume": 12617528.0
+    },
+    {
+     "timestamp": "2026-09-02T00:00:00Z",
+     "open": 1298.0,
+     "high": 1321.9,
+     "low": 1293.1,
+     "close": 1313.1,
+     "volume": 13497841.0
+    },
+    {
+     "timestamp": "2026-09-03T00:00:00Z",
+     "open": 1313.1,
+     "high": 1316.8,
+     "low": 1302.5,
+     "close": 1302.5,
+     "volume": 9721454.0
+    },
+    {
+     "timestamp": "2026-09-04T00:00:00Z",
+     "open": 1304.1,
+     "high": 1333.0,
+     "low": 1304.1,
+     "close": 1322.0,
+     "volume": 13031534.0
+    },
+    {
+     "timestamp": "2026-09-07T00:00:00Z",
+     "open": 1323.1,
+     "high": 1324.2,
+     "low": 1301.9,
+     "close": 1309.5,
+     "volume": 10210522.0
+    },
+    {
+     "timestamp": "2026-09-08T00:00:00Z",
+     "open": 1304.1,
+     "high": 1306.8,
+     "low": 1288.0,
+     "close": 1294.9,
+     "volume": 9799528.0
+    },
+    {
+     "timestamp": "2026-09-09T00:00:00Z",
+     "open": 1283.5,
+     "high": 1294.7,
+     "low": 1277.2,
+     "close": 1279.0,
+     "volume": 12152819.0
+    },
+    {
+     "timestamp": "2026-09-10T00:00:00Z",
+     "open": 1278.5,
+     "high": 1285.3,
+     "low": 1266.3,
+     "close": 1274.0,
+     "volume": 9296079.0
+    },
+    {
+     "timestamp": "2026-09-11T00:00:00Z",
+     "open": 1267.0,
+     "high": 1267.4,
+     "low": 1253.0,
+     "close": 1257.5,
+     "volume": 8777736.0
+    },
+    {
+     "timestamp": "2026-09-15T00:00:00Z",
+     "open": 1252.5,
+     "high": 1259.4,
+     "low": 1235.3,
+     "close": 1235.3,
+     "volume": 13754376.0
+    },
+    {
+     "timestamp": "2026-09-16T00:00:00Z",
+     "open": 1243.0,
+     "high": 1255.0,
+     "low": 1240.0,
+     "close": 1240.0,
+     "volume": 10023997.0
+    },
+    {
+     "timestamp": "2026-09-17T00:00:00Z",
+     "open": 1244.8,
+     "high": 1253.4,
+     "low": 1238.5,
+     "close": 1243.9,
+     "volume": 7752895.0
+    },
+    {
+     "timestamp": "2026-09-18T00:00:00Z",
+     "open": 1245.0,
+     "high": 1247.3,
+     "low": 1226.4,
+     "close": 1226.4,
+     "volume": 15122715.0
+    },
+    {
+     "timestamp": "2026-09-21T00:00:00Z",
+     "open": 1234.1,
+     "high": 1249.1,
+     "low": 1232.5,
+     "close": 1247.4,
+     "volume": 10007218.0
+    },
+    {
+     "timestamp": "2026-09-22T00:00:00Z",
+     "open": 1247.6,
+     "high": 1251.9,
+     "low": 1237.4,
+     "close": 1240.4,
+     "volume": 10684376.0
+    },
+    {
+     "timestamp": "2026-09-23T00:00:00Z",
+     "open": 1242.0,
+     "high": 1252.8,
+     "low": 1238.9,
+     "close": 1248.0,
+     "volume": 8352048.0
+    },
+    {
+     "timestamp": "2026-09-24T00:00:00Z",
+     "open": 1236.6,
+     "high": 1241.6,
+     "low": 1219.2,
+     "close": 1219.2,
+     "volume": 13923795.0
+    },
+    {
+     "timestamp": "2026-09-25T00:00:00Z",
+     "open": 1210.5,
+     "high": 1227.4,
+     "low": 1210.5,
+     "close": 1226.0,
+     "volume": 13138735.0
+    },
+    {
+     "timestamp": "2026-09-28T00:00:00Z",
+     "open": 1218.0,
+     "high": 1219.7,
+     "low": 1197.0,
+     "close": 1197.6,
+     "volume": 13602349.0
+    },
+    {
+     "timestamp": "2026-09-29T00:00:00Z",
+     "open": 1193.8,
+     "high": 1198.3,
+     "low": 1181.8,
+     "close": 1182.0,
+     "volume": 24191416.0
+    },
+    {
+     "timestamp": "2026-09-30T00:00:00Z",
+     "open": 1182.0,
+     "high": 1196.5,
+     "low": 1181.7,
+     "close": 1187.0,
+     "volume": 16376789.0
+    },
+    {
+     "timestamp": "2026-10-01T00:00:00Z",
+     "open": 1180.1,
+     "high": 1183.9,
+     "low": 1160.8,
+     "close": 1167.7,
+     "volume": 16771221.0
+    }
+   ],
+   "provider": "nse_direct",
+   "freshness": "eod",
+   "reason": null,
+   "partial": false,
+   "coverage_start": null
+  }
+ ],
+ "quote RELIANCE.NS": [
+  200,
+  {
+   "symbol": "RELIANCE",
+   "price": 1167.7,
+   "change": -19.299999999999955,
+   "change_percent": -1.6259477674810408,
+   "volume": 16771221.0,
+   "open": 1180.1,
+   "high": 1183.9,
+   "low": 1160.8,
+   "prev_close": 1187.0,
+   "currency": "INR",
+   "market_state": "CLOSED",
+   "timestamp": "2026-10-01T00:00:00Z",
+   "provider": "nse_direct",
+   "freshness": "eod"
+  }
+ ],
+ "earn RELIANCE.NS": [
+  200,
+  {
+   "symbol": "RELIANCE.NS",
+   "history": [
+    {
+     "fiscal_period": null,
+     "period_end": "2026-06-30",
+     "reported_date": "2026-07-17",
+     "eps_actual": 15.48,
+     "eps_estimate_mean": 14.97444,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "INR",
+     "revenue_currency": "INR"
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2026-03-31",
+     "reported_date": "2026-04-24",
+     "eps_actual": 12.54,
+     "eps_estimate_mean": 15.39111,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "INR",
+     "revenue_currency": "INR"
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2025-12-31",
+     "reported_date": "2026-01-16",
+     "eps_actual": 13.78,
+     "eps_estimate_mean": 14.88712,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "INR",
+     "revenue_currency": "INR"
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2025-09-30",
+     "reported_date": "2025-10-17",
+     "eps_actual": 13.42,
+     "eps_estimate_mean": 14.3451,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "INR",
+     "revenue_currency": "INR"
+    }
+   ],
+   "as_of": "2026-10-03T09:39:59.360760Z"
+  }
+ ],
+ "news RELIANCE.NS": [
+  200,
+  [
+   {
+    "id": "c2a6e9792bba63ac",
+    "title": "Wall Street Week Ahead: Spiking bond yields, midterms, earnings to test US stocks' typical fourth-quarter strength",
+    "summary": "As the fourth quarter commences, US stocks traditionally experience a positive trajectory. Nonetheless, investors face hurdles such as climbing bond yields and a heavy reliance on AI expenditures. Coupled with the looming corporate earnings season and the November elections, market unpredictability intensifies. Analysts predict notable earnings growth, particularly driven by investments in AI infrastructure, which could shape the market's direction as the year concludes.",
+    "url": "https://economictimes.indiatimes.com/markets/us-stocks/wall-street-guide/wall-street-week-ahead-spiking-bond-yields-midterms-earnings-to-test-us-stocks-typical-fourth-quarter-strength/articleshow/134651438.cms",
+    "source": "Markets-Economic Times",
+    "published_at": "2026-10-03T03:52:00Z",
+    "symbols": [
+     "RELIANCE.NS"
+    ],
+    "sentiment": 0.836,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": false
+   },
+   {
+    "id": "035a02de904a1434",
+    "title": "RIL Q2 Results: Nuvama sees 17% EBITDA growth, led by O2C biz. Here\u2019s what to expect",
+    "summary": "Reliance Industries is expected to report 17% year-on-year growth in Q2FY27 EBITDA to Rs 53,700 crore, led by stronger refining margins and higher throughput, according to Nuvama Research. While the O2C business is likely to drive near-term earnings, New Energy could emerge as a key growth driver, with EBITDA projected to reach Rs 20,100 crore by FY30. Nuvama retains its Buy rating with a target price of Rs 1,766.",
+    "url": "https://economictimes.indiatimes.com/markets/stocks/earnings/ril-q2-results-nuvama-sees-17-ebitda-growth-led-by-o2c-biz-heres-what-to-expect/articleshow/134612429.cms",
+    "source": "Stocks-Markets-Economic Times",
+    "published_at": "2026-10-01T07:53:51Z",
+    "symbols": [
+     "RELIANCE.NS"
+    ],
+    "sentiment": 0.891,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": false
+   }
+  ]
+ ],
+ "rat RELIANCE.NS": [
+  200,
+  {
+   "symbol": "RELIANCE.NS",
+   "consensus": "buy",
+   "target_mean": 1676.8462,
+   "target_high": 1890.0,
+   "target_low": 1350.0,
+   "strong_buy": 5,
+   "buy": 20,
+   "hold": 0,
+   "sell": 0,
+   "strong_sell": 1,
+   "provider": "yfinance",
+   "as_of": "2026-10-03T09:40:03.174273Z"
+  }
+ ],
+ "hist RELIANCE.BO": [
+  200,
+  {
+   "symbol": "RELIANCE",
+   "timeframe": "1d",
+   "bars": [
+    {
+     "timestamp": "2026-08-26T00:00:00Z",
+     "open": 1312.5,
+     "high": 1315.5,
+     "low": 1299.0,
+     "close": 1299.0,
+     "volume": 381982.0
+    },
+    {
+     "timestamp": "2026-08-27T00:00:00Z",
+     "open": 1300.1,
+     "high": 1308.55,
+     "low": 1285.0,
+     "close": 1286.0,
+     "volume": 1053113.0
+    },
+    {
+     "timestamp": "2026-08-28T00:00:00Z",
+     "open": 1285.0,
+     "high": 1292.15,
+     "low": 1280.0,
+     "close": 1284.4,
+     "volume": 431860.0
+    },
+    {
+     "timestamp": "2026-08-31T00:00:00Z",
+     "open": 1280.0,
+     "high": 1297.5,
+     "low": 1271.05,
+     "close": 1285.0,
+     "volume": 340487.0
+    },
+    {
+     "timestamp": "2026-09-01T00:00:00Z",
+     "open": 1283.0,
+     "high": 1311.5,
+     "low": 1280.3,
+     "close": 1307.35,
+     "volume": 853458.0
+    },
+    {
+     "timestamp": "2026-09-02T00:00:00Z",
+     "open": 1305.95,
+     "high": 1321.75,
+     "low": 1293.0,
+     "close": 1313.15,
+     "volume": 680372.0
+    },
+    {
+     "timestamp": "2026-09-03T00:00:00Z",
+     "open": 1313.0,
+     "high": 1316.4,
+     "low": 1301.05,
+     "close": 1301.05,
+     "volume": 808113.0
+    },
+    {
+     "timestamp": "2026-09-04T00:00:00Z",
+     "open": 1302.55,
+     "high": 1332.9,
+     "low": 1302.55,
+     "close": 1322.0,
+     "volume": 459976.0
+    },
+    {
+     "timestamp": "2026-09-07T00:00:00Z",
+     "open": 1321.7,
+     "high": 1324.0,
+     "low": 1302.5,
+     "close": 1309.5,
+     "volume": 438060.0
+    },
+    {
+     "timestamp": "2026-09-08T00:00:00Z",
+     "open": 1304.0,
+     "high": 1307.35,
+     "low": 1288.0,
+     "close": 1294.3,
+     "volume": 777500.0
+    },
+    {
+     "timestamp": "2026-09-09T00:00:00Z",
+     "open": 1285.0,
+     "high": 1294.4,
+     "low": 1278.0,
+     "close": 1281.0,
+     "volume": 615195.0
+    },
+    {
+     "timestamp": "2026-09-10T00:00:00Z",
+     "open": 1279.7,
+     "high": 1285.0,
+     "low": 1267.0,
+     "close": 1275.0,
+     "volume": 940647.0
+    },
+    {
+     "timestamp": "2026-09-11T00:00:00Z",
+     "open": 1268.1,
+     "high": 1268.15,
+     "low": 1253.2,
+     "close": 1258.0,
+     "volume": 774793.0
+    },
+    {
+     "timestamp": "2026-09-15T00:00:00Z",
+     "open": 1254.45,
+     "high": 1259.5,
+     "low": 1236.0,
+     "close": 1236.0,
+     "volume": 1157037.0
+    },
+    {
+     "timestamp": "2026-09-16T00:00:00Z",
+     "open": 1241.4,
+     "high": 1254.8,
+     "low": 1241.4,
+     "close": 1241.4,
+     "volume": 698540.0
+    },
+    {
+     "timestamp": "2026-09-17T00:00:00Z",
+     "open": 1242.35,
+     "high": 1253.85,
+     "low": 1238.2,
+     "close": 1240.8,
+     "volume": 843736.0
+    },
+    {
+     "timestamp": "2026-09-18T00:00:00Z",
+     "open": 1245.5,
+     "high": 1247.35,
+     "low": 1233.95,
+     "close": 1233.95,
+     "volume": 481548.0
+    },
+    {
+     "timestamp": "2026-09-21T00:00:00Z",
+     "open": 1232.35,
+     "high": 1248.5,
+     "low": 1232.35,
+     "close": 1247.7,
+     "volume": 594826.0
+    },
+    {
+     "timestamp": "2026-09-22T00:00:00Z",
+     "open": 1247.4,
+     "high": 1252.0,
+     "low": 1237.8,
+     "close": 1242.0,
+     "volume": 560999.0
+    },
+    {
+     "timestamp": "2026-09-23T00:00:00Z",
+     "open": 1241.8,
+     "high": 1253.05,
+     "low": 1239.2,
+     "close": 1247.05,
+     "volume": 560680.0
+    },
+    {
+     "timestamp": "2026-09-24T00:00:00Z",
+     "open": 1238.0,
+     "high": 1242.0,
+     "low": 1219.0,
+     "close": 1219.0,
+     "volume": 1453295.0
+    },
+    {
+     "timestamp": "2026-09-25T00:00:00Z",
+     "open": 1215.0,
+     "high": 1227.2,
+     "low": 1214.0,
+     "close": 1226.0,
+     "volume": 527677.0
+    },
+    {
+     "timestamp": "2026-09-28T00:00:00Z",
+     "open": 1222.9,
+     "high": 1222.9,
+     "low": 1196.05,
+     "close": 1198.5,
+     "volume": 962615.0
+    },
+    {
+     "timestamp": "2026-09-29T00:00:00Z",
+     "open": 1194.4,
+     "high": 1198.0,
+     "low": 1182.05,
+     "close": 1184.0,
+     "volume": 866666.0
+    },
+    {
+     "timestamp": "2026-09-30T00:00:00Z",
+     "open": 1183.0,
+     "high": 1196.3,
+     "low": 1182.1,
+     "close": 1187.5,
+     "volume": 970803.0
+    },
+    {
+     "timestamp": "2026-10-01T00:00:00Z",
+     "open": 1180.0,
+     "high": 1183.7,
+     "low": 1161.0,
+     "close": 1166.0,
+     "volume": 2534718.0
+    }
+   ],
+   "provider": "bse",
+   "freshness": "eod",
+   "reason": null,
+   "partial": false,
+   "coverage_start": null
+  }
+ ],
+ "quote RELIANCE.BO": [
+  200,
+  {
+   "symbol": "RELIANCE",
+   "price": 1166.0,
+   "change": -21.5,
+   "change_percent": -1.8105263157894735,
+   "volume": 2535000.0,
+   "open": 1180.0,
+   "high": 1183.7,
+   "low": 1161.0,
+   "prev_close": 1187.5,
+   "currency": "INR",
+   "market_state": "CLOSED",
+   "timestamp": "2026-10-01T00:00:00Z",
+   "provider": "bse",
+   "freshness": "eod"
+  }
+ ],
+ "earn RELIANCE.BO": [
+  200,
+  {
+   "symbol": "RELIANCE.BO",
+   "history": [
+    {
+     "fiscal_period": null,
+     "period_end": "2025-12-31",
+     "reported_date": "2026-01-16",
+     "eps_actual": 13.78,
+     "eps_estimate_mean": 14.88712,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "INR",
+     "revenue_currency": "INR"
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2025-09-30",
+     "reported_date": "2025-10-17",
+     "eps_actual": 13.42,
+     "eps_estimate_mean": 14.3451,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "INR",
+     "revenue_currency": "INR"
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2025-06-30",
+     "reported_date": "2025-07-18",
+     "eps_actual": 19.95,
+     "eps_estimate_mean": 15.45125,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "INR",
+     "revenue_currency": "INR"
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2025-03-31",
+     "reported_date": "2025-04-25",
+     "eps_actual": 14.34,
+     "eps_estimate_mean": 12.9437,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "INR",
+     "revenue_currency": "INR"
+    }
+   ],
+   "as_of": "2026-10-03T09:40:10.309201Z"
+  }
+ ],
+ "news RELIANCE.BO": [
+  200,
+  [
+   {
+    "id": "c2a6e9792bba63ac",
+    "title": "Wall Street Week Ahead: Spiking bond yields, midterms, earnings to test US stocks' typical fourth-quarter strength",
+    "summary": "As the fourth quarter commences, US stocks traditionally experience a positive trajectory. Nonetheless, investors face hurdles such as climbing bond yields and a heavy reliance on AI expenditures. Coupled with the looming corporate earnings season and the November elections, market unpredictability intensifies. Analysts predict notable earnings growth, particularly driven by investments in AI infrastructure, which could shape the market's direction as the year concludes.",
+    "url": "https://economictimes.indiatimes.com/markets/us-stocks/wall-street-guide/wall-street-week-ahead-spiking-bond-yields-midterms-earnings-to-test-us-stocks-typical-fourth-quarter-strength/articleshow/134651438.cms",
+    "source": "Markets-Economic Times",
+    "published_at": "2026-10-03T03:52:00Z",
+    "symbols": [
+     "RELIANCE.BO"
+    ],
+    "sentiment": 0.836,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": false
+   },
+   {
+    "id": "035a02de904a1434",
+    "title": "RIL Q2 Results: Nuvama sees 17% EBITDA growth, led by O2C biz. Here\u2019s what to expect",
+    "summary": "Reliance Industries is expected to report 17% year-on-year growth in Q2FY27 EBITDA to Rs 53,700 crore, led by stronger refining margins and higher throughput, according to Nuvama Research. While the O2C business is likely to drive near-term earnings, New Energy could emerge as a key growth driver, with EBITDA projected to reach Rs 20,100 crore by FY30. Nuvama retains its Buy rating with a target price of Rs 1,766.",
+    "url": "https://economictimes.indiatimes.com/markets/stocks/earnings/ril-q2-results-nuvama-sees-17-ebitda-growth-led-by-o2c-biz-heres-what-to-expect/articleshow/134612429.cms",
+    "source": "Stocks-Markets-Economic Times",
+    "published_at": "2026-10-01T07:53:51Z",
+    "symbols": [
+     "RELIANCE.BO"
+    ],
+    "sentiment": 0.891,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": false
+   }
+  ]
+ ],
+ "rat RELIANCE.BO": [
+  200,
+  {
+   "symbol": "RELIANCE.BO",
+   "consensus": "buy",
+   "target_mean": 1716.6487,
+   "target_high": 2020.0,
+   "target_low": 1370.0,
+   "strong_buy": 9,
+   "buy": 25,
+   "hold": 0,
+   "sell": 1,
+   "strong_sell": 1,
+   "provider": "yfinance",
+   "as_of": "2026-10-03T09:40:14.761687Z"
+  }
+ ],
+ "hist HDFCBANK": [
+  200,
+  {
+   "symbol": "HDFCBANK",
+   "timeframe": "1d",
+   "bars": [
+    {
+     "timestamp": "2026-08-26T00:00:00Z",
+     "open": 728.0,
+     "high": 731.0,
+     "low": 724.15,
+     "close": 727.2,
+     "volume": 21156463.0
+    },
+    {
+     "timestamp": "2026-08-27T00:00:00Z",
+     "open": 728.15,
+     "high": 728.15,
+     "low": 710.0,
+     "close": 711.0,
+     "volume": 46515020.0
+    },
+    {
+     "timestamp": "2026-08-28T00:00:00Z",
+     "open": 710.85,
+     "high": 720.3,
+     "low": 707.0,
+     "close": 720.3,
+     "volume": 16494301.0
+    },
+    {
+     "timestamp": "2026-08-31T00:00:00Z",
+     "open": 723.05,
+     "high": 739.75,
+     "low": 704.15,
+     "close": 709.0,
+     "volume": 78157067.0
+    },
+    {
+     "timestamp": "2026-09-01T00:00:00Z",
+     "open": 705.05,
+     "high": 715.45,
+     "low": 698.5,
+     "close": 711.9,
+     "volume": 44417092.0
+    },
+    {
+     "timestamp": "2026-09-02T00:00:00Z",
+     "open": 702.3,
+     "high": 705.65,
+     "low": 700.0,
+     "close": 700.8,
+     "volume": 36950338.0
+    },
+    {
+     "timestamp": "2026-09-03T00:00:00Z",
+     "open": 705.0,
+     "high": 712.6,
+     "low": 705.0,
+     "close": 706.65,
+     "volume": 27770641.0
+    },
+    {
+     "timestamp": "2026-09-04T00:00:00Z",
+     "open": 708.35,
+     "high": 716.5,
+     "low": 708.35,
+     "close": 712.1,
+     "volume": 14488024.0
+    },
+    {
+     "timestamp": "2026-09-07T00:00:00Z",
+     "open": 712.1,
+     "high": 713.0,
+     "low": 707.05,
+     "close": 710.5,
+     "volume": 12180390.0
+    },
+    {
+     "timestamp": "2026-09-08T00:00:00Z",
+     "open": 707.1,
+     "high": 708.9,
+     "low": 703.0,
+     "close": 703.0,
+     "volume": 19883515.0
+    },
+    {
+     "timestamp": "2026-09-09T00:00:00Z",
+     "open": 698.0,
+     "high": 700.0,
+     "low": 687.1,
+     "close": 687.1,
+     "volume": 39173990.0
+    },
+    {
+     "timestamp": "2026-09-10T00:00:00Z",
+     "open": 687.1,
+     "high": 694.5,
+     "low": 686.2,
+     "close": 693.8,
+     "volume": 27108053.0
+    },
+    {
+     "timestamp": "2026-09-11T00:00:00Z",
+     "open": 683.9,
+     "high": 709.0,
+     "low": 681.9,
+     "close": 708.25,
+     "volume": 31411934.0
+    },
+    {
+     "timestamp": "2026-09-15T00:00:00Z",
+     "open": 722.4,
+     "high": 730.75,
+     "low": 715.05,
+     "close": 716.55,
+     "volume": 50387632.0
+    },
+    {
+     "timestamp": "2026-09-16T00:00:00Z",
+     "open": 714.9,
+     "high": 725.4,
+     "low": 710.85,
+     "close": 721.5,
+     "volume": 27476943.0
+    },
+    {
+     "timestamp": "2026-09-17T00:00:00Z",
+     "open": 717.5,
+     "high": 719.4,
+     "low": 713.0,
+     "close": 713.0,
+     "volume": 21543303.0
+    },
+    {
+     "timestamp": "2026-09-18T00:00:00Z",
+     "open": 715.25,
+     "high": 733.8,
+     "low": 715.25,
+     "close": 731.0,
+     "volume": 39400710.0
+    },
+    {
+     "timestamp": "2026-09-21T00:00:00Z",
+     "open": 731.0,
+     "high": 742.65,
+     "low": 729.05,
+     "close": 739.5,
+     "volume": 35482683.0
+    },
+    {
+     "timestamp": "2026-09-22T00:00:00Z",
+     "open": 738.85,
+     "high": 749.3,
+     "low": 738.6,
+     "close": 738.6,
+     "volume": 35483669.0
+    },
+    {
+     "timestamp": "2026-09-23T00:00:00Z",
+     "open": 735.65,
+     "high": 742.8,
+     "low": 734.0,
+     "close": 737.25,
+     "volume": 23197231.0
+    },
+    {
+     "timestamp": "2026-09-24T00:00:00Z",
+     "open": 725.0,
+     "high": 734.85,
+     "low": 722.7,
+     "close": 728.9,
+     "volume": 29575194.0
+    },
+    {
+     "timestamp": "2026-09-25T00:00:00Z",
+     "open": 723.0,
+     "high": 739.65,
+     "low": 723.0,
+     "close": 735.6,
+     "volume": 19853034.0
+    },
+    {
+     "timestamp": "2026-09-28T00:00:00Z",
+     "open": 731.6,
+     "high": 733.0,
+     "low": 718.1,
+     "close": 719.05,
+     "volume": 21675579.0
+    },
+    {
+     "timestamp": "2026-09-29T00:00:00Z",
+     "open": 713.7,
+     "high": 722.7,
+     "low": 706.25,
+     "close": 722.7,
+     "volume": 42755901.0
+    },
+    {
+     "timestamp": "2026-09-30T00:00:00Z",
+     "open": 711.5,
+     "high": 720.3,
+     "low": 708.7,
+     "close": 708.7,
+     "volume": 39365496.0
+    },
+    {
+     "timestamp": "2026-10-01T00:00:00Z",
+     "open": 708.4,
+     "high": 721.3,
+     "low": 707.1,
+     "close": 721.2,
+     "volume": 37389857.0
+    }
+   ],
+   "provider": "nse_direct",
+   "freshness": "eod",
+   "reason": null,
+   "partial": false,
+   "coverage_start": null
+  }
+ ],
+ "quote HDFCBANK": [
+  200,
+  {
+   "symbol": "HDFCBANK",
+   "price": 721.2,
+   "change": 12.5,
+   "change_percent": 1.763792860166502,
+   "volume": 37389857.0,
+   "open": 708.4,
+   "high": 721.3,
+   "low": 707.1,
+   "prev_close": 708.7,
+   "currency": "INR",
+   "market_state": "CLOSED",
+   "timestamp": "2026-10-01T00:00:00Z",
+   "provider": "nse_direct",
+   "freshness": "eod"
+  }
+ ],
+ "earn HDFCBANK": [
+  200,
+  {
+   "symbol": "HDFCBANK.NS",
+   "history": [
+    {
+     "fiscal_period": null,
+     "period_end": "2026-06-30",
+     "reported_date": "2026-07-18",
+     "eps_actual": 12.35,
+     "eps_estimate_mean": 12.515,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "INR",
+     "revenue_currency": "INR"
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2026-03-31",
+     "reported_date": "2026-04-18",
+     "eps_actual": 12.45,
+     "eps_estimate_mean": 12.35,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "INR",
+     "revenue_currency": "INR"
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2025-12-31",
+     "reported_date": "2026-01-17",
+     "eps_actual": 12.08,
+     "eps_estimate_mean": 10.485,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "INR",
+     "revenue_currency": "INR"
+    },
+    {
+     "fiscal_period": null,
+     "period_end": "2025-09-30",
+     "reported_date": "2025-10-18",
+     "eps_actual": 12.09,
+     "eps_estimate_mean": 11.29,
+     "revenue_actual": null,
+     "revenue_estimate_mean": null,
+     "currency": "INR",
+     "revenue_currency": "INR"
+    }
+   ],
+   "as_of": "2026-10-03T09:40:26.229032Z"
+  }
+ ],
+ "news HDFCBANK": [
+  200,
+  [
+   {
+    "id": "4d1f2f85bd1e450c",
+    "title": "Anup Bagchi's big test at HDFC Bank is winning back investor trust",
+    "summary": "Incoming HDFC Bank CEO Anup Bagchi\u2019s immediate task is to restore investor confidence by improving execution and governance, as the bank\u2019s loan growth and return on equity have fallen towards industry averages.",
+    "url": "https://economictimes.indiatimes.com/markets/stocks/news/anup-bagchis-big-test-at-hdfc-bank-is-winning-back-investor-trust/articleshow/134650810.cms",
+    "source": "Markets-Economic Times",
+    "published_at": "2026-10-02T18:39:12Z",
+    "symbols": [
+     "HDFCBANK"
+    ],
+    "sentiment": 0.9337,
+    "sentiment_label": "positive",
+    "provider": "rss",
+    "via_symbol_feed": false
+   },
+   {
+    "id": "d6ef3510d7f874ec",
+    "title": "Market wrap: Infosys, HDFC Bank, Bajaj Auto, Maruti Suzuki among top gainers and losers on Nifty and Sensex on Thursday",
+    "summary": "Indian equities extended their decline as elevated crude oil prices and multi-year high bond yields intensified concerns over the 2026\u201327 economic outlook. Nifty fell 0.88% and Sensex 0.79%, while broader markets weakened and India VIX climbed sharply.",
+    "url": "https://economictimes.indiatimes.com/markets/stocks/news/market-wrap-infosys-hdfc-bank-bajaj-auto-maruti-suzuki-among-top-gainers-and-losers-on-nifty-and-sensex-on-thursday/articleshow/134617786.cms",
+    "source": "Stocks-Markets-Economic Times",
+    "published_at": "2026-10-01T11:45:56Z",
+    "symbols": [
+     "HDFCBANK"
+    ],
+    "sentiment": -0.4939,
+    "sentiment_label": "negative",
+    "provider": "rss",
+    "via_symbol_feed": false
+   }
+  ]
+ ],
+ "rat HDFCBANK": [
+  200,
+  {
+   "symbol": "HDFCBANK.NS",
+   "consensus": "buy",
+   "target_mean": 987.7805,
+   "target_high": 1400.0,
+   "target_low": 800.0,
+   "strong_buy": 6,
+   "buy": 33,
+   "hold": 2,
+   "sell": 0,
+   "strong_sell": 0,
+   "provider": "yfinance",
+   "as_of": "2026-10-03T09:40:30.310770Z"
+  }
+ ],
+ "hist BTC-USD": [
+  200,
+  {
+   "symbol": "BTC-USD",
+   "timeframe": "1d",
+   "bars": [],
+   "provider": "none",
+   "freshness": null,
+   "reason": "unknown_symbol",
+   "partial": false,
+   "coverage_start": null
+  }
+ ],
+ "quote BTC-USD": [
+  404,
+  {
+   "detail": "The data provider has no data for this symbol or series \u2014 check the symbol.",
+   "code": "not_found",
+   "action": "Check the symbol or series id."
+  }
+ ],
+ "earn BTC-USD": [
+  200,
+  {
+   "symbol": "BTC-USD.NS",
+   "history": [],
+   "as_of": "2026-10-03T09:40:41.780087Z"
+  }
+ ],
+ "news BTC-USD": [
+  200,
+  []
+ ],
+ "rat BTC-USD": [
+  404,
+  {
+   "detail": "The data provider has no data for this symbol or series \u2014 check the symbol.",
+   "code": "not_found",
+   "action": "Check the symbol or series id."
+  }
+ ],
+ "batch": [
+  200,
+  [
+   {
+    "symbol": "^NSEI",
+    "price": 22421.95,
+    "change": -198.49921874999927,
+    "change_percent": -0.8775211174208869,
+    "volume": 0.0,
+    "open": null,
+    "high": null,
+    "low": null,
+    "prev_close": null,
+    "currency": "INR",
+    "market_state": null,
+    "timestamp": "2026-10-01T10:01:12Z",
+    "provider": "yfinance",
+    "freshness": "eod"
+   },
+   {
+    "symbol": "BHP.AX",
+    "price": 61.209999084472656,
+    "change": 0.9500007629394531,
+    "change_percent": 1.5765031354140968,
+    "volume": 7394485.0,
+    "open": null,
+    "high": null,
+    "low": null,
+    "prev_close": null,
+    "currency": "AUD",
+    "market_state": null,
+    "timestamp": "2026-10-02T06:18:01Z",
+    "provider": "yfinance",
+    "freshness": "eod"
+   },
+   {
+    "symbol": "0700.HK",
+    "price": 421.20001220703125,
+    "change": -9.79998779296875,
+    "change_percent": -2.2737790702943736,
+    "volume": 19108045.0,
+    "open": null,
+    "high": null,
+    "low": null,
+    "prev_close": null,
+    "currency": "HKD",
+    "market_state": null,
+    "timestamp": "2026-10-02T08:08:07Z",
+    "provider": "yfinance",
+    "freshness": "eod"
+   },
+   {
+    "symbol": "7203.T",
+    "price": 2856.5,
+    "change": -74.5,
+    "change_percent": -2.5417946093483454,
+    "volume": 30938400.0,
+    "open": null,
+    "high": null,
+    "low": null,
+    "prev_close": null,
+    "currency": "JPY",
+    "market_state": null,
+    "timestamp": "2026-10-02T06:30:00Z",
+    "provider": "yfinance",
+    "freshness": "eod"
+   },
+   {
+    "symbol": "VOD.L",
+    "price": 126.80000305175781,
+    "change": 2.700003051757818,
+    "change_percent": 2.1756672455743904,
+    "volume": 52629315.0,
+    "open": null,
+    "high": null,
+    "low": null,
+    "prev_close": null,
+    "currency": "GBp",
+    "market_state": null,
+    "timestamp": "2026-10-02T15:36:52Z",
+    "provider": "yfinance",
+    "freshness": "eod"
+   },
+   {
+    "symbol": "RELIANCE.NS",
+    "price": 1167.7,
+    "change": -19.299999999999955,
+    "change_percent": -1.6259477674810408,
+    "volume": 16771221.0,
+    "open": 1180.1,
+    "high": 1183.9,
+    "low": 1160.8,
+    "prev_close": 1187.0,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-10-01T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+   },
+   {
+    "symbol": "RELIANCE.BO",
+    "price": 1166.0,
+    "change": -21.5,
+    "change_percent": -1.8105263157894735,
+    "volume": 2535000.0,
+    "open": 1180.0,
+    "high": 1183.7,
+    "low": 1161.0,
+    "prev_close": 1187.5,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-10-01T00:00:00Z",
+    "provider": "bse",
+    "freshness": "eod"
+   },
+   {
+    "symbol": "HDFCBANK",
+    "price": 721.2,
+    "change": 12.5,
+    "change_percent": 1.763792860166502,
+    "volume": 37389857.0,
+    "open": 708.4,
+    "high": 721.3,
+    "low": 707.1,
+    "prev_close": 708.7,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-10-01T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+   }
+  ]
+ ]
+}

@@ -1,0 +1,2 @@
+{"kind": "error", "message": "OpenRouter returned a server error \u2014 it may be a temporary outage.", "action": "Try again in a few minutes.", "detail": "Upstream error from Nvidia: Service temporarily overloaded", "code": "provider_5xx"}
+{"kind": "done", "usage": null, "finish_reason": null}

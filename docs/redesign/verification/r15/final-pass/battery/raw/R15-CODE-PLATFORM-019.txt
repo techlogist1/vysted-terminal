@@ -1,0 +1,29 @@
+# R15-CODE-PLATFORM-019 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:45+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import sys; sys.path.insert(0, "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb3/sc")
+from wf import *
+code,txt,ev=run([node("A","flow.sleep",seconds=4),node("B","action.log",message="b"),node("C","action.log",message="c")],[edge("e1","B","message","C","value")],timeout=30)
+print("$ POST /workflow/run: A=flow.sleep 4s (independent), B fast, C depends on B only  HTTP",code,txt[:200])
+for t,e in ev: print(f"{t}s {e['kind']} {e.get('nodeId')}")
+code,txt,ev=run([node("S","flow.sleep",seconds=6,timeout_seconds=2)],[],timeout=30)
+print("$ POST /workflow/run: flow.sleep seconds=6 with timeout_seconds=2  HTTP",code,txt[:200])
+for t,e in ev: print(f"{t}s {e['kind']} {e.get('nodeId')} {e.get('message')}")
+PY
+--- output ---
+$ POST /workflow/run: A=flow.sleep 4s (independent), B fast, C depends on B only  HTTP 200 
+0.03s run-start None
+0.03s node-start A
+0.03s node-start B
+0.03s node-output B
+0.03s node-start C
+0.03s node-output C
+4.03s node-output A
+4.03s run-complete None
+$ POST /workflow/run: flow.sleep seconds=6 with timeout_seconds=2  HTTP 200 
+0.01s run-start None None
+0.01s node-start S None
+2.05s node-error S node timed out after 2s
+2.05s run-error None failures in nodes: ['S']
+
+EXIT=0 (6.2s)

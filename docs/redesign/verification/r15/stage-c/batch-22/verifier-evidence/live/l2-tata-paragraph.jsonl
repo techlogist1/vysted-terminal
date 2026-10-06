@@ -1,0 +1,43 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_9bbb47380a99486588300bbbc4d8c21c", "name": "price_data", "input": {"symbol": "TCS.NS", "range": "1d", "timeframe": "1d"}}
+{"kind": "tool_use", "tool_call_id": "call_424ee608b3bf4b8a864739fcd0d73996", "name": "price_data", "input": {"symbol": "TATAMOTORS.ZZ", "range": "1d", "timeframe": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_9bbb47380a99486588300bbbc4d8c21c", "name": "price_data", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_424ee608b3bf4b8a864739fcd0d73996", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'TATAMOTORS.ZZ' from 'yfinance'"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "208"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "AT"}
+{"kind": "delta", "text": "AM"}
+{"kind": "delta", "text": "OT"}
+{"kind": "delta", "text": "ORS"}
+{"kind": "delta", "text": ".Z"}
+{"kind": "delta", "text": "Z"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " unavailable"}
+{"kind": "delta", "text": " due"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " provider"}
+{"kind": "delta", "text": " error"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 7121, "output_tokens": 33, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

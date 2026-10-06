@@ -1,0 +1,57 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_64444b7af5774957abafa6cba0a5398c", "name": "news", "input": {"symbols": ["TSLA"], "limit": 10}}
+{"kind": "tool_result", "tool_call_id": "call_64444b7af5774957abafa6cba0a5398c", "name": "news", "ok": true, "error": null}
+{"kind": "delta", "text": "According"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " Pulse"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "er"}
+{"kind": "delta", "text": "od"}
+{"kind": "delta", "text": "ha"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " Tesla"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " expanded"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " presence"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " South"}
+{"kind": "delta", "text": " India"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " new"}
+{"kind": "delta", "text": " retail"}
+{"kind": "delta", "text": " outlet"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " Chennai"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "According"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " mint"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " Elon"}
+{"kind": "delta", "text": " Musk"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " other"}
+{"kind": "delta", "text": " corporate"}
+{"kind": "delta", "text": " leaders"}
+{"kind": "delta", "text": " attended"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " White"}
+{"kind": "delta", "text": " House"}
+{"kind": "delta", "text": " state"}
+{"kind": "delta", "text": " dinner"}
+{"kind": "delta", "text": " hosted"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " Donald"}
+{"kind": "delta", "text": " Trump"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " Xi"}
+{"kind": "delta", "text": " Jinping"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 3308, "output_tokens": 52, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

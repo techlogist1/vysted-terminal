@@ -1,0 +1,16 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  37.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_3927d3f7ffde4d0cb72f6af69f1c5a0c", "name": "price_data", "input": {"symbol": "TCS.NS"}}
+[  40.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_3927d3f7ffde4d0cb72f6af69f1c5a0c", "name": "price_data", "ok": true, "error": null}
+[  50.7s] heartbeat: {"kind": "heartbeat"}
+[  60.7s] heartbeat: {"kind": "heartbeat"}
+[  70.7s] heartbeat: {"kind": "heartbeat"}
+[  77.7s] done: {"kind": "done", "usage": {"input_tokens": 7011, "output_tokens": 66, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of TCS.NS is ₹2082.0.
+
+TCS had its high at ₹2495.0 and low at ₹2326.1 on July 31, 2026. The stock closed at ₹2365.6 with a volume of 43,436,830 shares traded.
+
+=== ok · 77.7s · events {'heartbeat': 6, 'tool_use': 1, 'tool_result': 1, 'delta': 65, 'done': 1} · usage in=7011 out=66 · est $0.00000 · llama3.1:8b

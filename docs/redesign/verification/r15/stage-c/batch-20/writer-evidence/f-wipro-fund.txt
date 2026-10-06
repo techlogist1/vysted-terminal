@@ -1,0 +1,11 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_ac2e279022f74e1baaa084fa44502c9d", "name": "fundamentals", "input": {"symbol": "WIPRO.NSE"}}
+[  39.0s] tool_result: {"kind": "tool_result", "tool_call_id": "call_ac2e279022f74e1baaa084fa44502c9d", "name": "fundamentals", "ok": false, "error": "provider error: yfinance has no instrument data for 'WIPRO.NSE'"}
+[  40.6s] done: {"kind": "done", "usage": {"input_tokens": 2851, "output_tokens": 17, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+No data for WIPRO.NSE. We couldn't retrieve its fundamentals.
+
+=== ok · 40.6s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 17, 'done': 1} · usage in=2851 out=17 · est $0.00000 · llama3.1:8b

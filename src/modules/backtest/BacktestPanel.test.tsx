@@ -69,6 +69,20 @@ const SAMPLE_STRATEGIES: BacktestStrategySpec[] = [
       },
     },
   },
+  {
+    id: "custom",
+    name: "Custom Strategy (DSL)",
+    description: "your own entry/exit rules",
+    paramsSchema: {
+      type: "object",
+      properties: {
+        entry: { type: "string", default: "sma(20) > sma(50)" },
+        exit: { type: "string", default: "rsi(14) > 70" },
+        position_size: { type: "number", default: 100 },
+      },
+      required: ["entry", "exit"],
+    },
+  },
 ];
 
 const SAMPLE_RESULT: BacktestResult = {
@@ -129,6 +143,23 @@ afterEach(() => {
 // Tests
 // ---------------------------------------------------------------------------
 
+describe("BacktestPanel date defaults (R15-UI-062)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 25)); // 2026-09-25, local time
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("defaults the date range to today and today - 2y, not a frozen literal", () => {
+    render(<BacktestPanel />);
+    expect(screen.getByLabelText("Start date")).toHaveValue("2024-09-25");
+    expect(screen.getByLabelText("End date")).toHaveValue("2026-09-25");
+  });
+});
+
 describe("BacktestPanel", () => {
   it("loads strategies on mount and selects the first", async () => {
     vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
@@ -158,7 +189,7 @@ describe("BacktestPanel", () => {
     vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
     render(<BacktestPanel />);
     await waitFor(() => screen.getByText("Mean Reversion"));
-    expect(screen.getByText(/No backtest run yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/Run your first backtest/i)).toBeInTheDocument();
   });
 
   it("renders the result view once a run completes", async () => {
@@ -227,7 +258,7 @@ describe("BacktestPanel", () => {
     expect(promptText).toContain("run-1");
   });
 
-  it("disables the Run button while a backtest is streaming", async () => {
+  it("swaps Run for Stop while a backtest is streaming", async () => {
     vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
     render(<BacktestPanel />);
     await waitFor(() => screen.getByText("Mean Reversion"));
@@ -248,10 +279,256 @@ describe("BacktestPanel", () => {
       },
       activeRunId: "run-X",
     });
+    // No second run can start: the Run button is gone, Stop takes its place.
     await waitFor(() => {
-      const button = screen.getByTestId("run-backtest");
-      expect(button).toBeDisabled();
+      expect(screen.getByTestId("stop-backtest")).toBeEnabled();
     });
+    expect(screen.queryByTestId("run-backtest")).not.toBeInTheDocument();
     expect(screen.getByTestId("streaming-progress")).toBeInTheDocument();
+  });
+
+  it("swaps the params form for the DSL editor on the custom strategy and gates Run on validity", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () =>
+        Promise.resolve({
+          ok: false,
+          errors: [{ rule: "entry", message: "unknown identifier 'smaa'", position: 8 }],
+          indicators: [],
+          requiredBars: 0,
+        }),
+    } as unknown as Response);
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
+      render(<BacktestPanel />);
+      await waitFor(() => screen.getByText("Custom Strategy (DSL)"));
+      fireEvent.click(screen.getByText("Custom Strategy (DSL)"));
+
+      // The definition editor replaces the generic params form.
+      await waitFor(() => {
+        expect(screen.getByTestId("custom-strategy-editor")).toBeInTheDocument();
+      });
+      expect(screen.queryByTestId("params-form")).not.toBeInTheDocument();
+      // Defaults from the spec's paramsSchema flow into the rule editors.
+      expect(screen.getByTestId("custom-rule-entry")).toHaveValue("sma(20) > sma(50)");
+
+      // Inline validation fails → the error renders and Run is gated off.
+      await waitFor(() => {
+        expect(screen.getByTestId("rule-error-entry")).toHaveTextContent("unknown identifier");
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId("run-backtest")).toBeDisabled();
+      });
+
+      // A fixed definition re-validates clean → Run is live again.
+      fetchMock.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({ ok: true, errors: [], indicators: ["sma(20)"], requiredBars: 20 }),
+      } as unknown as Response);
+      fireEvent.change(screen.getByTestId("custom-rule-entry"), {
+        target: { value: "close > sma(20)" },
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId("run-backtest")).toBeEnabled();
+      });
+      expect(screen.getByTestId("custom-valid-summary")).toHaveTextContent("needs 20 bars");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("renders composed empty states for the no-run panel and an empty trade log", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
+    render(<BacktestPanel />);
+    await waitFor(() => screen.getByText("Mean Reversion"));
+    // No run yet → the composed EmptyState, not a bare paragraph.
+    const emptyState = screen.getByTestId("empty-state");
+    expect(emptyState).toHaveTextContent("Run your first backtest");
+    expect(screen.getByTestId("empty-state-icon")).toBeInTheDocument();
+
+    // A completed run with zero trades → the dense trade-log EmptyState.
+    const tradelessResult = { ...SAMPLE_RESULT, trades: [] };
+    useBacktestStore.setState({
+      runs: {
+        "run-2": {
+          runId: "run-2",
+          request: SAMPLE_RESULT.request,
+          status: "complete",
+          barsProcessed: 250,
+          totalBars: 250,
+          trades: [],
+          result: tradelessResult,
+          error: null,
+          startedAt: SAMPLE_RESULT.startedAt,
+          finishedAt: SAMPLE_RESULT.startedAt + 320,
+        },
+      },
+      activeRunId: "run-2",
+    });
+    await waitFor(() => {
+      expect(screen.getByText("No trades yet")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("empty-state")).toHaveAttribute("data-dense", "true");
+  });
+
+  it("keeps real column widths in the trade table (no fixed colgroup truncation)", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
+    render(<BacktestPanel />);
+    await waitFor(() => screen.getByText("Mean Reversion"));
+    const wideTrade = {
+      id: "tr-wide",
+      symbol: "BRK.A",
+      side: "buy" as const,
+      enteredAt: "2024-03-01",
+      exitedAt: "2024-03-15",
+      entryPrice: 612345.67,
+      exitPrice: 645678.99,
+      quantity: 1234567,
+      pnl: 41172530.88,
+    };
+    useBacktestStore.setState({
+      runs: {
+        "run-3": {
+          runId: "run-3",
+          request: SAMPLE_RESULT.request,
+          status: "complete",
+          barsProcessed: 250,
+          totalBars: 250,
+          trades: [wideTrade],
+          result: { ...SAMPLE_RESULT, trades: [wideTrade] },
+          error: null,
+          startedAt: SAMPLE_RESULT.startedAt,
+          finishedAt: SAMPLE_RESULT.startedAt + 320,
+        },
+      },
+      activeRunId: "run-3",
+    });
+    await waitFor(() => {
+      expect(screen.getByText("612345.67")).toBeInTheDocument();
+    });
+    const table = screen.getByText("612345.67").closest("table");
+    expect(table).not.toBeNull();
+    // Auto layout — no table-fixed, no <colgroup> clipping numbers mid-digit.
+    expect(table?.className).not.toContain("table-fixed");
+    expect(table?.querySelector("colgroup")).toBeNull();
+    // Numeric cells stay right-aligned tabular.
+    const entryCell = screen.getByText("612345.67").closest("td");
+    expect(entryCell?.className).toContain("text-right");
+    expect(entryCell?.className).toContain("tabular-nums");
+    expect(screen.getByText("1,234,567")).toBeInTheDocument();
+  });
+});
+
+// D65 (R12): a run whose entries were skipped for insufficient cash must
+// surface the engine's warnings strip — never a silent all-zero result.
+describe("BacktestPanel warnings (D65)", () => {
+  it("renders result.warnings as a warning strip", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
+    render(<BacktestPanel />);
+    await waitFor(() => screen.getByText("Mean Reversion"));
+
+    const warnedResult = {
+      ...SAMPLE_RESULT,
+      trades: [],
+      warnings: [
+        "37 buy signal(s) skipped — the position size cost more than available cash (largest shortfall 52,340). Reduce position_size or raise initial_capital.",
+      ],
+    };
+    useBacktestStore.setState({
+      runs: {
+        "run-w": {
+          runId: "run-w",
+          request: SAMPLE_RESULT.request,
+          status: "complete",
+          barsProcessed: 250,
+          totalBars: 250,
+          trades: [],
+          result: warnedResult,
+          error: null,
+          startedAt: SAMPLE_RESULT.startedAt,
+          finishedAt: SAMPLE_RESULT.startedAt + 320,
+        },
+      },
+      activeRunId: "run-w",
+    });
+
+    await waitFor(() => {
+      const strip = screen.getByTestId("run-warning");
+      expect(strip).toHaveTextContent("37 buy signal(s) skipped");
+    });
+  });
+});
+
+describe("BacktestPanel params bounds (R15-UI-010)", () => {
+  const BOUNDED: BacktestStrategySpec[] = [
+    {
+      id: "trend_following",
+      name: "Trend Following",
+      description: "golden cross",
+      paramsSchema: {
+        type: "object",
+        properties: {
+          short_window: { type: "integer", default: 50, minimum: 2, maximum: 200 },
+        },
+      },
+    },
+  ];
+
+  it("clamps an out-of-range entry to the bound and a cleared one to the default on blur", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: BOUNDED });
+    render(<BacktestPanel />);
+    const input = await waitFor(() => screen.getByLabelText("short_window"));
+    expect(input).toHaveAttribute("min", "2");
+    expect(input).toHaveAttribute("max", "200");
+
+    fireEvent.change(input, { target: { value: "0" } });
+    fireEvent.blur(input);
+    await waitFor(() => expect(input).toHaveValue(2));
+
+    fireEvent.change(input, { target: { value: "" } });
+    fireEvent.blur(input);
+    await waitFor(() => expect(input).toHaveValue(50));
+  });
+});
+
+describe("BacktestPanel Stop (R15-UI-011)", () => {
+  it("Stop aborts the live stream, idles the run, and Retry runs on a fresh controller", async () => {
+    const signals: AbortSignal[] = [];
+    // A stream that never finishes on its own; it rejects only when aborted.
+    const fetchMock = vi.fn(
+      (_url: string, init: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          const signal = init.signal as AbortSignal;
+          signals.push(signal);
+          signal.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
+      render(<BacktestPanel />);
+      await waitFor(() => expect(screen.getByTestId("run-backtest")).toBeEnabled());
+      fireEvent.click(screen.getByTestId("run-backtest"));
+
+      fireEvent.click(await waitFor(() => screen.getByTestId("stop-backtest")));
+      await waitFor(() => expect(screen.getByTestId("run-note")).toHaveTextContent("Stopped"));
+      expect(signals[0].aborted).toBe(true);
+      expect(Object.values(useBacktestStore.getState().runs)[0].status).toBe("idle");
+      expect(screen.getByTestId("run-backtest")).toBeEnabled();
+
+      fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+      await waitFor(() => expect(signals).toHaveLength(2));
+      expect(signals[1]).not.toBe(signals[0]);
+      expect(signals[1].aborted).toBe(false);
+      // The retried run is stoppable too.
+      fireEvent.click(await waitFor(() => screen.getByTestId("stop-backtest")));
+      await waitFor(() => expect(signals[1].aborted).toBe(true));
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

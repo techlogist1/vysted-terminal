@@ -1,0 +1,12 @@
+# R15-RESEARCH-009 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:35:45+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+echo "== real _research(depth=deep) on ollama llama3.1:8b, in-process (b8_r009.py) run under the Ollama lock =="; cat $B/out/L-RESEARCH-009.txt
+--- output ---
+== real _research(depth=deep) on ollama llama3.1:8b, in-process (b8_r009.py) run under the Ollama lock ==
+profiles deep: 600000 3.0 ultra: 1800000 9.0
+elapsed_s 178
+execution {"run_id": "8fdfb6596b2149d9b380354edba7e0f5", "requested_depth": "deep", "loop": "iter", "backend": "native", "started_at": 1791030703.518851, "finished_at": 1791030881.5045812, "degraded_reason": null}
+cost (result): {"tokens": 15222, "spend_usd": 0.0, "steps": 5, "estimate": true} | brief.cost: {"tokens": 15222, "spend_usd": 0.0, "steps": 5, "estimate": true}
+EXIT=0
+
+EXIT=0 (0.0s)

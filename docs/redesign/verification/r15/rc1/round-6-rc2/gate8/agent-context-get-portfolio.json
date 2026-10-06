@@ -1,0 +1,62 @@
+{
+ "focusedSource": null,
+ "bySource": {
+  "__terminal__": {
+   "focusedPanel": null,
+   "focusedSymbol": "^NSEI",
+   "charts": [],
+   "watchlist": {
+    "symbols": [
+     "^NSEI",
+     "RELIANCE.NS",
+     "TCS.NS",
+     "HDFCBANK.NS",
+     "TCS"
+    ],
+    "selected": null
+   },
+   "portfolio": {
+    "positionCount": 2,
+    "totalValue": 4222.110107421875,
+    "activePortfolioId": "default",
+    "activePortfolioName": "Portfolio",
+    "holdings": [
+     {
+      "id": "h-f4883861-eb27-45f4-ac15-6296312b9755",
+      "symbol": "AAPL",
+      "quantity": 8,
+      "costBasis": 200,
+      "assetClass": "equity",
+      "currency": "USD",
+      "marketValue": 2669.52001953125,
+      "pnl": 1069.52001953125
+     },
+     {
+      "id": "h-044c741e-3d94-4c19-a11e-37dfa288c8d5",
+      "symbol": "MSFT",
+      "quantity": 3,
+      "costBasis": 400,
+      "assetClass": "equity",
+      "currency": "USD",
+      "marketValue": 1552.590087890625,
+      "pnl": 352.590087890625
+     }
+    ]
+   },
+   "brief": {
+    "phase": "empty"
+   },
+   "otherPanels": [],
+   "openPanels": [],
+   "region": "IN",
+   "capturedAt": 1790985120155
+  },
+  "__notes__": {
+   "general": "gate8 general note",
+   "bySymbol": {
+    "AAPL": "gate8 aapl note v2"
+   }
+  }
+ },
+ "capturedAt": 1790985120155
+}

@@ -1,0 +1,8 @@
+GET /llm/providers -> 200 [{"id":"anthropic","label":"Anthropic","requires_key":true,"default_base_url":null,"default_model":"claude-opus-4-8","known_models":["claude-opus-4-8","claude-sonnet-4-6","claude-haiku-4-5"]},{"id":"openai","label":"Open
+GET /quotes/RELIANCE.NS?asset_class=equity -> 200 {"symbol":"RELIANCE","price":1167.7,"change":-19.299999999999955,"change_percent":-1.6259477674810408,"volume":16771221.0,"open":1180.1,"high":1183.9,"low":1160.8,"prev_close":1187.0,"currency":"INR","market_state":"CLOS
+GET /history/INFY.NS?timeframe=1d&range=1mo -> 200 {"symbol":"INFY","timeframe":"1d","bars":[{"timestamp":"2026-08-26T00:00:00Z","open":1142.0,"high":1142.0,"low":1118.3,"close":1120.0,"volume":6323984.0},{"timestamp":"2026-08-27T00:00:00Z","open":1120.0,"high":1130.7,"l
+GET /news?symbols=INFY.NS&limit=3 -> 200 [{"id":"f44b194973c21544","title":"F&amp;O Talk: 22,600 is a key Nifty support; Sudeep Shah discusses PB Fintech, Infosys, TCS strategy ahead of Q2","summary":"Analyst Sudeep Shah, Vice President and Head of Technical &a
+GET /macro/series/IN_CPI -> 422 {"detail":"provider is required for a series id"}
+GET /market/overview -> 404 {"detail":"Not Found"}
+GET /resolve?q=tata%20motors -> 200 {"ok":true,"query":"tata motors","region":"IN","resolved":{"symbol":"TMCV","name":"Tata Motors Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"TMCV.NS","confidence":1.0,"isin":"INE1TAE01010
+GET /agents -> 200 [{"id":"buffett","name":"Warren Buffett","philosophy":"Value investing with a wide-moat lens — wonderful businesses at fair prices, held forever.","tools":["price_data","fundamentals","news"],"default_provider":"anthro

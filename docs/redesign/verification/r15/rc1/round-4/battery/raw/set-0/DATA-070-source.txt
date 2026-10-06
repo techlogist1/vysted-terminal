@@ -1,0 +1,41 @@
+        return None
+    stripped = _TAG_RE.sub(" ", text)
+    collapsed = " ".join(stripped.split())
+    return collapsed or None
+
+
+def _parse_struct_time(value: struct_time | None) -> datetime | None:
+    """Convert a feedparser ``struct_time`` to a UTC datetime.
+
+    ``None`` when the entry carried no date or a malformed one: an undated item
+    is never stamped now() (which would sort it above genuinely recent stories).
+    """
+    if value is None:
+        return None
+    try:
+        return datetime(*value[:6], tzinfo=UTC)
+    except (TypeError, ValueError):
+        return None
+
+
+def _parse_iso(value: str | None) -> datetime | None:
+    """Parse an ISO-8601 timestamp (NewsAPI's format); ``None`` when absent or
+    malformed, never now()."""
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=UTC)
+    return parsed
+
+
+async def fetch_rss(
+    client: httpx.AsyncClient, feed_url: str, *, fallback_source: str
+struct_time None: None
+struct_time malformed: None
+iso None: None
+iso malformed: None
+iso valid: 2026-09-20 10:00:00+00:00

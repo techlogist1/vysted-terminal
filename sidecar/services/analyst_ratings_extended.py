@@ -44,6 +44,7 @@ from models.analyst_extended import (
     RatingsHistoryResponse,
 )
 from services.errors import ProviderError
+from services.yfinance_provider import _yahoo_symbol
 
 logger = logging.getLogger(__name__)
 
@@ -128,10 +129,6 @@ def _normalise_action(raw: str | None) -> AnalystAction | None:
     return _RATING_MAP.get(key)
 
 
-def _normalise_symbol(symbol: str) -> str:
-    return symbol.strip().upper().replace(".", "-")
-
-
 def _num(value: Any) -> float | None:
     if value is None:
         return None
@@ -179,8 +176,12 @@ def _yf_ticker(symbol: str) -> Any:
 
 
 def _fetch_ratings_sync(symbol: str) -> dict[str, Any]:
-    """Pull recommendations + upgrades/downgrades + price targets."""
-    normalized = _normalise_symbol(symbol)
+    """Pull recommendations + upgrades/downgrades + price targets.
+
+    ``symbol`` is resolved once here, region-aware (``_yahoo_symbol``), and
+    echoed back as ``payload["symbol"]``.
+    """
+    normalized = _yahoo_symbol(symbol)
     try:
         ticker = _yf_ticker(normalized)
         try:
@@ -217,8 +218,8 @@ def _fetch_ratings_sync(symbol: str) -> dict[str, Any]:
 
 async def get_ratings_history(symbol: str) -> RatingsHistoryResponse:
     """Return every recorded rating change for ``symbol`` (newest-first)."""
-    normalized = _normalise_symbol(symbol)
-    payload = await asyncio.to_thread(_fetch_ratings_sync, normalized)
+    payload = await asyncio.to_thread(_fetch_ratings_sync, symbol)
+    normalized = payload["symbol"]
     entries: list[RatingsHistoryEntry] = []
 
     frame = payload.get("upgrades_downgrades")
@@ -249,7 +250,7 @@ async def get_ratings_history(symbol: str) -> RatingsHistoryResponse:
                 )
             )
     entries.sort(key=lambda entry: entry.date, reverse=True)
-    return RatingsHistoryResponse(symbol=normalized, history=entries)
+    return RatingsHistoryResponse(symbol=normalized, history=entries, as_of=datetime.now(UTC))
 
 
 async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
@@ -259,13 +260,16 @@ async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
     changes — its ``analyst_price_targets`` accessor returns a single
     current snapshot (low / mean / median / high). To still produce a
     usable timeline, the provider falls back to deriving target deltas
-    from the consecutive entries of the upgrades/downgrades frame where
-    a ``PriceTarget`` column is surfaced (some yfinance versions ship
-    this; older ones do not). The frontend renders an empty-state when
-    no rows return.
+    from the consecutive entries of the upgrades/downgrades frame, reading
+    the LIVE column names yfinance actually ships — ``currentPriceTarget`` /
+    ``priorPriceTarget`` (R15-DATA-069: the old ``PriceTarget``/``Target``/
+    ``Price Target`` names are dead; no shipped yfinance version has ever
+    used them, so every row fell through to the single-snapshot-anchor
+    fallback below). The frontend renders an empty-state when no rows
+    return.
     """
-    normalized = _normalise_symbol(symbol)
-    payload = await asyncio.to_thread(_fetch_ratings_sync, normalized)
+    payload = await asyncio.to_thread(_fetch_ratings_sync, symbol)
+    normalized = payload["symbol"]
     currency = str(payload.get("currency") or "USD")
     frame = payload.get("upgrades_downgrades")
     entries: list[PriceTargetEntry] = []
@@ -283,13 +287,19 @@ async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
             if entry_date is None:
                 continue
             firm = str(row.get("Firm") or "Unknown").strip()
-            target_to = _num(row.get("PriceTarget"))
-            if target_to is None:
-                # Some versions name the field differently.
-                target_to = _num(row.get("Target")) or _num(row.get("Price Target"))
+            # R15-DATA-069: yfinance's live column names — the old
+            # PriceTarget/Target/Price Target names were dead (no shipped
+            # version ever used them).
+            target_to = _num(row.get("currentPriceTarget"))
             if target_to is None:
                 continue
-            target_from = last_target_by_firm.get(firm)
+            # yfinance carries the prior target on the same row; fall back to
+            # the last target we saw for this firm only when the row itself
+            # is silent (an older upgrades_downgrades shape without the
+            # column).
+            target_from = _num(row.get("priorPriceTarget"))
+            if target_from is None:
+                target_from = last_target_by_firm.get(firm)
             entries.append(
                 PriceTargetEntry(
                     symbol=normalized,
@@ -326,7 +336,7 @@ async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
                     provider=PROVIDER,
                 )
             )
-    return PriceTargetHistoryResponse(symbol=normalized, history=entries)
+    return PriceTargetHistoryResponse(symbol=normalized, history=entries, as_of=datetime.now(UTC))
 
 
 async def get_individual_analysts(symbol: str) -> IndividualAnalystResponse:
@@ -339,8 +349,8 @@ async def get_individual_analysts(symbol: str) -> IndividualAnalystResponse:
     (openbb-mcp ``equity_estimates_*`` / TipRanks-style providers) and
     surfaced by the frontend with em-dash placeholders.
     """
-    normalized = _normalise_symbol(symbol)
-    payload = await asyncio.to_thread(_fetch_ratings_sync, normalized)
+    payload = await asyncio.to_thread(_fetch_ratings_sync, symbol)
+    normalized = payload["symbol"]
     currency = str(payload.get("currency") or "USD")
     frame = payload.get("upgrades_downgrades")
     forecasts: list[IndividualAnalystForecast] = []
@@ -365,11 +375,8 @@ async def get_individual_analysts(symbol: str) -> IndividualAnalystResponse:
             current = _normalise_action(to_grade)
             if current is None:
                 continue
-            target_to = (
-                _num(row.get("PriceTarget"))
-                or _num(row.get("Target"))
-                or _num(row.get("Price Target"))
-            )
+            # R15-DATA-069: read the live column (see get_price_target_history).
+            target_to = _num(row.get("currentPriceTarget"))
             forecasts.append(
                 IndividualAnalystForecast(
                     symbol=normalized,
@@ -384,7 +391,7 @@ async def get_individual_analysts(symbol: str) -> IndividualAnalystResponse:
                     provider=PROVIDER,
                 )
             )
-    return IndividualAnalystResponse(symbol=normalized, analysts=forecasts)
+    return IndividualAnalystResponse(symbol=normalized, analysts=forecasts, as_of=datetime.now(UTC))
 
 
 __all__ = [

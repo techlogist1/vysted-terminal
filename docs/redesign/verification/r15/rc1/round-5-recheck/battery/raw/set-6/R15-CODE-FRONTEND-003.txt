@@ -1,0 +1,8 @@
+COMMAND: pnpm exec vitest run src/lib/host-actions.test.ts -t "write_note honours the catalog-documented args" (candidate 949c3c9f)
+EXIT: 0
+OUTPUT (relevant):
+ ✓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > write_note replaces or appends, scoped to General or a ticker 0ms
+ ✓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > write_note honours the catalog-documented args: 'global' is General, mode defaults to append 0ms
+
+SOURCE CHECK: src/lib/host-actions.ts write_note handler treats an omitted/unrecognized mode as append (matches catalog.py:1388 default). Original repro (write_note {scope:'NVDA', text:'new line'} with no mode wiping the existing note) no longer reproduces; explicit vitest asserts append is the default.
+VERDICT: holds.

@@ -1,0 +1,56 @@
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " removed"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " HDF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": " holding"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " local"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Here"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " updated"}
+{"kind": "delta", "text": " summary"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "Portfolio"}
+{"kind": "delta", "text": " Summary"}
+{"kind": "delta", "text": ":\n"}
+{"kind": "delta", "text": "H"}
+{"kind": "delta", "text": "DF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " Removed"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "No"}
+{"kind": "delta", "text": " other"}
+{"kind": "delta", "text": " holdings"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " cockpit"}
+{"kind": "delta", "text": " layout"}
+{"kind": "delta", "text": " remains"}
+{"kind": "delta", "text": " unchanged"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " view"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " full"}
+{"kind": "delta", "text": " list"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " holdings"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " manage"}
+{"kind": "delta", "text": " them"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " needed"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2733, "output_tokens": 54, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,15 @@
+# R15-LEAD-007 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:29:22Z, sidecar :52348
+# kind=py
+# command:
+#   from google.genai import types
+#   from services.agent_tools import catalog
+#   from services.agent_tools.schemas import gemini_tools
+#   from services import agent_runtime as ar
+#   ids=list(ar.get_agent('copilot').tools)
+#   t=gemini_tools(ids)
+#   c=types.GenerateContentConfig(tools=[{'function_declarations':t}] if t and 'name' in t[0] else t)
+#   print('GenerateContentConfig constructed with', len(ids), 'tool ids; first entry keys', list(t[0].keys())[:4])
+#   allids=[x for x in catalog.__dict__.get('ALL_TOOL_IDS', [])] 
+# output:
+GenerateContentConfig constructed with 55 tool ids; first entry keys ['function_declarations']
+# exit=0

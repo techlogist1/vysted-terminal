@@ -1,0 +1,9 @@
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+probe: pinned-test citation (no vitest/pytest suite execution per harness rule)
+
+=== sidecar/tests/test_research_metering.py ===
+1:"""R15-RESEARCH-009 / R15-AGENT-012: research LLM usage reaches the run guard.
+126:def test_deep_run_with_reported_usage_has_a_nonzero_cost(native_run) -> None:
+134:def test_tiny_spend_ceiling_breaches_and_forces_synthesis(native_run) -> None:
+154:def test_research_guard_takes_its_ceilings_from_the_depth_profile() -> None:
+

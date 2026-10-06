@@ -1,0 +1,99 @@
+=== R15-LIFECYCLE-010 repro: SidecarBootStatus{state,reason} sentinel wiring ===
+24:enum SidecarPhase {
+31:/// `Failed` — the reason, so a spawn failure or a crash is named at once instead
+36:    state: SidecarPhase,
+37:    reason: Option<String>,
+41:struct SidecarStatus(Mutex<SidecarSnapshot>);
+43:impl SidecarStatus {
+47:            state: SidecarPhase::Starting,
+48:            reason: None,
+57:    /// exiting) records its reason here.
+58:    fn fail(&self, reason: String) {
+59:        diag_eprintln!("[vysted] {reason}");
+61:        snapshot.state = SidecarPhase::Failed;
+62:        snapshot.reason = Some(reason);
+66:    /// exited while we waited) keeps its more precise reason.
+69:        if snapshot.state != SidecarPhase::Starting {
+73:            snapshot.state = SidecarPhase::Ready;
+75:            snapshot.state = SidecarPhase::Failed;
+76:            snapshot.reason = Some(format!(
+84:/// The reason a sidecar that exited is reported with.
+85:fn terminated_reason(code: Option<i32>, signal: Option<i32>) -> String {
+
+-- get_sidecar_port --
+/// Expose the sidecar's port and lifecycle (`{port, state, reason}`) to the
+/// frontend so it can issue HTTP and WebSocket requests to the Python data
+/// layer — and, when `state` is `failed`, show `reason` instead of probing.
+#[tauri::command]
+fn get_sidecar_port(status: tauri::State<'_, SidecarStatus>) -> SidecarSnapshot {
+    status.snapshot()
+}
+
+/// Append one renderer line (a React render error, R15-LIFECYCLE-023) to the
+/// diagnostics log — the release build has no console to read it from.
+#[tauri::command]
+fn diag_log_line(line: String) {
+    diag_eprintln!("{line}");
+}
+
+/// Atomically write `contents` to `path` by writing to a sibling temp file in the
+/// same directory and then renaming it over the destination. Because the temp file
+/// and the final path live on the same filesystem, the kernel `rename(2)` is atomic
+/// (SC-032: "survives a crash mid-save"). Used by the notes panel to persist each
+/// note as a canonical `.md` file. The temp suffix `.tmp.<pid>` avoids collisions
+/// when multiple windows write concurrently.
+#[tauri::command]
+fn write_text_atomic(path: String, contents: String) -> Result<(), String> {
+    use std::io::Write as _;
+
+    let dest = std::path::Path::new(&path);
+    let parent = dest
+
+-- frontend consumer: resolvePortToBaseUrl --
+99:  if (status.state === "failed") {
+101:    throw new SidecarError(0, status.reason ?? SIDECAR_UNREACHABLE);
+
+-- rust tests --
+            "the two bind waits ran back to back: {:?}",
+            began.elapsed()
+        );
+        let order = log.lock().unwrap().clone();
+        assert_eq!(&order[..3], ["start_a", "start_b", "main"]);
+        assert_eq!(order.len(), 5);
+    }
+
+    #[test]
+    fn a_spawn_failure_reaches_the_renderer_as_failed_with_its_reason() {
+        // R15-LIFECYCLE-010: the arm for a missing sidecar command records the
+        // reason; `get_sidecar_port` serializes it for the renderer.
+        let status = SidecarStatus::new(54321);
+        status.fail("The data engine could not start (binary not found).".to_string());
+        let wire = serde_json::to_value(status.snapshot()).expect("serializable");
+        assert_eq!(wire["port"], 54321);
+        assert_eq!(wire["state"], "failed");
+        assert_eq!(
+            wire["reason"],
+            "The data engine could not start (binary not found)."
+        );
+    }
+
+    #[test]
+    fn the_boot_wait_keeps_an_earlier_exit_reason() {
+        let status = SidecarStatus::new(54321);
+        status.fail(terminated_reason(Some(1), None));
+        status.settle_boot(false);
+        let snapshot = status.snapshot();
+        assert_eq!(snapshot.state, SidecarPhase::Failed);
+        assert_eq!(
+            snapshot.reason.as_deref(),
+            Some("The data engine stopped (exit code 1).")
+        );
+
+        let unbound = SidecarStatus::new(54321);
+        unbound.settle_boot(false);
+        assert_eq!(
+            unbound.snapshot().reason.as_deref(),
+            Some("The data engine did not come up on port 54321.")
+        );
+
+VERDICT: holds. SidecarStatus now carries {port, state: Starting|Ready|Failed, reason}; every spawn-failure arm and CommandEvent::Terminated call .fail(reason), and resolvePortToBaseUrl (sidecar-client.ts) short-circuits on state==='failed' throwing SidecarError(0, status.reason) instead of the blind 120s /health probe. Rust unit tests a_spawn_failure_reaches_the_renderer_as_failed_with_its_reason and the_boot_wait_keeps_an_earlier_exit_reason are present and assert exactly this. A live renamed-binary packaged launch needs a GUI session (out of scope, No GUI); verified via source parity with the certified evidence lines (src-tauri/src/lib.rs) which are unchanged/intact at candidate 949c3c9f.

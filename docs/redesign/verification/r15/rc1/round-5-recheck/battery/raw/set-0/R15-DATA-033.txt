@@ -1,0 +1,37 @@
+=== R15-DATA-033 live repro: in-process probe against candidate's own sidecar/.venv (correctness_gate.py) ===
+import sys, math
+sys.path.insert(0, ".")
+from datetime import datetime, timezone
+from models.market import Quote, OHLCVSeries, OHLCVBar
+from services.correctness_gate import validate_quote, validate_series, CorrectnessError
+
+UTC = timezone.utc
+nan_quote = Quote(symbol="TEST", price=float("nan"), change=0.0, change_percent=0.0,
+                   timestamp=datetime(2026,9,27,tzinfo=UTC), provider="yfinance")
+try:
+    validate_quote(nan_quote, "TEST", "US")
+    print("NaN QUOTE: NOT REJECTED (BUG)")
+except CorrectnessError as e:
+    print("NaN QUOTE: rejected ->", e)
+
+inf_quote = Quote(symbol="TEST", price=float("inf"), change=0.0, change_percent=0.0,
+                   timestamp=datetime(2026,9,27,tzinfo=UTC), provider="yfinance")
+try:
+    validate_quote(inf_quote, "TEST", "US")
+    print("INF QUOTE: NOT REJECTED (BUG)")
+except CorrectnessError as e:
+    print("INF QUOTE: rejected ->", e)
+
+nan_bar = OHLCVBar(timestamp=datetime(2026,9,27,tzinfo=UTC), open=1.0, high=1.0, low=1.0, close=float("nan"), volume=100.0)
+series = OHLCVSeries(symbol="TEST", timeframe="1d", bars=[nan_bar], provider="yfinance")
+try:
+    validate_series(series, "TEST", "US")
+    print("NaN SERIES: NOT REJECTED (BUG)")
+except CorrectnessError as e:
+    print("NaN SERIES: rejected ->", e)
+except Exception as e:
+    print("NaN SERIES: other error ->", type(e).__name__, e)
+--- output ---
+NaN QUOTE: rejected -> correctness gate: non-positive price nan for 'TEST' from 'yfinance'
+INF QUOTE: rejected -> correctness gate: non-positive price inf for 'TEST' from 'yfinance'
+NaN SERIES: rejected -> correctness gate: non-positive last close nan for 'TEST' from 'yfinance'

@@ -1,0 +1,28 @@
+Probe: live GET requests against own sidecar (:52352) for BSE scrip-code addressed symbols,
+the register's own repro codes plus the batch-25 fresh cases.
+
+Commands + output:
+
+curl -s http://127.0.0.1:52352/fundamentals/506597.BO
+-> HTTP 200 {"symbol":"AMAL.BO","name":"Amal Ltd",...}
+
+curl -s http://127.0.0.1:52352/fundamentals/544774.BO
+-> HTTP 200 {"symbol":"SMR.BO","name":"SMR Jewels Limited",...}
+
+curl -s http://127.0.0.1:52352/fundamentals/500325.BO
+-> HTTP 200 {"symbol":"RELIANCE.BO","name":"Reliance Industries Limited",...}
+
+curl -s http://127.0.0.1:52352/fundamentals/532540.BO
+-> HTTP 200 {"symbol":"TCS.BO","name":"Tata Consultancy Services Limited",...}
+
+curl -s http://127.0.0.1:52352/history/544774.BO?range=1y  -> 72 bars, provider "bse"
+curl -s http://127.0.0.1:52352/fundamentals/506597.BO/income -> 5 periods
+curl -s "http://127.0.0.1:52352/quotes?symbols=506597.BO" -> [{"symbol":"506597.BO","price":673.05,...,"provider":"bse"}]
+
+Exit: 0 (all)
+
+Verdict basis: every numeric BSE scrip code resolves (was 404 pre-fix). Matches batch-25's
+certification verbatim: "506597.BO returns AMAL.BO 'Amal Ltd', 544774.BO returns 'SMR Jewels
+Limited' ... /506597.BO/income returns 5 periods. /quotes/506597.BO returns AMAL 673.05 INR.
+/history/544774.BO?range=1y returns 72 bars (bse)." and the fresh case "500325.BO returns
+'Reliance Industries Limited' ... 532540.BO returns TCS."

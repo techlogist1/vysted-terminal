@@ -1,0 +1,10 @@
+[
+ {
+  "role": "user",
+  "content": "What is MSFT's latest price?"
+ },
+ {
+  "role": "assistant",
+  "content": "The current price of MSFT is $497.93.\n\n[tool steps: Using price data]"
+ }
+]

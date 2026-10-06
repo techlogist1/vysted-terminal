@@ -1,0 +1,28 @@
+== x-tilde-fence-err
+calls=[('fundamentals', {'__vysted_invalid_args__': "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}), ('fundamentals', {'symbol': 'TATAMOTORS.NS'})]
+results=[('fundamentals', False, "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"), ('fundamentals', True, '')]
+---
+} 
+No tool returned data for this in this turn.
+
+Hope that helps.To get the fundamental data for TATAMOTORS.NS, we need to pass it as an argument when calling `fundamentals`. Here's how you can do it:
+
+```
+~~~
+{"fundamentals": {"market_cap": "\u20b94c6\u0915kr", "pe_ratio": null}}
+~~~
+
+Hope that helps.
+
+== x-allerr-names
+calls=[('price_data', {'__vysted_invalid_args__': "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"})]
+results=[('price_data', False, "invalid arguments for price_data: 'symbol' is a required property; call again with valid args")]
+---
+To get the latest closing prices of Infosys and State Bank of India, I'll need to call `price_data` with their respective symbols. Let me try that.
+
+**Price data fetched:** 
+
+The price_data tool returned no data for this in this turn.
+
+
+ALLDONE

@@ -1,0 +1,21 @@
+=== DATA-094 live ===
+-- GET /news/sources/status with fake key --
+HTTP/1.1 200 OK
+date: Sat, 26 Sep 2026 01:43:15 GMT
+server: uvicorn
+content-length: 26
+content-type: application/json
+vary: Origin
+
+{"newsapi":"unauthorized"}
+-- GET /news?limit=5 with fake key, headers --
+HTTP/1.1 200 OK
+date: Sat, 26 Sep 2026 01:43:16 GMT
+server: uvicorn
+content-length: 3055
+content-type: application/json
+x-news-sources: rss=ok;newsapi=unauthorized
+vary: Origin
+
+-- body sample --
+[{"id":"1d9ceaf06dd42f65","title":"Petrol, diesel prices today, September 26: Here's how much fuel costs in Delhi, Mumbai, Bengaluru","summary":"Across major metros, fuel rates held their ground. In Mumbai, the retail price of petrol stood at ₹111.21 per litre, remaining unchanged from the previous day.","url":"https://www.livemint.com/news/india/petrol-diesel-prices-today-september-26-heres-how

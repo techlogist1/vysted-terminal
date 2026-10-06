@@ -1,0 +1,16 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  60.0s] heartbeat: {"kind": "heartbeat"}
+[  70.0s] heartbeat: {"kind": "heartbeat"}
+[  80.0s] heartbeat: {"kind": "heartbeat"}
+[  89.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_6d43941dd7f2498dacd91f0dd847f85e", "name": "fundamentals", "input": {"symbol": "SIFY.NS"}}
+[  91.9s] tool_result: {"kind": "tool_result", "tool_call_id": "call_6d43941dd7f2498dacd91f0dd847f85e", "name": "fundamentals", "ok": false, "error": "provider error: yfinance has no instrument data for 'SIFY.NS'"}
+[  93.5s] done: {"kind": "done", "usage": {"input_tokens": 2842, "output_tokens": 18, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+No data for SIFY.NS's P/E ratio is available in the terminal.
+
+=== ok · 93.5s · events {'heartbeat': 8, 'tool_use': 1, 'tool_result': 1, 'delta': 17, 'done': 1} · usage in=2842 out=18 · est $0.00000 · llama3.1:8b

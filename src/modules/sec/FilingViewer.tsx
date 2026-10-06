@@ -10,7 +10,9 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { FileWarning } from "lucide-react";
 
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { openEdgarUrl, useSecStore } from "@/store/sec";
@@ -49,7 +51,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
 
   if (!accession) {
     return (
-      <div className="text-charcoal-400 flex h-full items-center justify-center text-sm">
+      <div className="text-charcoal-400 text-body flex h-full items-center justify-center">
         Select a filing to view its sections.
       </div>
     );
@@ -61,14 +63,17 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
         <Button size="xs" variant="ghost" onClick={onClose} data-testid="filing-viewer-close">
           ← Back
         </Button>
-        <span className="text-charcoal-100 text-sm font-semibold">
-          {detail?.filing.form_type ?? ""}
+        <span className="text-charcoal-100 text-panel-title">{detail?.filing.form_type ?? ""}</span>
+        <span
+          className="text-charcoal-400 text-caption max-w-[28ch] truncate"
+          title={detail?.filing.company_name ?? ""}
+        >
+          {detail?.filing.company_name ?? ""}
         </span>
-        <span className="text-charcoal-400 text-xs">{detail?.filing.company_name ?? ""}</span>
         {detail?.filing.filed_date && (
-          <span className="text-charcoal-500 text-xs">· filed {detail.filing.filed_date}</span>
+          <span className="text-charcoal-500 text-caption">· filed {detail.filing.filed_date}</span>
         )}
-        <span className="text-charcoal-500 ml-auto font-mono text-[10px]">{accession}</span>
+        <span className="text-charcoal-500 text-caption ml-auto tabular-nums">{accession}</span>
         {detail?.filing.edgar_url && (
           <Button
             size="xs"
@@ -81,13 +86,69 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
         )}
       </header>
 
-      {error && (
-        <p className="px-3 py-2 text-[11px] text-red-400" data-testid="filing-viewer-error">
-          {error}
-        </p>
+      {error && !detail && (
+        <div className="flex min-h-0 flex-1">
+          <div className="border-charcoal-700 w-56 shrink-0 border-r" />
+          <article className="flex-1 overflow-y-auto" data-testid="filing-viewer-error">
+            <EmptyState
+              icon={FileWarning}
+              headline="Could not load this filing"
+              hint={error}
+              cta={{
+                label: "Retry",
+                primary: true,
+                onClick: () =>
+                  accession && identifier && void loadFilingDetail(accession, identifier),
+              }}
+            />
+            <div className="flex justify-center">
+              <Button size="xs" variant="ghost" onClick={onClose}>
+                ← Back to list
+              </Button>
+            </div>
+          </article>
+        </div>
       )}
-      {status === "loading" && !detail && (
-        <p className="text-charcoal-400 px-3 py-2 text-xs">Loading filing…</p>
+      {error && detail && (
+        <div
+          className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2"
+          data-testid="filing-viewer-error"
+        >
+          <span className="text-negative text-caption">{error}</span>
+          <Button
+            size="xs"
+            variant="ghost"
+            className="text-charcoal-300 hover:text-charcoal-100"
+            onClick={() => accession && identifier && void loadFilingDetail(accession, identifier)}
+          >
+            Retry
+          </Button>
+        </div>
+      )}
+      {status === "loading" && !detail && !error && (
+        <div className="flex min-h-0 flex-1">
+          {/* Section nav skeleton */}
+          <div className="border-charcoal-700 w-56 shrink-0 overflow-y-auto border-r px-3 py-2">
+            {[70, 50, 80, 60, 45, 65, 55].map((w, i) => (
+              <div
+                key={i}
+                className="bg-charcoal-700 mb-2 h-3 animate-pulse rounded-none"
+                style={{ width: `${w}%` }}
+              />
+            ))}
+          </div>
+          {/* Article skeleton */}
+          <div className="flex-1 overflow-y-auto px-4 py-3">
+            <div className="bg-charcoal-700 mb-4 h-4 w-1/3 animate-pulse rounded-none" />
+            {[100, 90, 75, 95, 60, 85, 70, 80, 50, 65].map((w, i) => (
+              <div
+                key={i}
+                className="bg-charcoal-800 mb-2 h-3 animate-pulse rounded-none"
+                style={{ width: `${w}%` }}
+              />
+            ))}
+          </div>
+        </div>
       )}
 
       {detail && (
@@ -103,15 +164,15 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
                     type="button"
                     onClick={() => setActiveSectionId(section.id)}
                     className={cn(
-                      "hover:bg-charcoal-800 w-full px-3 py-1.5 text-left text-[11px]",
-                      activeSectionId === section.id
-                        ? "bg-charcoal-800 text-charcoal-100 border-l-2 border-l-emerald-300"
+                      "hover:bg-charcoal-800 text-caption w-full px-3 py-1 text-left",
+                      (activeSectionId ?? detail.sections[0]?.id) === section.id
+                        ? "bg-charcoal-800 text-charcoal-100 border-l-charcoal-500 border-l-2"
                         : "text-charcoal-300",
                     )}
                     data-testid={`filing-section-${section.id}`}
                   >
                     <span className="block truncate">{section.title}</span>
-                    <span className="text-charcoal-500 text-[10px]">
+                    <span className="text-charcoal-500 text-caption tabular-nums">
                       {section.word_count} words
                     </span>
                   </button>
@@ -123,15 +184,13 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
           <article className="flex-1 overflow-y-auto px-4 py-3" data-testid="filing-viewer-body">
             {activeSection ? (
               <>
-                <h3 className="text-charcoal-100 mb-2 text-sm font-semibold">
-                  {activeSection.title}
-                </h3>
-                <pre className="text-charcoal-200 max-w-full text-[12px] leading-relaxed whitespace-pre-wrap">
+                <h3 className="text-charcoal-100 text-panel-title mb-2">{activeSection.title}</h3>
+                <pre className="text-charcoal-200 text-prose max-w-full leading-relaxed whitespace-pre-wrap">
                   {activeSection.text}
                 </pre>
               </>
             ) : (
-              <p className="text-charcoal-400 text-sm">No section selected.</p>
+              <p className="text-charcoal-400 text-body">No section selected.</p>
             )}
           </article>
         </div>

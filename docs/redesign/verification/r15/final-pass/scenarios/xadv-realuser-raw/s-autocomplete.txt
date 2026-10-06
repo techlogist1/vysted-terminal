@@ -1,0 +1,43 @@
+== autocomplete indiabulls housing
+  n= 0
+== autocomplete IBULHSG
+  n= 0
+== autocomplete angel broking
+  n= 0
+== autocomplete cadila
+  n= 0
+== autocomplete ruchi soya
+  n= 0
+== autocomplete zomato
+   ETERNAL | ETERNAL LIMITED | NSE None | former ZOMATO
+  n= 1
+== autocomplete 513353
+  n= 0
+== autocomplete kirloskar oil
+   KIRLOSENG | Kirloskar Oil Engines Limited | NSE None | former None
+  n= 1
+== autocomplete HAL
+   HAL | Hindustan Aeronautics Limited | NSE None | former None
+   HAL | HALLIBURTON CO | US None | former None
+   HALDYNGL | Haldyn Glass Limited | NSE None | former None
+   HALEOSLABS | HALEOS LABS LIMITED | NSE None | former SMSLIFE
+   HALDER | Halder Venture Limited | NSE None | former None
+   HALO | HALOZYME THERAPEUTICS, INC. | US None | former GLOBAL YACHT SERVICES INC
+  n= 8
+== autocomplete IEX
+   IEX | Indian Energy Exchange Limited | NSE None | former None
+   IEX | IDEX CORP /DE/ | US None | former None
+  n= 2
+== autocomplete SAIL
+   SAIL | Steel Authority of India Limited | NSE None | former None
+   SAIL | SailPoint, Inc. | US None | former SailPoint Parent, LP
+   SAILIFE | Sai Life Sciences Limited | NSE None | former None
+   SAILANI | Sailani Tours N Travels Ltd | BSE None | former None
+  n= 4
+== autocomplete halliburton
+   HAL | HALLIBURTON CO | US None | former None
+  n= 1
+== autocomplete indian bank
+   INDIANB | Indian Bank | NSE None | former None
+   SOUTHBANK | The South Indian Bank Limited | NSE None | former None
+  n= 2

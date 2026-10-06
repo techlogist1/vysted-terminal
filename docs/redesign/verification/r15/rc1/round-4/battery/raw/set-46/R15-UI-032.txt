@@ -1,0 +1,12 @@
+CMD: curl -s http://127.0.0.1:52351/sec/filings/search?q=Apple
+EXIT: 0
+{"results":[{"cik":"0000320193","name":"Apple Inc.","ticker":"AAPL"},...]}
+HTTP 200
+
+CMD: curl -s http://127.0.0.1:52351/sec/filings/search?q=Nvidia
+{"results":[{"cik":"0001045810","name":"NVIDIA CORP","ticker":"NVDA"}]}
+HTTP 200
+
+CMD: curl -s http://127.0.0.1:52351/sec/filings/search?q=zzqxnotacompany
+{"results":[]}
+HTTP 200

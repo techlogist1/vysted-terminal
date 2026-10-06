@@ -64,6 +64,7 @@ def _stub_history(symbol: str) -> EarningsHistoryResponse:
         history=[
             EarningsHistoryEntry(
                 fiscal_period=FiscalPeriod(quarter="Q1", year=2026),
+                period_end=date(2026, 1, 31),
                 reported_date=date(2026, 2, 1),
                 eps_actual=1.32,
                 eps_estimate_mean=1.30,
@@ -81,6 +82,7 @@ def _stub_surprises(symbol: str) -> EarningsSurprisesResponse:
         surprises=[
             EarningsSurprise(
                 symbol=symbol.upper(),
+                period_end=date(2026, 1, 31),
                 reported_date=date(2026, 2, 1),
                 fiscal_period=FiscalPeriod(quarter="Q1", year=2026),
                 eps_actual=1.32,
@@ -172,6 +174,43 @@ def test_estimates(client: TestClient, stub_provider: Any) -> None:
     assert body["estimate_analyst_count"] == 21
 
 
+def test_estimates_with_a_partial_eps_triple_answers_200_not_502(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-LEAD-039: RDY/TM/SONY-shaped upstream (no Earnings Average/High/Low
+    at all) is a nullable result, not a 502 — a second call served from the
+    cache validates the same way."""
+    from services import earnings_provider
+
+    def _partial_estimates() -> EarningsEstimateDetail:
+        return EarningsEstimateDetail(
+            symbol="RDY",
+            eps_estimate_mean=None,
+            eps_estimate_high=None,
+            eps_estimate_low=None,
+            revenue_estimate_mean=100_000_000.0,
+            revenue_estimate_high=105_000_000.0,
+            revenue_estimate_low=95_000_000.0,
+            currency="USD",
+            provider="yfinance",
+            as_of=datetime(2026, 5, 16, tzinfo=UTC),
+        )
+
+    async def _estimates(symbol: str):
+        return _partial_estimates()
+
+    monkeypatch.setattr(earnings_provider, "get_estimate_detail", _estimates)
+
+    first = client.get("/earnings/RDY/estimates")
+    assert first.status_code == 200
+    assert first.json()["eps_estimate_mean"] is None
+    assert first.json()["revenue_estimate_mean"] == 100_000_000.0
+
+    second = client.get("/earnings/RDY/estimates")
+    assert second.status_code == 200
+    assert second.json()["eps_estimate_mean"] is None
+
+
 def test_history_caches(
     client: TestClient,
     stub_provider: Any,
@@ -190,3 +229,98 @@ def test_history_caches(
     client.get("/earnings/AAPL/history")
     client.get("/earnings/AAPL/history")
     assert call_count["n"] == 1
+
+
+def test_history_as_of_on_a_cache_hit_equals_the_original_fetch_time(
+    client: TestClient, stub_provider: Any
+) -> None:
+    """R15-DATA-068: a cache hit's ``as_of`` is the ORIGINAL fetch time, not
+    the time of the second read."""
+    first = client.get("/earnings/AAPL/history").json()
+    second = client.get("/earnings/AAPL/history").json()
+    assert first["as_of"] is not None
+    assert first["as_of"] == second["as_of"]
+
+
+def test_upcoming_and_surprises_also_stamp_as_of(client: TestClient, stub_provider: Any) -> None:
+    upcoming = client.get("/earnings/upcoming?days=7").json()
+    surprises = client.get("/earnings/AAPL/surprises").json()
+    assert upcoming["as_of"] is not None
+    assert surprises["as_of"] is not None
+
+
+def test_a_region_switch_does_not_serve_the_other_listings_cache(
+    client: TestClient,
+    stub_provider: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-009: bare INFY is INFY.NS under IN and the ADR under US, so the
+    cache is keyed on the resolved listing, not the bare symbol."""
+    from services import earnings_provider, yfinance_provider
+
+    listings: list[str] = []
+
+    async def _counting(symbol: str):
+        listings.append(yfinance_provider._yahoo_symbol(symbol))
+        return _stub_estimates(symbol)
+
+    monkeypatch.setattr(earnings_provider, "get_estimate_detail", _counting)
+    client.get("/earnings/INFY/estimates", headers={"X-Vysted-Region": "IN"})
+    client.get("/earnings/INFY/estimates", headers={"X-Vysted-Region": "US"})
+    client.get("/earnings/INFY/estimates", headers={"X-Vysted-Region": "US"})
+    assert listings == ["INFY.NS", "INFY"]
+
+
+def test_default_upcoming_universe_is_cached_per_region(
+    client: TestClient,
+    stub_provider: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """C4: with no watchlist the default universe follows the region, so its
+    cache key carries the region."""
+    from services import earnings_provider
+
+    calls = {"n": 0}
+
+    async def _counting(start: date, end: date, watchlist: list[str] | None = None):
+        calls["n"] += 1
+        return _stub_upcoming(start, end, watchlist)
+
+    monkeypatch.setattr(earnings_provider, "get_upcoming", _counting)
+    client.get("/earnings/upcoming", headers={"X-Vysted-Region": "IN"})
+    client.get("/earnings/upcoming", headers={"X-Vysted-Region": "US"})
+    client.get("/earnings/upcoming", headers={"X-Vysted-Region": "IN"})
+    assert calls["n"] == 2
+
+
+def test_a_rate_limited_history_raises_and_is_not_cached(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-LEAD-071: a Yahoo 429 on ``earnings_history`` was swallowed as an
+    empty history and cached for 24 h. It now answers 429 and stores nothing,
+    so the next call refetches."""
+    from services import earnings_provider
+
+    class YFRateLimitError(Exception):
+        pass
+
+    calls = {"n": 0}
+
+    class _Ticker:
+        def __init__(self, _symbol: str) -> None:
+            calls["n"] += 1
+
+        @property
+        def earnings_history(self) -> Any:
+            raise YFRateLimitError("Too Many Requests. Rate limited. Try after a while.")
+
+        earnings_dates = None
+        info: dict[str, Any] = {"currency": "USD"}
+
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", _Ticker)
+    first = client.get("/earnings/MSFT/history")
+    assert first.status_code == 429
+    assert first.json()["code"] == "rate_limited"
+    second = client.get("/earnings/MSFT/history")
+    assert second.status_code == 429
+    assert calls["n"] == 2  # refetched: the throttle was never cached

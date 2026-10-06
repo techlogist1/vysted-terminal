@@ -1,0 +1,4 @@
+data: {"candidates":[{"content":{"parts":[{"text":"RELIANCE trades at"}],"role":"model"},"index":0}],"usageMetadata":{"promptTokenCount":812,"totalTokenCount":816},"modelVersion":"gemini-2.5-flash","responseId":"k1TTaNW5Gqz"}
+
+data: {"candidates":[{"finishReason":"MAX_TOKENS","index":0}],"usageMetadata":{"promptTokenCount":812,"candidatesTokenCount":4,"totalTokenCount":1836,"thoughtsTokenCount":1020},"modelVersion":"gemini-2.5-flash","responseId":"k1TTaNW5Gqz"}
+

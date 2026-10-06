@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+It seems there’s currently no information available about your watchlist. Would you like to add some stocks or check something else?
+
+=== ok · 2.9s · events {'tool_use': 1, 'tool_result': 1, 'delta': 26, 'done': 1} · usage in=10488 out=26 · est $0.00159 · gpt-4o-mini

@@ -1,0 +1,8 @@
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+probe: pinned-test citation (no vitest/pytest suite execution per harness rule)
+
+=== sidecar/tests/test_research_verify.py ===
+546:# --- R15-RESEARCH-006: the claim loop is bounded by the round's own wall -------
+573:def test_slow_verdicts_cannot_carry_the_round_past_its_wall() -> None:
+591:def test_verdicts_reached_in_budget_are_kept_and_the_tail_is_unverified() -> None:
+

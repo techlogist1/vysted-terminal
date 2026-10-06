@@ -1,0 +1,2 @@
+=== AGENT-064: no MCP config surface ===
+Not Found

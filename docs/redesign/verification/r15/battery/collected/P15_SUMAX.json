@@ -1,0 +1,309 @@
+{
+ "slot": "P15",
+ "symbol": "SUMAX",
+ "manifest_name": "Sumax Engineering Ltd",
+ "exchange": "NSE SME (Emerge)",
+ "bse_code": null,
+ "collected_at": "2026-09-19T15:26:49+0530",
+ "sidecar": "http://127.0.0.1:52152",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52152/resolve?q=SUMAX",
+   "status": 200,
+   "elapsed_ms": 2677,
+   "body": {
+    "ok": true,
+    "query": "SUMAX",
+    "region": "IN",
+    "resolved": null,
+    "needs_disambiguation": true,
+    "candidates": [
+     {
+      "symbol": "SUMAX-SM",
+      "name": "SUMAX ENGINEERING LIMITED",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "SUMAX-SM.NS",
+      "confidence": 0.6,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52152/resolve?q=Sumax+Engineering+Ltd",
+   "status": 200,
+   "elapsed_ms": 6212,
+   "body": {
+    "ok": true,
+    "query": "Sumax Engineering Ltd",
+    "region": "IN",
+    "resolved": null,
+    "needs_disambiguation": true,
+    "candidates": [
+     {
+      "symbol": "SMTEL",
+      "name": "SMT Engineering Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "SMTEL.BO",
+      "confidence": 0.9,
+      "isin": "INE673E01018",
+      "bse_code": "538563",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "DMR",
+      "name": "DMR Engineering Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DMR.BO",
+      "confidence": 0.85,
+      "isin": "INE07L501010",
+      "bse_code": "543410",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "MISQUITA",
+      "name": "Misquita Engineering Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "MISQUITA.BO",
+      "confidence": 0.8444,
+      "isin": "INE957W01025",
+      "bse_code": "542801",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "DUNCANENG",
+      "name": "Duncan Engineering Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DUNCANENG.BO",
+      "confidence": 0.8372,
+      "isin": "INE340F01011",
+      "bse_code": "504908",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "SHAYONAENG",
+      "name": "Shayona Engineering Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "SHAYONAENG.BO",
+      "confidence": 0.8182,
+      "isin": "INE0UCL01011",
+      "bse_code": "544686",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "AJAXENGG",
+      "name": "Ajax Engineering Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "AJAXENGG.NS",
+      "confidence": 0.8,
+      "isin": "INE274Y01021",
+      "bse_code": "544356",
+      "industry": "Capital Goods / Construction Vehicles",
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52152/quotes/SUMAX?asset_class=equity",
+   "status": 502,
+   "elapsed_ms": 3421,
+   "body": {
+    "detail": "yfinance quote failed for 'SUMAX': 'PriceHistory' object has no attribute '_dividends'"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52152/fundamentals/SUMAX",
+   "status": 200,
+   "elapsed_ms": 7580,
+   "body": {
+    "symbol": "SUMAX",
+    "name": "SEI Short Duration Municipal F (STET)",
+    "sector": null,
+    "industry": null,
+    "currency": null,
+    "market_cap": null,
+    "pe_ratio": null,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": null,
+    "price_to_sales": null,
+    "ev_to_ebitda": null,
+    "book_value": null,
+    "dividend_yield": null,
+    "dividend_per_share": null,
+    "eps": null,
+    "beta": null,
+    "fifty_two_week_high": null,
+    "fifty_two_week_low": null,
+    "fifty_two_week_change": null,
+    "roe": null,
+    "roa": null,
+    "gross_margin": null,
+    "operating_margin": null,
+    "profit_margin": null,
+    "debt_to_equity": null,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "revenue_ttm": null,
+    "net_income_ttm": null,
+    "free_cash_flow": null,
+    "shares_outstanding": null,
+    "revenue_growth": null,
+    "earnings_growth": null,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": null,
+    "held_percent_institutions": null,
+    "dividend_per_share_ttm": null,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": null,
+    "provider": "openbb-mcp",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 51.4
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52152/fundamentals/SUMAX/income",
+   "status": 200,
+   "elapsed_ms": 1608,
+   "body": {
+    "symbol": "SUMAX.NS",
+    "periods": [],
+    "lines": [],
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52152/fundamentals/SUMAX/balance",
+   "status": 200,
+   "elapsed_ms": 1563,
+   "body": {
+    "symbol": "SUMAX.NS",
+    "periods": [],
+    "lines": [],
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52152/fundamentals/SUMAX/cashflow",
+   "status": 200,
+   "elapsed_ms": 2825,
+   "body": {
+    "symbol": "SUMAX.NS",
+    "periods": [],
+    "lines": [],
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 62.1
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52152/fundamentals/SUMAX/ratings",
+   "status": 200,
+   "elapsed_ms": 3299,
+   "body": {
+    "symbol": "SUMAX.NS",
+    "consensus": null,
+    "target_mean": null,
+    "target_high": null,
+    "target_low": null,
+    "strong_buy": 0,
+    "buy": 0,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52152/disclosures/shareholding?symbol=SUMAX",
+   "status": 502,
+   "elapsed_ms": 3,
+   "body": {
+    "detail": "disclosures: 'SUMAX' is not a known NSE/BSE instrument"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52152/disclosures/announcements?symbol=SUMAX&limit=25",
+   "status": 502,
+   "elapsed_ms": 6,
+   "body": {
+    "detail": "disclosures: 'SUMAX' is not a known NSE/BSE instrument"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52152/disclosures/results?symbol=SUMAX",
+   "status": 502,
+   "elapsed_ms": 16,
+   "body": {
+    "detail": "nse_direct: 'SUMAX' is not a known NSE instrument"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

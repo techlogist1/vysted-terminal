@@ -1,0 +1,4 @@
+R15-RESEARCH-037: in-process probe (see probe_set2.py, probe_set2_output.json), key 'RESEARCH-037'
+{
+  "note": "Citation preference \u2014 when several sources support a claim, cite the most authoritative: primary record (exchange/regulator/filings/IR): [2]; tier-1 press: [3]."
+}

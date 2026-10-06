@@ -1,0 +1,24 @@
+{
+ "tag": "world-S2",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_offmachine_s2.md sections 2 (WORLD compares) and 3 (OPP-LEDGER verify) in full before touching anything.",
+ "stages": [
+  {
+   "label": "task",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Your task spec is PROMPT_offmachine_s2.md {{section}}, with topic/id = \"{{id}}\". {{note}}"
+  },
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Raw file: docs/redesign/verification/r15/census/raw/world-{{id}}.json. Output: docs/redesign/verification/r15/census/refute/world-{{id}}.json. Follow PROMPT_refute.md exactly; if the raw file has 0 findings, write an empty array and return count 0."
+  }
+ ],
+ "items": [
+  {"id": "harness-context", "section": "section 2 (WORLD-COMPARE)", "note": "The existing CENSUS/world/harness-context-COMPARE.md is a stub - do a real pass."},
+  {"id": "harness-tools", "section": "section 2 (WORLD-COMPARE)", "note": "The existing CENSUS/world/harness-tools-COMPARE.md is a stub - do a real pass."},
+  {"id": "agent-native-ux", "section": "section 2 (WORLD-COMPARE)", "note": "The existing CENSUS/world/agent-native-ux-COMPARE.md is a stub - do a real pass."},
+  {"id": "opp-ledger-verify", "section": "section 3 (OPP-LEDGER verify)", "note": "No raw findings for this item; refute stage is skipped.", "model": "sonnet", "skip": [1]}
+ ]
+}

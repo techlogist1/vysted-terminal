@@ -1,0 +1,7 @@
+Source check: services/search/extract.py:752 `class VisitResult` (text, reason) replaces the
+str|None narrowing; visit_for_research (line 759) returns VisitResult(None, "fetch raised: ...")
+(785), VisitResult(None, "unreadable page") (793) or VisitResult(None, "no readable content
+extracted") (797) instead of silently returning None. `_default_pdf_fetch` (line 291) plus
+_BSE_ATTACH_LIVE/_BSE_ATTACH_HIS constants (126-127) and a docstring at line 605 ("AttachHis twin
+when AttachLive answers 404") confirm the bounded-retry + AttachHis fallback landed.
+Verdict: holds (source-confirmed).

@@ -1,0 +1,9 @@
+=== R15-AGENT-037 (in-process fake-provider probe, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, sidecar :52340) ===
+CMD: fake provider emits tool_use(resolve_symbol) + done(usage 50000+50000=100000 tokens) EVERY round; RunBudget(max_tokens=1000); adapter call-count spy.
+
+{
+  "status": "error",
+  "detail": "token ceiling 1000 reached (100000 used)",
+  "provider_calls_after_1_round_breach": 1,
+  "cost_tokens": 100000
+}

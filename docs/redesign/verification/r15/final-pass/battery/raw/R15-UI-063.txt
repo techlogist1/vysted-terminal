@@ -1,0 +1,10 @@
+# R15-UI-063 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:30:17+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$PATH; cd "$C"; F=$(ls src/lib/date-defaults.ts); echo "import * as d from '$C/$F'; const fns=Object.entries(d).filter(([k,v])=>typeof v==='function'); const o:any={now:new Date().toISOString()}; for (const [k,f] of fns) { try { o[k]=(f as any)(); } catch(e){ o[k]='ERR '+e; } } console.log(JSON.stringify(o));" > $B/out/u063.mts; node --experimental-strip-types --no-warnings $B/out/u063.mts; echo "exit=$?"; echo '$ grep date literals in non-test quant panels'; grep -rnE '"20[0-9]{2}-[0-9]{2}-[0-9]{2}"' src/modules/quant --include=*.tsx | grep -v '\.test\.'; echo "grep exit=$? (1=none)"
+--- output ---
+{"now":"2026-10-03T12:30:17.154Z","backtestDateDefaults":{"startDate":"2024-10-03","endDate":"2026-10-03"},"bondDateDefaults":{"issueDate":"2026-10-03","maturityDate":"2036-10-03","settlementDate":"2026-10-03"},"optionDateDefaults":{"valuationDate":"2026-10-03","expiryDate":"2026-11-17"},"yieldCurveDateDefaults":{"valuationDate":"2026-10-03"}}
+exit=0
+$ grep date literals in non-test quant panels
+grep exit=1 (1=none)
+
+EXIT=0 (0.1s)

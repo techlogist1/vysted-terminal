@@ -1,0 +1,45 @@
+=== boot on corrupt data dir (data_cache.db + portfolio.db + workspace corrupt), own :52847, final-cand source
+6:2026-10-03 17:06:46,791 ERROR uvicorn.error: Traceback (most recent call last):
+202:sqlite3.DatabaseError: file is not a database
+204:2026-10-03 17:06:46,791 ERROR uvicorn.error: Application startup failed. Exiting.
+--- full tail
+  File "/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 216, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+               ~~~~~~~~~~~~~~~~^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/app.py", line 125, in _lifespan
+    await data_cache.ensure_build(app.version)
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/services/data_cache.py", line 144, in ensure_build
+    cleared, row = await _run(switch)
+                   ^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/services/data_cache.py", line 113, in _run
+    return await asyncio.to_thread(lambda: work(_get_conn()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/services/data_cache.py", line 113, in <lambda>
+    return await asyncio.to_thread(lambda: work(_get_conn()))
+                                                ~~~~~~~~~^^
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/services/data_cache.py", line 232, in _get_conn
+    _conn = _connect(_db_path)
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/services/data_cache.py", line 105, in _connect
+    conn.execute("PRAGMA journal_mode=WAL")
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.DatabaseError: file is not a database
+
+2026-10-03 17:06:46,791 ERROR uvicorn.error: Application startup failed. Exiting.
+Fatal Python error: _enter_buffered_busy: could not acquire lock for <_io.BufferedReader name='<stdin>'> at interpreter shutdown, possibly due to daemon threads
+Python runtime state: finalizing (tstate=0x000000010197faf0)
+
+Current thread 0x00000001ed983080 (most recent call first):
+  <no Python frame>
+bash: line 1: 95504 Terminated: 15          sleep 86400
+     95505 Abort trap: 6           | exec ./.venv/bin/python3 main.py --host 127.0.0.1 --port 52847 --data-dir '/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-drive-failure-inducer-corrupt'

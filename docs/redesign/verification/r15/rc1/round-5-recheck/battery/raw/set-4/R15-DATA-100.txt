@@ -1,0 +1,6 @@
+CMD: node wrapper reproducing BondPricerPanel.tsx's live pricing call + formatMoney rendering chain (regionConfig + formatMoney copied verbatim from src/lib/region.ts + src/lib/format.ts), region IN, live POST /quant/bond/price on :52350
+clean_price (raw): 1010.2189583272225
+displayCurrency: INR
+rendered (formatMoney(clean_price, displayCurrency, IN)): ₹1,010.22
+US control rendered: $1,010.22
+EXIT: 0

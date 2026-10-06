@@ -1,0 +1,60 @@
+{
+ "Table": [
+  {
+   "yr": "2026 - 2027",
+   "qtrid": 130.0,
+   "qtr": "June 2026",
+   "status": "New",
+   "filing_date_time": "2026-07-08T15:21:20.487",
+   "revised_date_time": null,
+   "XbrlFile": "509470_872026152119_SHP.xml",
+   "revised_reson": "",
+   "xbrlurl": "/XBRLFILES/SHPXBRLDataXML/509470_872026152119_SP.html",
+   "seourl": "/stock-share-price/bombay-oxygen-investments-ltd/bomoxy-b1/509470/",
+   "navigateurl": "/stock-share-price/bombay-oxygen-investments-ltd/bomoxy-b1/509470/qtrid/130.00/shareholding-pattern/Jun-2026/",
+   "navigateurldebt": "/stock-share-price/debt-other/scripcode/509470/qtrid/130.00/shareholding-pattern/Jun-2026/"
+  },
+  {
+   "yr": "2025 - 2026",
+   "qtrid": 129.0,
+   "qtr": "March 2026",
+   "status": "New",
+   "filing_date_time": "2026-04-04T13:07:52.693",
+   "revised_date_time": null,
+   "XbrlFile": "509470_44202613751_SHP.xml",
+   "revised_reson": "",
+   "xbrlurl": "/XBRLFILES/SHPXBRLDataXML/509470_44202613751_SP.html",
+   "seourl": "/stock-share-price/bombay-oxygen-investments-ltd/bomoxy-b1/509470/",
+   "navigateurl": "/stock-share-price/bombay-oxygen-investments-ltd/bomoxy-b1/509470/qtrid/129.00/shareholding-pattern/Mar-2026/",
+   "navigateurldebt": "/stock-share-price/debt-other/scripcode/509470/qtrid/129.00/shareholding-pattern/Mar-2026/"
+  },
+  {
+   "yr": "2025 - 2026",
+   "qtrid": 128.0,
+   "qtr": "December 2025",
+   "status": "New",
+   "filing_date_time": "2026-01-16T15:18:58.813",
+   "revised_date_time": null,
+   "XbrlFile": "509470_1612026151857_SHP.xml",
+   "revised_reson": "",
+   "xbrlurl": "/XBRLFILES/SHPXBRLDataXML/509470_1612026151857_SP.html",
+   "seourl": "/stock-share-price/bombay-oxygen-investments-ltd/bomoxy-b1/509470/",
+   "navigateurl": "/stock-share-price/bombay-oxygen-investments-ltd/bomoxy-b1/509470/qtrid/128.00/shareholding-pattern/Dec-2025/",
+   "navigateurldebt": "/stock-share-price/debt-other/scripcode/509470/qtrid/128.00/shareholding-pattern/Dec-2025/"
+  },
+  {
+   "yr": "2025 - 2026",
+   "qtrid": 127.0,
+   "qtr": "September 2025",
+   "status": "New",
+   "filing_date_time": "2025-10-15T14:10:56",
+   "revised_date_time": null,
+   "XbrlFile": "509470_15102025141054_SHP.xml",
+   "revised_reson": "",
+   "xbrlurl": "/XBRLFILES/SHPXBRLDataXML/509470_15102025141054_SP.html",
+   "seourl": "/stock-share-price/bombay-oxygen-investments-ltd/bomoxy-b1/509470/",
+   "navigateurl": "/stock-share-price/bombay-oxygen-investments-ltd/bomoxy-b1/509470/qtrid/127.00/shareholding-pattern/Sep-2025/",
+   "navigateurldebt": "/stock-share-price/debt-other/scripcode/509470/qtrid/127.00/shareholding-pattern/Sep-2025/"
+  }
+ ]
+}

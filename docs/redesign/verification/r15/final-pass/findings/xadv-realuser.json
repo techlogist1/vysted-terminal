@@ -1,0 +1,62 @@
+[
+  {
+    "key": "realuser:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "",
+    "scenario": "xadv-realuser-1, xadv-realuser-4",
+    "title": "The search box (palette + watchlist autocomplete) cannot find a renamed company by its former name or any stock by its BSE scrip code, though /resolve binds both: 'Indiabulls Housing', 'Angel Broking', 'Cadila', 'Ruchi Soya', '513353' list nothing",
+    "area": "research-search",
+    "repro": "GET :52910/resolve/autocomplete?q=indiabulls%20housing -> candidates [] (also 'angel broking', 'cadila', 'ruchi soya', 'IBULHSG', '513353', '5133' -> []), while GET /resolve?q=Indiabulls%20Housing%20Finance -> SAMMAANCAP 0.99 former IBULHSGFIN; 'Angel Broking' -> ANGELONE 0.99; 'Cadila Healthcare' -> ZYDUSLIFE 0.99; 'Ruchi Soya' -> PATANJALI 0.91; '513353' -> COCHINM 1.0. symbol_resolver.autocomplete (symbol_resolver.py:1637-1708) scores only ticker-prefix/name-prefix/substring plus the exact retired-ticker lane; it never consults former_names.json or the BSE scrip-code index that resolve() uses. CommandPalette.tsx:162 and WatchlistPanel.tsx:190 take their instrument rows only from /resolve/autocomplete. Outside: https://www.screener.in/company/SAMMAANCAP/consolidated/ 'Sammaan Capital Ltd (formerly Indiabulls Housing Finance)'; https://www.screener.in/company/513353/ 'BSE Code: 513353'.",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/xadv-realuser-4.md",
+    "suspected_files": [
+      "sidecar/services/symbol_resolver.py"
+    ]
+  },
+  {
+    "key": "realuser:2",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "",
+    "scenario": "xadv-realuser-1",
+    "title": "A correct BSE-only stock is flagged as a possible mis-resolution: the identity cross-check scores 'Cochin Minerals & Rutiles Ltd-$' vs 'Cochin Minerals and Rutile Limited' at 0.40 ('and' is a token, '&' is not) and the brief and /fundamentals say the figures may belong to another company; the raw BSE '-$' name is shown as the company name on 310 scrips",
+    "area": "data-smallcaps",
+    "repro": "GET :52910/fundamentals/COCHINM -> identity_note 'The fundamentals provider (openbb-mcp) reports the company name 'Cochin Minerals and Rutile Limited' for COCHINM, which materially disagrees with the resolver's canonical name 'Cochin Minerals & Rutiles Ltd-$' (token-set similarity 40% < 50%). This can indicate a symbol rename or a mis-resolution'. MCP research {query:'Cochin Minerals and Rutile', depth:'quick'} -> structured.derived.conflicts carries the same identity_conflict, rendered by brief-blocks.tsx:266 conflictLines. identity_crosscheck.py:46-87 tokenizes [a-z0-9]+ and strips only corporate suffixes, without the '&'<->'and' canonicalization symbol_resolver._NAME_CANON_MAP already applies. 310/5042 bse_instruments.json names end in '-$'; no code strips it; it renders in CommandPalette.tsx:364 and WatchlistPanel.tsx:453. Outside: https://www.screener.in/company/513353/ 'Cochin Minerals & Rutile Ltd', 'BSE Code: 513353' - quote/mcap/BV/52w served by the app all match it, so the data is the right company.",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/xadv-realuser-1.md",
+    "suspected_files": [
+      "sidecar/services/identity_crosscheck.py",
+      "sidecar/services/symbol_resolver.py",
+      "sidecar/services/resolver_masters/regenerate_bse_master.py"
+    ]
+  },
+  {
+    "key": "realuser:3",
+    "kind": "new_defect",
+    "severity": "critical",
+    "register_id": "",
+    "scenario": "xadv-realuser-2, xadv-realuser-6",
+    "title": "Research binds the US company the user named and then fills the brief with the Indian namesake's price and fundamentals: 'Halliburton' -> HAL/US bound, metric cards Price INR 4,601, P/E 33.0, mcap INR 3.08T (Hindustan Aeronautics) with no conflict; 'SailPoint' -> Steel Authority of India's price/P/E/mcap",
+    "area": "research-search",
+    "repro": "MCP tool research {query:'Halliburton', depth:'quick'} on :52910 (session region IN) -> resolved {symbol HAL, name HALLIBURTON CO, exchange US, region US}; structured.price ok provider nse_direct price 4601.0 INR; structured.fundamentals ok symbol HAL.NS mcap 3,077,033,689,088 pe 33.003 eps 139.38; derived.conflicts [] (openbb leg had no name, identity_crosscheck.py:105). research {query:'SailPoint'} -> bound SAIL/SailPoint US; price 174.5 INR nse_direct; fundamentals SAIL.NS 'Steel Authority of India Limited'. Root cause: research/fast.py:624 symbol = target.symbol, then snapshot_structured calls price_data/fundamentals with the bare symbol (fast.py:354-361) under the session region; target.region is never applied. Outside: https://www.screener.in/company/HAL/consolidated/ 'Current Price: Rs 4,601', 'Stock P/E: 33.0', 'EPS (TTM): Rs 139.38' (Hindustan Aeronautics). Same class as R15-DATA-002 (blocked_tier4, frontend panels) / R15-DATA-003 (fixed, ownership gate only) - distinct file and root cause.",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/xadv-realuser-2.md",
+    "suspected_files": [
+      "sidecar/services/research/fast.py",
+      "sidecar/services/agent_tools/catalog.py"
+    ]
+  },
+  {
+    "key": "realuser:4",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "",
+    "scenario": "xadv-realuser-7",
+    "title": "A large US company typed by its legal name never resolves: 'IDEX Corporation', 'Danaher Corporation', 'Amphenol Corporation', 'Newmont Corporation' offer five Indian 'X Corporation Ltd' micro-caps because the US master's SEC state suffix ('/DE/') defeats the corporate-suffix strip",
+    "area": "research-search",
+    "repro": "GET :52910/resolve?q=Danaher%20Corporation (region IN) -> needs_disambiguation, candidates RANDER/KACL/SANBLUE/PARSHWANA/KEYCORP (BSE '... Corporation Ltd') + AES CORP; DHR absent. Same for IDEX/Amphenol/Newmont; research {query:'IDEX Corporation'} -> same shells. 'IDEX Corp' binds IEX. us_instruments.json stores 'DANAHER CORP /DE/' etc. (784/10,365 rows carry a slash suffix); symbol_resolver._canonical_name('danaher corp /de/') -> 'danaher corp /de/' vs _canonical_name('danaher corporation') -> 'danaher' (symbol_resolver.py:907-930, _EDGE_PUNCT :209 has no '/').",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/xadv-realuser-7.md",
+    "suspected_files": [
+      "sidecar/services/symbol_resolver.py",
+      "sidecar/services/resolver_masters/__init__.py"
+    ]
+  }
+]

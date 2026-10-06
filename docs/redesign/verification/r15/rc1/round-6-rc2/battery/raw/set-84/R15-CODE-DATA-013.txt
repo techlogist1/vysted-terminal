@@ -1,0 +1,8 @@
+RAW rc1-battery-12 @ ace7dd76 live :52352
+$ GET /sec/filings/0000320193-24-000123/sections?identifier=AAPL
+{"detail":"Not Found"}
+http=404
+$ GET /openapi.json paths containing sections
+[] ['/sec/status', '/sec/filings/search', '/sec/filings', '/sec/filings/{accession}', '/sec/insider/{identifier}']
+$ GET /sec/filings/{acc}?identifier=AAPL (sibling route still routed?)
+http=502

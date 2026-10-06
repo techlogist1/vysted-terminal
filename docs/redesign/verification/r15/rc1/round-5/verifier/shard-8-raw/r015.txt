@@ -1,0 +1,8 @@
+A repro one domain both lanes | domains {'blog.example'} | verdict unverified corroborated False verdict_llm_calls 0 | md_corr False
+B fresh bbc.co.uk hosts | domains {'bbc.co.uk'} | verdict unverified corroborated False verdict_llm_calls 0 | md_corr False
+C fresh reuters in./www. | domains {'reuters.com'} | verdict unverified corroborated False verdict_llm_calls 0 | md_corr False
+D fresh bseindia api/www | domains {'bseindia.com'} | verdict unverified corroborated False verdict_llm_calls 0 | md_corr False
+E fresh indiatimes subdomains | domains {'indiatimes.com'} | verdict unverified corroborated False verdict_llm_calls 0 | md_corr False
+F fresh com.au | domains {'asx.com.au'} | verdict unverified corroborated False verdict_llm_calls 0 | md_corr False
+G control reuters/bloomberg | domains {'bloomberg.com', 'reuters.com'} | verdict agree corroborated True verdict_llm_calls 1 | md_corr True
+H fresh single-lane sec.gov hosts | verdict unverified llm calls 0

@@ -1,0 +1,25 @@
+import asyncio, sys
+sys.path.insert(0, ".")
+from services.research.citecheck import expand_marker_groups, strip_invalid_markers, strip_model_bibliography
+cases = [
+ ("finding (a) [New findings]", "an operating margin of 10.98% [New findings]. Dividend per Share: ₹4.90 [New findings].", 5),
+ ("finding (b) groups", "P/E of 71.23 [2, 3]. Margin [2, 4].", 5),
+ ("triage repro", "P/E of 71.23 [2, 3]. Margin 10.98% [New findings]. Cost [6][New findings]. Five [9, 12].", 5),
+ ("fresh: range hyphen", "Revenue grew 18% [2-4]. EBITDA 22% [1-3].", 5),
+ ("fresh: range en dash", "Revenue grew 18% [2–4].", 5),
+ ("fresh: out-of-range range", "Order book ₹23,000 cr [7-9].", 5),
+ ("fresh: pseudo then marker", "Margin 10.98% [New findings][2].", 5),
+ ("fresh: pseudo then out-of-range marker", "Margin 10.98% [Web evidence][9].", 5),
+ ("fresh: group with 'and'", "Growth [2, 3 and 4].", 5),
+ ("fresh: footnote", "Growth 12%[^1].", 5),
+ ("fresh: source prefix", "Growth 12% [Source 3]. PAT [S2].", 5),
+ ("fresh: alnum group", "Growth [1a].", 5),
+ ("control: link/ref/checkbox", "See [the filing](http://x) and [the filing][sec] and - [x] done.\n\n[sec]: http://y", 5),
+ ("control: bracketed editorial", "Revenue [Note: consolidated] rose 12% [2]. ## Outlook [Base case]", 5),
+ ("control: ticker bracket", "Bharat Dynamics [NSE: BDL] trades at ₹1155 [1].", 5),
+]
+for label, md, n in cases:
+    e = expand_marker_groups(md)
+    b, nb = strip_model_bibliography(e)
+    out, rm = strip_invalid_markers(b, n)
+    print(f"--- {label} (sources={n})\n in : {md!r}\n out: {out!r}  removed={rm}")

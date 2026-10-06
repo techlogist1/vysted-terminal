@@ -1,0 +1,4 @@
+# R15-UI-051: certified only via frontend render (vitest/jsdom); live re-run is vitest, owned by the heavy lane. Checking pinned tests exist at ace7dd76:
+70:  it("R15-UI-028: in region IN, ₹ price and vega/theta in market units", async () => {
+82:    fireEvent.change(screen.getByTestId("field-display-currency"), { target: { value: "USD" } });
+73:  it("R15-DATA-100: in region IN, prices render with ₹, not a hard-coded $", async () => {

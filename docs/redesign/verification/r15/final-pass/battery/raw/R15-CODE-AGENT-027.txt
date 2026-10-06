@@ -1,0 +1,15 @@
+# R15-CODE-AGENT-027 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:27+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import services.agent_tools as at
+at.reset_for_tests(); print('import-time tools after reset:', sorted(at._TOOLS))
+async def h(a): return {'ok':True}
+at.register_tool('zz_extra_probe', h); print('registered extra:', 'zz_extra_probe' in at._TOOLS)
+at.reset_for_tests(); print('after reset extra gone:', 'zz_extra_probe' not in at._TOOLS, '| backtest_summary kept:', 'backtest_summary' in at._TOOLS)
+PY
+--- output ---
+import-time tools after reset: ['backtest_summary']
+registered extra: True
+after reset extra gone: True | backtest_summary kept: True
+
+EXIT=0 (0.2s)

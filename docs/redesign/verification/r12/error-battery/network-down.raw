@@ -1,0 +1,2 @@
+data: {"kind": "error", "message": "Could not reach OpenAI \u2014 check your network.", "action": "Check your internet connection and try again.", "detail": "Connection error.", "code": "network"}
+

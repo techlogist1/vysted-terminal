@@ -1,0 +1,104 @@
+{
+ "focused_source": null,
+ "by_source": {
+  "__terminal__": {
+   "focusedPanel": null,
+   "focusedSymbol": "^NSEI",
+   "charts": [],
+   "watchlist": {
+    "symbols": [
+     "^NSEI",
+     "RELIANCE.NS",
+     "TCS.NS",
+     "HDFCBANK.NS"
+    ],
+    "selected": null
+   },
+   "portfolio": {
+    "positionCount": 7,
+    "totalValue": null,
+    "activePortfolioId": "default",
+    "activePortfolioName": "Portfolio",
+    "holdings": [
+     {
+      "id": "h-8ca0a7e6-6887-4b69-a1e0-e2a07f026467",
+      "symbol": "RELIANCE.NS",
+      "quantity": 10,
+      "costBasis": 1200,
+      "assetClass": "equity",
+      "currency": "INR",
+      "marketValue": null,
+      "pnl": null
+     },
+     {
+      "id": "h-21f7a7a7-1481-40b1-adcc-06ebbb95d00f",
+      "symbol": "TCS.NS",
+      "quantity": 2,
+      "costBasis": 2500,
+      "assetClass": "equity",
+      "currency": "INR",
+      "marketValue": null,
+      "pnl": null
+     },
+     {
+      "id": "h-c65cc855-0432-4b01-8832-30659fafce60",
+      "symbol": "AAPL",
+      "quantity": 2,
+      "costBasis": 190,
+      "assetClass": "equity",
+      "currency": null,
+      "marketValue": null,
+      "pnl": null
+     },
+     {
+      "id": "h-edfe648e-dd17-45ff-b7fb-c5ac1e4305f9",
+      "symbol": "MSFT",
+      "quantity": 1,
+      "costBasis": 400,
+      "assetClass": "equity",
+      "currency": null,
+      "marketValue": null,
+      "pnl": null
+     },
+     {
+      "id": "h-5b082bc7-1a15-4f34-ae88-7863db724289",
+      "symbol": "BTC/USDT",
+      "quantity": 0.1,
+      "costBasis": 60000,
+      "assetClass": "crypto",
+      "currency": "USDT",
+      "marketValue": null,
+      "pnl": null
+     },
+     {
+      "id": "h-698c8e65-c384-49b9-8109-b226e768205b",
+      "symbol": "HAL",
+      "quantity": 3,
+      "costBasis": 4000,
+      "assetClass": "equity",
+      "currency": null,
+      "marketValue": null,
+      "pnl": null
+     },
+     {
+      "id": "h-5c1384d8-8f12-4c46-9459-5e1110fe503b",
+      "symbol": "SBIN.BO",
+      "quantity": 5,
+      "costBasis": 800,
+      "assetClass": "equity",
+      "currency": "INR",
+      "marketValue": null,
+      "pnl": null
+     }
+    ]
+   },
+   "brief": {
+    "phase": "empty"
+   },
+   "otherPanels": [],
+   "openPanels": [],
+   "region": "IN",
+   "capturedAt": 1791036454173
+  }
+ }
+}

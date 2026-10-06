@@ -1,5 +1,10 @@
 # Phase 10 — Handoff Report ("the shell becomes a copilot")
 
+> **Historical.** Broker integrations were removed permanently (D81, 23 Sep 2026).
+> Vysted has no broker connectivity, order placement or simulated account. §3 below
+> (Kite/`/brokers`/`broker_portfolio`) describes a surface that no longer exists — see
+> `docs/BROKER_INTEGRATIONS.md`. The rest of this handoff is otherwise historical record.
+
 Single unattended session on the Mac. All work merged to `main` and pushed to
 `origin`. **No tag, no release** — handed back for your personal-testing gate.
 
@@ -114,6 +119,11 @@ tool is `sidecar/tests/test_tool_loop_e2e.py` (a real LLM call needs your BYOK
 key — the harness has none).
 
 ## 3. Broker + integrations hub — how to connect Kite (Phase E, headline)
+
+> **Historical.** Broker integrations were removed permanently (D81, 23 Sep 2026).
+> Vysted has no broker connectivity, order placement or simulated account. None of
+> the Kite flow, `/brokers/*` routes or `broker_portfolio` tool described below
+> exist anymore — see `docs/BROKER_INTEGRATIONS.md`.
 
 **Where:** Settings → **Integrations** (the discoverable surface) lists Zerodha,
 Dhan, Angel One with a Connect button.

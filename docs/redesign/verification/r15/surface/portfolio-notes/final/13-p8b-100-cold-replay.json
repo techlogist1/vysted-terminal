@@ -1,0 +1,168 @@
+{
+ "firstFanOutMs": 30277,
+ "firstMaxMs": 30014,
+ "samples": [
+  {
+   "s": 40,
+   "done": 100,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 50,
+   "done": 100,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 60,
+   "done": 100,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 70,
+   "done": 200,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 80,
+   "done": 200,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 91,
+   "done": 200,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 101,
+   "done": 200,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 111,
+   "done": 300,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 121,
+   "done": 300,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 131,
+   "done": 300,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 141,
+   "done": 300,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 151,
+   "done": 400,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 161,
+   "done": 400,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 171,
+   "done": 400,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 181,
+   "done": 400,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 191,
+   "done": 500,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 201,
+   "done": 500,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  },
+  {
+   "s": 211,
+   "done": 500,
+   "ok": 0,
+   "unresolved": "100",
+   "banner": true
+  }
+ ],
+ "totalQuoteReqs": 500,
+ "statusCounts": {
+  "TimeoutError: The operation was aborted due to timeout": 500
+ },
+ "laterReqs20s": 400,
+ "maxInflightLater20s": 100,
+ "renderedRows": 0,
+ "tenthRow": "GNFC.NS",
+ "tenthRowRendered": true,
+ "lastRowRendered": true,
+ "optionLabel": "Big · 100",
+ "summary": "Market value: — (no live quotes)·Total P&L: —·Concentration: —%·100 without a live quoteCouldn't refresh live quotes — values shown without market data.RetrySymbolQtyAvg costPriceMkt valP&LWtSUVEN.NS1₹100.00————KENNAMET.NS2₹100.00————FIRSTCRY.NS3₹100.00————AFC",
+ "unresolvedText": null,
+ "snapshot": {
+  "keys": [
+   "positionCount",
+   "totalValue",
+   "totalValueNote",
+   "activePortfolioId",
+   "activePortfolioName",
+   "holdings"
+  ],
+  "holdingsCount": 100,
+  "first": {
+   "id": "h0",
+   "symbol": "SUVEN.NS",
+   "quantity": 1,
+   "costBasis": 100,
+   "assetClass": "equity",
+   "currency": "INR",
+   "marketValue": null,
+   "pnl": null
+  },
+  "totalValue": null,
+  "totalValueNote": "no live quotes resolved"
+ }
+}

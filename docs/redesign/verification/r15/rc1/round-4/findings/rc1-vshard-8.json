@@ -1,0 +1,75 @@
+[
+ {
+  "key": "rc1-vshard-8:1",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-RESEARCH-007",
+  "title": "ir./investors. host on a non-PSL blogging platform (ghost.io, hashnode.dev, beehiiv, tistory, livejournal, quora spaces, ...) still ranks TIER_PRIMARY, outranks Reuters and is named the primary record",
+  "repro": "sidecar/.venv/bin/python @68d5573a: domain_tier('https://investors.ghost.io/x') -> 1; rank_sources([Reuters, investors.ghost.io, ir.hashnode.dev]) -> ghost, hashnode, Reuters; priority_note -> 'primary record ...: [1, 2]'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-8.md",
+  "suspected_files": [
+   "sidecar/services/research/finance.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-8:2",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-LEAD-031",
+  "title": "A {\"type\": \"function\", \"name\": ...} leaked call streams in full (LeakHold marker needs '{\"name\"'), is then rescued and executed, and the ratio-guard replacement splices onto it with no separator",
+  "repro": "scripted ollama stream through agent_runtime.invoke_agent (verifier/shard-8-evidence/lead031-scripted.py) -> text '{\"type\": \"function\", \"name\": \"resolve_symbol\", \"parameters\": {\"query\": \"SIFY\"}}The ADR-to-ordinary-share ratio is not available ...'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-8.md",
+  "suspected_files": [
+   "sidecar/services/llm/tool_call_rescue.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-8:3",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-AGENT-090",
+  "title": "Ratio guard replaces a TRUE, tool-sourced ADR ratio when the sentence carries a date (2026-06-26 adds counts 06/26), and the mid-sentence release leaves a garbled 'filed on The ADR-to-ordinary-share ratio is not available' answer on the entry's own SIFY prompt",
+  "repro": "live llama3.1:8b on :52608, SIFY ADR prompt -> sidecar log 'ratio guard replaced an untraced claim: 2026-06-26, one SIFY ADR represents six equity shares.'; offline _guard_ratio_claims with the ads_ratio result GUARDS the dated sentence and KEEPS it undated",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-8.md",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-8:4",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-AGENT-090",
+  "title": "Ratio guard lets fabricated ratios through for number words above twenty ('thirty'), fractions ('one-third of an ordinary share') and decimals ('0.5 ordinary shares')",
+  "repro": "offline _guard_ratio_claims against a SIFY fundamentals result with no depositary term: all three sentences KEPT",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-8.md",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-8:5",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-LEAD-033",
+  "title": "The client's '[failed: ...]' history trailer still rides inside assistant content (only '[tool steps:' is stripped) and llama3.1:8b echoes it as prose",
+  "repro": "POST /agents/copilot/invoke, history assistant 'MSFT's trailing P/E is 36.4.\\n\\n[failed: OpenRouter rate-limited ...]' -> answer ends '[ failed: OpenRouter rate-limited this request (429). ...]'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-8.md",
+  "suspected_files": [
+   "src/store/chat-history.ts",
+   "sidecar/services/agent_runtime.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-8:6",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-AGENT-033",
+  "title": "earnings_history/analyst_history return ok:true count:0 for a nonexistent symbol after Yahoo 404 'Quote not found', so the tool_result frame reports success",
+  "repro": "in-process handler earnings_history({'symbol':'ZZQXW'}) -> {'ok': true, 'count': 0, 'history': []}",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-8.md",
+  "suspected_files": [
+   "sidecar/services/agent_tools"
+  ]
+ }
+]

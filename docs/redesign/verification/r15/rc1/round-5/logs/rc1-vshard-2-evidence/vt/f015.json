@@ -1,0 +1,146 @@
+{
+  "repro_equity_infy": {
+    "focus": "equity-overview",
+    "helper": "INFY",
+    "snapshotFocusedSymbol": "INFY",
+    "snapshotFocusedPanel": "equity-overview",
+    "charts": [
+      {
+        "panelId": "chart",
+        "symbol": "SPY",
+        "timeframe": "1D",
+        "indicators": []
+      }
+    ],
+    "otherPanels": [
+      {
+        "source": "equity-overview",
+        "symbol": "INFY",
+        "summary": "ticker=INFY, loadedSections=quote"
+      }
+    ],
+    "chips": [
+      "Research $INFY",
+      "What moved $INFY today?",
+      "Research $NVDA",
+      "Compare AAPL vs MSFT"
+    ]
+  },
+  "fresh_chart2": {
+    "focus": "chart-2",
+    "helper": "NVDA",
+    "snapshotFocusedSymbol": "NVDA",
+    "snapshotFocusedPanel": "chart-2",
+    "charts": [
+      {
+        "panelId": "chart",
+        "symbol": "SPY",
+        "timeframe": "1D",
+        "indicators": []
+      },
+      {
+        "panelId": "chart-2",
+        "symbol": "NVDA",
+        "timeframe": "1H",
+        "indicators": [
+          "vwap"
+        ]
+      }
+    ],
+    "otherPanels": [
+      {
+        "source": "analyst-ratings",
+        "symbol": "msft",
+        "summary": "symbol=msft, tab=history"
+      },
+      {
+        "source": "sec-filings",
+        "summary": "identifier=AAPL, formFilter=10-K, tab=list, filingCount=12"
+      }
+    ],
+    "chips": [
+      "Research $NVDA",
+      "What moved $NVDA today?",
+      "Compare AAPL vs MSFT",
+      "Scan today's movers"
+    ]
+  },
+  "fresh_analyst_lowercase": {
+    "focus": "analyst-ratings",
+    "helper": "msft",
+    "snapshotFocusedSymbol": "msft",
+    "snapshotFocusedPanel": "analyst-ratings",
+    "charts": [
+      {
+        "panelId": "chart",
+        "symbol": "SPY",
+        "timeframe": "1D",
+        "indicators": []
+      },
+      {
+        "panelId": "chart-2",
+        "symbol": "NVDA",
+        "timeframe": "1H",
+        "indicators": [
+          "vwap"
+        ]
+      }
+    ],
+    "otherPanels": [
+      {
+        "source": "analyst-ratings",
+        "symbol": "msft",
+        "summary": "symbol=msft, tab=history"
+      },
+      {
+        "source": "sec-filings",
+        "summary": "identifier=AAPL, formFilter=10-K, tab=list, filingCount=12"
+      }
+    ],
+    "chips": [
+      "Research $MSFT",
+      "What moved $MSFT today?",
+      "Research $NVDA",
+      "Compare AAPL vs MSFT"
+    ]
+  },
+  "fresh_sec_identifier": {
+    "focus": "sec-filings",
+    "helper": null,
+    "snapshotFocusedSymbol": "SPY",
+    "snapshotFocusedPanel": "sec-filings",
+    "charts": [
+      {
+        "panelId": "chart",
+        "symbol": "SPY",
+        "timeframe": "1D",
+        "indicators": []
+      },
+      {
+        "panelId": "chart-2",
+        "symbol": "NVDA",
+        "timeframe": "1H",
+        "indicators": [
+          "vwap"
+        ]
+      }
+    ],
+    "otherPanels": [
+      {
+        "source": "analyst-ratings",
+        "symbol": "msft",
+        "summary": "symbol=msft, tab=history"
+      },
+      {
+        "source": "sec-filings",
+        "summary": "identifier=AAPL, formFilter=10-K, tab=list, filingCount=12"
+      }
+    ],
+    "chips": [
+      "Research $NVDA",
+      "Compare AAPL vs MSFT",
+      "Scan today's movers",
+      "Summarize my portfolio P&L"
+    ]
+  }
+}

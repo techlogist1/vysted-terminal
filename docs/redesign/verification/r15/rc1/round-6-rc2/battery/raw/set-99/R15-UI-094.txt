@@ -1,0 +1,14 @@
+ace7dd76 candidate venv, cwd sidecar
+COMMAND: _build_messages + _parse_output (five typed sections); frontend render grep below
+EXIT: 0
+OUTPUT:
+prompt asks sections: ['TAKE:', 'BUSINESS:', 'STORYLINE:', 'BULL:', 'BEAR:', 'RISKS:']
+parsed: {"summary": "A strong franchise.", "business": "Sells GPUs.", "storyline": "Growing.", "insights": [], "bull_case": ["Demand", "Margins"], "bear_case": ["Valuation"], "risks": ["Export limits"]}
+413:          <NarrativeBlock label="Storyline" text={narrative.storyline} />
+414:          {narrative.bull_case.length + narrative.bear_case.length > 0 && (
+416:              <NarrativeBlock label="Bull case" items={narrative.bull_case} />
+417:              <NarrativeBlock label="Bear case" items={narrative.bear_case} />
+420:          <NarrativeBlock label="Risks" items={narrative.risks} />
+734:          storyline: null,
+735:          bull_case: [],
+736:          bear_case: [],

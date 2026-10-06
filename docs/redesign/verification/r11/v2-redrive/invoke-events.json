@@ -1,0 +1,16 @@
+[
+ {
+  "kind": "delta",
+  "text": "\u4f60\u597d\uff0c\u6211\u65e0\u6cd5\u7ed9\u5230\u76f8\u5173\u5185\u5bb9\u3002"
+ },
+ {
+  "kind": "done",
+  "usage": {
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cache_read_input_tokens": null,
+   "cache_creation_input_tokens": null
+  },
+  "finish_reason": "content_filter"
+ }
+]

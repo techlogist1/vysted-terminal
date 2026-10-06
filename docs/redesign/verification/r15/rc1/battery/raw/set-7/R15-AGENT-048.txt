@@ -1,0 +1,11 @@
+$ grep -n "_MAX_REPAIRS_PER_ROUND" sidecar/services/llm/openai.py
+139:#: Tool-arg repairs per provider round, and the wall-clock cap on each one
+142:_MAX_REPAIRS_PER_ROUND = 2
+423:        * At most _MAX_REPAIRS_PER_ROUND repairs run per round (the ...
+527:        if not schema or len(repairs) >= _MAX_REPAIRS_PER_ROUND:
+
+Cap constant is 2, and the round-cap gate at :527 is unchanged from the certified
+shape (repairs against local llama capped at 2 of 5, each timed and metered). A full
+live 5-bad-call round against llama3.1:8b was not run this shard (would need the
+shared Ollama-lane lock for a mechanism that grep already confirms unchanged);
+static confirmation only.

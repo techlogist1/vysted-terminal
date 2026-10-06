@@ -1,0 +1,22 @@
+=== RESEARCH-013: no hardcoded 'nse+bse' literal in fast.py (chain grep) ===
+(none found)
+
+=== dynamic provider stamp: fast.py:456-462 ===
+    """
+    from services.research.relevance import is_india_target
+
+    if is_india_target(target):
+        result = await _safe_call(
+            tool_call,
+            "corporate_announcements",
+            {"symbol": target.symbol, "limit": _FAST_ANNOUNCEMENTS_LIMIT},
+        )
+        value = _structured_value(result, "filings")
+        # corporate_announcements carries no top-level provider/source/mode key
+        # (unlike sec_filings_list's per-item "sec-edgar" tag) — stamp the
+        # exchanges that actually served it (a BSE-only listing or a lane
+        # outage serves one) so the FR-041 badge never claims both.
+
+=== live sources per symbol (drives the stamp) ===
+JUMBO exchanges: {'BSE'}
+RELIANCE exchanges: {'NSE', 'BSE'}

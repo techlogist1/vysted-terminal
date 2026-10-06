@@ -1,0 +1,13 @@
+# R15-RESEARCH-005 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:30:35Z, sidecar :52348
+# kind=sh
+# command:
+#   cd $C/sidecar; export PYTHONPATH=.
+#   ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b8_r005.py 2>&1 | grep -v -i "warning\|np.datetime"
+# output:
+elapsed_s 62
+execution {"run_id": "95e06e43023e4740b420e4480ce321e9", "requested_depth": "deep", "loop": "iter", "backend": "native", "started_at": 1790987435.700493, "finished_at": 1790987497.222325, "degraded_reason": "synthesis_timeout"}
+degraded_reason synthesis_timeout | note: Stopped early to stay within the run's time, token or spend budget — coverage may be lighter than usual. The model did not finish writing the synthesis within its per-call time limit, so this brief is
+thin-coverage copy in markdown: False
+raw floats 1411777036288 / 1.5274 in md: False False
+md head: # Research brief: Do a deep research brief on CG Power: order book, margins, valuation vs peers /  / Symbol:  /  / _No findings were gathered before the run ended._ /  / > No listed instrument matched this query — web evidence only. /  / _Cited: 0 sources (below 3)._
+# exit=0

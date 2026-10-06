@@ -1,0 +1,16 @@
+stdout | ../../../../../private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/el2/el2.proof.test.ts > R15 error-layer-2 proofs > P1 base-URL rejection bypasses handlers.onError and rejects the caller
+P1 agent: onError calls = 0 | rejected with: The data engine did not become ready in time.
+P1 chat : rejected with: The data engine did not become ready in time.
+ ✓ ../../../../../private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/el2/el2.proof.test.ts > R15 error-layer-2 proofs > P1 base-URL rejection bypasses handlers.onError and rejects the caller 2ms
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+
+# humanize() probes (sidecar/.venv python, services.errors at HEAD d6dc63c)
+ollama.ResponseError('model "qwen3:8b" not found, try pulling it first', 404) -> HumanError(message='The requested model is not available on Ollama — pick another model.', action='Choose a different model in Settings.', code='model_not_found')
+google.genai.errors.ClientError(400, {'error':{'message':'API key not valid. Please pass a valid API key.','status':'INVALID_ARGUMENT'}}) -> HumanError(message='Something went wrong with Google Gemini.', action='Try again or switch provider in Settings.', code='unknown')
+openai.BadRequestError(400, xAI body 'Incorrect API key provided.') via provider 'xai' -> HumanError(message='Something went wrong with xAI.', action='Try again or switch provider in Settings.', code='unknown')
+
+# live world probes (bogus keys, 2026-09-23)
+POST generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent (x-goog-api-key: bogus) -> HTTP 400 {code:400, message:'API key not valid. Please pass a valid API key.', status:'INVALID_ARGUMENT', reason:'API_KEY_INVALID'}
+POST api.x.ai/v1/chat/completions (Bearer bogus) -> HTTP 400 {code:'invalid-argument', error:'Incorrect API key provided. ...'}
+POST api.deepseek.com/chat/completions (Bearer bogus) -> HTTP 401 (control: correctly mapped to auth)

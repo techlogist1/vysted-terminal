@@ -1,0 +1,11 @@
+AAPL      now 05:00 UTC -> eod | expect not live (US closed) | region US
+^NSEI     now 05:00 UTC -> live | expect live | region IN
+^BSESN    now 05:00 UTC -> live | expect live | region IN
+^NSEBANK  now 05:00 UTC -> live | expect live | region IN
+BHP.AX    now 15:00 UTC -> live | ASX closed -> expect not live | region US
+7203.T    now 15:00 UTC -> live | TSE closed -> expect not live | region US
+0700.HK   now 15:00 UTC -> live | HKEX closed -> expect not live | region US
+VOD.L     now 15:00 UTC -> live | LSE open 15:00 UTC -> live ok | region US
+VOD.L     now 18:00 UTC -> live | LSE closed 18:00 UTC -> expect not live | region US
+^N225     now 15:00 UTC -> live | TSE index closed -> expect not live | region US
+BHP.AX    now 02:30 UTC -> eod | ASX OPEN -> expect live | region US

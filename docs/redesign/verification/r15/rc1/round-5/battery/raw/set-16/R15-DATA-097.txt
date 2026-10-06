@@ -1,0 +1,5 @@
+first call result: []
+cached after first call: (1000.0, [])
+second call (post-TTL, hit now available) result: [Instrument(symbol='ZZZTEST', name='Zzznonexistentcorp Impossible Ltd XYZ', exchange='US', region='US', asset_class='equity', yahoo_symbol='ZZZTEST', score=0.6, band=0, rename=None, isin=None, bse_code=None, industry=None, former_name=None, board=None, exchange_group=None, face_value=None)]
+PASS
+EXIT: 0

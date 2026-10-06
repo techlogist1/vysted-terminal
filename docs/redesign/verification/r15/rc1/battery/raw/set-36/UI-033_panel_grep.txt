@@ -1,0 +1,4 @@
+349:        // R15-UI-033: configure() used to have no error path here — a rejected
+352:        configure(entry.pluginId, values)
+353:          .then(onDone)
+354:          .catch((err: unknown) => {

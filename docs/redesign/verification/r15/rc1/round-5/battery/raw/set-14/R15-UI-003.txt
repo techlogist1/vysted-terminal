@@ -1,0 +1,11 @@
+CMD: GET /custom-agents/tool-ids
+
+HTTP_CODE:200
+count: 56
+has research: True
+has web_search: True
+has publish_brief: True
+--- create + edit + save round trip ---
+
+HTTP_CODE:422
+{"detail":[{"type":"missing","loc":["body","id"],"msg":"Field required","input":{"name":"battery6-test-agent","system_prompt":"test","default_provider":"openrouter","default_model":"free-model","tools":["research","web_search","price_data"]}},{"type":"missing","loc":["body","philosophy"],"msg":"Field required","input":{"name":"battery6-test-agent","system_prompt":"test","default_provider":"openrouter","default_model":"free-model","tools":["research","web_search","price_data"]}}]}

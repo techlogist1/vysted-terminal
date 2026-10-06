@@ -1,0 +1,653 @@
+{
+ "F007": {
+  "open": {
+   "positionCount": 7,
+   "totalValue": null,
+   "totalValueNote": "holdings span multiple currencies (INR, USD, USDT) — no cross-currency total; read per-holding values",
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "id": "h-8ca0a7e6-6887-4b69-a1e0-e2a07f026467",
+     "symbol": "RELIANCE.NS",
+     "quantity": 10,
+     "costBasis": 1200,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 11677,
+     "pnl": -323
+    },
+    {
+     "id": "h-21f7a7a7-1481-40b1-adcc-06ebbb95d00f",
+     "symbol": "TCS.NS",
+     "quantity": 2,
+     "costBasis": 2500,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 4150,
+     "pnl": -850
+    },
+    {
+     "id": "h-c65cc855-0432-4b01-8832-30659fafce60",
+     "symbol": "AAPL",
+     "quantity": 2,
+     "costBasis": 190,
+     "assetClass": "equity",
+     "currency": "USD",
+     "marketValue": 667.3800048828125,
+     "pnl": 287.3800048828125
+    },
+    {
+     "id": "h-edfe648e-dd17-45ff-b7fb-c5ac1e4305f9",
+     "symbol": "MSFT",
+     "quantity": 1,
+     "costBasis": 400,
+     "assetClass": "equity",
+     "currency": "USD",
+     "marketValue": 517.530029296875,
+     "pnl": 117.530029296875
+    },
+    {
+     "id": "h-5b082bc7-1a15-4f34-ae88-7863db724289",
+     "symbol": "BTC/USDT",
+     "quantity": 0.1,
+     "costBasis": 60000,
+     "assetClass": "crypto",
+     "currency": "USDT",
+     "marketValue": 8479.009,
+     "pnl": 2479.009
+    },
+    {
+     "id": "h-698c8e65-c384-49b9-8109-b226e768205b",
+     "symbol": "HAL",
+     "quantity": 3,
+     "costBasis": 4000,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 13803,
+     "pnl": 1803
+    },
+    {
+     "id": "h-5c1384d8-8f12-4c46-9459-5e1110fe503b",
+     "symbol": "SBIN.BO",
+     "quantity": 5,
+     "costBasis": 800,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 4770,
+     "pnl": 770
+    }
+   ]
+  },
+  "closed": {
+   "positionCount": 7,
+   "totalValue": null,
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "id": "h-8ca0a7e6-6887-4b69-a1e0-e2a07f026467",
+     "symbol": "RELIANCE.NS",
+     "quantity": 10,
+     "costBasis": 1200,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": null,
+     "pnl": null
+    },
+    {
+     "id": "h-21f7a7a7-1481-40b1-adcc-06ebbb95d00f",
+     "symbol": "TCS.NS",
+     "quantity": 2,
+     "costBasis": 2500,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": null,
+     "pnl": null
+    },
+    {
+     "id": "h-c65cc855-0432-4b01-8832-30659fafce60",
+     "symbol": "AAPL",
+     "quantity": 2,
+     "costBasis": 190,
+     "assetClass": "equity",
+     "currency": null,
+     "marketValue": null,
+     "pnl": null
+    },
+    {
+     "id": "h-edfe648e-dd17-45ff-b7fb-c5ac1e4305f9",
+     "symbol": "MSFT",
+     "quantity": 1,
+     "costBasis": 400,
+     "assetClass": "equity",
+     "currency": null,
+     "marketValue": null,
+     "pnl": null
+    },
+    {
+     "id": "h-5b082bc7-1a15-4f34-ae88-7863db724289",
+     "symbol": "BTC/USDT",
+     "quantity": 0.1,
+     "costBasis": 60000,
+     "assetClass": "crypto",
+     "currency": "USDT",
+     "marketValue": null,
+     "pnl": null
+    },
+    {
+     "id": "h-698c8e65-c384-49b9-8109-b226e768205b",
+     "symbol": "HAL",
+     "quantity": 3,
+     "costBasis": 4000,
+     "assetClass": "equity",
+     "currency": null,
+     "marketValue": null,
+     "pnl": null
+    },
+    {
+     "id": "h-5c1384d8-8f12-4c46-9459-5e1110fe503b",
+     "symbol": "SBIN.BO",
+     "quantity": 5,
+     "costBasis": 800,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": null,
+     "pnl": null
+    }
+   ]
+  },
+  "storeHoldings": [
+   {
+    "id": "h-8ca0a7e6-6887-4b69-a1e0-e2a07f026467",
+    "symbol": "RELIANCE.NS",
+    "quantity": 10,
+    "costBasis": 1200,
+    "assetClass": "equity",
+    "region": "IN"
+   },
+   {
+    "id": "h-21f7a7a7-1481-40b1-adcc-06ebbb95d00f",
+    "symbol": "TCS.NS",
+    "quantity": 2,
+    "costBasis": 2500,
+    "assetClass": "equity",
+    "region": "IN"
+   },
+   {
+    "id": "h-c65cc855-0432-4b01-8832-30659fafce60",
+    "symbol": "AAPL",
+    "quantity": 2,
+    "costBasis": 190,
+    "assetClass": "equity",
+    "region": "IN"
+   },
+   {
+    "id": "h-edfe648e-dd17-45ff-b7fb-c5ac1e4305f9",
+    "symbol": "MSFT",
+    "quantity": 1,
+    "costBasis": 400,
+    "assetClass": "equity",
+    "region": "IN"
+   },
+   {
+    "id": "h-5b082bc7-1a15-4f34-ae88-7863db724289",
+    "symbol": "BTC/USDT",
+    "quantity": 0.1,
+    "costBasis": 60000,
+    "assetClass": "crypto",
+    "region": "IN"
+   },
+   {
+    "id": "h-698c8e65-c384-49b9-8109-b226e768205b",
+    "symbol": "HAL",
+    "quantity": 3,
+    "costBasis": 4000,
+    "assetClass": "equity",
+    "region": "IN"
+   },
+   {
+    "id": "h-5c1384d8-8f12-4c46-9459-5e1110fe503b",
+    "symbol": "SBIN.BO",
+    "quantity": 5,
+    "costBasis": 800,
+    "assetClass": "equity",
+    "region": "IN"
+   }
+  ],
+  "panelWasOpenText": ""
+ },
+ "F016": {
+  "orig-tool-id": {
+   "input": {
+    "pattern": "custom",
+    "panels": [
+     "sec_filings_list"
+    ]
+   },
+   "result": {
+    "status": "failed",
+    "label": null,
+    "reason": "no arrangeable panel named \"sec_filings_list\""
+   },
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   }
+  },
+  "orig-string": {
+   "input": {
+    "pattern": "custom",
+    "panels": "chart, sec-filings"
+   },
+   "result": {
+    "status": "applied",
+    "label": "Arranged chart + sec-filings"
+   },
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "sec-filings",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ],
+     [
+      "sec-filings"
+     ]
+    ]
+   }
+  },
+  "fresh-all-unknown-2": {
+   "input": {
+    "pattern": "custom",
+    "panels": [
+     "options_chain_grid",
+     "broker"
+    ]
+   },
+   "result": {
+    "status": "failed",
+    "label": null,
+    "reason": "no arrangeable panel named \"options_chain_grid\", \"broker\""
+   },
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   }
+  },
+  "fresh-partial": {
+   "input": {
+    "pattern": "custom",
+    "panels": [
+     "bogus_panel",
+     "news",
+     "chart"
+    ]
+   },
+   "result": {
+    "status": "applied",
+    "label": "Arranged news + chart (no panel named \"bogus_panel\")"
+   },
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   }
+  },
+  "fresh-string-unknown": {
+   "input": {
+    "pattern": "custom",
+    "panels": "dashboard, heatmapx"
+   },
+   "result": {
+    "status": "failed",
+    "label": null,
+    "reason": "no arrangeable panel named \"dashboard\", \"heatmapx\""
+   },
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   }
+  },
+  "fresh-objects-unknown": {
+   "input": {
+    "pattern": "custom",
+    "panels": [
+     {
+      "panel": "xyzzy",
+      "direction": "right"
+     }
+    ]
+   },
+   "result": {
+    "status": "failed",
+    "label": null,
+    "reason": "no arrangeable panel named \"xyzzy\""
+   },
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   }
+  },
+  "fresh-empty": {
+   "input": {
+    "pattern": "custom",
+    "panels": []
+   },
+   "result": {
+    "status": "failed",
+    "label": null,
+    "reason": "no panels named"
+   },
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   }
+  },
+  "fresh-string-known": {
+   "input": {
+    "pattern": "custom",
+    "panels": "watchlist,news"
+   },
+   "result": {
+    "status": "applied",
+    "label": "Arranged watchlist + news"
+   },
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   }
+  }
+ },
+ "LEAD-077": {
+  "MSFT": {
+   "focusedSymbol": "MSFT",
+   "bus": {
+    "identifier": "MSFT",
+    "symbol": "MSFT",
+    "formFilter": "all",
+    "tab": "filings",
+    "filingCount": 0
+   }
+  },
+  "NVDA": {
+   "focusedSymbol": "NVDA",
+   "bus": {
+    "identifier": "NVDA",
+    "symbol": "NVDA",
+    "formFilter": "all",
+    "tab": "filings",
+    "filingCount": 0
+   }
+  },
+  "0000320193": {
+   "focusedSymbol": "0000320193",
+   "bus": {
+    "identifier": "0000320193",
+    "symbol": "0000320193",
+    "formFilter": "all",
+    "tab": "filings",
+    "filingCount": 0
+   }
+  }
+ }
+}

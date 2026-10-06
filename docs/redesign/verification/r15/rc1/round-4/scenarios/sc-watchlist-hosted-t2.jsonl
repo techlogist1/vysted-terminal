@@ -1,0 +1,30 @@
+{"kind": "tool_use", "tool_call_id": "call_8e1103c755fd44d5b5a63a8a4f977f3a", "name": "get_terminal_state", "input": {}}
+{"kind": "tool_result", "tool_call_id": "call_8e1103c755fd44d5b5a63a8a4f977f3a", "name": "get_terminal_state", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_da84622651c3403e80a535712aac410c", "name": "get_portfolio", "input": {}}
+{"kind": "tool_result", "tool_call_id": "call_da84622651c3403e80a535712aac410c", "name": "get_portfolio", "ok": true, "error": null}
+{"kind": "delta", "text": "It"}
+{"kind": "delta", "text": " seems"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " don't"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " symbols"}
+{"kind": "delta", "text": " currently"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " watch"}
+{"kind": "delta", "text": "list"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " add"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " specific"}
+{"kind": "delta", "text": " stocks"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " funds"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 10474, "output_tokens": 25, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.018827}

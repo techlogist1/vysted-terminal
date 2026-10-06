@@ -1,0 +1,9 @@
+grep confirms committed vitest pin (src/modules/earnings/EarningsCalendarPanel.test.tsx):
+  L144  it("renders the company name + consensus EPS columns", async () => { ... })
+  L149  // R15-DATA-031: the consensus EPS figure carries its currency affix.
+  L154  it("expands an inline drill-down on row click and fetches history/surprises/estimates", async () => { ... })
+  L174  // R15-DATA-031: the estimate-detail figures carry their currency affix.
+  L202  it("R15-DATA-031: labels EPS with currency and never interleaves currencies when sorted", async () => { ... })
+  L254  it("R15-DATA-032: an absent dispersion / count renders '-' and sorts last both ways", async () => { ... })
+No backend endpoint carries this bug (it's a frontend rendering/sort defect); original register repro is
+UI-driven (watchlist spanning regions, click the Consensus EPS header). Verdict: ci_pinned.

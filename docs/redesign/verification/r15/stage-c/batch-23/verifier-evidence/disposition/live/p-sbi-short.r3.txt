@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  37.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_137355f9333a41c3859507bcd1dfc228", "name": "price_data", "input": {"range": "1mo", "symbol": "SBIN.NS", "timeframe": "1d", "asset_class": "equity"}}
+[  37.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_137355f9333a41c3859507bcd1dfc228", "name": "price_data", "ok": true, "error": null}
+[  47.3s] heartbeat: {"kind": "heartbeat"}
+[  51.3s] done: {"kind": "done", "usage": {"input_tokens": 4789, "output_tokens": 13, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of SBI is ₹983.0.
+
+=== ok · 51.3s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 12, 'done': 1} · usage in=4789 out=13 · est $0.00000 · llama3.1:8b

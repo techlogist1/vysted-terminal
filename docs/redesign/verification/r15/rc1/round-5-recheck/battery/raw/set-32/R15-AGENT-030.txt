@@ -1,0 +1,5 @@
+RuntimeError -> {'kind': 'error', 'message': 'The terminal hit an internal error.', 'action': 'Try again; if it keeps happening, restart Vysted.', 'detail': 'RuntimeError: boom', 'code': 'internal'}
+ValueError -> {'kind': 'error', 'message': 'The terminal hit an internal error.', 'action': 'Try again; if it keeps happening, restart Vysted.', 'detail': 'ValueError: bad', 'code': 'internal'}
+TypeError -> {'kind': 'error', 'message': 'The terminal hit an internal error.', 'action': 'Try again; if it keeps happening, restart Vysted.', 'detail': 'TypeError: t', 'code': 'internal'}
+KeyError -> {'kind': 'error', 'message': 'The terminal hit an internal error.', 'action': 'Try again; if it keeps happening, restart Vysted.', 'detail': "KeyError: 'k'", 'code': 'internal'}
+humanize ConnectError -> HumanError(message='Could not reach the AI provider — check your network.', action='Check your internet connection and try again.', detail='conn refused', code='network')

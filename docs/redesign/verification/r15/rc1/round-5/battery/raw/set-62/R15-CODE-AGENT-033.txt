@@ -1,0 +1,27 @@
+R15-CODE-AGENT-033: in-process grader.grade() probe against candidate code (no full pytest run — heavy lane owns that).
+CMD: direct GET /quant/option/chain/AAPL?expiry=nearest against candidate sidecar (control: reproduces the original tool-arg error)
+422
+{"detail":[{"type":"date_from_datetime_parsing","loc":["query","expiry"],"msg":"Input should be a valid date or datetime, input is too short","input":"nearest","ctx":{"error":"input is too short"}}]}
+CMD: PYTHONPATH=sidecar:scripts/agent_eval ./sidecar/.venv/bin/python3 probe_grader.py (scripts/agent_eval/grader.py, candidate code, synthetic tool_use/tool_result event streams)
+errored case: ['stream ended without a done event', "option_chain called without required ['symbol']: {}", "option_chain errored: invalid argument: Invalid isoformat string: 'nearest'", 'empty answer']
+retry-ok case: ['stream ended without a done event', "option_chain called without required ['symbol']: {}", "option_chain called without required ['symbol']: {}", 'empty answer']
+legacy no tool_result case: ['stream ended without a done event', "option_chain called without required ['symbol']: {}", 'empty answer']
+
+grader.py source (the fix under test):
+            continue
+        missing = [p for p in required.get(name, []) if args.get(p) in (None, "")]
+        if missing:
+            failures.append(f"{name} called without required {missing}: {json.dumps(args)}")
+
+    # A tool whose LAST result errored failed the trial; a later successful
+    # retry of the same tool recovers it (R15-CODE-AGENT-033). Streams recorded
+    # before the runtime emitted tool_result frames have none and grade as before.
+    last_result: dict[str, dict[str, Any]] = {}
+    for e in events:
+        if e.get("kind") == "tool_result":
+            last_result[e.get("name") or ""] = e
+    for name, result in last_result.items():
+        if result.get("ok") is False:
+            failures.append(f"{name} errored: {result.get('error')}")
+
+    for want in expect.get("tools") or []:

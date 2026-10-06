@@ -1,0 +1,22 @@
+== GET /fundamentals/TCS/income
+{"symbol":"TCS.NS","periods":["2026-03-31","2025-03-31","2024-03-31","2023-03-31"],"lines":[{"label":"operating_revenue","values":{"2026-03-31":2670210000000.0,"2025-03-31":2553240000000.0,"2024-03-31":2408930000000.0,"2023-03-31":2254580000000.0}},{"label":"t
+== GET /fundamentals/AAPL/balance
+{"symbol":"AAPL","periods":["2025-09-30","2024-09-30","2023-09-30","2022-09-30","2021-09-30"],"lines":[{"label":"cash_financial","values":{"2025-09-30":28267000000.0,"2024-09-30":27199000000.0,"2023-09-30":28359000000.0,"2022-09-30":18546000000.0,"2021-09-30":
+== GET /fundamentals/MSFT/cashflow
+{"symbol":"MSFT","periods":["2026-06-30","2025-06-30","2024-06-30","2023-06-30","2022-06-30"],"lines":[{"label":"net_income_from_continuing_operations","values":{"2026-06-30":133749000000.0,"2025-06-30":101832000000.0,"2024-06-30":88136000000.0,"2023-06-30":72
+== GET /fundamentals/INFY/ratings
+{"symbol":"INFY.NS","consensus":"buy","target_mean":1202.1428,"target_high":1610.0,"target_low":940.0,"strong_buy":6,"buy":17,"hold":16,"sell":1,"strong_sell":2,"provider":"yfinance","as_of":"2026-09-26T23:32:28.125827Z"}  HTTP 200
+== GET /fundamentals/GOKUL/ratings
+{"symbol":"GOKUL.NS","consensus":null,"target_mean":null,"target_high":null,"target_low":null,"strong_buy":0,"buy":0,"hold":0,"sell":0,"strong_sell":0,"provider":"yfinance","as_of":"2026-09-26T23:32:28.315575Z"}  HTTP 200
+== GET /fundamentals/KRITINUT/ratings
+{"symbol":"KRITINUT.NS","consensus":null,"target_mean":null,"target_high":null,"target_low":null,"strong_buy":0,"buy":0,"hold":0,"sell":0,"strong_sell":0,"provider":"yfinance","as_of":"2026-09-26T23:32:28.520096Z"}  HTTP 200
+== GET /quotes/BRK-B
+{"symbol":"BRK-B","price":505.4800109863281,"change":-0.21998901367186363,"change_percent":-0.04350188128769303,"volume":2992300.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:00:03Z","pro
+== GET /quotes/%5ENSEI
+{"symbol":"^NSEI","price":23140.5,"change":77.400390625,"change_percent":0.33560272442103684,"volume":242700.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":null,"timestamp":"2026-09-25T10:02:14Z","provider":"yfinance","f
+== GET /quotes/EURUSD%3DX
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}  HTTP 404
+== GET /quotes/M%26M
+{"symbol":"M&M","price":3035.0,"change":52.30000000000018,"change_percent":1.7534448653904244,"volume":2080300.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_di
+== GET /history/RELIANCE
+{"symbol":"RELIANCE","timeframe":"1d","bars":[{"timestamp":"2025-09-12T00:00:00Z","open":1383.3,"high":1396.3,"low":1380.5,"close":1395.0,"volume":7403368.0},{"timestamp":"2025-09-15T00:00:00Z","open":1393.0,"high":1400.8,"low":1388.6,"close":1399.3,"volume":5

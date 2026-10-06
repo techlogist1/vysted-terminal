@@ -1,0 +1,7 @@
+[   0.3s] done: {"kind": "done", "usage": null, "finish_reason": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 0.3s · events {'done': 1} · usage in=0 out=0 · est $0.00000 · junk-html
+exit=0

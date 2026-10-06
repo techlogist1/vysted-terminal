@@ -1,0 +1,149 @@
+=== b17v_probe.out
+PASS fab-humanised-titlecase-sameline: "Here is what I found.\n\nThe earnings_history tool returned no data for this in this turn.\n\nRevenue is above."
+PASS fab-humanised-nextline-dump: "The analyst_history tool returned no data for this in this turn.\n\nConsensus is buy."
+PASS fab-hyphen-errored: "The price_data tool returned no data for this in this turn.\nDone."
+PASS fab-bracket-array-humanised: "The corporate_actions tool returned no data for this in this turn.\n\nNo more."
+PASS true-humanised-ok: "Financial Statements returned revenue of \u20b94,411 cr.\nThat is TTM."
+PASS true-backtick-dump-ok: "`price_data` returned:\n{\n \"latest_price\": 13.41\n}\nSo it closed at $13.41."
+PASS precall-narration-fresh: "I'm about to check the earnings history data for SIFY. Done."
+PASS precall-narration-with-other-ok: "Next I'll pull the financial statements data for SIFY. Done."
+PASS precall-with-figure-fabricated: "The news tool returned no data for this in this turn. "
+PASS history-seed-fixed-label: "The get_portfolio tool returned 10 AAPL shares worth $2,300.\nOK."
+PASS history-seed-multi-step: "The Price Data tool returned a close of $13.41.\nOK."
+PASS history-seed-negative: "The price_data tool returned no data for this in this turn.\nOK."
+PASS prose-price-data-kept: "I don't have price data for SIFY yet, but revenue grew."
+PASS 031/orig2-json-fundamentals: shown=['Sure. '] held='{"name": "fundamentals", "arguments": {"symbol": "SIFY"}}'
+PASS 031/nospace-json-charwise: shown=['O', 'k', ' '] held='{"name":"financial_statements","arguments":{}}'
+PASS 031/call-syntax-news: shown=['See '] held='news(symbol="SIFY")'
+PASS 031/benign-prefix-replay: shown=['The ', 'pri', 'ce', ' is up.'] held=''
+PASS 031/unoffered-json-replay: shown=['x; {"', 'name', '": "', 'scre', 'ener_run"} y'] held=''
+BAD 0
+=== b17v_probe2.out
+PASS err-mention-plus-true-figure: "The fundamentals tool returned an error, so I used financial statements, which shows revenue of \u20b94,411 cr.\nDone."
+PASS err-mention-plus-true-figure-2: "fundamentals failed for SIFY.NS, but `financial_statements` shows revenue of \u20b94,411 cr.\nDone."
+PASS err-mention-separate-sentence: "The fundamentals tool returned an error. Financial statements show revenue of \u20b94,411 cr.\nDone."
+PASS fab-humanised-titlecase-sameline: "Here is what I found.\n\nThe earnings_history tool returned no data for this in this turn.\n\nRevenue is above."
+PASS fab-humanised-nextline-dump: "The analyst_history tool returned no data for this in this turn.\n\nConsensus is buy."
+PASS fab-hyphen-errored: "The price_data tool returned no data for this in this turn.\nDone."
+PASS fab-bracket-array-humanised: "The corporate_actions tool returned no data for this in this turn.\n\nNo more."
+PASS true-humanised-ok: "Financial Statements returned revenue of \u20b94,411 cr.\nThat is TTM."
+PASS true-backtick-dump-ok: "`price_data` returned:\n{\n \"latest_price\": 13.41\n}\nSo it closed at $13.41."
+PASS precall-narration-fresh: "I'm about to check the earnings history data for SIFY. Done."
+PASS precall-narration-with-other-ok: "Next I'll pull the financial statements data for SIFY. Done."
+PASS precall-with-figure-fabricated: "The news tool returned no data for this in this turn. "
+PASS history-seed-fixed-label: "The get_portfolio tool returned 10 AAPL shares worth $2,300.\nOK."
+PASS history-seed-multi-step: "The Price Data tool returned a close of $13.41.\nOK."
+PASS history-seed-negative: "The price_data tool returned no data for this in this turn.\nOK."
+PASS prose-price-data-kept: "I don't have price data for SIFY yet, but revenue grew."
+PASS 031/orig2-json-fundamentals: shown=['Sure. '] held='{"name": "fundamentals", "arguments": {"symbol": "SIFY"}}'
+PASS 031/nospace-json-charwise: shown=['O', 'k', ' '] held='{"name":"financial_statements","arguments":{}}'
+PASS 031/call-syntax-news: shown=['See '] held='news(symbol="SIFY")'
+PASS 031/benign-prefix-replay: shown=['The ', 'pri', 'ce', ' is up.'] held=''
+PASS 031/unoffered-json-replay: shown=['x; {"', 'name', '": "', 'scre', 'ener_run"} y'] held=''
+BAD 0
+=== b17v_probe3.out
+PASS fab-according-to-errored: "The fundamentals tool returned no data for this in this turn.\nDone."
+PASS fab-camelcase: "The price_data tool returned no data for this in this turn.\nDone."
+PASS fab-news-uncalled-humanised-sameline-figure: "The news tool returned no data for this in this turn.\nDone."
+PASS true-fundamentals-same-turn-dump: "The tool that provided the market cap figure was `fundamentals`, which returned:\n\n{\n \"market_cap\": 3440000000000\n}"
+PASS 031/orig2-json-fundamentals: shown=['Sure. '] held='{"name": "fundamentals", "arguments": {"symbol": "SIFY"}}'
+PASS 031/nospace-json-charwise: shown=['O', 'k', ' '] held='{"name":"financial_statements","arguments":{}}'
+PASS 031/call-syntax-news: shown=['See '] held='news(symbol="SIFY")'
+PASS 031/benign-prefix-replay: shown=['The ', 'pri', 'ce', ' is up.'] held=''
+PASS 031/unoffered-json-replay: shown=['x; {"', 'name', '": "', 'scre', 'ener_run"} y'] held=''
+BAD 0
+=== b18v_probe.out
+PASS [TRUE] rev-according-news-reports: "According to news reports from Reuters, AAPL rose 3% to $190.\n"
+PASS [TRUE] rev-based-on-research: "Based on research from Morgan Stanley, the target is $250.\n"
+PASS [TRUE] rev-based-on-price-data: "The P/E is 30, based on the price data and earnings.\n"
+PASS [TRUE] fresh-per-news: "Per news from Bloomberg, MSFT closed at $512.\n"
+PASS [TRUE] fresh-as-per-fundamentals-word: "As per fundamentals of the business and today's quote, AAPL trades at $190.\n"
+PASS [TRUE] fresh-fetched-from-research: "I fetched this from research published by Goldman: NVDA's target is $200.\n"
+PASS [FAB] fab-according-to-backtick: "The price_data tool returned no data for this in this turn.\n"
+PASS [FAB] fab-according-to-snake: "The price_data tool returned no data for this in this turn.\n"
+PASS [FAB] fab-according-to-the-tool-noun: "The price_data tool returned no data for this in this turn.\n"
+PASS [FAB] fab-live1-dump: "The fundamentals tool returned no data for this in this turn.\nDone."
+PASS [TRUE] true-err-plus-ok-figure: "The fundamentals tool returned an error, so I used financial statements, which shows revenue of \u20b94,411 cr.\n"
+PASS [FAB] fab-camel: "The price_data tool returned no data for this in this turn.\n"
+BAD 0
+=== b18v_probe_b.out
+PASS [TRUE] x-news-data-shows: "The news data shows AAPL rose 3% to $190.\n"
+PASS [TRUE] x-research-shows: "Research shows Apple's services margin is 70%, per Reuters.\n"
+PASS [TRUE] x-news-outlets-report: "News outlets report AAPL rose 3% to $190.\n"
+PASS [TRUE] x-according-to-fundamentals-analysis: "According to fundamentals analysts, fair value is $210; the price is $190.\n"
+PASS [FAB] x-fab-according-news-tool: "The news tool returned no data for this in this turn.\n"
+PASS [FAB] x-fab-per-backtick-news: "The news tool returned no data for this in this turn.\n"
+BAD 0
+=== b18v_probe_c.out
+PASS [FAB] c-infy-results-list: "To fetch the latest prices, I need to call `price_data` again with the correct symbol. Let me try that.\n\nThe price_data tool returned no data for this in this turn.\n\nI was able to fetch the latest prices for these stocks."
+PASS [FAB] c-results-list-hdfc: "The fundamentals tool returned no data for this in this turn.\n\n"
+BAD 0
+=== b18v_probe_d.out
+PASS [FAB] d-sify-i-get-dump: "It looks like I made an error in my previous response. To answer your question, I'll try calling the `financial_statements` tool with the correct arguments.\n\nThe financial_statements tool returned no data for this in this turn.\n\n"
+PASS [FAB] d-fresh-here-is-what-x-gave: "The fundamentals tool returned no data for this in this turn.\n"
+BAD 0
+=== b19v_probe.out
+PASS [FAB] f-named-colon-dump-nextpara: "The fundamentals tool returned no data for this in this turn.\n\nLet me know if you need more."
+PASS [FAB] f-named-colon-fenced-json: "The fundamentals tool returned no data for this in this turn.\n\n"
+PASS [FAB] f-uncalled-colon-fenced: "The price_data tool returned no data for this in this turn.\n\n"
+PASS [FAB] f-allerr-bullets-bold: "The price_data tool returned no data for this in this turn.\n\n"
+PASS [FAB] f-allerr-numbered-eq: "The price_data tool returned no data for this in this turn.\n\n"
+PASS [FAB] f-allerr-table: "The price_data tool returned no data for this in this turn.\n\n"
+PASS [FAB] f-allerr-bullets-annotated: "The price_data tool returned no data for this in this turn.\n\n"
+PASS [FAB] f-allerr-inline-json-dump: "The financial_statements tool returned no data for this in this turn.\n"
+PASS [TRUE] t-ok-list-after-colon: "Here are the latest prices:\n\n- RELIANCE.NS: ₹1,412.30\n- SBIN.NS: ₹812.40\n"
+PASS [TRUE] t-ok-named-colon-dump: "The `fundamentals` tool returned:\n\n{\"pe_ratio\": 29.8}\n"
+PASS [TRUE] t-err-plan-list: "Next steps:\n- retry price_data with a symbol\n- compare the two closes\n"
+FAIL [TRUE] t-err-user-figures-list: "The price_data tool returned no data for this in this turn.\n\nThe price_data tool returned no data for this in this turn.\n"
+PASS [TRUE] t-err-markdown-link: "The price_data call failed. You can check [NSE](https://nseindia.com) directly.\n"
+PASS [TRUE] t-nocall-list: "From memory, rough levels:\n- NIFTY: 24,000\n- SENSEX: 79,000\n"
+BAD 1
+=== b19v_probe2.out
+PASS [FAB] c-plan-case-c-unfenced: "The price_data tool returned no data for this in this turn.\n\n"
+FAIL [TRUE] t-err-user-position-summary: "I could not load HDFCBANK.NS data. The fundamentals tool returned no data for this in this turn.\n\n"
+PASS [FAB] f-mixed-errored-named-fenced: "The price_data tool returned no data for this in this turn.\n\n"
+BAD 1
+=== b19v_probe3.out
+PASS [TRUE] t-live-rel-list-replay: "To format the response as per your request, I will provide a JSON array of function calls:\n\n[{\"name\": \"price_data\", \"parameters\": {\"symbol\": \"RELIANCE.NS\", \"range\": \"1mo\", \"timeframe\": \"1d\"}},\n{\"name\": \"price_data\", \"parameters\": {\"symbol\": \"SBIN.NS\", \"range\": \"1mo\", \"timeframe\": \"1d\"}}]\n• RELIANCE.NS: ₹1226.4\n• SBIN.NS: ₹983.0"
+BAD 0
+=== b20v_fresh.out
+PASS [FAB] v-allerr-prose-words-bn: "The financial_statements tool returned no data for this in this turn.\n"
+PASS [FAB] v-allerr-blockquote: "The price_data tool returned no data for this in this turn.\n\n"
+PASS [FAB] v-allerr-heading: "## SBIN.NS — the price_data tool returned no data for this in this turn.\n\nThat is the latest close.\n"
+PASS [FAB] v-allerr-indented-code: "The fundamentals tool returned no data for this in this turn.\n\nThat's it.\n"
+PASS [FAB] v-allerr-pipeless-table: "Symbol | Close\n--- | ---\nThe price_data tool returned no data for this in this turn.\n\n"
+PASS [FAB] v-allerr-inr-crore-words: "The financial_statements tool returned no data for this in this turn. "
+PASS [FAB] v-mixed-errored-alias-name: "TCS.NS closed at ₹3,235.50. The quote tool returned no data for this in this turn.\n"
+PASS [FAB] v-mixed-errored-symbol-noSuffix: "TCS closed at ₹3,235.50, and the quote tool returned no data for this in this turn.\n"
+PASS [FAB] v-mixed-alias-fund: "TCS.NS closed at ₹3,235.50. The fundamentals tool returned no data for this in this turn.\n"
+PASS [FAB] v-mixed-alias-wipro-possessive: "TCS.NS closed at ₹3,235.50. The fundamentals tool returned no data for this in this turn.\n"
+PASS [FAB] v-allerr-negative-since: "The price_data tool returned no data for this in this turn.\n"
+PASS [FAB] v-allerr-negative-although: "The fundamentals tool returned no data for this in this turn.\n"
+PASS [FAB] v-allerr-negative-couldnt: "The price_data tool returned no data for this in this turn.\n"
+PASS [FAB] v036-tilde-fence: "The fundamentals tool returned no data for this in this turn.\n\nHope that helps.\n"
+PASS [FAB] v036-python-fence-chunked: "The financial_statements tool returned no data for this in this turn.\n\nDone.\n"
+PASS [FAB] v-ok-uncalled-tool-cited: "The earnings_history tool returned no data for this in this turn.\n"
+PASS [TRUE] v-true-scale-cr: "SIFY's revenue was ₹4,411 cr for the year.\n"
+PASS [TRUE] v-true-user-restate-after-err: "I couldn't fetch ITC.NS right now. Based on what you told me, your 25 shares at ₹412.75 cost ₹10,318.75 in total.\n"
+PASS [TRUE] v-true-sp500-name: "The S&P 500 is the benchmark you mentioned.\n"
+BAD 0
+=== b20w_probe.out
+PASS [FAB] f-named-colon-dump-nextpara: "The fundamentals tool returned no data for this in this turn.\n\nLet me know if you need more."
+PASS [FAB] f-named-colon-fenced-json: "The fundamentals tool returned no data for this in this turn.\n\n"
+PASS [FAB] f-uncalled-colon-fenced: "The price_data tool returned no data for this in this turn.\n\n"
+PASS [FAB] f-allerr-bullets-bold: "The price_data tool returned no data for this in this turn.\n\n"
+PASS [FAB] f-allerr-numbered-eq: "The price_data tool returned no data for this in this turn.\n\n"
+PASS [FAB] f-allerr-table: "The price_data tool returned no data for this in this turn.\n\n"
+PASS [FAB] f-allerr-bullets-annotated: "The price_data tool returned no data for this in this turn.\n\n"
+PASS [FAB] f-allerr-inline-json-dump: "The financial_statements tool returned no data for this in this turn.\n"
+PASS [TRUE] t-ok-list-after-colon: "Here are the latest prices:\n\n- RELIANCE.NS: ₹1,412.30\n- SBIN.NS: ₹812.40\n"
+PASS [TRUE] t-ok-named-colon-dump: "The `fundamentals` tool returned:\n\n{\"pe_ratio\": 29.8}\n"
+PASS [TRUE] t-err-plan-list: "Next steps:\n- retry price_data with a symbol\n- compare the two closes\n"
+PASS [TRUE] t-err-user-figures-list: "You told me:\n- Buy price: ₹1,500\n- Quantity: 10\n\nThat is ₹15,000 in total.\n"
+PASS [TRUE] t-err-markdown-link: "The price_data call failed. You can check [NSE](https://nseindia.com) directly.\n"
+PASS [TRUE] t-nocall-list: "From memory, rough levels:\n- NIFTY: 24,000\n- SENSEX: 79,000\n"
+PASS [FAB] c-plan-case-c-unfenced: "The price_data tool returned no data for this in this turn.\n\n"
+PASS [TRUE] t-err-user-position-summary: "I could not load HDFCBANK.NS data. Your position as you gave it:\n\n- Shares: 40\n- Average cost: ₹1,640\n"
+PASS [FAB] f-mixed-errored-named-fenced: "The price_data tool returned no data for this in this turn.\n\n"
+PASS [TRUE] t-live-rel-list-replay: "To format the response as per your request, I will provide a JSON array of function calls:\n\n[{\"name\": \"price_data\", \"parameters\": {\"symbol\": \"RELIANCE.NS\", \"range\": \"1mo\", \"timeframe\": \"1d\"}},\n{\"name\": \"price_data\", \"parameters\": {\"symbol\": \"SBIN.NS\", \"range\": \"1mo\", \"timeframe\": \"1d\"}}]\n• RELIANCE.NS: ₹1226.4\n• SBIN.NS: ₹983.0"
+BAD 0

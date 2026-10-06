@@ -1,0 +1,13 @@
+# R15-RESEARCH-030 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:30:02+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+grep -in transcript "$C/sidecar/services/agent_tools/catalog.py" | head -3; "$IP" $B/sc/p41b.py 2>&1 | grep -v Warning | cut -c1-300
+--- output ---
+105:    "earnings": ("earnings", "eps", "quarterly result", "guidance", "concall", "transcript"),
+912:            "earnings_call_transcript",
+914:                "The earnings-call (concall) transcript an Indian (NSE/BSE) listed "
+KPITTECH ok= True keys= ['ok', 'available', 'symbol', 'filing_date', 'url', 'source', 'text', 'truncated']
+   {"ok": true, "available": true, "symbol": "KPITTECH", "filing_date": "2026-08-04", "url": "https://nsearchives.nseindia.com/corporate/KPITTECH_04082026205946_KPIT_Transcript_Cov_let_signed.pdf", "source": "NSE", "text": "KPIT Technologies Limited\n\nJuly 29, 2026\n\nPage 3 of 19\n\nmany profit wa
+INFY ok= True keys= ['ok', 'available', 'symbol', 'filing_date', 'url', 'source', 'text', 'truncated']
+   {"ok": true, "available": true, "symbol": "INFY", "filing_date": "2026-07-28", "url": "https://nsearchives.nseindia.com/corporate/Infosys_28072026202438_SE_filing_Earnings_call_transcript.pdf", "source": "NSE", "text": "External Document \u00a9 2026 Infosys Limited 5\n\nOur revenue growth for Q1 
+
+EXIT=0 (12.5s)

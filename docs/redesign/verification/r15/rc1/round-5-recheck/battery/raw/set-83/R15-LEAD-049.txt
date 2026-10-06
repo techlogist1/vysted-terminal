@@ -1,0 +1,6 @@
+COMMAND: POST http://127.0.0.1:52359/screener/run {"universe":"nifty50","criteria":[]} ; GET /resolve?q=TATAMOTORS ; GET /quotes/TMPV.NS (own sidecar, candidate 949c3c9f)
+EXIT: 0 all HTTP 200
+screener/run nifty50: evaluated_count=50, skipped_count=0, result_count=50 — 0 unavailable, matching cert "screened 50 of 50 — 0 unavailable". TMPV.NS present in rows, TATAMOTORS absent (constituent list carries TATASTEEL.NS/TATACONSUM.NS only for "TATA*", confirming TATAMOTORS was swapped for TMPV.NS in the universe seed).
+/resolve?q=TATAMOTORS: resolved.symbol=TMPV (Tata Motors Passenger Vehicles Limited), former_name=TATAMOTORS, rename block {renamed_from:TATAMOTORS, renamed_to:TMPV, effective_date:2025-10-24}. candidates order = [TMPV, TMCV, TSLA], TMPV first — matches cert exactly.
+/quotes/TMPV.NS: 200, price=290.45, provider=nse_direct — matches cert's "/quotes/TMPV.NS: 200 (nse_direct 290.45)" exactly.
+VERDICT: holds.

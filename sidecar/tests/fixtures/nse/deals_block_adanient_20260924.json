@@ -1,0 +1,48 @@
+{
+ "data": [
+  {
+   "BD_DT_DATE": "18-NOV-2025",
+   "BD_DT_ORDER": "2025-11-17T18:30:00.000Z",
+   "BD_SYMBOL": "ADANIENT",
+   "BD_SCRIP_NAME": "Adani Enterprises Limited",
+   "BD_CLIENT_NAME": "GQG PARTNERS EMERGING MARKETS EQUITY CIT",
+   "BD_BUY_SELL": "BUY",
+   "BD_QTY_TRD": 1528520,
+   "BD_TP_WATP": 2462,
+   "BD_REMARKS": null
+  },
+  {
+   "BD_DT_DATE": "18-NOV-2025",
+   "BD_DT_ORDER": "2025-11-17T18:30:00.000Z",
+   "BD_SYMBOL": "ADANIENT",
+   "BD_SCRIP_NAME": "Adani Enterprises Limited",
+   "BD_CLIENT_NAME": "GQG PARTNERS GLOBAL EQUITY CIT",
+   "BD_BUY_SELL": "BUY",
+   "BD_QTY_TRD": 1225398,
+   "BD_TP_WATP": 2462,
+   "BD_REMARKS": null
+  },
+  {
+   "BD_DT_DATE": "18-NOV-2025",
+   "BD_DT_ORDER": "2025-11-17T18:30:00.000Z",
+   "BD_SYMBOL": "ADANIENT",
+   "BD_SCRIP_NAME": "Adani Enterprises Limited",
+   "BD_CLIENT_NAME": "GQG PARTNERS INTERNATIONAL EQUITY CIT",
+   "BD_BUY_SELL": "BUY",
+   "BD_QTY_TRD": 2588090,
+   "BD_TP_WATP": 2462,
+   "BD_REMARKS": null
+  },
+  {
+   "BD_DT_DATE": "18-NOV-2025",
+   "BD_DT_ORDER": "2025-11-17T18:30:00.000Z",
+   "BD_SYMBOL": "ADANIENT",
+   "BD_SCRIP_NAME": "Adani Enterprises Limited",
+   "BD_CLIENT_NAME": "RELIANCE TRUST INSTITUTIONAL RETIREMENT TRUST SERIES ELEVEN",
+   "BD_BUY_SELL": "SELL",
+   "BD_QTY_TRD": 2588090,
+   "BD_TP_WATP": 2462,
+   "BD_REMARKS": null
+  }
+ ]
+}

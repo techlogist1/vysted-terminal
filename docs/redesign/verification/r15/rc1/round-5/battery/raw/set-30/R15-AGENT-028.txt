@@ -1,0 +1,8 @@
+CMD: curl -s -X POST http://127.0.0.1:52356/llm/keys/validate -d '{"provider":"ollama","model":"gemma3:4b"}'
+EXIT: 0
+OUTPUT:
+{"ok":false,"reason":"model_not_pulled","detail":"gemma3:4b is not downloaded in Ollama (local) yet."}
+---
+CMD: same with model llama3.1:8b (pulled)
+{"ok":true,"reason":null,"detail":null}
+VERDICT: holds -- unpulled model returns {ok:false, reason:model_not_pulled, detail:'gemma3:4b is not downloaded in Ollama (local) yet.'} not the old 'pick another model' text; pulled model returns ok:true. Matches batch-8 certification (VERDICTS.md:82-84).

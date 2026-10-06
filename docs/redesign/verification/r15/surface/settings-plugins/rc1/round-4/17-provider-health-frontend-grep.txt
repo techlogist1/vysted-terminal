@@ -1,0 +1,2 @@
+/Users/lokavyasingh/Documents/dev/vysted-terminal/src/components/StatusChrome.tsx:74:/** One run of registry fall-throughs (`/system/provider-health`, C14). */
+/Users/lokavyasingh/Documents/dev/vysted-terminal/src/components/StatusChrome.tsx:102:        const health = await sidecarGet<{ fallthroughs: Fallthrough[] }>("/system/provider-health");

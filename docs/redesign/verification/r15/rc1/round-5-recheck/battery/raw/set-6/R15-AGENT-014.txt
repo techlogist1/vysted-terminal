@@ -1,0 +1,12 @@
+COMMAND: pnpm exec vitest run src/lib/plugin-bootstrap.test.ts src/lib/plugin-agents.test.ts (candidate 949c3c9f)
+EXIT: 0
+OUTPUT (relevant):
+ ✓ src/lib/plugin-bootstrap.test.ts > bootstrapPlugins — plugin agents at boot > registers a pre-installed agent pack's agents once; a disabled one is not synced 4ms
+ ✓ src/lib/plugin-agents.test.ts > plugin-agents — agent slice of the marketplace (FR-050/US10 AS3) > registers an agent plugin's agents as custom agents so they are runnable 1ms
+
+LIVE CHECK against own sidecar (:52359, fresh data dir, plugins not yet loaded via UI):
+curl -s http://127.0.0.1:52359/custom-agents
+[]
+SOURCE CHECK: src/lib/plugin-bootstrap.ts:225 — the boot load loop now calls 'await syncPluginAgents(pluginId, true)' (and :229 false on unload), next to the module bridge, fixing the original bug (boot loop never called it, production call sites were Marketplace install/enable/disable/remove only).
+NOTE: syncPluginAgents short-circuits with 'outside the Tauri shell' when getSidecarBaseUrl() throws (plugin-agents.ts:41-44), so a full live boot->POST proof requires the Tauri GUI shell (out of scope, No GUI rule); verified instead via (a) the committed vitest asserting the boot loop calls syncPluginAgents('vysted-lenses', true) once for an enabled pack and skips a disabled one, and (b) direct source read of the call site.
+VERDICT: holds.

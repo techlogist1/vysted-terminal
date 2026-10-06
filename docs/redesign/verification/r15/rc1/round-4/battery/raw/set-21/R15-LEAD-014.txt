@@ -1,0 +1,8 @@
+CMD: sidecar/.venv/bin/python3 battery13_lead014.py (in-process, real TOOL_SCHEMAS + OpenAIProvider, oneshot.complete_with_usage mocked to control the reply text)
+EXIT: 0
+tools with no required keys: 8
+full echo accepted after fix: 0 of 8
+fenced echo -> None
+prose echo -> None
+legit news args -> {'symbols': ['AAPL']}
+PASS LEAD-014: schema-echo repair replies are rejected; legit args still pass

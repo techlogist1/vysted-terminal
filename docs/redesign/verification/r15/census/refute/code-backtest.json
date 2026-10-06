@@ -1,0 +1,146 @@
+[
+  {
+    "raw_id": "COD-backtest-1",
+    "verdict": "admitted",
+    "severity_final": "critical",
+    "reason": "Confirmed: _run_single_slice appends one equity point per bar (not per date), and _compute_metrics treats consecutive points as daily returns with sqrt(252)/**252, so N-symbol runs understate Sharpe by ~sqrt(N) and annualised return (and Calmar) by ~N. Backtesting is historical strategy research, not order placement/paper brokerage, so the 23 Sep trading removal does not touch it.",
+    "evidence": "sidecar/services/backtest_engine.py:313, :391-397, :249-267, :270, :434; src/modules/backtest/BacktestResultView.tsx:477-502; sidecar/services/agent_tools/backtest_summary.py:55; src/modules/backtest/BacktestPanel.tsx:196",
+    "evidence_checked": "Read engine + result view + backtest_summary; re-ran in-process with a seeded fixture loader (no network). Stack :52152 healthy but not needed.",
+    "repro_check": "sidecar/.venv/bin/python /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/bt_check.py: N=1 sharpe 1.414 vs date-sampled 1.414; N=2 1.543 vs 2.202 (x1.43); N=4 1.491 vs 2.967 (x1.99); N=4 annualizedReturn 0.0256 vs date-based 0.1073 (x4.2)."
+  },
+  {
+    "raw_id": "COD-backtest-2",
+    "verdict": "admitted",
+    "severity_final": "critical",
+    "reason": "Confirmed: downside deviation is pstdev of the negative-return subset (dispersion among losses, not their magnitude below zero), so the ratio explodes when losses are similar and reads 0.00 when there is <=1 loss or identical losses. Every run with a Sortino is affected.",
+    "evidence": "sidecar/services/backtest_engine.py:259-260, :267; src/modules/backtest/BacktestResultView.tsx:486-488",
+    "evidence_checked": "Read _compute_metrics; ran the raw repro in-process.",
+    "repro_check": "_compute_metrics on returns [+0.02]*10+[-0.05,-0.051] -> sortino 261.93 vs textbook sqrt(mean(min(r,0)^2)) Sortino 6.35 (41x), exactly as claimed."
+  },
+  {
+    "raw_id": "COD-backtest-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Mechanism confirmed (buy assigns a fresh _OpenPosition, orphaning the earlier one while cash stays debited, under a comment claiming 'add to existing'), but it is unreachable in the shipped product: register_strategy is only called by register_all for four strategies, all of which gate entries on has_position, and plugins have no backtest-strategy registration path. Latent maintainer trap, not a core flow that breaks today -> medium.",
+    "evidence": "sidecar/services/backtest_engine.py:324-349, :112-118; sidecar/services/backtest_strategies.py:262, :341, :414, :449-452; sidecar/services/backtest_dsl.py:703-721",
+    "evidence_checked": "Read engine buy branch, all register_strategy call sites (grep over sidecar/ and plugins/), and every bundled strategy's entry gate; ran in-process repro.",
+    "repro_check": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/bt_check.py 'pyr' strategy (+10 every bar, flat 100 x4): 4 trade rows, final equity 96996.0, totalReturn -0.03004 - confirmed."
+  },
+  {
+    "raw_id": "COD-backtest-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Mechanism confirmed (sell credits abs(intent.quantity) with no reconciliation against position.quantity, then pops the whole position), but, as with COD-backtest-3, every registered strategy exits with quantity=-held, so no shipped path (UI, custom DSL, agent tool) can over-sell. Latent -> medium.",
+    "evidence": "sidecar/services/backtest_engine.py:360-385; sidecar/services/backtest_strategies.py:276, :360, :431; sidecar/services/backtest_dsl.py:703-712",
+    "evidence_checked": "Read sell branch and all exit intents in bundled strategies + DSL strategy; ran in-process repro.",
+    "repro_check": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/bt_check.py 'os' strategy (buy 10 on bar 2, sell -100 on bar 5, flat 100): final equity 108989.0, trade pnl -19.9999 - confirmed."
+  },
+  {
+    "raw_id": "COD-backtest-5",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed: _load_one_symbol swallows ProviderError into [], run_backtest only raises when ALL symbols are empty, and warnings is populated solely from skipped buys, so a partially failed universe runs silently while the header prints every requested symbol.",
+    "evidence": "sidecar/services/bar_loader.py:138-151, :175-179; sidecar/services/backtest_engine.py:424-433, :451-457; sidecar/models/backtest.py:123, :134; src/modules/backtest/BacktestResultView.tsx:462, :506-510",
+    "evidence_checked": "Read bar_loader, engine guard + warnings construction, result model and header render. Code-only (live repro needs a failing provider).",
+    "repro_check": "Code path read end to end; would confirm by injecting a loader that returns bars for 2 of 3 symbols -> result.warnings is None and request.symbols lists 3."
+  },
+  {
+    "raw_id": "COD-backtest-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Dead protocol confirmed: only run-start and run-complete are ever emitted, while models, types and the store all carry progress/trade. But the 'minutes of a UI that reads as hung' consequence is overstated: run-start fires only AFTER load_bars returns (the slow network phase shows 'starting...'), and the engine loop itself is sub-second - an 8-symbol x 5-year run with 10 walk-forward slices completed in 0.82 s - so the frozen 0/N readout is visible for about a second. What is left is dead-surface maintenance cost -> low.",
+    "evidence": "sidecar/services/backtest_engine.py:423-443, :499; sidecar/models/backtest.py:142; types/backtest.ts:163-168; src/store/backtest.ts:183-220; src/modules/backtest/BacktestResultView.tsx:453-454, :464-468, :472",
+    "evidence_checked": "Read emit sites, event model/types, store handlers, header render; timed a large in-process run with a fixture loader.",
+    "repro_check": "In-process mean_reversion, 8 symbols x 1260 days, walkForwardSlices=10 -> 0.82 s, 10080 curve points; on_event collector in bt_check.py shows only ['run-start','run-complete']."
+  },
+  {
+    "raw_id": "COD-backtest-7",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed: the catalog description sent to the model (and the module docstring) says the full result renders in the backtest panel via GET /backtest/runs/{id}, but no frontend code calls /backtest/runs, and the store only holds runs it started itself via startRun. run_custom_backtest is on the copilot and strategy_critic allow-lists, so an agent will point the user at an empty panel.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:858-870; sidecar/services/agent_tools/run_custom_backtest.py:9-12; sidecar/routers/backtest.py:174-186; src/store/backtest.ts:106-310; sidecar/agents/copilot.json, sidecar/agents/strategy_critic.json",
+    "evidence_checked": "Read the catalog entry, tool docstring, router and the full store; grep of src/ types/ plugins/ for backtest/runs, run_custom_backtest and useBacktestStore finds no hydration path.",
+    "repro_check": "grep -rn 'backtest/runs' src types plugins -> only types/backtest.ts:143 comment; the store has no loadRun/GET path."
+  },
+  {
+    "raw_id": "COD-backtest-8",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: pickFields drops minimum/maximum, a non-parseable entry is stored as the raw string, params is an unvalidated dict, and MeanReversionStrategy coerces with a bare int(), so raw Python exceptions become the run-error text.",
+    "evidence": "sidecar/services/backtest_strategies.py:66-92, :235; src/modules/backtest/strategy-picker.tsx:110-119, :147-157; sidecar/models/backtest.py:48; sidecar/routers/backtest.py:73-81; src/modules/backtest/BacktestResultView.tsx:470-474",
+    "evidence_checked": "Read schema, form, request model, router error path, error render; ran the strategy in-process with each bad value.",
+    "repro_check": "MeanReversionStrategy window=0 -> StatisticsError 'fmean requires at least one data point'; -5 -> ValueError 'maxlen must be non-negative'; '' -> ValueError \"invalid literal for int() with base 10: ''\"."
+  },
+  {
+    "raw_id": "COD-backtest-9",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: startRun accepts and forwards options.signal, but both callers (the panel's handleRun and the Retry button) omit it, and the only control is the Run button, which is disabled while running. The slow phase is the network bar load, so a mistaken multi-symbol run cannot be stopped.",
+    "evidence": "src/store/backtest.ts:86, :269; src/modules/backtest/BacktestPanel.tsx:133, :263-276; src/modules/backtest/BacktestResultView.tsx:536; sidecar/routers/backtest.py:92-94",
+    "evidence_checked": "Read the store signature/forwarding, both startRun call sites and the rail footer.",
+    "repro_check": "Code read: startRun(request) with no options at BacktestPanel.tsx:133 and BacktestResultView.tsx:536; no AbortController anywhere in src/modules/backtest."
+  },
+  {
+    "raw_id": "COD-backtest-10",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: list() returns OrderedDict order (oldest-first, reshuffled to LRU by get()), contradicting the route's 'newest first' docstring, and results live only in a 32-entry in-memory cache, so backtest_summary loses runs on restart or eviction. The module docstring discloses in-memory as a deliberate v0.5.0 choice, but the Critic-loses-the-run consequence stands.",
+    "evidence": "sidecar/services/backtest_store.py:1-12, :23, :31-48, :65-66; sidecar/routers/backtest.py:174-177; docs/redesign/verification/r15/census/CODE_PARTITION.json:325",
+    "evidence_checked": "Read the store and router; exercised the store in-process.",
+    "repro_check": "put r0,r1,r2 -> list_runs ['r0','r1','r2'] (oldest first); get('r0') -> ['r1','r2','r0']."
+  },
+  {
+    "raw_id": "COD-backtest-11",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed: _slice_dates returns contiguous boundaries that share the edge date, the slice filter is inclusive on both ends, and bar_loader normalises timestamps to bare YYYY-MM-DD strings (so no time suffix breaks the tie), so each boundary bar is replayed in two slices.",
+    "evidence": "sidecar/services/backtest_engine.py:205-223, :466; sidecar/services/bar_loader.py:56-67; src/modules/backtest/BacktestResultView.tsx:360-394",
+    "evidence_checked": "Read slice helper, filter, timestamp coercion; ran _slice_dates.",
+    "repro_check": "_slice_dates('2024-01-01','2024-01-11',2) -> [('2024-01-01','2024-01-06'),('2024-01-06','2024-01-11')]."
+  },
+  {
+    "raw_id": "COD-backtest-12",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed: _default_bar_loader only raises NotImplementedError, run_backtest falls back to it via `bar_loader or`, the router keeps a NotImplementedError handler that its own docstring calls unreachable, _encode_event_dict in backtest.py has no caller (the same-named helpers in llm.py/agents.py are separate module-locals), and the 'Teammate K' build narrative persists.",
+    "evidence": "sidecar/services/backtest_engine.py:9-11, :169-182, :417; sidecar/routers/backtest.py:11-14, :62-72, :198-199; sidecar/services/bar_loader.py:1-9",
+    "evidence_checked": "Read each cited construct; grep for _encode_event_dict across sidecar/.",
+    "repro_check": "grep -rn _encode_event_dict sidecar -> backtest.py:198 is definition-only."
+  },
+  {
+    "raw_id": "COD-backtest-13",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed: _primary lowercases identifiers for fields/functions, but _accept_keyword compares token.text == word case-sensitively.",
+    "evidence": "sidecar/services/backtest_dsl.py:235-240, :346",
+    "evidence_checked": "Read both parser methods; ran compile_rule on both casings.",
+    "repro_check": "compile_rule('SMA(20) > 50 AND close > 1') -> DslError \"unexpected 'AND'\" pos 13; lowercase 'and' parses."
+  },
+  {
+    "raw_id": "COD-backtest-14",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed: CustomDslStrategy.__init__ calls validate_definition (which compiles both rules into a local dict and discards them), then compiles both rules again; each walk-forward slice constructs a new strategy.",
+    "evidence": "sidecar/services/backtest_dsl.py:630-667, :683-694; sidecar/services/backtest_engine.py:469",
+    "evidence_checked": "Read validate_definition, the strategy constructor and the slice loop.",
+    "repro_check": "Code read; no runtime check needed (duplication, not a behavioural bug)."
+  },
+  {
+    "raw_id": "COD-backtest-15",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed: the header shows metrics.tradeCount (closed trades only), while the trade-log heading shows run.trades.length (closed plus open entries) under the same label.",
+    "evidence": "src/modules/backtest/BacktestResultView.tsx:500-502, :551-553; sidecar/services/backtest_engine.py:272-285, :400",
+    "evidence_checked": "Read both renders and the tradeCount derivation.",
+    "repro_check": "Code read: any run ending with an open position gives tradeCount = trades.length - 1."
+  },
+  {
+    "raw_id": "COD-backtest-16",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed: DEFAULT_END is the literal '2025-12-31', about 9 months stale as of 2026-09-23, so default runs omit recent data.",
+    "evidence": "src/modules/backtest/BacktestPanel.tsx:17-19",
+    "evidence_checked": "Read the constants.",
+    "repro_check": "sed -n 17,19p BacktestPanel.tsx -> DEFAULT_START '2024-01-01', DEFAULT_END '2025-12-31'."
+  }
+]

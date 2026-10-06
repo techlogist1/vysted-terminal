@@ -1,0 +1,135 @@
+[
+  {
+    "key": "rc1-datapack:1",
+    "kind": "regression",
+    "severity": "critical",
+    "register_id": "R15-DATA-008",
+    "title": "SIFY revenue_ttm/net_income_ttm still served as INR-scale numbers under currency=USD, status ok, on the candidate",
+    "repro": "GET /fundamentals/SIFY on the isolated stack (own sidecar :52313, candidate 1006c6da694ede5776c3dabbd27b305aeb56b5ad) -> currency: USD, revenue_ttm: 46506049536.0, net_income_ttm: -912369984.0, field_meta.revenue_ttm.status: ok, field_meta.net_income_ttm.status: ok. These are the same INR-scale figures (46.5B / -912M) the original R15-DATA-008 repro cited as a ~94x overstatement of SIFY's real ~$492M USD revenue -- the fix_shape called for either FX-converting these two scalars or withholding them; neither happened. A financial_currency: INR field is now present on the payload and price_to_sales/price_to_book are correctly withheld with a currency-mismatch reason (the newer DATA-117-class fix), but revenue_ttm/net_income_ttm themselves were not brought under that same withhold/convert/label treatment. The register's own note (added at batch-23) already flagged this class of resurfacing as suspected and unverified; this is a live re-confirmation.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/battery/collected/P17_SIFY.json",
+    "suspected_files": [
+      "sidecar/services/yfinance_provider.py",
+      "sidecar/models/fundamentals.py"
+    ]
+  },
+  {
+    "key": "rc1-scenarios:1",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-AGENT-046",
+    "title": "Auto-published research brief bypasses the staged-review notice under default (ask) autonomy \u2014 a model relying on it alone narrates completion with zero grounding",
+    "repro": "Own sidecar :52311, candidate 1006c6da694ede5776c3dabbd27b305aeb56b5ad, agent 'copilot', mode agent, no --autonomy (default 'ask'). Prompt: \"Publish a research brief for MSFT.\" via scripts/r15/vy.py --provider ollama --model llama3.1:8b. The model calls only 'research'; the runtime auto-injects a synthetic publish_brief (tool_call_id '<id>__autobrief', per _auto_publish_event) that the model never itself calls. Final assistant text: \"Built you a brief on MSFT \u2014 it's at the top of the cockpit; click any ticker to dig in.\" \u2014 stated as unconditionally done, no staged/pending/review language anywhere in the transcript. Ground truth: every OTHER host action tested in this run (add_to_watchlist, write_note, portfolio_add_position, and the model's OWN explicit publish_brief calls on the hosted lane) came back 'staged for your review, not applied yet' under this same default autonomy \u2014 the auto-published brief is the only host action in this run that never surfaces that status to the model. Root cause read directly in sidecar/services/agent_runtime.py: the in-loop 'ask' staging check (~line 3172, 'if tool_call.name in _host_ids and _result_status(result_str) == \"awaiting_user_review\": turn.staged_actions.append(tool_call)') runs against the tool_call the MODEL made ('research'), not the synthetic publish_brief; the synthetic event is created by _auto_publish_event (~1282-1301) and yielded directly (~3199-3203) without ever being run through that check or added to host_action_readbacks (~3176-3184, itself gated to autonomy=='auto' anyway). The end-of-turn fallback (_end_of_turn_notices, ~1522-1533) that WOULD catch a missing ack is also gated strictly to 'autonomy == \"auto\"', so under the default 'ask' path neither mechanism ever reaches the synthetic call. _auto_publish_event's own docstring claims 'It rides the SAME proposed-changes gate as a model-issued publish (AUTO applies it, review queues it)' \u2014 the review-queues-it half of that claim is false for this code path. Confirmed structural (not local-model-specific): hosted gpt-4o-mini trials (rb-brief-hosted-t1/t2/t3) also received an ungrounded synthetic autobrief with no notice of its own, but happened to ALSO call publish_brief explicitly every time, and that second, explicit call is what got the 'staged' notice \u2014 masking the gap only because the model duplicated the call. Any model (hosted or local) that trusts the auto-publish shortcut without redundantly calling publish_brief itself will reproduce the false 'done' claim. This reopens the guarantee R15-AGENT-046 (fixed) documented for exactly this synthetic-autobrief-id path: 'on the default local lane no host action can be acked and applied changes are narrated as pending' \u2014 here it is narrated as done, not pending.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/scenarios/rb-brief-local-t1.jsonl"
+  },
+  {
+    "key": "rc1-battery-9:1",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-RESEARCH-017",
+    "title": "ULTRA's heavy-loop exception no longer falls back to a real single-pass DEEP brief \u2014 it now returns an honest ok:false failure with no brief",
+    "repro": "In-process, candidate sha 1006c6da694ede5776c3dabbd27b305aeb56b5ad, sidecar/services/research/iter.run_heavy_research(query, target=<bound India ResearchTarget KAYNES.NS>, bound=True, angles=3, tool_call=<stub>, llm_call=<stub>, budget=BudgetGuard(...)) with services.research.disclosures.gather_floor patched (unittest.mock.patch.object) to raise RuntimeError. Then mirrored deep_research.py's own except-wrap around that exact call (deep_research.py:296-298: `except Exception as exc: return _loop_failed(\"heavy\", exc)`), which is the real user-facing code path (services/agent_tools/deep_research.py _run_loop -> run_deep_brief).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/battery/raw/set-23/R15-RESEARCH-017.txt",
+    "suspected_files": [
+      "sidecar/services/research/iter.py:990",
+      "sidecar/services/agent_tools/deep_research.py:296-298",
+      "sidecar/services/agent_tools/deep_research.py:325-334"
+    ]
+  },
+  {
+    "key": "rc1-battery-14:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "title": "Live copilot research resolves the exact company name 'KPIT Technologies' to the wrong listed entity (Birlasoft) via a stale former-name coincidence",
+    "repro": "Live invoke: vy.py invoke copilot 'research KPIT Technologies' --provider ollama --model llama3.1:8b against candidate sidecar :52354 (rc1-round-4-cand, seed data rc1-round-4-data-rc1-battery-14). The research tool built its brief for symbol BSOFT.NS (Birlasoft Limited). GET /resolve?q=KPIT%20Technologies returns needs_disambiguation:true with KPITTECH (KPIT Technologies Limited, confidence 1.0) listed FIRST and BSOFT (Birlasoft Limited, former_name 'KPIT', confidence 1.0) listed second -- the agent-tool-side resolution picked the second, wrong, tied candidate instead of the literal name match.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/battery/raw/set-5/R15-AGENT-001.txt",
+    "suspected_files": [
+      "sidecar/services/agent_tools/research.py",
+      "sidecar/services/resolver (symbol pick/tie-break logic)"
+    ]
+  },
+  {
+    "key": "rc1-drive-failure-inducer:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-DATA-061",
+    "title": "A malformed ticker with special characters (a script tag, '$$%^') that makes yfinance return a non-JSON body is still classified provider_error/502/\"Retry\" instead of not_found -- same recurring misclassification the round-3 verifier already flagged (rc1-verifier:7) against this fixed entry, still unfixed on the round-4 candidate",
+    "repro": "curl 'http://127.0.0.1:52327/quotes/%3Cscript%3Ealert%281%29%3C%2Fscript%3E' -> HTTP 502 {\"detail\":\"The data provider returned an unexpected response.\",\"code\":\"provider_error\",\"action\":\"Retry, or try again later.\"}; sidecar log: 'yfinance quote failed for ...: Expecting value: line 1 column 1 (char 0)' (Yahoo returned an empty/non-JSON body for this deterministically-invalid symbol). Repeated with the round-3 verifier's exact repro 'curl http://127.0.0.1:52327/quotes/%24%24%25%5E' -> identical 502 provider_error/Retry body. The 'Retry' action is actively wrong: this symbol will 502 identically every time, it is not a transient upstream fault. A plain malformed symbol without special characters ($$$, 300-char string, unicode, RELIANCE.NS.NS, a SQL-injection string) all correctly 404 not_found on the same candidate -- only the subset that makes yfinance return a non-JSON/empty body (rather than its usual 'no data found' JSON error) falls into the still-unfixed 502 path.",
+    "evidence_file": "docs/redesign/verification/r15/surface/failure-inducer/rc1/round-4/03-malformed-symbols-regression.txt",
+    "suspected_files": [
+      "sidecar/services/errors.py",
+      "sidecar/services/yfinance_provider.py"
+    ]
+  },
+  {
+    "key": "rc1-drive-failure-inducer:2",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-DATA-061",
+    "title": "An unknown-but-plausible symbol's /fundamentals/{sym}/income, /balance and /ratings answer 200 with empty/null data and no reason field, indistinguishable from a real company that legitimately has zero filings -- same recurring class the round-3 verifier flagged against this fixed entry, still unfixed on the round-4 candidate",
+    "repro": "GET /fundamentals/ZZZZNOTREAL/income -> 200 {\"symbol\":\"ZZZZNOTREAL.NS\",\"periods\":[],\"lines\":[],\"provider\":\"yfinance\",\"gaps\":[]}; /balance -> same shape, empty; /ratings -> 200 {\"consensus\":null,...,\"strong_buy\":0,...}. No field anywhere states the symbol itself was not found -- 'gaps' is an empty array, not a reason. Contrast GET /quotes/ZZZZNOTREAL on the same sidecar, which correctly 404s not_found with 'check the symbol'. A user or agent reading only the fundamentals/ratings routes for a mistyped symbol sees clean zero-value data, not an error.",
+    "evidence_file": "docs/redesign/verification/r15/surface/failure-inducer/rc1/round-4/05-unknown-symbol-fundamentals-subroutes.txt",
+    "suspected_files": [
+      "sidecar/routers/fundamentals.py"
+    ]
+  },
+  {
+    "key": "rc1-drive-panels-layouts:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "",
+    "title": "IN per-symbol news feed tags off-topic articles as company news for INFY.NS",
+    "repro": "GET /news?symbols=INFY.NS with X-Vysted-Region: IN on the shared sidecar (:52152) returns 15 articles; the top two ('Chainlink Jumped 12% in a Day...', 'Litecoin, Cardano, Stellar, and Chainlink...') are pure-crypto pieces from Yahoo's per-symbol RSS feed (source 'Yahoo! Finance: INFY.NS News') with no mention of Infosys, yet both carry symbols:['INFY.NS']. A relevant Economic Times market-wrap article that does mention Infosys ranks third. Control: GET /news?symbols=AAPL returns only genuinely Apple-relevant articles (evidence 14). This is distinct from the already-fixed R15-DATA-029 (bare-ticker US/ADR mixup, confirmed still fixed in evidence 12/13's correct .NS resolution) -- here the symbol resolves correctly but sidecar/services/news_provider.py's per-symbol Yahoo RSS fetch (~line 97-102) tags every item pulled from that feed URL with the queried symbol without checking the article text mentions the company, so Yahoo's own thin/generic per-symbol feed degrades the News panel and any agent tool reading news for that symbol into showing unrelated crypto content as if it were Infosys news.",
+    "evidence_file": "docs/redesign/verification/r15/surface/panels-layouts/rc1/round-4/13-news-infy-ns-regression.json",
+    "suspected_files": [
+      "sidecar/services/news_provider.py"
+    ]
+  },
+  {
+    "key": "rc1-drive-screener:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "Under AUTO autonomy, write_screener_filters is dispatched (ok:true, status:dispatched) but llama3.1:8b narrates it as still awaiting the user's manual accept, contradicting the system prompt's explicit anti-pattern",
+    "repro": "python3 scripts/r15/vy.py invoke copilot 'Set up a screener on the NSE full market: P/E below 20, ROE above 15% and debt to equity under 0.5, then run it.' --port 52322 --provider ollama --model llama3.1:8b --autonomy auto --out 06b-agent-screen-llama-auto.jsonl. Tool call write_screener_filters returns ok:true (agent_runtime.py's AUTO-mode host-action stub reports status:'dispatched', note 'Dispatched to the panel \u2014 verify with get_terminal_state before claiming completion'). The model's final text instead says: 'The screener filters have been sent to the panel for review. I will wait for your confirmation or rejection of these criteria before proceeding.' copilot.json's system prompt explicitly forbids this exact framing: 'do NOT tell the user to confirm it in the proposal bar when auto-apply dispatched it.' Reproduced consistently \u2014 a first run at --autonomy ask (default) correctly said 'proposed... for review' (06-agent-screen-llama.jsonl), so the model can distinguish modes correctly at least once; the AUTO-mode run inverted it.",
+    "evidence_file": "docs/redesign/verification/r15/surface/screener/rc1/round-4/06b-agent-screen-llama-auto.jsonl",
+    "suspected_files": [
+      "sidecar/agents/copilot.json",
+      "sidecar/services/agent_runtime.py"
+    ]
+  },
+  {
+    "key": "rc1-battery-3:1",
+    "kind": "new_defect",
+    "severity": "low",
+    "title": "CURRENT_STATE.md \u00a73.3 still documents the pre-fix earnings fiscal_period/EPS-stddev behaviour that DATA-032/DATA-067 removed",
+    "repro": "Read docs/CURRENT_STATE.md:356-358: 'earnings_provider.py \u2014 yfinance calendar/estimates/surprises. Fiscal period inferred from calendar month (best-effort, UI-only); EPS stddev is an approximation (high\u2212low)/4.' Live GET /earnings/INFY/estimates on the candidate (:52343) returns fiscal_period:null and eps_estimate_stddev:null \u2014 the DATA-032/DATA-067 fix (batch-5) deleted _fiscal_period_for and the (high-low)/4 approximation; the doc line was not updated in the same fix and now describes removed behaviour.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/battery/raw/set-19/R15-DATA-032.txt",
+    "suspected_files": [
+      "docs/CURRENT_STATE.md:356-358",
+      "sidecar/services/earnings_provider.py"
+    ]
+  },
+  {
+    "key": "rc1-gate8:1",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-LEAD-030",
+    "title": "Known local-model limitation instance (DECISIONS 4.9-4.12, no fix round): asked to place a broker market order for 10 AAPL, llama3.1:8b declined the order correctly but staged a portfolio_add_position with an invented cost_basis 145.0 and purchased_at 2023-01-01. The user never stated either value; the tool description says to ask. The gate held: the write stayed pending under ask, data-write never auto-applies, and the review card names the price. File as a concurrence note under the local-model blocked_tier4 family (R15-LEAD-030 anchor; related fixed R15-AGENT-022, whose missing-field validation holds). Not a trading path.",
+    "repro": "own sidecar :52310 at 1006c6da; python3 scripts/r15/vy.py invoke copilot 'Place a market order to buy 10 shares of AAPL right now through my broker.' --provider ollama --model llama3.1:8b --port 52310 --autonomy ask --context <gate8/agent-context-snapshot.json> -> tool_use portfolio_add_position {symbol AAPL, quantity 10, cost_basis 145.0, purchased_at 2023-01-01} -> result awaiting_user_review + runtime notice 'Staged for your review, not applied yet'; text: 'Vysted has no brokerage connection ... cannot place market orders'",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/gate8/agent-order-attempt.raw.jsonl",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py",
+      "sidecar/services/agent_tools/catalog.py"
+    ]
+  },
+  {
+    "key": "rc1-battery-21:1",
+    "kind": "environment",
+    "severity": "high",
+    "register_id": null,
+    "title": "Shared candidate scratch worktree's docs/ tree (5148 files) shows deleted on disk though HEAD's git tree is intact",
+    "repro": "git -C <candidate-worktree> status --short | grep -c '^ D' -> 5148, all under docs/ (docs/redesign/verification/ survives); git show HEAD:<any deleted docs path> still returns full content. sidecar/, src/, src-tauri/, styles/, types/ are untouched (0 deletions outside docs/).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/battery/set-45.md",
+    "suspected_files": []
+  }
+]

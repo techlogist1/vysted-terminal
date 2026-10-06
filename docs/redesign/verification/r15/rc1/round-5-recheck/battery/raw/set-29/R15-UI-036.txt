@@ -1,0 +1,34 @@
+Repro attempted: curl / vy.py / in-process python -- none apply. Portfolio quote-
+refresh-interval + freshness-label is entirely frontend (PortfolioPanel.tsx polling
++ label). Battery role may not run vitest or a GUI.
+src/modules/portfolio/PortfolioPanel.test.tsx
+
+Pinned test body at candidate sha 949c3c9fd49d61ecadc9813a8321bcdfd81178bd:
+  it("refreshes quotes on the Watchlist interval and dates the totals by the oldest quote (R15-UI-036)", async () => {
+    vi.useFakeTimers();
+    try {
+      mockFetchQuotes.mockResolvedValue({
+        quotes: new Map([
+          ["AAPL", { ...quote("AAPL", 200), timestamp: "2026-05-15T14:30:00Z" }],
+          ["MSFT", { ...quote("MSFT", 400), timestamp: "2026-05-15T14:00:00Z" }],
+        ]),
+        failed: 0,
+      });
+      render(<PortfolioPanel />);
+      await addHolding("aapl", "10", "150");
+      await addHolding("msft", "1", "300");
+      await act(async () => {}); // settle the quote fetch
+      expect(screen.getByTestId("portfolio-totals-as-of").title).toBe(
+        "Oldest quote in these totals: 2026-05-15T14:00:00Z",
+      );
+      const calls = mockFetchQuotes.mock.calls.length;
+      await act(async () => {
+        vi.advanceTimersByTime(5_000);
+      });
+      expect(mockFetchQuotes.mock.calls.length).toBe(calls + 1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("skips a quote-refresh tick while the previous fan-out is still in flight, then refetches once it settles (rc1-drive-portfolio-notes:1)", async () => {

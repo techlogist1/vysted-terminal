@@ -1,0 +1,20 @@
+{"detail":[{"type":"missing","loc":["body","spec"],"msg":"Field required","input":{"graph":{"nodes":[{"id":"q","type":"data.fetch_quote","position":{"x":0,"y":0},"config":{"symbol":"AAPL"}},{"id":"a","type":"ai.agent_invoke","position":{"x":1,"y":0},"config":{"agent_id":"strategy_critic"}},{"id":"l","type":"io.log","position":{"x":2,"y":0},"config":{}}],"edges":[{"id":"e1","source":"q","target":"a","sourcePort":"out","targetPort":"context"},{"id":"e2","source":"a","target":"l","sourcePort":"content","targetPort":"message"}]}}},{"type":"extra_forbidden","loc":["body","graph"],"msg":"Extra inputs are not permitted","input":{"nodes":[{"id":"q","type":"data.fetch_quote","position":{"x":0,"y":0},"config":{"symbol":"AAPL"}},{"id":"a","type":"ai.agent_invoke","position":{"x":1,"y":0},"config":{"agent_id":"strategy_critic"}},{"id":"l","type":"io.log","position":{"x":2,"y":0},"config":{}}],"edges":[{"id":"e1","source":"q","target":"a","sourcePort":"out","targetPort":"context"},{"id":"e2","source":"a","target":"l","sourcePort":"content","targetPort":"message"}]}}]}{"detail":[{"type":"missing","loc":["body","spec","edges",0,"sourceNode"],"msg":"Field required","input":{"id":"e1","source":"q","target":"a","sourcePort":"out","targetPort":"context"}},{"type":"missing","loc":["body","spec","edges",0,"targetNode"],"msg":"Field required","input":{"id":"e1","source":"q","target":"a","sourcePort":"out","targetPort":"context"}},{"type":"extra_forbidden","loc":["body","spec","edges",0,"source"],"msg":"Extra inputs are not permitted","input":"q"},{"type":"extra_forbidden","loc":["body","spec","edges",0,"target"],"msg":"Extra inputs are not permitted","input":"a"},{"type":"missing","loc":["body","spec","edges",1,"sourceNode"],"msg":"Field required","input":{"id":"e2","source":"a","target":"l","sourcePort":"content","targetPort":"message"}},{"type":"missing","loc":["body","spec","edges",1,"targetNode"],"msg":"Field required","input":{"id":"e2","source":"a","target":"l","sourcePort":"content","targetPort":"message"}},{"type":"extra_forbidden","loc":["body","spec","edges",1,"source"],"msg":"Extra inputs are not permitted","input":"a"},{"type":"extra_forbidden","loc":["body","spec","edges",1,"target"],"msg":"Extra inputs are not permitted","input":"l"}]}---next: bad config api_key test---
+{"detail":[{"type":"value_error","loc":["body","spec","nodes",0,"config"],"msg":"Value error, node config must not carry 'api_key'; the run uses the selected provider's key from the request","input":{"agent_id":"strategy_critic","api_key":"sk-leak"},"ctx":{"error":{}}}]}---no-creds run (strategy_critic, no api key)---
+data: {"kind":"run-start","runId":"bf1bb3a7-bf42-4bcd-9737-837dc09b9718","startedAt":1790384884550}
+
+data: {"kind":"node-start","runId":"bf1bb3a7-bf42-4bcd-9737-837dc09b9718","nodeId":"a","nodeType":"ai.agent_invoke","startedAt":1790384884551}
+
+data: {"kind":"node-error","runId":"bf1bb3a7-bf42-4bcd-9737-837dc09b9718","nodeId":"a","message":"ai.agent_invoke (strategy_critic): Something went wrong with Anthropic.","durationMs":69.950708}
+
+data: {"kind":"run-error","runId":"bf1bb3a7-bf42-4bcd-9737-837dc09b9718","message":"failures in nodes: ['a']","durationMs":70.883458}
+
+
+---unknown agent id---
+data: {"kind":"run-start","runId":"4b7bc7b8-44d9-447d-9fc9-8675f4872c17","startedAt":1790384884634}
+
+data: {"kind":"node-start","runId":"4b7bc7b8-44d9-447d-9fc9-8675f4872c17","nodeId":"a","nodeType":"ai.agent_invoke","startedAt":1790384884634}
+
+data: {"kind":"node-error","runId":"4b7bc7b8-44d9-447d-9fc9-8675f4872c17","nodeId":"a","message":"ai.agent_invoke (nonexistent-agent-xyz): unknown agent: 'nonexistent-agent-xyz'","durationMs":2.119167}
+
+data: {"kind":"run-error","runId":"4b7bc7b8-44d9-447d-9fc9-8675f4872c17","message":"failures in nodes: ['a']","durationMs":2.467833}
+

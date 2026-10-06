@@ -1,0 +1,833 @@
+{
+  "slot": "P20",
+  "symbol": "SMR",
+  "name": "NuScale Power Corp",
+  "exchange": "NYSE",
+  "collected_at": "2026-09-19",
+  "collected_by": "claude-opus-5[1m]",
+  "collection_note": "WebSearch budget for the session was exhausted at the first call; the entire pack was built from directly-addressed authoritative URLs (SEC EDGAR submissions API, SEC XBRL companyconcept API, the as-filed 10-Q / DEF 14A / 8-K / SCHEDULE 13G documents, the company's own newsroom, and two independent quote aggregators). No value below is from model memory.",
+
+  "identity": {
+    "legal_name": {
+      "value": "NuScale Power Corporation",
+      "as_of": "2026-08-05",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "note": "EDGAR conformed name is 'NUSCALE POWER Corp'. A Delaware corporation; principal offices 1100 NE Circle Blvd., Suite 350, Corvallis, OR 97330."
+    },
+    "former_names": [
+      {
+        "value": "SPRING VALLEY ACQUISITION CORP.",
+        "from": "2020-09-02",
+        "to": "2022-04-29",
+        "source_url": "https://data.sec.gov/submissions/CIK0001822966.json",
+        "note": "Same CIK. SPAC that took NuScale public; its IPO closed 2020-11-27 (10-Q glossary). Renamed on the 2022 business combination."
+      }
+    ],
+    "second_legal_entity_same_name": {
+      "value": "NuScale Power, LLC",
+      "unit": "Oregon limited liability company",
+      "as_of": "2026-08-05",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "note": "Subsidiary of NuScale Power Corporation. The filings call them 'NuScale Corp' and 'NuScale LLC'. Financial results differ materially between the two levels (see traps)."
+    },
+    "isin": {
+      "value": "US67079K1007",
+      "unit": "ISIN, Class A common stock",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000086917826000088/primary_doc.xml",
+      "note": "DERIVED, not directly sourced. CUSIP 67079K100 is stated verbatim in two independent SCHEDULE 13G filings (Van Eck 2026-08-14, BlackRock 2026-07-29). ISIN = 'US' + CUSIP + Luhn check digit 7, computed here. Flagged as derived so the differ does not treat a mismatch as an app bug without re-checking."
+    },
+    "cusip": {
+      "value": "67079K100",
+      "unit": "CUSIP, Class A common stock",
+      "as_of": "2026-08-14",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000086917826000088/primary_doc.xml",
+      "note": "Corroborated independently by BlackRock's 13G: https://www.sec.gov/Archives/edgar/data/1822966/000201238326002835/primary_doc.xml"
+    },
+    "cik": {
+      "value": "0001822966",
+      "as_of": "2026-09-19",
+      "source_url": "https://data.sec.gov/submissions/CIK0001822966.json"
+    },
+    "commission_file_number": {
+      "value": "001-39736",
+      "as_of": "2026-08-11",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000110465926094073/tm2622138d2_8k.htm"
+    },
+    "irs_ein": {
+      "value": "98-1588588",
+      "as_of": "2026-08-11",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000110465926094073/tm2622138d2_8k.htm"
+    },
+    "bse_code": {
+      "value": null,
+      "as_of": "2026-09-19",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "note": "NOT LISTED IN INDIA. BSE scrip 544774 'SMR Jewels Ltd' is an unrelated Indian SME company that merely shares the letters SMR. Any BSE code attached to NuScale in the app is a collision bug, not a data point."
+    },
+    "nse_symbol": {
+      "value": null,
+      "as_of": "2026-09-19",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "note": "Manifest records SMR as absent from the NSE master."
+    },
+    "board": {
+      "value": "NYSE main listing (not an SME/mainboard distinction - that is a BSE concept with no NYSE analogue)",
+      "as_of": "2026-08-05",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "note": "Registered under Section 12(b); filer status 'Large accelerated filer'; not a shell company; not an emerging growth company. Listed class is 'Class A common stock, $0.0001 par value per share', symbol SMR, New York Stock Exchange."
+    },
+    "sector": {
+      "conflicting": true,
+      "values": [
+        {
+          "value": "SIC 3443 - Fabricated Plate Work (Boiler Shops)",
+          "unit": "SEC SIC classification",
+          "as_of": "2026-09-19",
+          "source_url": "https://data.sec.gov/submissions/CIK0001822966.json"
+        },
+        {
+          "value": "Industrials",
+          "unit": "aggregator sector",
+          "as_of": "2026-09-19",
+          "source_url": "https://stockanalysis.com/stocks/smr/"
+        },
+        {
+          "value": "electricity, energy, uranium",
+          "unit": "aggregator sector tags",
+          "as_of": "2026-09-18",
+          "source_url": "https://companiesmarketcap.com/nuscale-power/marketcap/"
+        }
+      ],
+      "note": "THREE different classifications for the same company, none wrong on its own terms. A nuclear reactor designer filed under 'Boiler Shops' will defeat any sector-peer or sector-screen logic that trusts one source."
+    },
+    "industry": {
+      "value": "Specialty Industrial Machinery",
+      "unit": "aggregator industry",
+      "as_of": "2026-09-19",
+      "source_url": "https://stockanalysis.com/stocks/smr/",
+      "note": "Business as described in its own 10-Q: designer of light-water small modular nuclear reactors; one international customer (RoPower Nuclear S.A., Romania, Doicesti project); commercialization partner ENTRA1 Energy LLC under a Partnership Milestones Agreement dated 2025-08-27."
+    },
+    "listing_date": {
+      "value": "2022-05-02",
+      "unit": "date the business combination closed and NuScale Power Corporation became the listed registrant",
+      "as_of": "2026-08-05",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "note": "PARTIAL. The 10-Q dates the Tax Receivable Agreement 'on May 2, 2022', which fixes the closing date; the predecessor SPAC's own IPO closed 2020-11-27. The exact FIRST TRADING DAY of Class A under the ticker SMR was not confirmed from a primary source in this collection - recorded as a world_gap rather than asserted."
+    },
+    "employees": {
+      "value": 428,
+      "unit": "headcount",
+      "as_of": "2026-09-19",
+      "source_url": "https://stockanalysis.com/stocks/smr/"
+    },
+    "fiscal_year_end": {
+      "value": "12-31",
+      "as_of": "2026-09-19",
+      "source_url": "https://data.sec.gov/submissions/CIK0001822966.json"
+    },
+    "auditor": {
+      "value": "Ernst & Young LLP",
+      "unit": "independent registered public accounting firm, FY ending 2026-12-31",
+      "as_of": "2026-05-29",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000058/smr-20260529.htm",
+      "note": "Ratified at the 2026 annual meeting: 193,580,105 for / 2,313,489 against / 1,049,345 abstain."
+    }
+  },
+
+  "price": {
+    "last_close": {
+      "value": 8.27,
+      "unit": "USD per Class A share",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/smr/",
+      "note": "Stated as 'Sep 18, 2026, 4:00 PM EDT', change -0.77 (-8.52%). CORROBORATED INDEPENDENTLY at $8.27 for September 18, 2026 by https://companiesmarketcap.com/nuscale-power/marketcap/ . This settles the manifest's recorded price conflict ($8.45 vs $10.21 for 'mid-September 2026') in favour of neither: see traps.price_conflict."
+    }
+  },
+
+  "market_cap": {
+    "conflicting": true,
+    "values": [
+      {
+        "value": 3.55,
+        "unit": "USD billion",
+        "as_of": "2026-09-18",
+        "source_url": "https://stockanalysis.com/stocks/smr/",
+        "basis": "429.72M shares (Class A 410.39M + Class B 19.33M) x $8.27 = $3.554B - i.e. fully-exchanged share count"
+      },
+      {
+        "value": 3.39,
+        "unit": "USD billion",
+        "as_of": "2026-09-18",
+        "source_url": "https://companiesmarketcap.com/nuscale-power/marketcap/",
+        "basis": "~410.4M Class A shares only x $8.27 = $3.394B - i.e. the listed class only, excluding the exchangeable NCI"
+      },
+      {
+        "value": 4.59,
+        "unit": "USD billion",
+        "as_of": "2026-09-18",
+        "source_url": "https://www.tipranks.com/stocks/smr/market-cap",
+        "basis": "Carried from BATTERY/manifest.json P20 reference block; NOT re-verified in this collection (WebSearch budget exhausted). At a $8.27 close this figure requires ~555M shares, which matches no filed share count - most likely a stale price (~$10.7) against the fully-exchanged count."
+      }
+    ],
+    "note": "The $3.55B vs $3.39B gap is NOT noise - it is exactly the 19,333,750 Class B / NCI units, and each aggregator is internally consistent. Recorded as a conflict per COMMON.md rather than smoothed."
+  },
+
+  "enterprise_value": {
+    "value": 2.49,
+    "unit": "USD billion",
+    "as_of": "2026-09-19",
+    "source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+    "note": "Net cash of ~$1.07B against essentially no debt."
+  },
+
+  "shares_outstanding": {
+    "class_a": {
+      "value": 410389522,
+      "unit": "shares, $0.0001 par",
+      "as_of": "2026-07-30",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "note": "10-Q cover page: 'The registrant had 410,389,522 Class A common shares, $0.0001 par value, and 19,333,750 Class B common shares, $0.0001 par value, outstanding as of July 30, 2026.'"
+    },
+    "class_b": {
+      "value": 19333750,
+      "unit": "shares, $0.0001 par, NO ECONOMIC RIGHTS (one vote each; each paired with one exchangeable NuScale LLC Class B unit)",
+      "as_of": "2026-07-30",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm"
+    },
+    "total_fully_exchanged": {
+      "value": 429723272,
+      "unit": "shares",
+      "as_of": "2026-07-30",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "note": "Balance-sheet-date count (2026-06-30) is 429,701,540 per the 10-Q NCI table. Aggregators quote 429.72M, the cover-page count."
+    },
+    "float": {
+      "value": 403540000,
+      "unit": "shares",
+      "as_of": "2026-09-19",
+      "source_url": "https://stockanalysis.com/stocks/smr/statistics/"
+    },
+    "shares_change_yoy": {
+      "value": 131.87,
+      "unit": "percent",
+      "as_of": "2026-09-19",
+      "source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+      "note": "Corroborated by as-filed counts: total interests went 284,736,899 (2025-06-30) -> 429,701,540 (2026-06-30) per the 10-Q, and Class A alone 133,753,450 -> 410,367,790 (+207%). Massive ATM dilution; see corporate_actions_2026."
+    }
+  },
+
+  "pe_ttm": {
+    "value": "loss-making",
+    "unit": "n/a",
+    "as_of": "2026-09-19",
+    "source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+    "note": "PE and forward PE both reported 'n/a'. Company has never reported a GAAP profit as NuScale (FY2022 through FY2025 all losses; see revenue_and_profit_history)."
+  },
+
+  "pb": {
+    "value": 1.65,
+    "unit": "x",
+    "as_of": "2026-09-19",
+    "source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+    "note": "Reconciles exactly as $8.27 / $5.02 BVPS, where BVPS = equity EXCLUDING NCI ($2,061,309k) / Class A shares (410,367,790). Using equity INCLUDING NCI ($2,013,657k) over total interests (429,701,540) instead gives BVPS $4.69 and PB 1.76 - a legitimate alternative that no source quotes."
+  },
+
+  "roe": {
+    "value": -55.18,
+    "unit": "percent",
+    "as_of": "2026-09-19",
+    "source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+    "note": "Based on net loss attributable to Class A holders (TTM -$415.70M). Using total net loss including NCI the figure is far worse; see traps.two_bottom_lines."
+  },
+
+  "roce": {
+    "value": null,
+    "unit": "percent",
+    "as_of": "2026-09-19",
+    "source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+    "note": "WORLD GAP, not a collection failure: ROCE is not a metric US aggregators publish for US filers and NuScale does not disclose it. The nearest published equivalents are ROIC -11.18% and ROA -10.60% (same source). An app that shows a ROCE number for this symbol has computed or invented it."
+  },
+
+  "debt_to_equity": {
+    "value": 0.0,
+    "unit": "x",
+    "as_of": "2026-09-19",
+    "source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+    "note": "Total debt reported as $6.69M against $2.01B equity (0.0033x, rounds to 0.00). Corroborated by the as-filed balance sheet: total liabilities and stockholders' equity $2,049,193k less total stockholders' equity $2,013,657k = $35,536k of TOTAL liabilities. Effectively debt-free. Current ratio 37.88, quick ratio 37.34."
+  },
+
+  "revenue_ttm": {
+    "value": 10690000,
+    "unit": "USD (i.e. $10.69 million)",
+    "as_of": "2026-06-30",
+    "source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+    "note": "Reconstructed exactly from as-filed XBRL: Q3-25 $8,242k + Q4-25 $1,808k (derived FY 31,479 - 9M 29,671) + Q1-26 $565k + Q2-26 $75k = $10,690k. Source of truth for the quarters: https://data.sec.gov/api/xbrl/companyconcept/CIK0001822966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+  },
+
+  "net_profit_ttm": {
+    "conflicting": true,
+    "values": [
+      {
+        "value": -415700000,
+        "unit": "USD (-$415.70 million), NET LOSS ATTRIBUTABLE TO CLASS A COMMON STOCKHOLDERS",
+        "as_of": "2026-06-30",
+        "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001822966/us-gaap/NetIncomeLoss.json",
+        "basis": "Q3-25 -273,319 + Q4-25 -50,829 (derived) + Q1-26 -44,015 + Q2-26 -47,539 (thousands). Matches stockanalysis.com's -$415.70M exactly."
+      },
+      {
+        "value": -672900000,
+        "unit": "USD (-$672.90 million), TOTAL NET LOSS INCLUDING NONCONTROLLING INTERESTS",
+        "as_of": "2026-06-30",
+        "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001822966/us-gaap/ProfitLoss.json",
+        "basis": "Q3-25 -532,646 + Q4-25 -63,812 (derived FY -664,462 less 9M -600,650) + Q1-26 -46,685 + Q2-26 -50,063 (thousands)."
+      }
+    ],
+    "note": "BOTH are correct US-GAAP figures for the same trailing period. They differ by 62%. Every aggregator checked reports only the first. See traps.two_bottom_lines."
+  },
+
+  "revenue_growth_yoy": {
+    "values": [
+      {
+        "value": -99.07,
+        "unit": "percent, quarter-on-year-ago-quarter",
+        "basis": "Q2 FY2026 revenue $75k vs Q2 FY2025 revenue $8,054k",
+        "as_of": "2026-06-30",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm"
+      },
+      {
+        "value": -97.01,
+        "unit": "percent, half-year on year-ago half-year",
+        "basis": "H1 FY2026 revenue $640k vs H1 FY2025 revenue $21,429k",
+        "as_of": "2026-06-30",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm"
+      },
+      {
+        "value": -81.0,
+        "unit": "percent, TTM vs prior TTM",
+        "basis": "aggregator TTM basis",
+        "as_of": "2026-09-19",
+        "source_url": "https://stockanalysis.com/stocks/smr/"
+      },
+      {
+        "value": -15.02,
+        "unit": "percent, full fiscal year",
+        "basis": "FY2025 $31,479k vs FY2024 $37,045k",
+        "as_of": "2025-12-31",
+        "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001822966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+      }
+    ],
+    "note": "FOUR defensible growth rates spanning -15% to -99% depending on basis. Any app that prints a bare 'Revenue growth' number for SMR without stating the basis is uninterpretable here."
+  },
+
+  "eps_ttm": {
+    "conflicting": true,
+    "values": [
+      {
+        "value": -1.54,
+        "unit": "USD per Class A share, TTM (aggregator-computed)",
+        "as_of": "2026-09-19",
+        "source_url": "https://stockanalysis.com/stocks/smr/statistics/"
+      },
+      {
+        "value": -2.92,
+        "unit": "USD per Class A share, sum of the four as-filed quarterly basic-and-diluted EPS figures",
+        "as_of": "2026-06-30",
+        "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001822966/us-gaap/EarningsPerShareBasic.json",
+        "basis": "Q3-25 -1.85 + Q4-25 -0.80 (derived FY -2.17 less 9M -1.37) + Q1-26 -0.14 + Q2-26 -0.13"
+      }
+    ],
+    "note": "A 90% gap between two defensible TTM EPS figures, caused by the share count more than doubling inside the trailing window (weighted-average Class A shares went 133.4M in Q2-25 to 364.5M in Q2-26). Recorded as a conflict; the differ must NOT assume these reconcile.",
+    "as_filed_latest_quarter": {
+      "value": -0.13,
+      "unit": "USD per Class A share, basic and diluted, three months ended 2026-06-30",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm"
+    }
+  },
+
+  "book_value_per_share": {
+    "value": 5.02,
+    "unit": "USD per Class A share",
+    "as_of": "2026-06-30",
+    "source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+    "note": "= total stockholders' equity EXCLUDING NCI $2,061,309k / 410,367,790 Class A shares. The alternative (equity including NCI $2,013,657k over 429,701,540 total interests) is $4.69."
+  },
+
+  "face_value": {
+    "value": 0.0001,
+    "unit": "USD par value per share (both Class A and Class B)",
+    "as_of": "2026-08-05",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+    "note": "US nominal par value. It is NOT the Indian 'face value' concept and carries no valuation meaning: at 410.4M Class A shares the entire par-value line on the balance sheet is $41 thousand. Any per-share ratio computed against face value here is nonsense."
+  },
+
+  "dividend": {
+    "last_declared_per_share": {
+      "value": null,
+      "unit": "USD",
+      "as_of": "2026-09-19",
+      "source_url": "https://stockanalysis.com/stocks/smr/",
+      "note": "None. The company has never declared or paid a dividend on Class A common stock; 'Dividend: n/a' on the quote page and no dividend line appears in the 10-Q financing cash flows."
+    },
+    "record_or_ex_date": { "value": null, "as_of": "2026-09-19", "source_url": "https://stockanalysis.com/stocks/smr/" },
+    "paid_trailing_12m_per_share": { "value": 0.0, "unit": "USD", "as_of": "2026-09-19", "source_url": "https://stockanalysis.com/stocks/smr/" },
+    "yield": { "value": 0.0, "unit": "percent", "as_of": "2026-09-19", "source_url": "https://stockanalysis.com/stocks/smr/statistics/" }
+  },
+
+  "week52": {
+    "high": {
+      "value": 57.42,
+      "unit": "USD per Class A share",
+      "as_of": "2026-09-19",
+      "source_url": "https://stockanalysis.com/stocks/smr/"
+    },
+    "low": {
+      "value": 7.21,
+      "unit": "USD per Class A share",
+      "as_of": "2026-09-19",
+      "source_url": "https://stockanalysis.com/stocks/smr/"
+    },
+    "change_52w": {
+      "value": -77.11,
+      "unit": "percent",
+      "as_of": "2026-09-19",
+      "source_url": "https://stockanalysis.com/stocks/smr/statistics/"
+    },
+    "note": "The $8.27 close is 85.6% below the 52-week high and 14.7% above the 52-week low. NO SPLIT, BONUS OR REVERSE SPLIT occurred in the window - the range is a genuine bubble-and-collapse, corroborated by year-end market caps of $1.97B (2024) -> $4.20B (2025) -> $3.39B (2026 to date): https://companiesmarketcap.com/nuscale-power/marketcap/ . An app that 'corrects' this range as a corporate-action artefact would be wrong."
+  },
+
+  "shareholding": {
+    "note": "US equivalent of the Indian shareholding-pattern block. There is NO SEBI-style quarterly promoter/FII/DII/public/pledge filing for a US issuer. The closest filed equivalents are the annual proxy beneficial-ownership table (>5% holders and insiders, one date per year) and SCHEDULE 13G/13D filings (event-driven). promoter_pct, fii_pct, dii_pct and pledged_pct_of_promoter DO NOT EXIST for this issuer - see world_gaps.",
+    "as_of_proxy_table": "2026-03-30",
+    "proxy_basis": {
+      "value": "323,734,120 Class A + 19,375,371 Class B issued and outstanding as of 2026-03-30",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000042/smr-20260415.htm",
+      "note": "Class A count has since risen to 410.4M via the ATM, so every percentage in this table is already stale by design."
+    },
+    "greater_than_five_percent_holders": [
+      {
+        "holder": "Fluor Enterprises, Inc.",
+        "class_a_shares": 40400219,
+        "class_a_pct": 12.68,
+        "class_b_shares": 463747,
+        "class_b_pct": 2.4,
+        "pct_total_voting_power": 12.09,
+        "as_of": "2026-03-30",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000042/smr-20260415.htm",
+        "note": "Wholly owned by Fluor Corporation (NYSE: FLR). Also the counterparty on the RoPower FEED Phase 2 engineering contract - a RELATED PARTY that is simultaneously the largest holder and a revenue source."
+      },
+      {
+        "holder": "Japan NuScale Innovation, LLC",
+        "class_a_shares": 0,
+        "class_a_pct": 0,
+        "class_b_shares": 19285070,
+        "class_b_pct": 99.3,
+        "pct_total_voting_power": 5.71,
+        "as_of": "2026-03-30",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000042/smr-20260415.htm",
+        "note": "Holds 99.3% of Class B, i.e. essentially the entire remaining noncontrolling interest. Owns ZERO Class A - invisible to any screen that looks only at the listed class."
+      },
+      {
+        "holder": "The Goldman Sachs Group, Inc.",
+        "class_a_shares": 25511936,
+        "class_a_pct": 8.01,
+        "class_b_shares": 0,
+        "class_b_pct": 0,
+        "pct_total_voting_power": 7.55,
+        "as_of": "2026-03-30",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000042/smr-20260415.htm"
+      }
+    ],
+    "insiders": {
+      "all_directors_and_executive_officers_as_a_group": {
+        "persons": 13,
+        "class_a_shares": 4159704,
+        "class_a_pct": 1.28,
+        "class_b_shares": 0,
+        "as_of": "2026-03-30",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000042/smr-20260415.htm"
+      },
+      "aggregator_insider_ownership_pct": {
+        "value": 0.33,
+        "unit": "percent",
+        "as_of": "2026-09-19",
+        "source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+        "note": "CONFLICT WITH THE FILED PROXY (1.28% as of 2026-03-30). Both are 'right': the proxy includes options/RSUs exercisable within 60 days over a smaller share base; the aggregator does not, over a 27% larger base. Recorded, not reconciled."
+      }
+    },
+    "latest_13g_filings": [
+      {
+        "holder": "Van Eck Associates Corporation",
+        "shares": 29311762,
+        "pct": 8.5,
+        "event_date": "2026-06-30",
+        "filed": "2026-08-14",
+        "form": "SCHEDULE 13G/A",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000086917826000088/primary_doc.xml",
+        "note": "19,974,830 of those shares are economically the VanEck Uranium and Nuclear ETF's - i.e. most of the largest reported 'institutional holder' is passive thematic-ETF flow, not a fundamental holder."
+      },
+      {
+        "holder": "BlackRock, Inc.",
+        "shares": 22370714,
+        "pct": 6.5,
+        "event_date": "2026-06-30",
+        "filed": "2026-07-29",
+        "form": "SCHEDULE 13G",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000201238326002835/primary_doc.xml"
+      }
+    ],
+    "aggregate": {
+      "institutional_ownership_pct": {
+        "value": 55.94,
+        "unit": "percent",
+        "as_of": "2026-09-19",
+        "source_url": "https://stockanalysis.com/stocks/smr/statistics/"
+      },
+      "short_interest": {
+        "value": 64890000,
+        "unit": "shares (15.10% of shares outstanding)",
+        "as_of": "2026-09-19",
+        "source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+        "note": "15.1% short interest. There is no Indian analogue to this field and no SEBI-style pledge disclosure exists."
+      }
+    },
+    "noncontrolling_interest_ownership_split_as_filed": {
+      "class_a_pct_of_economics": 95.5,
+      "nci_class_b_units_pct_of_economics": 4.5,
+      "as_of": "2026-06-30",
+      "prior_year_same_date": { "class_a_pct": 47.0, "nci_pct": 53.0, "as_of": "2025-06-30" },
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "note": "The economic split flipped from 47/53 to 95.5/4.5 in twelve months. Any year-over-year per-share or attributable-profit comparison that ignores this is meaningless."
+    }
+  },
+
+  "corporate_actions_2026": [
+    {
+      "date": "2026-01-27",
+      "type": "Reg FD / scheduling",
+      "description": "8-K Item 7.01: announced a business and financial results update call for 2026-02-26.",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000007/smr-20260127.htm"
+    },
+    {
+      "date": "2026-02-26",
+      "type": "At-the-market equity offering programme (NEW)",
+      "description": "8-K Item 1.01: Sales Agreement with UBS Securities LLC, B. Riley Securities, Canaccord Genuity and Tuohy Brothers for an ATM programme of up to $1,000,000,000 of Class A common stock. Prospectus supplement 424B5 filed the same day.",
+      "amount_usd": 1000000000,
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000019/smr-20260226.htm",
+      "related_url": "https://www.sec.gov/Archives/edgar/data/1822966/000110465926020664/tm266983-1_424b5.htm"
+    },
+    {
+      "date": "2026-02-26",
+      "type": "Results",
+      "description": "8-K Item 2.02: FY2025 and Q4 2025 results. 10-K for FY2025 filed the same day.",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000016/smr-20260226.htm",
+      "related_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000018/smr-20251231.htm"
+    },
+    {
+      "date": "2026-05-29",
+      "type": "Annual general meeting",
+      "description": "2026 Annual Meeting (virtual). Nine directors elected (Boeckmann, Chung, Fujino, Harshaw, Hopkins, Klein, Kresa, Walters, Warnica); say-on-pay approved 110,778,297 for / 4,203,069 against; Ernst & Young LLP ratified as auditor for FY2026. Results filed 8-K Item 5.07 on 2026-06-02.",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000058/smr-20260529.htm"
+    },
+    {
+      "date": "2026-04-15",
+      "type": "Proxy",
+      "description": "DEF 14A for the 2026 annual meeting, including the beneficial ownership table as of 2026-03-30.",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000042/smr-20260415.htm"
+    },
+    {
+      "date": "2026-04-01/2026-06-30",
+      "type": "Equity issuance (ATM execution)",
+      "description": "86,568,060 Class A shares issued in Q2 2026 alone for $947,214k net; $984,475k of net proceeds from common stock issuance in H1 2026. This is the $1.0B ATM being drawn down. Also 41,621 Class B units exchanged into Class A in the quarter.",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm"
+    },
+    {
+      "date": "2026-08-11",
+      "type": "At-the-market equity offering programme (SECOND, NEW)",
+      "description": "8-K Item 1.01: a further Sales Agreement with UBS, B. Riley, Canaccord Genuity, Craig-Hallum, Texas Capital Securities (TCBI Securities) and Tuohy Brothers for an ATM programme of up to $750,000,000 of Class A common stock. Prospectus supplement 424B5 filed the same day.",
+      "amount_usd": 750000000,
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000110465926094073/tm2622138d2_8k.htm",
+      "related_url": "https://www.sec.gov/Archives/edgar/data/1822966/000110465926094065/tm2622138-1_424b5.htm"
+    },
+    {
+      "type": "NOT PRESENT in 2026",
+      "description": "No stock split, no reverse split, no bonus issue, no rights issue, no dividend, no buyback, no merger or scheme of arrangement. The only capital events are the two ATM programmes and routine Class B->Class A exchanges.",
+      "source_url": "https://data.sec.gov/submissions/CIK0001822966.json"
+    }
+  ],
+
+  "latest_results": {
+    "quarter": {
+      "value": "Q2 FY2026 (three months ended 2026-06-30)",
+      "filing_date": "2026-08-05",
+      "form": "10-Q",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm"
+    },
+    "as_filed_income_statement_q2_fy2026_usd_thousands": {
+      "revenue": 75,
+      "cost_of_sales": -227,
+      "gross_margin": -152,
+      "research_and_development": 18429,
+      "general_and_administrative": 26875,
+      "other_expenses": 18547,
+      "loss_from_operations": -64003,
+      "sponsored_cost_share": 0,
+      "investment_income": 13940,
+      "loss_before_income_taxes": -50063,
+      "foreign_income_taxes": 0,
+      "net_loss_total": -50063,
+      "net_loss_attributable_to_noncontrolling_interests": -2524,
+      "net_loss_attributable_to_class_a_common_stockholders": -47539,
+      "eps_basic_and_diluted": -0.13,
+      "weighted_average_class_a_shares_basic_and_diluted": 364523356,
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm"
+    },
+    "as_filed_h1_fy2026_usd_thousands": {
+      "revenue": 640,
+      "cost_of_sales": -771,
+      "gross_margin": -131,
+      "net_loss_total": -96748,
+      "net_loss_attributable_to_class_a_common_stockholders": -91554,
+      "eps_basic_and_diluted": -0.27,
+      "weighted_average_class_a_shares_basic_and_diluted": 342241824,
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm"
+    },
+    "as_filed_balance_sheet_2026_06_30_usd_thousands": {
+      "cash_and_cash_equivalents": 766460,
+      "short_term_investments": 305688,
+      "restricted_cash": 5100,
+      "prepaid_expenses": 10654,
+      "accounts_and_other_receivables_net": 13190,
+      "total_current_assets": 1101092,
+      "property_plant_and_equipment_net": 3323,
+      "in_process_research_and_development": 16900,
+      "intangible_assets_net": 438,
+      "additional_paid_in_capital": 2885691,
+      "accumulated_deficit": -824425,
+      "total_stockholders_equity_excluding_nci": 2061309,
+      "noncontrolling_interests": -47652,
+      "total_stockholders_equity": 2013657,
+      "total_liabilities_and_stockholders_equity": 2049193,
+      "implied_total_liabilities": 35536,
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "note": "Noncontrolling interests are NEGATIVE (-$47,652k), so equity attributable to Class A EXCEEDS total equity. Any naive 'equity = attributable + NCI, therefore NCI is positive' assumption breaks here."
+    },
+    "next_scheduled": {
+      "value": "Q3 FY2026 results expected 2026-11-05",
+      "as_of": "2026-09-19",
+      "source_url": "https://stockanalysis.com/stocks/smr/"
+    }
+  },
+
+  "revenue_and_profit_history": {
+    "note": "As-filed annual XBRL from CIK 0001822966. READ THE 2020-2021 ROWS AS A TRAP, not as history - see traps.spac_history_contamination.",
+    "unit": "USD",
+    "source_urls": [
+      "https://data.sec.gov/api/xbrl/companyconcept/CIK0001822966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json",
+      "https://data.sec.gov/api/xbrl/companyconcept/CIK0001822966/us-gaap/NetIncomeLoss.json",
+      "https://data.sec.gov/api/xbrl/companyconcept/CIK0001822966/us-gaap/ProfitLoss.json"
+    ],
+    "rows": [
+      { "fy": 2020, "revenue": 600000, "net_income_attributable": -88387000, "net_income_total": -88387000, "entity": "Spring Valley Acquisition Corp (SPAC) - NOT NuScale operations" },
+      { "fy": 2021, "revenue": 2862000, "net_income_attributable": -102493000, "net_income_total": -102493000, "entity": "mixed; a +3,202,748 NetIncomeLoss fact also exists for FY2021 in the same concept" },
+      { "fy": 2022, "revenue": 11804000, "net_income_attributable": -25914000, "net_income_total": -141573000, "entity": "NuScale Power Corporation (post-merger)" },
+      { "fy": 2023, "revenue": 22810000, "net_income_attributable": -58362000, "net_income_total": -180115000, "entity": "NuScale Power Corporation" },
+      { "fy": 2024, "revenue": 37045000, "net_income_attributable": -136623000, "net_income_total": -348387000, "entity": "NuScale Power Corporation" },
+      { "fy": 2025, "revenue": 31479000, "net_income_attributable": -355794000, "net_income_total": -664462000, "entity": "NuScale Power Corporation" }
+    ]
+  },
+
+  "last_3_announcements": [
+    {
+      "date": "2026-09-01",
+      "headline": "NuScale Power and MillenniTEK Advance Manufacturing Technology for First-of-a-Kind Reactor Safety Component",
+      "url": "https://www.nuscalepower.com/press-releases/2026/nuscale-power-and-millennitek-advance-manufacturing-technology-for-first-of-a-kind-reactor-safety-component",
+      "source_url": "https://www.nuscalepower.com/en/news",
+      "note": "Company newsroom only - no corresponding 8-K. An app that sources announcements from EDGAR alone will miss this and the next one entirely."
+    },
+    {
+      "date": "2026-08-25",
+      "headline": "NuScale Power Deploys Nuclear-Specific AI from NPX and Nuclearn to Speed Development of Its Advanced Reactor Program",
+      "url": "https://www.nuscalepower.com/press-releases/2026/nuscale-power-deploys-nuclear-specific-ai-from-npx-and-nuclearn-to-speed-development-of-its-advanced-reactor-program",
+      "source_url": "https://www.nuscalepower.com/en/news"
+    },
+    {
+      "date": "2026-08-05",
+      "headline": "NuScale Power Reports Second Quarter 2026 Results",
+      "url": "https://www.nuscalepower.com/press-releases/2026/nuscale-power-reports-second-quarter-2026-results",
+      "source_url": "https://www.nuscalepower.com/en/news",
+      "note": "Furnished as Exhibit 99.1 to the 8-K of 2026-08-05: https://www.sec.gov/Archives/edgar/data/1822966/000182296626000086/smr-20260805.htm"
+    }
+  ],
+
+  "announcements_extended": [
+    { "date": "2026-07-01", "headline": "NuScale Power to Hold Second Quarter 2026 Earnings Conference Call", "url": "https://www.nuscalepower.com/press-releases/2026/nuscale-power-to-hold-second-quarter-2026-earnings-conference-call" },
+    { "date": "2026-06-17", "headline": "Paragon Awarded Contract to Complete Final Design Work Supporting NuScale Power's Small Modular Reactor", "url": "https://www.nuscalepower.com/press-releases/2026/paragon-awarded-contract-to-complete-final-design-work-supporting-nuscale-powers-small-modular-reactor" },
+    { "date": "2026-06-10", "headline": "University of Virginia's College at Wise Debuts NuScale Energy Exploration Center", "url": "https://www.nuscalepower.com/press-releases/2026/university-of-virginias-college-at-wise-debuts-nuscale-energy-exploration-center" },
+    { "date": "2026-06-02", "headline": "NuScale Power Announces Two New Board Members to Support Continued Growth and Leadership", "url": "https://www.nuscalepower.com/press-releases/2026/nuscale-power-announces-two-new-board-members-to-support-continued-growth-and-leadership" },
+    { "date": "2026-04-29", "headline": "NuScale Power Announces Opening of an Operations Center in Houston, Texas", "url": "https://www.nuscalepower.com/press-releases/2026/nuscale-power-announces-opening-of-an-operations-center-in-houston-texas" }
+  ],
+
+  "analyst_consensus": {
+    "conflicting": true,
+    "values": [
+      {
+        "rating": "Hold",
+        "analysts": 18,
+        "price_target_12m_avg_usd": 11.97,
+        "price_target_low_usd": 6.0,
+        "price_target_high_usd": 20.0,
+        "as_of": "2026-09-11",
+        "source_url": "https://stockanalysis.com/stocks/smr/forecast/"
+      },
+      {
+        "rating": "Hold",
+        "analysts": 18,
+        "price_target_12m_avg_usd": 12.63,
+        "as_of": "2026-09-18",
+        "source_url": "https://www.tipranks.com/stocks/smr/market-cap",
+        "note": "Carried from BATTERY/manifest.json; NOT re-verified in this collection."
+      }
+    ],
+    "note": "Same rating and same analyst count, two different average targets ($11.97 vs $12.63) eight days apart. Not a defect on either side - an ordinary consensus-refresh lag, and exactly the kind of small divergence a differ must not flag as an app bug."
+  },
+
+  "consolidated_vs_standalone": {
+    "value": "Not applicable in the Indian sense. NuScale files only US-GAAP CONSOLIDATED statements; there is no standalone/consolidated pair to choose between.",
+    "as_of": "2026-08-05",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+    "note": "The FUNCTIONAL analogue - and the one that actually bites - is the Up-C attributable/total split: every income-statement bottom line and every equity line exists in two versions (excluding vs including noncontrolling interests). Code that models the Indian standalone/consolidated toggle and then ignores the attributable/total toggle for US names will silently show the wrong number by up to 5.5x (FY2022). See traps.two_bottom_lines."
+  },
+
+  "traps": [
+    {
+      "id": "P20-T1",
+      "name": "three_way_symbol_collision",
+      "detail": "'SMR' resolves three ways at once: (a) NYSE:SMR = NuScale Power Corporation, CUSIP 67079K100, this entity; (b) BSE scrip 544774 = SMR Jewels Ltd, an unrelated Indian SME (group MT) present in the app's BSE master; (c) 'SMR' is the ordinary industry abbreviation for 'small modular reactor', which is NuScale's own product, so NuScale's own press coverage uses the token non-specifically. A resolver that picks by exchange master order, and a news/RAG pipeline that searches the bare token, fail differently and both fail silently.",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000086917826000088/primary_doc.xml"
+    },
+    {
+      "id": "P20-T2",
+      "name": "two_bottom_lines",
+      "detail": "Up-C structure. us-gaap:NetIncomeLoss (attributable to Class A) and us-gaap:ProfitLoss (total incl. NCI) are BOTH filed for every period and diverge enormously: FY2022 -$25.9M vs -$141.6M (5.5x), FY2023 -$58.4M vs -$180.1M (3.1x), FY2024 -$136.6M vs -$348.4M (2.5x), FY2025 -$355.8M vs -$664.5M (1.9x), TTM to 2026-06-30 -$415.7M vs -$672.9M. Every aggregator checked reports only the first. The ratio changes every year because the NCI share collapsed from 53.0% to 4.5% in twelve months, so the two series are not even a constant multiple of each other.",
+      "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001822966/us-gaap/ProfitLoss.json"
+    },
+    {
+      "id": "P20-T3",
+      "name": "spac_history_contamination",
+      "detail": "CIK 0001822966 was SPRING VALLEY ACQUISITION CORP. until 2022-04-29. Its SPAC-era XBRL sits in the SAME concept history: a NetIncomeLoss fact of -112,171 USD for FY2020 and a POSITIVE +3,202,748 USD for FY2021 coexist with NuScale's -88,387,000 and -102,493,000 for the same years. A pipeline that pulls a multi-year series from the CIK gets a company that was profitable in 2021, at 1/30th the scale, before becoming a reactor designer. Same hazard applies to any 'oldest filing' or 'listed since' inference.",
+      "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001822966/us-gaap/NetIncomeLoss.json"
+    },
+    {
+      "id": "P20-T4",
+      "name": "market_cap_depends_on_share_class_policy",
+      "detail": "Two reputable aggregators give $3.55B and $3.39B for the SAME $8.27 close on the SAME day, differing by exactly the 19,333,750 Class B shares. Class B has ONE VOTE AND NO ECONOMIC RIGHTS on its own, but each is paired 1:1 with an exchangeable NuScale LLC Class B unit that does carry economics - so both treatments are defensible and neither is a bug. A third figure ($4.59B, manifest) matches no filed share count at the current price.",
+      "source_url": "https://companiesmarketcap.com/nuscale-power/marketcap/"
+    },
+    {
+      "id": "P20-T5",
+      "name": "seventy_five_thousand_dollars_of_quarterly_revenue",
+      "detail": "Q2 FY2026 revenue is $75 THOUSAND (the statement is captioned 'in thousands' and the line reads '$ 75'). Q1 was $565 thousand. A parser that assumes the unit is millions renders $75,000,000 - a 1000x error on the single most quoted line, and precisely the class of small-cap misread the run brief calls out. Worse, gross margin is NEGATIVE (-$152k for the quarter) because a June 2026 price agreement with Fluor cut revenue and receivables by $175k, so revenue < cost of sales.",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm"
+    },
+    {
+      "id": "P20-T6",
+      "name": "negative_noncontrolling_interests",
+      "detail": "NCI on the balance sheet is -$47,652k, so total stockholders' equity ($2,013,657k) is LESS than equity attributable to Class A ($2,061,309k). Book-value and PB code that assumes NCI >= 0, or that adds NCI to reach total equity, produces a number roughly 7% off and a PB of 1.76 instead of the quoted 1.65.",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm"
+    },
+    {
+      "id": "P20-T7",
+      "name": "ttm_eps_does_not_equal_sum_of_quarters",
+      "detail": "Aggregator TTM EPS -$1.54; the four as-filed quarterly basic EPS figures sum to -$2.92. Cause: weighted-average Class A shares went 133,417,743 (Q2 FY2025) to 364,523,356 (Q2 FY2026) on ATM issuance, so per-share figures from different quarters are not additive. Neither number is wrong; an app that shows one and cites the other's source is.",
+      "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001822966/us-gaap/EarningsPerShareBasic.json"
+    },
+    {
+      "id": "P20-T8",
+      "name": "revenue_growth_has_four_right_answers",
+      "detail": "-99.07% (QoQ-year-ago), -97.01% (H1 vs H1), -81.0% (TTM), -15.02% (FY2025 vs FY2024). A bare 'Revenue growth' badge is uninterpretable for this name; the basis must be printed alongside it.",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm"
+    },
+    {
+      "id": "P20-T9",
+      "name": "no_split_despite_87_percent_drawdown",
+      "detail": "52-week range $7.21-$57.42 against an $8.27 close, with NO split, reverse split or bonus in the window. Heuristics that infer a corporate action from an extreme price ratio (a common cleanup rule for Indian names) will wrongly 'adjust' this history. Corroborated by year-end market caps: $0.53B (2022), $0.25B (2023), $1.97B (2024), $4.20B (2025).",
+      "source_url": "https://companiesmarketcap.com/nuscale-power/marketcap/"
+    },
+    {
+      "id": "P20-T10",
+      "name": "near_identical_legal_entity_names",
+      "detail": "'NuScale Power Corporation' (the NYSE registrant, Delaware) and 'NuScale Power, LLC' (its Oregon operating subsidiary) are distinct entities whose names differ by one word. The filings themselves use the shorthands 'NuScale Corp' and 'NuScale LLC' and attach different financial meanings to each (the LLC is where the Class B units and the NCI live). Entity resolution that normalises 'Corporation'/'LLC' away merges them.",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm"
+    },
+    {
+      "id": "P20-T11",
+      "name": "stale_ownership_by_construction",
+      "detail": "The only complete ownership table (DEF 14A) is dated 2026-03-30, against a Class A base of 323,734,120. By 2026-07-30 the base was 410,389,522 - 27% larger. Every percentage in that table is stale on the day it is published, and the staleness is caused by the company's own ATM, not by the data source. An app that prints proxy percentages next to a live price without the as-of date is reporting fiction.",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000042/smr-20260415.htm"
+    },
+    {
+      "id": "P20-T12",
+      "name": "largest_holder_is_a_thematic_etf",
+      "detail": "Van Eck's 8.5% 13G position is 29,311,762 shares of which 19,974,830 belong economically to the VanEck Uranium and Nuclear ETF. The single largest reported institutional holder is passive thematic flow. Any 'smart money conviction' or 'institutional accumulation' signal derived from 13F/13G aggregates is reading an index rebalance.",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000086917826000088/primary_doc.xml"
+    },
+    {
+      "id": "P20-T13",
+      "name": "announcements_split_across_two_systems",
+      "detail": "The two most recent announcements (2026-09-01 MillenniTEK, 2026-08-25 nuclear-specific AI) exist ONLY on the company newsroom - no 8-K was filed for either. Conversely the ATM sales agreements exist only as 8-K/424B5 and got no press release. Neither source alone gives a complete announcement feed; an app wired to just one shows a plausible-looking but incomplete history.",
+      "source_url": "https://www.nuscalepower.com/en/news"
+    },
+    {
+      "id": "P20-T14",
+      "name": "par_value_is_not_face_value",
+      "detail": "Par value is $0.0001 per share. Total par on 410.4M Class A shares is $41 thousand. Code that reuses the Indian 'face value' field for dividend-percent or ratio math will divide by a number seven orders of magnitude off.",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm"
+    },
+    {
+      "id": "P20-T15",
+      "name": "related_party_is_also_the_largest_holder_and_the_revenue",
+      "detail": "Fluor Enterprises, Inc. is simultaneously the largest Class A holder (12.68% at 2026-03-30), the contractor on the RoPower FEED Phase 2 work, and the counterparty whose June 2026 price agreement reduced NuScale's reported revenue by $175k. FY2025 revenue was explicitly flagged as largely related-party ($7,431k of Q2 FY2025's $8,054k). Revenue-quality screens that ignore the related-party caption overstate the independence of nearly all historical revenue.",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm"
+    }
+  ],
+
+  "world_gaps": [
+    {
+      "field": "roce",
+      "kind": "does not exist",
+      "detail": "ROCE is not published for US filers by SEC or by the aggregators checked, and NuScale does not disclose it. Published proxies: ROIC -11.18%, ROA -10.60%. An app showing a ROCE figure for SMR has computed it itself and must say so."
+    },
+    {
+      "field": "shareholding.promoter_pct / fii_pct / dii_pct / public_pct / pledged_pct_of_promoter",
+      "kind": "does not exist",
+      "detail": "There is no SEBI-style quarterly shareholding pattern for a US issuer, and no US concept of a 'promoter' or of promoter share pledging. The nearest filed substitutes are captured above: the annual DEF 14A beneficial-ownership table (>5% holders, insiders, one date a year) and event-driven SCHEDULE 13G/13D filings. Any promoter/pledge value rendered for this symbol is fabricated or mis-joined from the BSE SMR Jewels record."
+    },
+    {
+      "field": "identity.listing_date (exact first trading day)",
+      "kind": "could not reach",
+      "detail": "The business combination closing date 2022-05-02 is sourced (TRA execution date in the 10-Q). The exact first day Class A traded on the NYSE under SMR was not confirmed from a primary source in this collection. Recorded as unverified rather than asserted."
+    },
+    {
+      "field": "identity.isin",
+      "kind": "derived, not sourced",
+      "detail": "CUSIP 67079K100 is sourced twice over. ISIN US67079K1007 is computed from it (US + CUSIP + Luhn check digit). Not independently confirmed against a securities master."
+    },
+    {
+      "field": "market_cap (tipranks value) and analyst_consensus (tipranks value)",
+      "kind": "could not reach",
+      "detail": "Carried from BATTERY/manifest.json and NOT re-verified: the session's WebSearch budget (200/200) was exhausted at the first call and tipranks was not fetched directly. Treated as second-hand throughout."
+    },
+    {
+      "field": "price conflict recorded in the manifest ($8.45 vs $10.21 for mid-September 2026)",
+      "kind": "superseded, not reconciled",
+      "detail": "Two independent sources agree the 2026-09-18 close was $8.27. Neither manifest figure matches. $8.45 is plausibly an intraday or prior-session print; $10.21 is far outside the recent range and is more likely a stale or mis-scoped quote. The original conflict is retained in the manifest and is itself a useful diff target; this pack does not claim to have resolved which source produced which."
+    },
+    {
+      "field": "corporate_actions_2026 completeness",
+      "kind": "bounded",
+      "detail": "Derived from the full EDGAR filing index for CIK 0001822966 plus the company newsroom. Form 4/144 insider transactions (numerous) are deliberately excluded as routine and not corporate actions."
+    }
+  ]
+}

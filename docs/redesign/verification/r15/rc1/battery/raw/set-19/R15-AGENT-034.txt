@@ -1,0 +1,60 @@
+=== AGENT-034: empty budget floors ===
+HTTP/1.1 201 Created
+date: Fri, 25 Sep 2026 00:27:39 GMT
+server: uvicorn
+content-length: 88
+content-type: application/json
+vary: Origin
+
+{"runId":"70bef01bf105419c95a04cdfa358cd34","run_id":"70bef01bf105419c95a04cdfa358cd34"}
+{
+    "id": "70bef01bf105419c95a04cdfa358cd34",
+    "agent_id": "copilot",
+    "agent_name": "Vysted Copilot",
+    "mode": "delegate",
+    "status": "running",
+    "cost": {
+        "tokens": 0,
+        "spend_usd": 0.0,
+        "steps": 0,
+        "spendUsd": 0.0
+    },
+    "budget": {
+        "max_tokens": 120000,
+        "max_spend_usd": 1.0,
+        "max_wall_seconds": 600.0,
+        "max_steps": 12,
+        "maxTokens": 120000,
+        "maxSpendUsd": 1.0,
+        "maxWallSeconds": 600.0,
+        "maxSteps": 12
+    },
+    "provider": "ollama",
+    "model": "llama3.1:8b",
+    "plan": null,
+    "activity": [],
+    "detail": null,
+    "question": null,
+    "created_at": 1790296060,
+    "updated_at": 1790296060,
+    "transcript": [],
+    "checkpoint_messages": 0,
+    "answer": null,
+    "brief": null,
+    "host_actions": [],
+    "agentId": "copilot",
+    "agentName": "Vysted Copilot",
+    "createdAt": 1790296060,
+    "updatedAt": 1790296060,
+    "checkpointMessages": 0,
+    "hostActions": []
+}
+=== max_steps:0 -> expect 422 ===
+HTTP/1.1 422 Unprocessable Content
+date: Fri, 25 Sep 2026 00:27:43 GMT
+server: uvicorn
+content-length: 136
+content-type: application/json
+vary: Origin
+
+{"detail":[{"type":"greater_than","loc":["body","budget","max_steps"],"msg":"Input should be greater than 0","input":0,"ctx":{"gt":0}}]}

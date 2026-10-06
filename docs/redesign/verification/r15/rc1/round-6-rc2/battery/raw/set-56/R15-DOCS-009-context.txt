@@ -1,0 +1,18 @@
+# rc1-battery-22 raw R15-DOCS-009 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ sed -n 84,88p docs/BLUEPRINT.md | cut -c1-300; sed -n 120,124p docs/BLUEPRINT.md | cut -c1-300; grep -n -i 'orchestrat' CHANGELOG.md | head -5 | cut -c1-250
+- Code signing pipeline integration (SignPath for Win, ad-hoc for Mac)
+
+**Python layer (sidecar via FastAPI on localhost):**
+- OpenBB ODP wrapped — gives 100+ data providers (Polygon, FMP, FRED, Intrinio, Tiingo, ECB, FINRA, SEC, etc.)
+- QuantLib via Python bindings (Black-Scholes, Binomial, Monte Carlo, VaR, Greeks, yield curves, duration/convexity, bond optimization)
+                │ Subprocess + HTTP
+┌───────────────▼─────────────────────────────────┐
+│  Python Sidecar (FastAPI on localhost)           │
+│  - OpenBB ODP (100+ providers)                  │
+│  - QuantLib (pricing/risk)                      │
+1620:- **F2 `fix(ci)`** — `scripts/ensure-all-sidecars.mjs` orchestrator that
+1640:  - Iteration #1 surfaced two new latent bugs once the orchestrator
+1736:3. **`scripts/ensure-all-sidecars.mjs` orchestrator over inlined chain
+2482:engine orchestrates broker calls, the Strategy Critic sits between
+2603:   (server orchestrators; wrong shape for desktop sidecar).
+EXIT=0

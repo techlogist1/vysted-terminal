@@ -1,0 +1,6 @@
+Source check: portfolios.ts:72-87 `normalizeHolding` - line 84
+`!(Number.isFinite(quantity) && quantity > 0 && Number.isFinite(costBasis) && costBasis >= 0)`
+returns null (drops the row) for any non-finite or non-positive quantity, or any non-finite or
+negative cost basis (costBasis===0 still passes, matching "or a non-finite or <0 cost" from
+PLAN.md). No coercion-to-0 remains.
+Verdict: holds (source-confirmed).

@@ -1,0 +1,114 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "Here"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " steps"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " took"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Read"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " question"}
+{"kind": "delta", "text": " carefully"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Identified"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " tools"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " functions"}
+{"kind": "delta", "text": " provided"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " code"}
+{"kind": "delta", "text": " snippet"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Analy"}
+{"kind": "delta", "text": "zed"}
+{"kind": "delta", "text": " each"}
+{"kind": "delta", "text": " function"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " parameters"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " purpose"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Match"}
+{"kind": "delta", "text": "ed"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " user"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " question"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " suitable"}
+{"kind": "delta", "text": " function"}
+{"kind": "delta", "text": " call"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " since"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " didn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " actual"}
+{"kind": "delta", "text": " question"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " answer"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " perform"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " specific"}
+{"kind": "delta", "text": " task"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " generate"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " JSON"}
+{"kind": "delta", "text": " response"}
+{"kind": "delta", "text": " based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " one"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " provided"}
+{"kind": "delta", "text": " functions"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " question"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " happy"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " assist"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " generating"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " correct"}
+{"kind": "delta", "text": " JSON"}
+{"kind": "delta", "text": " response"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 7595, "output_tokens": 106, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,3 @@
+cmd: grep -n "\.json\.gz\|extensions" scripts/sidecar-staleness.mjs
+output: comment at line 40 confirms the extension allow-list was removed ("An allow-list of extensions silently missed new data kinds: the bundled .json.gz fundamentals seeds never triggered a rebuild (R15-RELEASE-005)"), no extension filter remains in the staleness check logic.
+verdict: holds

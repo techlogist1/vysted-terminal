@@ -1,0 +1,2 @@
+$ fastmcp.Client(get_mcp_server()).list_tools() -> invoke_agent inputSchema
+invoke_agent properties=['agent_id', 'prompt'] required=['agent_id', 'prompt']

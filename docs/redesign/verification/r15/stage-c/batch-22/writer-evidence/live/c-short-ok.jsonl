@@ -1,0 +1,21 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_77821db0917d4c61b10923f3cf773d74", "name": "price_data", "input": {"asset_class": "equity", "range": "1d", "symbol": "SBIN.NS", "timeframe": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_77821db0917d4c61b10923f3cf773d74", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "BI"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "983"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6983, "output_tokens": 13, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

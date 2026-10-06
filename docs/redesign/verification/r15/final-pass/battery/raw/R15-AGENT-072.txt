@@ -1,0 +1,20 @@
+# R15-AGENT-072 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:20:25+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]'   'http://127.0.0.1:52861/agents' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');d=json.loads(t[:i]);[print(a.get('id'),'tools',len(a.get('tools') or []),{k:(len(v) if isinstance(v,list) else v) for k,v in a.items() if 'tool' in k.lower() or 'grant' in k.lower()}) for a in d];print(t[i:])"
+[exit 0] [0.03s]
+buffett tools 3 {'tools': 3, 'effective_tools': 55}
+copilot tools 55 {'tools': 55, 'effective_tools': 55}
+dalio tools 4 {'tools': 4, 'effective_tools': 55}
+druckenmiller tools 4 {'tools': 4, 'effective_tools': 55}
+graham tools 3 {'tools': 3, 'effective_tools': 55}
+klarman tools 3 {'tools': 3, 'effective_tools': 55}
+lynch tools 3 {'tools': 3, 'effective_tools': 55}
+marks tools 5 {'tools': 5, 'effective_tools': 55}
+munger tools 3 {'tools': 3, 'effective_tools': 55}
+portfolio_advisor tools 5 {'tools': 5, 'effective_tools': 55}
+researcher tools 21 {'tools': 21, 'effective_tools': 55}
+soros tools 4 {'tools': 4, 'effective_tools': 55}
+strategy_critic tools 4 {'tools': 4, 'effective_tools': 55}
+
+[http 200 0.004838s]
+

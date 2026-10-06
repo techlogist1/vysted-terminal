@@ -1,0 +1,8 @@
+{
+  "certified": ["R15-DATA-117", "R15-LEAD-040"],
+  "needs_gui": [],
+  "not_certified": [],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-27-int@0338a7bf9bf02c0cacc82a3f76da590d97b3fcca"
+}

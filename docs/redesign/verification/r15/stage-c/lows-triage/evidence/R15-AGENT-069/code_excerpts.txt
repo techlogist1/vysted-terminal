@@ -1,0 +1,162 @@
+## compare_symbols.py:107-190 @sha
+async def _compare_one(symbol: str, timeframe: str, asset_class: str) -> dict[str, Any]:
+    """Fetch quote + fundamentals + return window for a single symbol.
+
+    Always returns a dict; a provider failure is reported as an ``error``
+    field (with a human note) rather than raised, so the caller's
+    ``asyncio.gather`` never aborts the batch on one bad ticker. An equity
+    input with no quote is run through the resolution policy
+    (:func:`_resolve_after_miss`) before the failure stands; a crypto pair
+    passes through unchanged."""
+    from services import provider_registry
+    from services.errors import ProviderError
+
+    requested = symbol
+    resolved_note: str | None = None
+    quote, failure = await _quote_or_error(symbol, asset_class)
+    if failure is not None and asset_class != "crypto":
+        canonical, unresolved, resolved_note = await _resolve_after_miss(symbol)
+        if unresolved is not None:
+            return unresolved
+        if canonical is not None:
+            symbol = canonical
+            quote, failure = await _quote_or_error(symbol, asset_class)
+    if failure is not None:
+        return failure
+
+    # Fundamentals are routinely sparse (and absent for crypto) — a failure here
+    # degrades to None rather than failing the symbol.
+    fundamentals: Any = None
+    if asset_class != "crypto":
+        try:
+            fundamentals = await provider_registry.get_fundamentals(symbol)
+        except (ProviderError, Exception):  # noqa: BLE001
+            fundamentals = None
+
+    # History backs the relative-performance ranking — a failure degrades the
+    # window to None but keeps the (more important) quote in the comparison.
+    return_pct: float | None = None
+    bars: list[Any] = []
+    try:
+        series = await asyncio.to_thread(
+            provider_registry.get_history,
+            symbol,
+            timeframe,
+            _RETURN_WINDOW,
+            asset_class,
+        )
+        return_pct = _return_pct_window(series)
+        bars = list(getattr(series, "bars", []) or [])
+    except (ProviderError, Exception):  # noqa: BLE001
+        return_pct = None
+
+    return {
+        "symbol": quote.symbol,
+        # Set when the input was resolved to a different listing — never silent.
+        **({"requested": requested, "note": resolved_note} if resolved_note else {}),
+        "provider": quote.provider,
+        "quote": {
+            "price": quote.price,
+            "change_percent": quote.change_percent,
+            "currency": quote.currency,
+        },
+        "fundamentals": (
+            {
+                "market_cap": fundamentals.market_cap,
+                "pe_ratio": fundamentals.pe_ratio,
+                "forward_pe": fundamentals.forward_pe,
+                "peg_ratio": fundamentals.peg_ratio,
+                "price_to_book": fundamentals.price_to_book,
+                "dividend_yield": fundamentals.dividend_yield,
+                "eps": fundamentals.eps,
+                "beta": fundamentals.beta,
+            }
+            if fundamentals is not None
+            else None
+        ),
+        "return_pct_window": return_pct,
+        # The window the return was measured over, so a short history (a new
+        # listing, a provider gap) is visible rather than read as 6 months.
+        "bars": len(bars),
+        "window_start": bars[0].timestamp.date().isoformat() if bars else None,
+        "window_end": bars[-1].timestamp.date().isoformat() if bars else None,
+    }
+
+
+## :245-262
+    asset_class = str(args.get("asset_class") or "equity")
+    if asset_class not in _VALID_ASSET_CLASSES:
+        return {"ok": False, "error": f"asset_class must be one of {list(_VALID_ASSET_CLASSES)}"}
+
+    results = await asyncio.gather(
+        *(_compare_one(symbol, timeframe, asset_class) for symbol in symbols)
+    )
+
+    resolved = [r for r in results if "error" not in r]
+    if len(resolved) < 2:
+        # Each failed input keeps its own reason (unresolved name, ambiguous name
+        # with its candidates, or no quote) so the model never reads a wrong
+        # ticker as a data gap (R15-AGENT-045).
+        reasons = "; ".join(f"{r['symbol']}: {r['error']}" for r in results if "error" in r)
+        return {
+            "ok": False,
+            "symbols": results,
+            "message": (
+## market_overview.py:55-78
+async def _quote_one(symbol: str, region: str) -> dict[str, Any]:
+    """Fetch a single index/ETF quote, isolating provider failure to this entry."""
+    from services import provider_registry
+    from services.errors import ProviderError
+
+    label = _INDEX_LABELS.get(symbol, symbol)
+    try:
+        quote = await asyncio.to_thread(provider_registry.get_quote, symbol, "equity", region)
+    except ProviderError as exc:
+        return {"symbol": symbol, "name": label, "error": f"no data for {symbol}: {exc}"}
+    except Exception as exc:  # noqa: BLE001 — surface to the model, never crash the turn
+        return {"symbol": symbol, "name": label, "error": f"unexpected error for {symbol}: {exc}"}
+
+    return {
+        "symbol": quote.symbol,
+        "name": label,
+        "price": quote.price,
+        "change": quote.change,
+        "change_percent": quote.change_percent,
+        "currency": quote.currency,
+        "market_state": quote.market_state,
+        "provider": quote.provider,
+    }
+
+## :99-130
+async def _market_overview(args: dict[str, Any]) -> dict[str, Any]:
+    """Return a locale-aware market-state snapshot: indices + market headlines.
+
+    Args:
+        region: optional locale override (``US`` / ``IN`` / ``GLOBAL``); defaults
+            to the active request region.
+
+    Returns ``{"ok": True, "region", "indices": [...], "headlines": [...]}``,
+    plus ``headlines_error`` when the news feed failed (``headlines`` is then
+    ``[]`` because of the outage, not because there was no news).
+    Index quotes that fail carry a per-symbol ``error`` field (a coverage gap for
+    THAT index, not a feed outage). ``ok`` is False only when every index failed.
+    """
+    region = (
+        config.normalize_region(args.get("region")) if args.get("region") else config.get_region()
+    )
+    symbols = _indices_for_region(region)
+
+    indices, (headlines, headlines_error) = await asyncio.gather(
+        asyncio.gather(*(_quote_one(symbol, region) for symbol in symbols)),
+        _headlines(_HEADLINE_LIMIT),
+    )
+    indices = list(indices)
+
+    resolved = [idx for idx in indices if "error" not in idx]
+    payload: dict[str, Any] = {
+        "ok": bool(resolved),
+        "region": region,
+        "indices": indices,
+        "headlines": headlines,
+    }
+    if headlines_error:

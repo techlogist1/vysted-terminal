@@ -1,0 +1,5 @@
+ensure_build cleared: True
+backup exists: True
+backup has data_cache.db: True
+new build marker: ('0.8.0',)
+cache row count after clear: (0,)

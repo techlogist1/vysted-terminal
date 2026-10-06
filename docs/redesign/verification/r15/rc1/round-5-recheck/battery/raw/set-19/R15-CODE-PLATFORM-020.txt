@@ -1,0 +1,8 @@
+COMMAND: curl -s http://127.0.0.1:52355/workflow/saved  (after inserting a corrupt-JSON row and a version:2 row directly into workflows.db)
+{"workflows":[],"unreadable":[{"id":"battery15-corrupt","name":"corrupt-row","reason":"Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"},{"id":"battery15-v2","name":"v2-row","reason":"saved with workflow schema version 2; this build reads version 1"}]}
+
+COMMAND: curl -s -w '
+HTTP_STATUS:%{http_code}
+' http://127.0.0.1:52355/workflow/saved/battery15-v2
+{"detail":"saved with workflow schema version 2; this build reads version 1"}
+HTTP_STATUS:409

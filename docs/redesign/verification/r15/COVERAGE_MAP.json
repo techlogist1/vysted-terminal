@@ -1,0 +1,2743 @@
+{
+ "generated_from": "docs/redesign/verification/r15/stage0/COVERAGE_SKELETON.json + surface/*/COVERAGE.json",
+ "surfaces": 101,
+ "cells_total": 288,
+ "tally": {
+  "driven": 243,
+  "NOT TESTED": 14,
+  "NEEDS-MANUAL-CHECK": 22,
+  "removed with the feature": 9
+ },
+ "rows": [
+  {
+   "id": "panel-chart",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Chart panel (PanelSpec + ChartPanel component)",
+   "entry": "src/modules/chart/index.ts:20; src/modules/chart/ChartPanel.tsx",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "loading",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "NEEDS-GUI (state only)"
+    },
+    {
+     "state": "error",
+     "status": "driven",
+     "detail": "30m empty + crypto 404 driven"
+    },
+    {
+     "state": "offline",
+     "status": "NOT TESTED",
+     "detail": "NOT TESTED (no network cut at this edge)"
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "ok"
+    },
+    {
+     "state": "overflow(many indicators/drawings)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "all-50 request ok (API level); render NEEDS-GUI"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-watchlist",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Watchlist panel",
+   "entry": "src/modules/watchlist/index.ts:14; src/modules/watchlist/WatchlistPanel.tsx:139",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "empty(no symbols)",
+     "status": "NOT TESTED",
+     "detail": "NOT TESTED (store-only)"
+    },
+    {
+     "state": "loading(rows===null)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "NEEDS-GUI"
+    },
+    {
+     "state": "error",
+     "status": "driven",
+     "detail": "n/a at API"
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "ok"
+    },
+    {
+     "state": "overflow(collapse ladder narrow width)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "NEEDS-GUI"
+    },
+    {
+     "state": "tenth-item(row virtualization at scale)",
+     "status": "driven",
+     "detail": "25-symbol batch driven"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-news",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "News panel",
+   "entry": "src/modules/news/index.ts:18",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "empty",
+     "status": "driven",
+     "detail": "IN names mostly empty"
+    },
+    {
+     "state": "loading",
+     "status": "driven",
+     "detail": "Default watchlist -> 8 Yahoo items tagged AAPL/QQQ/NVDA/SPY with sentiment; empty symbols -> 20 general items; limit 0/500 -> 422 (le=200). IN watchlist RELIANCE,TCS,KAYNES,BDL -> 3 items, 2 of them Flanigan's Enterprises (US ticker BDL) headlines tagged 'BDL' (SURF-PANELS-LAYOUT"
+    },
+    {
+     "state": "error(self-heals)",
+     "status": "NOT TESTED",
+     "detail": "NOT TESTED (needs a dead feed; retry loop is COD-market-data-providers-3-5)"
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "ok"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-portfolio",
+   "area": "portfolio",
+   "operator_area": "ui",
+   "surface": "Portfolio (paper) panel",
+   "entry": "src/modules/portfolio/index.ts:15; src/modules/portfolio/PortfolioPanel.tsx:88",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "empty(no positions)",
+     "status": "driven",
+     "detail": "Driven through the REAL PortfolioPanel in jsdom (harness/portfolio.s2c.test.tsx) against a live sidecar (:52221), real sidecar-client via ?sidecar-port. Corroborated live: COD-portfolio-2/3/4/5/8, COD-host-actions-proposed-changes-9. NEEDS-GUI: drop-ladder column shedding at real"
+    },
+    {
+     "state": "error(form validation, dismissible :701-708)",
+     "status": "driven",
+     "detail": "Driven through the REAL PortfolioPanel in jsdom (harness/portfolio.s2c.test.tsx) against a live sidecar (:52221), real sidecar-client via ?sidecar-port. Corroborated live: COD-portfolio-2/3/4/5/8, COD-host-actions-proposed-changes-9. NEEDS-GUI: drop-ladder column shedding at real"
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "Driven through the REAL PortfolioPanel in jsdom (harness/portfolio.s2c.test.tsx) against a live sidecar (:52221), real sidecar-client via ?sidecar-port. Corroborated live: COD-portfolio-2/3/4/5/8, COD-host-actions-proposed-changes-9. NEEDS-GUI: drop-ladder column shedding at real"
+    },
+    {
+     "state": "tenth-item",
+     "status": "driven",
+     "detail": "Driven through the REAL PortfolioPanel in jsdom (harness/portfolio.s2c.test.tsx) against a live sidecar (:52221), real sidecar-client via ?sidecar-port. Corroborated live: COD-portfolio-2/3/4/5/8, COD-host-actions-proposed-changes-9. NEEDS-GUI: drop-ladder column shedding at real"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/portfolio-notes/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-equity-overview",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Equity Overview panel",
+   "entry": "src/modules/equity-overview/index.ts:11,15,18",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "loading",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "NEEDS-GUI"
+    },
+    {
+     "state": "error",
+     "status": "driven",
+     "detail": "junk + crypto driven"
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "ok"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-brief",
+   "area": "brief",
+   "operator_area": "research",
+   "surface": "Research Brief panel (lifecycle)",
+   "entry": "src/modules/research/index.ts:20; src/modules/research/BriefPanel.tsx:549",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "empty(BriefPanel.tsx:527,630)",
+     "status": "driven",
+     "detail": "Auto-publishes via agent_runtime._auto_publish_event (CLAUDE.md) on research/deep_research ok-result. structured metrics grid via brief-blocks.tsx (deriveMetrics). STEP_STATUS_COLOR states pending/running/ok/error at BriefPanel.tsx:273-275. Vitest: BriefPanel.test.tsx, brief-bloc"
+    },
+    {
+     "state": "streaming/loading",
+     "status": "driven",
+     "detail": "Auto-publishes via agent_runtime._auto_publish_event (CLAUDE.md) on research/deep_research ok-result. structured metrics grid via brief-blocks.tsx (deriveMetrics). STEP_STATUS_COLOR states pending/running/ok/error at BriefPanel.tsx:273-275. Vitest: BriefPanel.test.tsx, brief-bloc"
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "Auto-publishes via agent_runtime._auto_publish_event (CLAUDE.md) on research/deep_research ok-result. structured metrics grid via brief-blocks.tsx (deriveMetrics). STEP_STATUS_COLOR states pending/running/ok/error at BriefPanel.tsx:273-275. Vitest: BriefPanel.test.tsx, brief-bloc"
+    },
+    {
+     "state": "error(image load errored :181)",
+     "status": "driven",
+     "detail": "Auto-publishes via agent_runtime._auto_publish_event (CLAUDE.md) on research/deep_research ok-result. structured metrics grid via brief-blocks.tsx (deriveMetrics). STEP_STATUS_COLOR states pending/running/ok/error at BriefPanel.tsx:273-275. Vitest: BriefPanel.test.tsx, brief-bloc"
+    },
+    {
+     "state": "divergence-notice(honest 'kept previous, richer brief')",
+     "status": "driven",
+     "detail": "Auto-publishes via agent_runtime._auto_publish_event (CLAUDE.md) on research/deep_research ok-result. structured metrics grid via brief-blocks.tsx (deriveMetrics). STEP_STATUS_COLOR states pending/running/ok/error at BriefPanel.tsx:273-275. Vitest: BriefPanel.test.tsx, brief-bloc"
+    },
+    {
+     "state": "no-web-honest-banner(:701)",
+     "status": "driven",
+     "detail": "Auto-publishes via agent_runtime._auto_publish_event (CLAUDE.md) on research/deep_research ok-result. structured metrics grid via brief-blocks.tsx (deriveMetrics). STEP_STATUS_COLOR states pending/running/ok/error at BriefPanel.tsx:273-275. Vitest: BriefPanel.test.tsx, brief-bloc"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/research-briefs/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-settings",
+   "area": "settings",
+   "operator_area": "ui",
+   "surface": "Settings panel shell",
+   "entry": "src/modules/platform/index.ts:29; src/components/SettingsPanel.tsx:116",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "populated(only)",
+     "status": "driven",
+     "detail": "Section list mounted always: SectionNav, ProvidersSection, ResearchSection, RegionSection, KeybindingsSection, AdvancedSection (SettingsPanel.tsx:116-122). Vitest: SettingsPanel.test.tsx."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-plugin-manager",
+   "area": "plugins",
+   "operator_area": "ui",
+   "surface": "Plugin Manager panel",
+   "entry": "src/modules/plugin-manager/index.ts:19; src/components/PluginManagerPanel.tsx",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "empty(no plugins loaded, :64 EmptyState)",
+     "status": "driven",
+     "detail": "enable/disable toggle :97-128; health-history sample badge; enabledCount summary line :42. Backed by usePluginsStore (attached to PluginRuntime). Vitest: PluginManagerPanel.test.tsx."
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "enable/disable toggle :97-128; health-history sample badge; enabledCount summary line :42. Backed by usePluginsStore (attached to PluginRuntime). Vitest: PluginManagerPanel.test.tsx."
+    },
+    {
+     "state": "error(plugin health state 'error' badge :140)",
+     "status": "driven",
+     "detail": "enable/disable toggle :97-128; health-history sample badge; enabledCount summary line :42. Backed by usePluginsStore (attached to PluginRuntime). Vitest: PluginManagerPanel.test.tsx."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-marketplace",
+   "area": "plugins",
+   "operator_area": "ui",
+   "surface": "Marketplace panel",
+   "entry": "src/modules/marketplace/index.ts:17; src/modules/marketplace/MarketplacePanel.tsx:38",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "populated(catalog)",
+     "status": "driven",
+     "detail": "install() at :104 -> useMarketplaceStore. Read-only broker connections blurb (:18) — installing a broker adds no execution path (FR-055). Vitest: lib/marketplace.test.ts, lib/marketplace-lifecycle.test.ts."
+    },
+    {
+     "state": "error(entry.errorMessage :129)",
+     "status": "driven",
+     "detail": "install() at :104 -> useMarketplaceStore. Read-only broker connections blurb (:18) — installing a broker adds no execution path (FR-055). Vitest: lib/marketplace.test.ts, lib/marketplace-lifecycle.test.ts."
+    },
+    {
+     "state": "installed/enabled/preinstalled badge states (StateBadge :126)",
+     "status": "driven",
+     "detail": "install() at :104 -> useMarketplaceStore. Read-only broker connections blurb (:18) — installing a broker adds no execution path (FR-055). Vitest: lib/marketplace.test.ts, lib/marketplace-lifecycle.test.ts."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-agent-builder",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Agent Builder panel (custom agent authoring)",
+   "entry": "src/modules/agent-builder/index.ts:28; src/modules/agent-builder/AgentBuilderPanel.tsx:117",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "idle",
+     "status": "driven",
+     "detail": "n/a"
+    },
+    {
+     "state": "saving",
+     "status": "driven",
+     "detail": "Full CRUD live: create 201, duplicate 409, get 200, update 200, delete 204, re-delete 404, first-party id delete 400, bad provider 422, unknown tool 422. Accepted without complaint: id 'custom:../../etc/passwd' (stored/deleted fine, no path use), a 300 KB system_prompt, default_m"
+    },
+    {
+     "state": "saved",
+     "status": "driven",
+     "detail": "Full CRUD live: create 201, duplicate 409, get 200, update 200, delete 204, re-delete 404, first-party id delete 400, bad provider 422, unknown tool 422. Accepted without complaint: id 'custom:../../etc/passwd' (stored/deleted fine, no path use), a 300 KB system_prompt, default_m"
+    },
+    {
+     "state": "error(save/delete :185-187, field errors :119,198)",
+     "status": "driven",
+     "detail": "422/409 driven"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-node-editor",
+   "area": "node-editor",
+   "operator_area": "ui",
+   "surface": "Node Editor canvas (workflow builder)",
+   "entry": "src/modules/node-editor/index.ts:24; src/modules/node-editor/NodeEditorPanel.tsx:106",
+   "drive": "gui",
+   "cells": [
+    {
+     "state": "empty(no nodes, Run disabled :537)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "surface requires GUI interaction not available in Stage B"
+    },
+    {
+     "state": "saving/save-error(:135-137)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "surface requires GUI interaction not available in Stage B"
+    },
+    {
+     "state": "loading-list/load-error(:140-143)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "surface requires GUI interaction not available in Stage B"
+    },
+    {
+     "state": "running(:146, RunOverlayState)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "surface requires GUI interaction not available in Stage B"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "node-editor-palette",
+   "area": "node-editor",
+   "operator_area": "ui",
+   "surface": "Node palette (draggable node catalog)",
+   "entry": "src/modules/node-editor/node-palette.tsx:62",
+   "drive": "gui",
+   "cells": [
+    {
+     "state": "populated(builtin+plugin node kinds)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "surface requires GUI interaction not available in Stage B"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "node-editor-run-overlay",
+   "area": "node-editor",
+   "operator_area": "ui",
+   "surface": "Workflow run overlay (SSE run states)",
+   "entry": "src/modules/node-editor/workflow-run-overlay.tsx:48,58,141",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "idle(:150)",
+     "status": "driven",
+     "detail": "quote->json_path->compare run streams run-start/node-start/node-output/node-error/run-error (8 frames) - logic.compare ignores config b (COD-workflow-engine-1). Invalid edge, cycle and unknown node type each -> 200 with ZERO frames (confirms COD-workflow-engine-4 live; reason onl"
+    },
+    {
+     "state": "running",
+     "status": "driven",
+     "detail": "quote->json_path->compare run streams run-start/node-start/node-output/node-error/run-error (8 frames) - logic.compare ignores config b (COD-workflow-engine-1). Invalid edge, cycle and unknown node type each -> 200 with ZERO frames (confirms COD-workflow-engine-4 live; reason onl"
+    },
+    {
+     "state": "ok",
+     "status": "driven",
+     "detail": "quote->json_path->compare run streams run-start/node-start/node-output/node-error/run-error (8 frames) - logic.compare ignores config b (COD-workflow-engine-1). Invalid edge, cycle and unknown node type each -> 200 with ZERO frames (confirms COD-workflow-engine-4 live; reason onl"
+    },
+    {
+     "state": "error(:183, per-node status badges :237-244)",
+     "status": "driven",
+     "detail": "quote->json_path->compare run streams run-start/node-start/node-output/node-error/run-error (8 frames) - logic.compare ignores config b (COD-workflow-engine-1). Invalid edge, cycle and unknown node type each -> 200 with ZERO frames (confirms COD-workflow-engine-4 live; reason onl"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "node-editor-code-node",
+   "area": "node-editor",
+   "operator_area": "ui",
+   "surface": "Code node inspector (in-canvas code editor)",
+   "entry": "src/modules/node-editor/code-node-inspector.tsx:36",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "compile-error(:111-113, data-testid=code-node-error)",
+     "status": "driven",
+     "detail": "transform.code with '7 ** 10 ** 7' beside a trivial node: run-start arrives after 8.15 s, no node frame within 60 s, client timed out. The next unrelated GET /history/INFY (cold IN 1d) took 85.5 s vs 5.9 s (TCS, right after) and 5.0 s (HDFCBANK control); a curl /health during the"
+    },
+    {
+     "state": "preview-ok/preview-error(:141)",
+     "status": "driven",
+     "detail": "transform.code with '7 ** 10 ** 7' beside a trivial node: run-start arrives after 8.15 s, no node frame within 60 s, client timed out. The next unrelated GET /history/INFY (cold IN 1d) took 85.5 s vs 5.9 s (TCS, right after) and 5.0 s (HDFCBANK control); a curl /health during the"
+    },
+    {
+     "state": "run-error(:158,204)",
+     "status": "driven",
+     "detail": "transform.code with '7 ** 10 ** 7' beside a trivial node: run-start arrives after 8.15 s, no node frame within 60 s, client timed out. The next unrelated GET /history/INFY (cold IN 1d) took 85.5 s vs 5.9 s (TCS, right after) and 5.0 s (HDFCBANK control); a curl /health during the"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "node-editor-save-dialog",
+   "area": "node-editor",
+   "operator_area": "ui",
+   "surface": "Workflow save dialog",
+   "entry": "src/modules/node-editor/workflow-save-dialog.tsx",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "idle",
+     "status": "driven",
+     "detail": "save 200, list 1, get round-trip, missing 404, delete 200, re-delete 404."
+    },
+    {
+     "state": "saving",
+     "status": "driven",
+     "detail": "save 200, list 1, get round-trip, missing 404, delete 200, re-delete 404."
+    },
+    {
+     "state": "error",
+     "status": "driven",
+     "detail": "save 200, list 1, get round-trip, missing 404, delete 200, re-delete 404."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-backtest",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Backtest panel (strategy backtest + critic)",
+   "entry": "src/modules/backtest/index.ts:25; src/modules/backtest/BacktestPanel.tsx:38",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "loading(catalogueStatus, :161)",
+     "status": "driven",
+     "detail": "n/a"
+    },
+    {
+     "state": "error(:163)",
+     "status": "driven",
+     "detail": "run-error driven"
+    },
+    {
+     "state": "populated(BacktestResultView.tsx:409)",
+     "status": "driven",
+     "detail": "ok"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-broker-connect",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Broker Connect (connections) panel",
+   "entry": "src/modules/broker-connect/index.ts:17; src/modules/broker-connect/BrokerConnectPanel.tsx:116",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "loading(:160-169)",
+     "status": "removed with the feature",
+     "detail": "removed with the feature - trading is out of the product (operator decision 23 Sep 2026); this surface existed only to connect a broker / place a broker order (source: surface/panels-layouts/COVERAGE.json reason 'removed_with_feature')"
+    },
+    {
+     "state": "empty(no brokers)",
+     "status": "removed with the feature",
+     "detail": "removed with the feature - trading is out of the product (operator decision 23 Sep 2026); this surface existed only to connect a broker / place a broker order (source: surface/panels-layouts/COVERAGE.json reason 'removed_with_feature')"
+    },
+    {
+     "state": "connected/connecting/disconnected/error(status badge, :266 err text)",
+     "status": "removed with the feature",
+     "detail": "removed with the feature - trading is out of the product (operator decision 23 Sep 2026); this surface existed only to connect a broker / place a broker order (source: surface/panels-layouts/COVERAGE.json reason 'removed_with_feature')"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-broker-order-entry",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Broker Order Entry panel",
+   "entry": "src/modules/broker-connect/index.ts:25; src/modules/broker-connect/BrokerOrderEntry.tsx:47",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "error(:241)",
+     "status": "removed with the feature",
+     "detail": "removed with the feature - trading is out of the product (operator decision 23 Sep 2026); this surface existed only to connect a broker / place a broker order (source: surface/panels-layouts/COVERAGE.json reason 'removed_with_feature')"
+    },
+    {
+     "state": "populated",
+     "status": "removed with the feature",
+     "detail": "removed with the feature - trading is out of the product (operator decision 23 Sep 2026); this surface existed only to connect a broker / place a broker order (source: surface/panels-layouts/COVERAGE.json reason 'removed_with_feature')"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-audit-log",
+   "area": "safety",
+   "operator_area": "ui",
+   "surface": "Audit Log viewer panel",
+   "entry": "src/modules/safety/index.ts:14-40; src/modules/safety/AuditLogViewer.tsx",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "empty",
+     "status": "driven",
+     "detail": "GET /safety/audit-log -> {entries:[]}; export.csv -> header only; kill-switch status fired:false. The viewer's subject is the order audit (broker/account/action columns) - trading is out of the product, so beyond empty/export this surface is removed_with_feature."
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "GET /safety/audit-log -> {entries:[]}; export.csv -> header only; kill-switch status fired:false. The viewer's subject is the order audit (broker/account/action columns) - trading is out of the product, so beyond empty/export this surface is removed_with_feature."
+    },
+    {
+     "state": "filtered(defaultAuditFilter, store/safety.ts:117)",
+     "status": "driven",
+     "detail": "GET /safety/audit-log -> {entries:[]}; export.csv -> header only; kill-switch status fired:false. The viewer's subject is the order audit (broker/account/action columns) - trading is out of the product, so beyond empty/export this surface is removed_with_feature."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-macro",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Macro panel",
+   "entry": "src/modules/macro/index.ts:16-32; src/modules/macro/MacroPanel.tsx:26",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "loading(:61)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "NEEDS-GUI"
+    },
+    {
+     "state": "error(self-heals, :36-44,:69)",
+     "status": "driven",
+     "detail": "driven"
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "ECB/WB ok"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-sec-filings",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "SEC Filings panel",
+   "entry": "src/modules/sec/index.ts:22-38; src/modules/sec/SecFilingsPanel.tsx:38",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "loading(:193)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "NEEDS-GUI"
+    },
+    {
+     "state": "error(self-heals, :60-68, data-testid=sec-filings-error at :174)",
+     "status": "NOT TESTED",
+     "detail": "NOT TESTED - no probe induced a /sec/* failure (sec-edgar-mcp stayed up for the whole panels-layouts drive; the network-down pass in surface/failure-inducer/30-netdown-data-routes.txt did not hit /sec routes), so the self-heal branch at SecFilingsPanel.tsx:60-68 was never reached"
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "list only"
+    },
+    {
+     "state": "tenth-item(filings list)",
+     "status": "driven",
+     "detail": "28-40 row list driven"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-earnings-calendar",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Earnings Calendar panel",
+   "entry": "src/modules/earnings/index.ts:16-32; src/modules/earnings/EarningsCalendarPanel.tsx:77",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "idle/loading(:215)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "NEEDS-GUI"
+    },
+    {
+     "state": "error(self-heals, :107-115,:257)",
+     "status": "driven",
+     "detail": "502 driven"
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "US only"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-analyst-ratings",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Analyst Ratings panel",
+   "entry": "src/modules/analyst-ratings/index.ts:14-30; src/modules/analyst-ratings/AnalystRatingsPanel.tsx:49",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "loading(per-slice, :91-92)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "NEEDS-GUI"
+    },
+    {
+     "state": "empty(composed error EmptyState with Retry CTA, :124)",
+     "status": "driven",
+     "detail": "driven (IN)"
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "AAPL ok"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-option-pricer",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Option Pricer panel (Quant)",
+   "entry": "src/modules/quant/index.ts:18-34; src/modules/quant/OptionPricerPanel.tsx:221",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "idle(composed EmptyState with prefilled CTA)",
+     "status": "driven",
+     "detail": "n/a"
+    },
+    {
+     "state": "loading(isRunning, :241)",
+     "status": "driven",
+     "detail": "n/a"
+    },
+    {
+     "state": "error(data-testid=option-pricing-error, :491-497)",
+     "status": "driven",
+     "detail": "400s driven"
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "ok"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-greeks-dashboard",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Greeks Dashboard panel (Quant)",
+   "entry": "src/modules/quant/index.ts:30; src/modules/quant/GreeksDashboard.tsx:162",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "idle",
+     "status": "driven",
+     "detail": "Call/put Greeks equal BS analytic; zero vol -> delta 1 gamma 0. Units raw QuantLib (vega per 1.00 vol) - COD-macro-quant-3."
+    },
+    {
+     "state": "loading",
+     "status": "driven",
+     "detail": "Call/put Greeks equal BS analytic; zero vol -> delta 1 gamma 0. Units raw QuantLib (vega per 1.00 vol) - COD-macro-quant-3."
+    },
+    {
+     "state": "error(data-testid=greeks-error, :339-345)",
+     "status": "driven",
+     "detail": "Call/put Greeks equal BS analytic; zero vol -> delta 1 gamma 0. Units raw QuantLib (vega per 1.00 vol) - COD-macro-quant-3."
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "Call/put Greeks equal BS analytic; zero vol -> delta 1 gamma 0. Units raw QuantLib (vega per 1.00 vol) - COD-macro-quant-3."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-bond-pricer",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Bond Pricer panel (Quant)",
+   "entry": "src/modules/quant/index.ts:38; src/modules/quant/BondPricerPanel.tsx:98",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "idle",
+     "status": "driven",
+     "detail": "Par bond clean 1000.00; panel defaults 1060.5846 = hand-computed PV; mid-period accrued 12.50; settlement after maturity 400. Negative YTM accepted (1632.69)."
+    },
+    {
+     "state": "loading",
+     "status": "driven",
+     "detail": "Par bond clean 1000.00; panel defaults 1060.5846 = hand-computed PV; mid-period accrued 12.50; settlement after maturity 400. Negative YTM accepted (1632.69)."
+    },
+    {
+     "state": "error(data-testid=bond-pricing-error, :270-276)",
+     "status": "driven",
+     "detail": "Par bond clean 1000.00; panel defaults 1060.5846 = hand-computed PV; mid-period accrued 12.50; settlement after maturity 400. Negative YTM accepted (1632.69)."
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "Par bond clean 1000.00; panel defaults 1060.5846 = hand-computed PV; mid-period accrued 12.50; settlement after maturity 400. Negative YTM accepted (1632.69)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-yield-curve",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Yield Curve panel (Quant)",
+   "entry": "src/modules/quant/index.ts:46; src/modules/quant/YieldCurvePanel.tsx:135",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "idle(chart never mounts empty)",
+     "status": "driven",
+     "detail": "Panel defaults bootstrap in 22 ms. Duplicate pillar -> 500 text/plain with no CORS header (SURF-PANELS-LAYOUTS-9). Single instrument -> 30 identical points (COD-macro-quant-8). 10,000 samples accepted (1.2 MB)."
+    },
+    {
+     "state": "loading",
+     "status": "driven",
+     "detail": "Panel defaults bootstrap in 22 ms. Duplicate pillar -> 500 text/plain with no CORS header (SURF-PANELS-LAYOUTS-9). Single instrument -> 30 identical points (COD-macro-quant-8). 10,000 samples accepted (1.2 MB)."
+    },
+    {
+     "state": "error(data-testid=yield-curve-error, :349-355)",
+     "status": "driven",
+     "detail": "Panel defaults bootstrap in 22 ms. Duplicate pillar -> 500 text/plain with no CORS header (SURF-PANELS-LAYOUTS-9). Single instrument -> 30 identical points (COD-macro-quant-8). 10,000 samples accepted (1.2 MB)."
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "Panel defaults bootstrap in 22 ms. Duplicate pillar -> 500 text/plain with no CORS header (SURF-PANELS-LAYOUTS-9). Single instrument -> 30 identical points (COD-macro-quant-8). 10,000 samples accepted (1.2 MB)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-screener",
+   "area": "screener",
+   "operator_area": "data",
+   "surface": "Screener panel shell",
+   "entry": "src/modules/screener/index.ts:16-32; src/modules/screener/ScreenerPanel.tsx:90",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "error(:298-305, truncated backend error message)",
+     "status": "driven",
+     "detail": "POST /screener/run, /screener/run/stream (SSE), /screener/formula/validate, GET /screener/universe. Uses useRetryOnSidecarReady per CLAUDE.md comment."
+    },
+    {
+     "state": "universe-status-error(:107,214)",
+     "status": "driven",
+     "detail": "POST /screener/run, /screener/run/stream (SSE), /screener/formula/validate, GET /screener/universe. Uses useRetryOnSidecarReady per CLAUDE.md comment."
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "POST /screener/run, /screener/run/stream (SSE), /screener/formula/validate, GET /screener/universe. Uses useRetryOnSidecarReady per CLAUDE.md comment."
+    },
+    {
+     "state": "tenth-item(results table)",
+     "status": "driven",
+     "detail": "POST /screener/run, /screener/run/stream (SSE), /screener/formula/validate, GET /screener/universe. Uses useRetryOnSidecarReady per CLAUDE.md comment."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/screener/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "screener-criteria-builder",
+   "area": "screener",
+   "operator_area": "data",
+   "surface": "Screener criteria builder (AND/OR groups)",
+   "entry": "src/modules/screener/ScreenerCriteriaBuilder.tsx:390; src/modules/screener/CriterionGroupEditor.tsx:317",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "empty(no criteria)",
+     "status": "driven",
+     "detail": "ScreenerCriteriaBuilder.test.tsx exists — pure component test, no sidecar needed for structural states."
+    },
+    {
+     "state": "populated(nested groups)",
+     "status": "driven",
+     "detail": "ScreenerCriteriaBuilder.test.tsx exists — pure component test, no sidecar needed for structural states."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/screener/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "screener-formula-input",
+   "area": "screener",
+   "operator_area": "data",
+   "surface": "Screener formula leaf (raw expression input)",
+   "entry": "src/modules/screener/ScreenerFormulaLeaf.tsx:46,202",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "parse-error(data-testid=screener-formula-error, :202-207 shows caret at compiled.position)",
+     "status": "driven",
+     "detail": "Compiler lives in lib/screener-expr.ts (screener-expr.test.ts) — fully headless unit-testable for parser edge cases independent of the leaf component."
+    },
+    {
+     "state": "valid",
+     "status": "driven",
+     "detail": "Compiler lives in lib/screener-expr.ts (screener-expr.test.ts) — fully headless unit-testable for parser edge cases independent of the leaf component."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/screener/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "screener-results-table",
+   "area": "screener",
+   "operator_area": "data",
+   "surface": "Screener results table",
+   "entry": "src/modules/screener/ScreenerResultsTable.tsx:318",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "empty",
+     "status": "driven",
+     "detail": "ScreenerResultsTable.test.tsx exists."
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "ScreenerResultsTable.test.tsx exists."
+    },
+    {
+     "state": "tenth-item(scroll/virtualization)",
+     "status": "driven",
+     "detail": "ScreenerResultsTable.test.tsx exists."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/screener/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "screener-presets",
+   "area": "screener",
+   "operator_area": "data",
+   "surface": "Screener saved/preset screens",
+   "entry": "src/modules/screener/ScreenerPresets.tsx:119,125,141",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "populated(PRESETS catalog)",
+     "status": "driven",
+     "detail": "Presets are a static catalog (not sidecar-persisted 'saved screens' in this build — verify against BLUEPRINT before assuming a user-save flow exists here)."
+    },
+    {
+     "state": "applied(criteria+universe overwritten, combinator reset to AND :128-129)",
+     "status": "driven",
+     "detail": "Presets are a static catalog (not sidecar-persisted 'saved screens' in this build — verify against BLUEPRINT before assuming a user-save flow exists here)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/screener/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-notes",
+   "area": "notes",
+   "operator_area": "ui",
+   "surface": "Notes panel (per-stock + general)",
+   "entry": "src/modules/notes/index.ts:11-27; src/modules/notes/NotesPanel.tsx:86",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "empty(new note)",
+     "status": "driven",
+     "detail": "Real NotesPanel + Tiptap v3.25 in jsdom (harness/notes.s2c.test.tsx), editor reached via .ProseMirror.editor."
+    },
+    {
+     "state": "editing(:426)",
+     "status": "driven",
+     "detail": "Real NotesPanel + Tiptap v3.25 in jsdom (harness/notes.s2c.test.tsx), editor reached via .ProseMirror.editor."
+    },
+    {
+     "state": "export-status(:214)",
+     "status": "driven",
+     "detail": "Real NotesPanel + Tiptap v3.25 in jsdom (harness/notes.s2c.test.tsx), editor reached via .ProseMirror.editor."
+    },
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "Real NotesPanel + Tiptap v3.25 in jsdom (harness/notes.s2c.test.tsx), editor reached via .ProseMirror.editor."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/portfolio-notes/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "notes-toolbar",
+   "area": "notes",
+   "operator_area": "ui",
+   "surface": "Notes formatting toolbar",
+   "entry": "src/modules/notes/NotesToolbar.tsx:131",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "populated(active mark states per Tiptap editor selection)",
+     "status": "driven",
+     "detail": "Depends on a live Tiptap Editor instance prop — needs jsdom mount, not a pure function."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/portfolio-notes/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "notes-slash-menu",
+   "area": "notes",
+   "operator_area": "ui",
+   "surface": "Notes '/' slash-command menu",
+   "entry": "src/modules/notes/SlashCommandExtension.ts; src/modules/notes/slash-commands.ts",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "open(filtered list)",
+     "status": "driven",
+     "detail": "Dispatches DOM CustomEvent 'notes:slash-menu'; NotesPanel listens (NotesPanel.tsx:94-95 slashMenu/slashActiveIdx state)."
+    },
+    {
+     "state": "closed",
+     "status": "driven",
+     "detail": "Dispatches DOM CustomEvent 'notes:slash-menu'; NotesPanel listens (NotesPanel.tsx:94-95 slashMenu/slashActiveIdx state)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/portfolio-notes/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "notes-wikilink-menu",
+   "area": "notes",
+   "operator_area": "ui",
+   "surface": "Notes [[wikilink]] suggestion popup",
+   "entry": "src/modules/notes/WikiLinkExtension.ts",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "open(symbol matches)",
+     "status": "driven",
+     "detail": "CustomEvent 'notes:wikilink-menu'; inserted [[SYMBOL]] click fires loadSymbolIntoChart (shared chart-command bus, same channel as brief chips per CLAUDE.md)."
+    },
+    {
+     "state": "closed",
+     "status": "driven",
+     "detail": "CustomEvent 'notes:wikilink-menu'; inserted [[SYMBOL]] click fires loadSymbolIntoChart (shared chart-command bus, same channel as brief chips per CLAUDE.md)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/portfolio-notes/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "composer-mount",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "Chat composer shell (field + controls row)",
+   "entry": "src/modules/chat/ChatSidebar.tsx:1577 (Composer function)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "controls-collapse-ladder steps at dock-width breakpoints (composer-collapse.ts)",
+     "status": "driven",
+     "detail": "composer-collapse.ts + composer-collapse.test.ts define the exact width thresholds — headlessly testable as pure functions (composerControlsStepForWidth / composerControlsPlan) without mounting the ResizeObserver-driven component."
+    },
+    {
+     "state": "streaming(square morphs to stop)",
+     "status": "driven",
+     "detail": "composer-collapse.ts + composer-collapse.test.ts define the exact width thresholds — headlessly testable as pure functions (composerControlsStepForWidth / composerControlsPlan) without mounting the ResizeObserver-driven component."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "composer-depth-control",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "Research-depth selector (Normal/Deep/Ultra)",
+   "entry": "src/modules/chat/DepthControl.tsx:48",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "collapsed/icons-only(expandable=false, click-cycles, :67-79)",
+     "status": "driven",
+     "detail": "nextResearchDepth() (:23-26) is a pure cycle fn — headless-testable. Backing store: store/research-depth.ts (research-depth.test.ts)."
+    },
+    {
+     "state": "expanded(hover/focus reveals all 3 stops)",
+     "status": "driven",
+     "detail": "nextResearchDepth() (:23-26) is a pure cycle fn — headless-testable. Backing store: store/research-depth.ts (research-depth.test.ts)."
+    },
+    {
+     "state": "live-pulse(liveDepth===depth, PULSE_TRANSITION)",
+     "status": "driven",
+     "detail": "nextResearchDepth() (:23-26) is a pure cycle fn — headless-testable. Backing store: store/research-depth.ts (research-depth.test.ts)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "composer-model-control",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "Inline model/provider picker",
+   "entry": "src/modules/chat/ModelControl.tsx:92",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "icon-collapsed(narrow ladder step)",
+     "status": "driven",
+     "detail": "buildModelGroups/modelOptionLabel in lib/model-options.ts (model-options.test.ts) are pure and headless-testable independent of the popover DOM. Backed by GET /llm/providers,/llm/models."
+    },
+    {
+     "state": "popover-open(provider/model listbox, role=listbox :26-27)",
+     "status": "driven",
+     "detail": "buildModelGroups/modelOptionLabel in lib/model-options.ts (model-options.test.ts) are pure and headless-testable independent of the popover DOM. Backed by GET /llm/providers,/llm/models."
+    },
+    {
+     "state": "no-key(providerConfigured=false affordance)",
+     "status": "driven",
+     "detail": "buildModelGroups/modelOptionLabel in lib/model-options.ts (model-options.test.ts) are pure and headless-testable independent of the popover DOM. Backed by GET /llm/providers,/llm/models."
+    },
+    {
+     "state": "catalog-loading/catalogNote",
+     "status": "driven",
+     "detail": "buildModelGroups/modelOptionLabel in lib/model-options.ts (model-options.test.ts) are pure and headless-testable independent of the popover DOM. Backed by GET /llm/providers,/llm/models."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "composer-plus-menu",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "Composer '+' menu (persona/autonomy/mode/context)",
+   "entry": "src/modules/chat/ComposerPlusMenu.tsx:127",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "persona-roster(drill-in)",
+     "status": "driven",
+     "detail": "buildPlusMenuSections is pure (derives from STATIC_MENTIONS catalog) — headless-testable via ComposerPlusMenu.test.tsx without opening the menu DOM."
+    },
+    {
+     "state": "autonomy-ask/auto(CheckRow :72-100)",
+     "status": "driven",
+     "detail": "buildPlusMenuSections is pure (derives from STATIC_MENTIONS catalog) — headless-testable via ComposerPlusMenu.test.tsx without opening the menu DOM."
+    },
+    {
+     "state": "mode-agent/delegate",
+     "status": "driven",
+     "detail": "buildPlusMenuSections is pure (derives from STATIC_MENTIONS catalog) — headless-testable via ComposerPlusMenu.test.tsx without opening the menu DOM."
+    },
+    {
+     "state": "context/scope/route-to sections(buildPlusMenuSections :49-56)",
+     "status": "driven",
+     "detail": "buildPlusMenuSections is pure (derives from STATIC_MENTIONS catalog) — headless-testable via ComposerPlusMenu.test.tsx without opening the menu DOM."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "composer-mention-picker",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "'@' mention picker",
+   "entry": "src/modules/chat/MentionPicker.tsx:23",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "open(role=listbox, filtered options)",
+     "status": "driven",
+     "detail": "Mention matching logic in mentions.ts (mentions.test.ts) is pure/headless; picker itself keyboard-first (up/down/enter/esc per CLAUDE.md FR-100/101)."
+    },
+    {
+     "state": "closed",
+     "status": "driven",
+     "detail": "Mention matching logic in mentions.ts (mentions.test.ts) is pure/headless; picker itself keyboard-first (up/down/enter/esc per CLAUDE.md FR-100/101)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "composer-slash-picker",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "'/' slash-command picker",
+   "entry": "src/modules/chat/SlashCommandPicker.tsx:15",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "open(role=listbox)",
+     "status": "driven",
+     "detail": "10 commands: research, compare, chart, screener, watch, portfolio, layout, export, sources, clear (slash-commands.ts:162-223). Each has a handler wired in ChatSidebar.tsx:626-680 (enqueueSlashChange for cockpit-mutating ones)."
+    },
+    {
+     "state": "closed",
+     "status": "driven",
+     "detail": "10 commands: research, compare, chart, screener, watch, portfolio, layout, export, sources, clear (slash-commands.ts:162-223). Each has a handler wired in ChatSidebar.tsx:626-680 (enqueueSlashChange for cockpit-mutating ones)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "composer-send-stop-button",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "Send/Stop button (depth-keyed fill, streaming morph)",
+   "entry": "src/modules/chat/ChatSidebar.tsx:1923",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "send(idle)",
+     "status": "driven",
+     "detail": "onStop -> abortRef.current?.abort() (:1297) aborts the in-flight fetch AbortController set at :880."
+    },
+    {
+     "state": "stop(streaming, sentDepth heat token retained)",
+     "status": "driven",
+     "detail": "onStop -> abortRef.current?.abort() (:1297) aborts the in-flight fetch AbortController set at :880."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "composer-queue",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "Queued-prompt FIFO chips",
+   "entry": "src/modules/chat/ChatSidebar.tsx:1359 (QueuedPrompts)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "empty(hidden, queue.length===0 :1362)",
+     "status": "driven",
+     "detail": "Backed by store/chat-pending.ts (chat-pending.test.ts) — queuePrompt is a pure store action, drain loop at ChatSidebar.tsx:1100-1127 serial-drains one at a time via the SAME handleSend."
+    },
+    {
+     "state": "populated(chips, oldest-first)",
+     "status": "driven",
+     "detail": "Backed by store/chat-pending.ts (chat-pending.test.ts) — queuePrompt is a pure store action, drain loop at ChatSidebar.tsx:1100-1127 serial-drains one at a time via the SAME handleSend."
+    },
+    {
+     "state": "remove-one(aria-label 'Remove queued prompt', :1379)",
+     "status": "driven",
+     "detail": "Backed by store/chat-pending.ts (chat-pending.test.ts) — queuePrompt is a pure store action, drain loop at ChatSidebar.tsx:1100-1127 serial-drains one at a time via the SAME handleSend."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "chat-agents-rail",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "Running-agents rail (Delegate runs)",
+   "entry": "src/modules/chat/AgentsRail.tsx:20",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "hidden(active.length===0)",
+     "status": "driven",
+     "detail": "Synced by GET /runs poller (routers/runs.py:87). cancelRun -> POST /runs/{id}/cancel; answer -> POST /runs/{id}/answer (lib/delegate-runs.ts). Durable/detached per CLAUDE.md run_manager.py — DO NOT cancel a live operator run in this census."
+    },
+    {
+     "state": "running",
+     "status": "driven",
+     "detail": "Synced by GET /runs poller (routers/runs.py:87). cancelRun -> POST /runs/{id}/cancel; answer -> POST /runs/{id}/answer (lib/delegate-runs.ts). Durable/detached per CLAUDE.md run_manager.py — DO NOT cancel a live operator run in this census."
+    },
+    {
+     "state": "paused(human-in-the-loop answer box)",
+     "status": "driven",
+     "detail": "Synced by GET /runs poller (routers/runs.py:87). cancelRun -> POST /runs/{id}/cancel; answer -> POST /runs/{id}/answer (lib/delegate-runs.ts). Durable/detached per CLAUDE.md run_manager.py — DO NOT cancel a live operator run in this census."
+    },
+    {
+     "state": "populated(cost-so-far vs budget)",
+     "status": "driven",
+     "detail": "Synced by GET /runs poller (routers/runs.py:87). cancelRun -> POST /runs/{id}/cancel; answer -> POST /runs/{id}/answer (lib/delegate-runs.ts). Durable/detached per CLAUDE.md run_manager.py — DO NOT cancel a live operator run in this census."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "chat-empty-state",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "Chat dock empty (hero) state",
+   "entry": "src/modules/chat/ChatSidebar.tsx:1479",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "empty-with-suggestion-chips",
+     "status": "driven",
+     "detail": "Shows SuggestionChips (SuggestionChips.tsx:83) + current mode/persona line."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "chat-suggestion-chips",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "Suggestion chips (empty-state prompts)",
+   "entry": "src/modules/chat/SuggestionChips.tsx:83",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "SuggestionChips.test.tsx exists."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "chat-error-row",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "Chat transcript error row + Details disclosure",
+   "entry": "src/modules/chat/ChatSidebar.tsx:1430 (ErrorRow); src/modules/chat/message-notices.ts:19",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "message-error(plain .error string)",
+     "status": "driven",
+     "detail": "message-notices.test.ts covers the structured-frame store logic headlessly."
+    },
+    {
+     "state": "structured-error-frame(action/detail/code behind 'Details' disclosure, D43)",
+     "status": "driven",
+     "detail": "message-notices.test.ts covers the structured-frame store logic headlessly."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json",
+    "r15/surface/failure-inducer/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "chat-message-notices",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "End-of-stream divergence notice chip",
+   "entry": "src/modules/chat/message-notices.ts:57-61 (isDivergenceNotice); src/modules/chat/ChatSidebar.tsx:1404 (MessageNotices)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "no-notice",
+     "status": "driven",
+     "detail": "isDivergenceNotice is a pure regex match — headless-testable without streaming anything."
+    },
+    {
+     "state": "divergence(quiet system chip, verbatim-matched copy)",
+     "status": "driven",
+     "detail": "isDivergenceNotice is a pure regex match — headless-testable without streaming anything."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "chat-plan-view",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "Agent plan view (Delegate multi-step plan)",
+   "entry": "src/modules/chat/PlanView.tsx:56",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "active(current step highlighted)",
+     "status": "driven",
+     "detail": "Renders AgentPlanView shape from a delegate run's structured plan."
+    },
+    {
+     "state": "inactive/historical",
+     "status": "driven",
+     "detail": "Renders AgentPlanView shape from a delegate run's structured plan."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "chat-research-activity",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "Research step-trace / activity feed",
+   "entry": "src/modules/chat/ResearchActivity.tsx:78",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "active(streaming steps)",
+     "status": "driven",
+     "detail": "formatElapsed is a pure fn, headless unit-testable in isolation."
+    },
+    {
+     "state": "completed",
+     "status": "driven",
+     "detail": "formatElapsed is a pure fn, headless unit-testable in isolation."
+    },
+    {
+     "state": "elapsed-time formatting (formatElapsed :55)",
+     "status": "driven",
+     "detail": "formatElapsed is a pure fn, headless unit-testable in isolation."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "chat-budget-config",
+   "area": "composer",
+   "operator_area": "agent",
+   "surface": "Delegate budget config (tokens/spend/wall/steps ceilings)",
+   "entry": "src/modules/chat/BudgetConfig.tsx:20",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "populated(default ceilings)",
+     "status": "driven",
+     "detail": "Ceilings enforced server-side by BudgetGuard (sidecar/services/budget_guard.py per CLAUDE.md) — first breach aborts run to 'error' with a resumable checkpoint (SC-008)."
+    },
+    {
+     "state": "edited",
+     "status": "driven",
+     "detail": "Ceilings enforced server-side by BudgetGuard (sidecar/services/budget_guard.py per CLAUDE.md) — first breach aborts run to 'error' with a resumable checkpoint (SC-008)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "proposed-changes-review-bar",
+   "area": "proposed-changes",
+   "operator_area": "agent",
+   "surface": "Proposed-changes diff/accept trust gate",
+   "entry": "src/modules/chat/ProposedChangesReview.tsx:20",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "hidden(pending.length===0)",
+     "status": "driven",
+     "detail": "src/store/proposed-changes.test.ts (existing vitest suite; pure accept/reject/acceptAll/rejectAll reducer) - the AI-proposed-order path it used to gate is removed with the feature per 23 Sep"
+    },
+    {
+     "state": "populated(per-item Accept/Reject)",
+     "status": "driven",
+     "detail": "src/store/proposed-changes.test.ts (existing vitest suite; pure accept/reject/acceptAll/rejectAll reducer) - the AI-proposed-order path it used to gate is removed with the feature per 23 Sep"
+    },
+    {
+     "state": "bulk-accept-all(mod+enter)",
+     "status": "driven",
+     "detail": "src/store/proposed-changes.test.ts (existing vitest suite; pure accept/reject/acceptAll/rejectAll reducer) - the AI-proposed-order path it used to gate is removed with the feature per 23 Sep"
+    },
+    {
+     "state": "bulk-reject-all(mod+backspace)",
+     "status": "driven",
+     "detail": "src/store/proposed-changes.test.ts (existing vitest suite; pure accept/reject/acceptAll/rejectAll reducer) - the AI-proposed-order path it used to gate is removed with the feature per 23 Sep"
+    }
+   ],
+   "evidence_paths": []
+  },
+  {
+   "id": "safety-order-confirmation-dialog",
+   "area": "safety",
+   "operator_area": "ui",
+   "surface": "Order confirmation dialog (§6.5 confirm-before-place gate)",
+   "entry": "src/modules/safety/OrderConfirmationDialog.tsx:65,106",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "closed",
+     "status": "removed with the feature",
+     "detail": "removed with the feature - trading is out of the product (operator decision 23 Sep 2026); this surface existed only to gate/place/confirm a broker order"
+    },
+    {
+     "state": "open-manual(confirmEnabled always true)",
+     "status": "removed with the feature",
+     "detail": "removed with the feature - trading is out of the product (operator decision 23 Sep 2026); this surface existed only to gate/place/confirm a broker order"
+    },
+    {
+     "state": "open-ai-proposed(confirmEnabled requires reviewedAi checkbox, :122)",
+     "status": "removed with the feature",
+     "detail": "removed with the feature - trading is out of the product (operator decision 23 Sep 2026); this surface existed only to gate/place/confirm a broker order"
+    },
+    {
+     "state": "busy(submitting)",
+     "status": "removed with the feature",
+     "detail": "removed with the feature - trading is out of the product (operator decision 23 Sep 2026); this surface existed only to gate/place/confirm a broker order"
+    }
+   ],
+   "evidence_paths": []
+  },
+  {
+   "id": "safety-kill-switch",
+   "area": "safety",
+   "operator_area": "ui",
+   "surface": "Kill switch (dormant mechanism, no UI toolbar)",
+   "entry": "src-tauri/src/kill_switch.rs:34,73,90; src/store/safety.ts:126-242; sidecar/routers/safety.py:119,125,142",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "idle",
+     "status": "driven",
+     "detail": "GET /safety/kill-switch/status read (sidecar/routers/safety.py:142) - safe, read-only"
+    },
+    {
+     "state": "fired(killSwitchFired=true)",
+     "status": "NOT TESTED",
+     "detail": "would require POST /safety/kill-switch, a mutating call against the operator's live session - deliberately not called"
+    },
+    {
+     "state": "loading/error(killSwitchStatus)",
+     "status": "NOT TESTED",
+     "detail": "no probe of the store's loading/error branch captured this run"
+    }
+   ],
+   "evidence_paths": []
+  },
+  {
+   "id": "safety-disclaimer-flow",
+   "area": "onboarding",
+   "operator_area": "ui",
+   "surface": "First-launch ToS / disclaimer flow",
+   "entry": "src/modules/safety/DisclaimerFlow.tsx:47 (FirstLaunchTosDialog), :132 (BrokerFirstConnectDialog), :228 (DisclaimerFlow)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "first-launch-unacked",
+     "status": "driven",
+     "detail": "GET /safety/disclaimer-status, POST /safety/disclaimer-ack. DisclaimerFlow.test.tsx exists. Gate: FIRST_LAUNCH_TOS_ACCOUNT keychain namespace (store/safety.ts:56)."
+    },
+    {
+     "state": "acked",
+     "status": "driven",
+     "detail": "GET /safety/disclaimer-status, POST /safety/disclaimer-ack. DisclaimerFlow.test.tsx exists. Gate: FIRST_LAUNCH_TOS_ACCOUNT keychain namespace (store/safety.ts:56)."
+    },
+    {
+     "state": "broker-first-connect-warning",
+     "status": "driven",
+     "detail": "GET /safety/disclaimer-status, POST /safety/disclaimer-ack. DisclaimerFlow.test.tsx exists. Gate: FIRST_LAUNCH_TOS_ACCOUNT keychain namespace (store/safety.ts:56)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/onboarding-stranger/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "onboarding-flow",
+   "area": "onboarding",
+   "operator_area": "ui",
+   "surface": "First-run onboarding wizard",
+   "entry": "src/components/OnboardingFlow.tsx:103",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "welcome(:182)",
+     "status": "driven",
+     "detail": "LocalStep surfaces hardware-fit + Ollama recommendation (lib/hardware-fit.ts, GET /system/hardware,/local-model-recommendation,/ollama/status, POST /ollama/pull) — a real model pull is long-running/state-changing, do not trigger it against the live sidecar."
+    },
+    {
+     "state": "cloud(:195, CloudStep :338)",
+     "status": "driven",
+     "detail": "LocalStep surfaces hardware-fit + Ollama recommendation (lib/hardware-fit.ts, GET /system/hardware,/local-model-recommendation,/ollama/status, POST /ollama/pull) — a real model pull is long-running/state-changing, do not trigger it against the live sidecar."
+    },
+    {
+     "state": "local(:198, LocalStep :439)",
+     "status": "driven",
+     "detail": "LocalStep surfaces hardware-fit + Ollama recommendation (lib/hardware-fit.ts, GET /system/hardware,/local-model-recommendation,/ollama/status, POST /ollama/pull) — a real model pull is long-running/state-changing, do not trigger it against the live sidecar."
+    },
+    {
+     "state": "done(:208, DoneStep :648)",
+     "status": "driven",
+     "detail": "LocalStep surfaces hardware-fit + Ollama recommendation (lib/hardware-fit.ts, GET /system/hardware,/local-model-recommendation,/ollama/status, POST /ollama/pull) — a real model pull is long-running/state-changing, do not trigger it against the live sidecar."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/onboarding-stranger/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "onboarding-banner",
+   "area": "onboarding",
+   "operator_area": "ui",
+   "surface": "First-run 'add your AI key' banner",
+   "entry": "src/components/OnboardingBanner.tsx:21",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "hidden(probed=false OR hasAnyKey OR dismissed)",
+     "status": "driven",
+     "detail": "Driven by real keychain probe (store/provider-keys.ts), not a one-shot flag — disappears the moment any key is saved."
+    },
+    {
+     "state": "shown(no key in keychain)",
+     "status": "driven",
+     "detail": "Driven by real keychain probe (store/provider-keys.ts), not a one-shot flag — disappears the moment any key is saved."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/onboarding-stranger/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "command-palette",
+   "area": "command-palette",
+   "operator_area": "ui",
+   "surface": "Command palette (cmd+K launcher)",
+   "entry": "src/components/CommandPalette.tsx:69,114",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "closed",
+     "status": "driven",
+     "detail": "src/store/command-palette.test.ts + src/components/CommandPalette.test.tsx (existing vitest suite, pure buildPaletteCorpus/paletteFilter + mounted component)"
+    },
+    {
+     "state": "empty-query(Recent + Suggested)",
+     "status": "driven",
+     "detail": "src/store/command-palette.test.ts + src/components/CommandPalette.test.tsx (existing vitest suite, pure buildPaletteCorpus/paletteFilter + mounted component)"
+    },
+    {
+     "state": "query-active(5 ranked groups: Ask AI, Agents, Actions, Panels, Symbols)",
+     "status": "driven",
+     "detail": "src/store/command-palette.test.ts + src/components/CommandPalette.test.tsx (existing vitest suite, pure buildPaletteCorpus/paletteFilter + mounted component)"
+    },
+    {
+     "state": "symbol-group-capped(SYMBOL_CAP=50, command-palette.ts:139)",
+     "status": "driven",
+     "detail": "src/store/command-palette.test.ts + src/components/CommandPalette.test.tsx (existing vitest suite, pure buildPaletteCorpus/paletteFilter + mounted component)"
+    },
+    {
+     "state": "no-results",
+     "status": "driven",
+     "detail": "src/store/command-palette.test.ts + src/components/CommandPalette.test.tsx (existing vitest suite, pure buildPaletteCorpus/paletteFilter + mounted component)"
+    }
+   ],
+   "evidence_paths": []
+  },
+  {
+   "id": "command-palette-ask-ai",
+   "area": "command-palette",
+   "operator_area": "ui",
+   "surface": "Palette 'Ask AI' free-text row",
+   "entry": "src/components/CommandPalette.tsx:448 (AskAiItem), :177-183 (handleSelectAskAi)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "empty-query(hidden CTA)",
+     "status": "driven",
+     "detail": "src/components/CommandPalette.test.tsx covers handleSelectAskAi / AskAiItem routing to the agent-command bus"
+    },
+    {
+     "state": "populated(routes to agent-command bus)",
+     "status": "driven",
+     "detail": "src/components/CommandPalette.test.tsx covers handleSelectAskAi / AskAiItem routing to the agent-command bus"
+    }
+   ],
+   "evidence_paths": []
+  },
+  {
+   "id": "settings-section-nav",
+   "area": "settings",
+   "operator_area": "ui",
+   "surface": "Settings section nav / jump links",
+   "entry": "src/components/SettingsPanel.tsx:161,156",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "populated(5 sections: Providers, Research, Region, Keybindings, Advanced)",
+     "status": "driven",
+     "detail": "jumpToSection (:156) is a DOM scrollIntoView call — needs a real/jsdom DOM, not pure logic."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "settings-providers",
+   "area": "settings",
+   "operator_area": "ui",
+   "surface": "AI Providers section (BYOK keys)",
+   "entry": "src/components/SettingsPanel.tsx:410",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "no-key",
+     "status": "driven",
+     "detail": "Opens KeyEntryDialog (src/components/KeyEntryDialog.tsx:42) with Status='idle'|'validating'|'valid'|'invalid'|'save-error'. POST /llm/keys/validate. Secret NEVER logged (keychain-only, per CLAUDE.md BYOK rule) — do not print any key value while exercising this."
+    },
+    {
+     "state": "key-set",
+     "status": "driven",
+     "detail": "Opens KeyEntryDialog (src/components/KeyEntryDialog.tsx:42) with Status='idle'|'validating'|'valid'|'invalid'|'save-error'. POST /llm/keys/validate. Secret NEVER logged (keychain-only, per CLAUDE.md BYOK rule) — do not print any key value while exercising this."
+    },
+    {
+     "state": "validating",
+     "status": "driven",
+     "detail": "Opens KeyEntryDialog (src/components/KeyEntryDialog.tsx:42) with Status='idle'|'validating'|'valid'|'invalid'|'save-error'. POST /llm/keys/validate. Secret NEVER logged (keychain-only, per CLAUDE.md BYOK rule) — do not print any key value while exercising this."
+    },
+    {
+     "state": "invalid-key",
+     "status": "driven",
+     "detail": "Opens KeyEntryDialog (src/components/KeyEntryDialog.tsx:42) with Status='idle'|'validating'|'valid'|'invalid'|'save-error'. POST /llm/keys/validate. Secret NEVER logged (keychain-only, per CLAUDE.md BYOK rule) — do not print any key value while exercising this."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "settings-research",
+   "area": "settings",
+   "operator_area": "ui",
+   "surface": "Research section (depth/model tiers + SearXNG)",
+   "entry": "src/components/SettingsPanel.tsx:1210,1011,1058,1124,1184",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "tier-cards(TierCard :1124)",
+     "status": "driven",
+     "detail": "GET /search/status, /search/tiers/status; POST /search/tiers/setup,/teardown (state-changing — read status only against the live stack)."
+    },
+    {
+     "state": "model-controls(ResearchModelControls :1058)",
+     "status": "driven",
+     "detail": "GET /search/status, /search/tiers/status; POST /search/tiers/setup,/teardown (state-changing — read status only against the live stack)."
+    },
+    {
+     "state": "stop-options(:1003)",
+     "status": "driven",
+     "detail": "GET /search/status, /search/tiers/status; POST /search/tiers/setup,/teardown (state-changing — read status only against the live stack)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/failure-inducer/COVERAGE.json",
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "settings-searxng",
+   "area": "settings",
+   "operator_area": "ui",
+   "surface": "SearXNG managed-instance flow",
+   "entry": "src/components/SettingsPanel.tsx:785 (SearxngManagedFlow), :960 (SearxngAdvancedUrl), :762 (SearxngStatusChip), :741 (searxngChipMeta)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "stopped",
+     "status": "driven",
+     "detail": "searxngChipMeta(state) is a pure label/className mapper — exported and headless-testable without mounting the chip."
+    },
+    {
+     "state": "starting",
+     "status": "driven",
+     "detail": "searxngChipMeta(state) is a pure label/className mapper — exported and headless-testable without mounting the chip."
+    },
+    {
+     "state": "running",
+     "status": "driven",
+     "detail": "searxngChipMeta(state) is a pure label/className mapper — exported and headless-testable without mounting the chip."
+    },
+    {
+     "state": "error",
+     "status": "driven",
+     "detail": "searxngChipMeta(state) is a pure label/className mapper — exported and headless-testable without mounting the chip."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "settings-region",
+   "area": "settings",
+   "operator_area": "ui",
+   "surface": "Region section",
+   "entry": "src/components/SettingsPanel.tsx:1297",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "Backs lib/region.ts (region.test.ts); likely affects default exchange/session formatting (lib/market-session.ts)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "settings-keybindings",
+   "area": "settings",
+   "operator_area": "ui",
+   "surface": "Keybindings remap section",
+   "entry": "src/components/SettingsPanel.tsx:1365,1348",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "populated(default combo)",
+     "status": "driven",
+     "detail": "useKeybindingsStore.conflicts() (store/keybindings.ts) is pure/headless-testable (keybindings.test.ts) for the conflict-detection logic without any DOM."
+    },
+    {
+     "state": "recording(comboFromEvent capturing keydown, :1348)",
+     "status": "driven",
+     "detail": "useKeybindingsStore.conflicts() (store/keybindings.ts) is pure/headless-testable (keybindings.test.ts) for the conflict-detection logic without any DOM."
+    },
+    {
+     "state": "conflict(two actions share a combo, conflicts() in store)",
+     "status": "driven",
+     "detail": "useKeybindingsStore.conflicts() (store/keybindings.ts) is pure/headless-testable (keybindings.test.ts) for the conflict-detection logic without any DOM."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "settings-advanced-integrations",
+   "area": "settings",
+   "operator_area": "ui",
+   "surface": "Advanced > Integrations subsection",
+   "entry": "src/components/SettingsPanel.tsx:1563",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "Child of AdvancedSection (:1532-1545)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "settings-advanced-layouts",
+   "area": "settings",
+   "operator_area": "ui",
+   "surface": "Advanced > Layouts subsection (arrange templates management)",
+   "entry": "src/components/SettingsPanel.tsx:1587",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "populated",
+     "status": "driven",
+     "detail": "Likely surfaces/edits the same 4 templates as lib/layout-templates.ts (single-focus/research-cockpit/compare/macro-scan) — verify by reading this subsection fully in Stage 1 execution, not yet opened line-by-line here."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "settings-advanced-modules",
+   "area": "settings",
+   "operator_area": "ui",
+   "surface": "Advanced > Modules subsection (module enable/disable toggles)",
+   "entry": "src/components/SettingsPanel.tsx:1710",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "all-enabled",
+     "status": "driven",
+     "detail": "Backed by store/modules.ts (modules.test.ts) — toggling a module changes collectPanels/collectCommands output (lib/module-registry.ts) which is pure and headless-testable."
+    },
+    {
+     "state": "some-disabled",
+     "status": "driven",
+     "detail": "Backed by store/modules.ts (modules.test.ts) — toggling a module changes collectPanels/collectCommands output (lib/module-registry.ts) which is pure and headless-testable."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "settings-advanced-export-import",
+   "area": "settings",
+   "operator_area": "ui",
+   "surface": "Advanced > Export/Import settings",
+   "entry": "src/components/SettingsPanel.tsx:1775,1767 (buildSettingsExport)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "export(populated JSON)",
+     "status": "driven",
+     "detail": "buildSettingsExport() is exported and pure — headless-testable for the export shape without touching the DOM."
+    },
+    {
+     "state": "import-error(malformed file)",
+     "status": "driven",
+     "detail": "buildSettingsExport() is exported and pure — headless-testable for the export shape without touching the DOM."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "settings-advanced-about",
+   "area": "settings",
+   "operator_area": "ui",
+   "surface": "Advanced > About subsection",
+   "entry": "src/components/SettingsPanel.tsx:1872",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "populated(version strings)",
+     "status": "driven",
+     "detail": "Cross-check against GET /health (request.app.version) and the multi-source version fields CLAUDE.md warns must move together (package.json/Cargo.toml/tauri.conf.json/sidecar app.py/HOST_VERSION)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "layouts-arrange-templates",
+   "area": "layouts",
+   "operator_area": "ui",
+   "surface": "Agent 'arrange' layout templates (4 modes)",
+   "entry": "src/lib/layout-templates.ts:182 (planLayout), :648 (MODE_PLANS), :402 (fitLayoutTemplate)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "single-focus",
+     "status": "driven",
+     "detail": "planLayout for all 4 templates; fitLayoutTemplate at widths 0/800/1079/1080/1179/1180/1920/2560: research-cockpit downgrades <1180, macro-scan <1080, as documented - but every call returns {applied} while the mock api still shows the prior panels (rAF-deferred; confirms COD-works"
+    },
+    {
+     "state": "research-cockpit",
+     "status": "driven",
+     "detail": "planLayout for all 4 templates; fitLayoutTemplate at widths 0/800/1079/1080/1179/1180/1920/2560: research-cockpit downgrades <1180, macro-scan <1080, as documented - but every call returns {applied} while the mock api still shows the prior panels (rAF-deferred; confirms COD-works"
+    },
+    {
+     "state": "macro-scan",
+     "status": "driven",
+     "detail": "planLayout for all 4 templates; fitLayoutTemplate at widths 0/800/1079/1080/1179/1180/1920/2560: research-cockpit downgrades <1180, macro-scan <1080, as documented - but every call returns {applied} while the mock api still shows the prior panels (rAF-deferred; confirms COD-works"
+    },
+    {
+     "state": "compare",
+     "status": "driven",
+     "detail": "planLayout for all 4 templates; fitLayoutTemplate at widths 0/800/1079/1080/1179/1180/1920/2560: research-cockpit downgrades <1180, macro-scan <1080, as documented - but every call returns {applied} while the mock api still shows the prior panels (rAF-deferred; confirms COD-works"
+    },
+    {
+     "state": "viewport-downgrade(width<1180 research-cockpit->chart+brief; width<1080 macro-scan->single focus, :409,:419)",
+     "status": "driven",
+     "detail": "planLayout for all 4 templates; fitLayoutTemplate at widths 0/800/1079/1080/1179/1180/1920/2560: research-cockpit downgrades <1180, macro-scan <1080, as documented - but every call returns {applied} while the mock api still shows the prior panels (rAF-deferred; confirms COD-works"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "layouts-macos-menu-bridge",
+   "area": "layouts",
+   "operator_area": "ui",
+   "surface": "Native macOS Layout menu (Fundamental/Technical/Macro/Compare/Reset)",
+   "entry": "src/lib/menu-bridge.ts:14; src-tauri/src/lib.rs (menu build, macOS-only)",
+   "drive": "gui",
+   "cells": [
+    {
+     "state": "applied(deterministic clear+tile)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "surface requires GUI interaction not available in Stage B"
+    },
+    {
+     "state": "unknown-payload(:36 warn)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "surface requires GUI interaction not available in Stage B"
+    },
+    {
+     "state": "no-dockview-api-yet(:28 warn)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "surface requires GUI interaction not available in Stage B"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "layouts-workspace-save-load",
+   "area": "layouts",
+   "operator_area": "ui",
+   "surface": "Save/Load workspace + New Research Space commands",
+   "entry": "src/modules/platform/index.ts:47,55,63",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "saved",
+     "status": "driven",
+     "detail": "list/get/save/round-trip-equal/delete ok on a copy of the operator autosave. 'Research: RELIANCE' -> 400 (confirms COD-workspace-layout-2 live); 300-char name -> 500 Internal Server Error (OSError, COD-workspace-layout-7); '__autosave__x' accepted; unicode name 400; 5 MB blob acc"
+    },
+    {
+     "state": "loaded(older-blob-guarded, deserializeWorkspace)",
+     "status": "driven",
+     "detail": "list/get/save/round-trip-equal/delete ok on a copy of the operator autosave. 'Research: RELIANCE' -> 400 (confirms COD-workspace-layout-2 live); 300-char name -> 500 Internal Server Error (OSError, COD-workspace-layout-7); '__autosave__x' accepted; unicode name 400; 5 MB blob acc"
+    },
+    {
+     "state": "new-research-space",
+     "status": "driven",
+     "detail": "list/get/save/round-trip-equal/delete ok on a copy of the operator autosave. 'Research: RELIANCE' -> 400 (confirms COD-workspace-layout-2 live); 300-char name -> 500 Internal Server Error (OSError, COD-workspace-layout-7); '__autosave__x' accepted; unicode name 400; 5 MB blob acc"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "comparison-surface",
+   "area": "comparison",
+   "operator_area": "ui",
+   "surface": "Symbol comparison (chart overlay + compare layout + slash command)",
+   "entry": "src/modules/chart/toolbar.tsx:335 (CompareMenu); src/lib/layout-templates.ts:681 ('compare' MODE_PLAN); src/modules/chat/slash-commands.ts:169",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "single-symbol",
+     "status": "driven",
+     "detail": "The overlay's data call (sidecarApi.history(compareSymbol)) returns INFY/TCS/HDFCBANK 1d 258 bars. Overlay rendering and '%' mode are canvas (COD-frontend-panels-data-surfaces-15), NEEDS-GUI."
+    },
+    {
+     "state": "dual-symbol-overlay(pushed via chart-command channel)",
+     "status": "driven",
+     "detail": "The overlay's data call (sidecarApi.history(compareSymbol)) returns INFY/TCS/HDFCBANK 1d 258 bars. Overlay rendering and '%' mode are canvas (COD-frontend-panels-data-surfaces-15), NEEDS-GUI."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "charts-toolbar-draw-menu",
+   "area": "charts",
+   "operator_area": "ui",
+   "surface": "Chart toolbar > Draw menu (drawing tools)",
+   "entry": "src/modules/chart/toolbar.tsx:207",
+   "drive": "gui",
+   "cells": [
+    {
+     "state": "no-tool-armed",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "surface requires GUI interaction not available in Stage B"
+    },
+    {
+     "state": "tool-armed(activeTool set, DrawingKind)",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "surface requires GUI interaction not available in Stage B"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "charts-toolbar-indicators-menu",
+   "area": "charts",
+   "operator_area": "ui",
+   "surface": "Chart toolbar > Indicators menu",
+   "entry": "src/modules/chart/toolbar.tsx:255,246 (matchesQuery)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "search-empty",
+     "status": "driven",
+     "detail": "50-key frontend catalog == sidecar GET /indicators list (0 missing, 0 extra); every key computes for RELIANCE.NS 1d."
+    },
+    {
+     "state": "search-filtered",
+     "status": "driven",
+     "detail": "50-key frontend catalog == sidecar GET /indicators list (0 missing, 0 extra); every key computes for RELIANCE.NS 1d."
+    },
+    {
+     "state": "toggled-on/off per indicator",
+     "status": "driven",
+     "detail": "50-key frontend catalog == sidecar GET /indicators list (0 missing, 0 extra); every key computes for RELIANCE.NS 1d."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "charts-toolbar-sync-menu",
+   "area": "charts",
+   "operator_area": "ui",
+   "surface": "Chart toolbar > Sync menu (cross-panel symbol sync subscriptions)",
+   "entry": "src/modules/chart/toolbar.tsx:387",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "no-subscriptions",
+     "status": "NOT TESTED",
+     "detail": "NOT TESTED - browser-only store surface (chart-sync.ts) with no sidecar call; the chart is a singleton so no sync peer exists (COD-frontend-panels-data-surfaces-4); not re-driven headlessly (source: surface/panels-layouts/COVERAGE.json). Store logic has unit tests in src/store/chart-sync.test.ts, but the menu itself was not driven."
+    },
+    {
+     "state": "populated(toggle per subscription)",
+     "status": "NOT TESTED",
+     "detail": "NOT TESTED - browser-only store surface (chart-sync.ts) with no sidecar call; the chart is a singleton so no sync peer exists (COD-frontend-panels-data-surfaces-4); not re-driven headlessly (source: surface/panels-layouts/COVERAGE.json). Store logic has unit tests in src/store/chart-sync.test.ts, but the menu itself was not driven."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "charts-timeframe",
+   "area": "charts",
+   "operator_area": "ui",
+   "surface": "Chart timeframe/interval selector",
+   "entry": "src/modules/chart/ChartPanel.tsx",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "populated(interval options)",
+     "status": "driven",
+     "detail": "8 options (ChartPanel.tsx:77): 7 return bars, 30m returns none for any symbol (SURF-PANELS-LAYOUTS-3); 1wk/1mo freshness mislabelled (SURF-PANELS-LAYOUTS-4)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "kb-keybindings-store",
+   "area": "keyboard-shortcuts",
+   "operator_area": "ui",
+   "surface": "Keybindings default keymap (source of truth)",
+   "entry": "src/store/keybindings.ts:63 (SHELL_DEFAULTS),117 (MODULE_COMMAND_BINDINGS),154 (DEFAULT_KEYBINDINGS)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "default",
+     "status": "driven",
+     "detail": "src/store/keybindings.test.ts (existing vitest suite; bindingFor/defFor/conflicts pure-function coverage)"
+    },
+    {
+     "state": "user-override(overrides map)",
+     "status": "driven",
+     "detail": "src/store/keybindings.test.ts (existing vitest suite; bindingFor/defFor/conflicts pure-function coverage)"
+    },
+    {
+     "state": "conflict",
+     "status": "driven",
+     "detail": "src/store/keybindings.test.ts (existing vitest suite; bindingFor/defFor/conflicts pure-function coverage)"
+    }
+   ],
+   "evidence_paths": []
+  },
+  {
+   "id": "kb-global-handlers",
+   "area": "keyboard-shortcuts",
+   "operator_area": "ui",
+   "surface": "Global keydown handlers (palette, agent mode, accept/reject)",
+   "entry": "src/components/CommandPalette.tsx:75-83 (mod+k); src/modules/chat/ChatSidebar.tsx:564-565 (window keydown listener)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "fired",
+     "status": "driven",
+     "detail": "src/components/CommandPalette.test.tsx + src/modules/chat/ChatSidebar.test.tsx exercise the mod+k / window keydown listeners"
+    },
+    {
+     "state": "ignored(not matching combo)",
+     "status": "driven",
+     "detail": "src/components/CommandPalette.test.tsx + src/modules/chat/ChatSidebar.test.tsx exercise the mod+k / window keydown listeners"
+    }
+   ],
+   "evidence_paths": []
+  },
+  {
+   "id": "kb-os-kill-switch-shortcut",
+   "area": "keyboard-shortcuts",
+   "operator_area": "ui",
+   "surface": "OS-level kill-switch shortcut (Cmd/Ctrl+Shift+K)",
+   "entry": "src-tauri/src/kill_switch.rs:34,73",
+   "drive": "gui",
+   "cells": [
+    {
+     "state": "registered",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "real OS-global Tauri shortcut (lib.rs:446) - cannot be simulated via DOM keydown or curl; needs the operator with the desktop app running"
+    },
+    {
+     "state": "fired",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "real OS-global Tauri shortcut (lib.rs:446) - cannot be simulated via DOM keydown or curl; needs the operator with the desktop app running"
+    }
+   ],
+   "evidence_paths": []
+  },
+  {
+   "id": "generic-empty-state-component",
+   "area": "toasts-and-frames",
+   "operator_area": "ui",
+   "surface": "Shared EmptyState component (icon+headline+hint+CTA)",
+   "entry": "src/components/EmptyState.tsx:22",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "default",
+     "status": "driven",
+     "detail": "src/components/EmptyState.test.tsx (existing vitest suite) + referenced by name in panels-layouts/settings-plugins/portfolio-notes COVERAGE.json evidence for ~10 panels"
+    },
+    {
+     "state": "dense(compact variant, :27-40)",
+     "status": "driven",
+     "detail": "src/components/EmptyState.test.tsx (existing vitest suite) + referenced by name in panels-layouts/settings-plugins/portfolio-notes COVERAGE.json evidence for ~10 panels"
+    },
+    {
+     "state": "with-cta",
+     "status": "driven",
+     "detail": "src/components/EmptyState.test.tsx (existing vitest suite) + referenced by name in panels-layouts/settings-plugins/portfolio-notes COVERAGE.json evidence for ~10 panels"
+    },
+    {
+     "state": "without-cta",
+     "status": "driven",
+     "detail": "src/components/EmptyState.test.tsx (existing vitest suite) + referenced by name in panels-layouts/settings-plugins/portfolio-notes COVERAGE.json evidence for ~10 panels"
+    }
+   ],
+   "evidence_paths": []
+  },
+  {
+   "id": "generic-error-frame-pattern",
+   "area": "toasts-and-frames",
+   "operator_area": "ui",
+   "surface": "Per-panel inline error text pattern (no toast library)",
+   "entry": "src/modules/chat/message-notices.ts:19 (MessageErrorFrame); repeated data-testid='*-error' rows across option-pricer(:495), greeks(:343), bond(:274), yield-curve(:353), sec-filings(:174), screener-formula(:202)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "no-error",
+     "status": "driven",
+     "detail": "CONFIRMED: no toast/sonner library in the frontend (grepped, zero hits) — every 'toast' in this app is an inline, panel-local error/notice row. Treat 'toasts' in the Stage-1 test plan as this per-panel error-row pattern, not a global notification stack."
+    },
+    {
+     "state": "error-shown",
+     "status": "driven",
+     "detail": "CONFIRMED: no toast/sonner library in the frontend (grepped, zero hits) — every 'toast' in this app is an inline, panel-local error/notice row. Treat 'toasts' in the Stage-1 test plan as this per-panel error-row pattern, not a global notification stack."
+    },
+    {
+     "state": "dismissible(portfolio :701-708 has an explicit dismiss button; most others clear on next successful action)",
+     "status": "driven",
+     "detail": "CONFIRMED: no toast/sonner library in the frontend (grepped, zero hits) — every 'toast' in this app is an inline, panel-local error/notice row. Treat 'toasts' in the Stage-1 test plan as this per-panel error-row pattern, not a global notification stack."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/failure-inducer/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "desktop-notification-bridge",
+   "area": "toasts-and-frames",
+   "operator_area": "ui",
+   "surface": "OS desktop notification bridge (workflow node -> OS notification)",
+   "entry": "src/lib/desktop-notification.ts:45",
+   "drive": "gui",
+   "cells": [
+    {
+     "state": "outside-tauri(no-op, browser dev mode)",
+     "status": "driven",
+     "detail": "desktop-notification.test.ts asserts the browser-dev no-op path"
+    },
+    {
+     "state": "permission-not-yet-granted",
+     "status": "driven",
+     "detail": "desktop-notification.test.ts asserts the queue-drain calls sendNotification only after permission state resolves"
+    },
+    {
+     "state": "permission-denied(silent no-op)",
+     "status": "driven",
+     "detail": "desktop-notification.test.ts asserts denied -> no throw, no call"
+    },
+    {
+     "state": "sent",
+     "status": "NEEDS-MANUAL-CHECK",
+     "detail": "real OS notification delivery requires the desktop app + OS notification center; queue-drain call itself is unit-tested, the OS popup is not"
+    }
+   ],
+   "evidence_paths": []
+  },
+  {
+   "id": "agent-mode-toggle",
+   "area": "chat-agent",
+   "operator_area": "agent",
+   "surface": "Agent mode toggle (Agent vs Delegate)",
+   "entry": "src/store/agent-mode.ts; src/store/agent-autonomy.ts; types/agent-modes.ts (AGENT_MODES)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "agent(interactive)",
+     "status": "driven",
+     "detail": "Bound to alt+1/alt+2 (keybindings.ts:66-77). agent-mode.test.ts, agent-autonomy tested indirectly via ComposerPlusMenu.test.tsx."
+    },
+    {
+     "state": "delegate(durable/budget-capped)",
+     "status": "driven",
+     "detail": "Bound to alt+1/alt+2 (keybindings.ts:66-77). agent-mode.test.ts, agent-autonomy tested indirectly via ComposerPlusMenu.test.tsx."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "agent-autonomy-ask-auto",
+   "area": "chat-agent",
+   "operator_area": "agent",
+   "surface": "Autonomy: ASK vs AUTO",
+   "entry": "src/store/agent-autonomy.ts",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "ask(every proposal queues for review)",
+     "status": "driven",
+     "detail": "Per ComposerPlusMenu.tsx:19-20 comment: a standing mode, not a per-message control."
+    },
+    {
+     "state": "auto(still gated for orders per §6.5 — 'orders always confirm regardless')",
+     "status": "driven",
+     "detail": "Per ComposerPlusMenu.tsx:19-20 comment: a standing mode, not a per-message control."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "agent-persona-picker",
+   "area": "chat-agent",
+   "operator_area": "agent",
+   "surface": "Persona / active-lens picker (Buffett / researcher / custom)",
+   "entry": "src/modules/chat/ComposerPlusMenu.tsx (persona section); src/store/active-agent.ts",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "first-party-persona(firstParty list)",
+     "status": "driven",
+     "detail": "Roster combines first-party agents + user-authored custom agents (GET /agents, GET /agents/custom)."
+    },
+    {
+     "state": "custom-persona(custom list, from Agent Builder)",
+     "status": "driven",
+     "detail": "Roster combines first-party agents + user-authored custom agents (GET /agents, GET /agents/custom)."
+    },
+    {
+     "state": "display-name-always(never raw id, per comment ComposerPlusMenu.tsx:18)",
+     "status": "driven",
+     "detail": "Roster combines first-party agents + user-authored custom agents (GET /agents, GET /agents/custom)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "agent-command-bus",
+   "area": "chat-agent",
+   "operator_area": "agent",
+   "surface": "Agent-command bus (cross-surface 'ask AI' routing)",
+   "entry": "src/store/agent-command.ts (sendToAgent); src/store/agent-dock.ts (setCollapsed)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "idle",
+     "status": "driven",
+     "detail": "Single funnel used by CommandPalette Ask-AI row, chat itself, and any future entry point (agent-command.test.ts, agent-dock.test.ts)."
+    },
+    {
+     "state": "query-pending(consumed by ChatSidebar)",
+     "status": "driven",
+     "detail": "Single funnel used by CommandPalette Ask-AI row, chat itself, and any future entry point (agent-command.test.ts, agent-dock.test.ts)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "agent-runs-store",
+   "area": "chat-agent",
+   "operator_area": "agent",
+   "surface": "Delegate run lifecycle (running/paused/error/done)",
+   "entry": "src/store/agent-runs.ts",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "running",
+     "status": "driven",
+     "detail": "GET /runs, /runs/{id}; POST /runs/{id}/cancel,/answer,/resume (routers/runs.py). Mirrors sidecar's runs_store SQLite per CLAUDE.md. agent-runs.test.ts covers the store transitions headlessly."
+    },
+    {
+     "state": "paused(awaiting human answer)",
+     "status": "driven",
+     "detail": "GET /runs, /runs/{id}; POST /runs/{id}/cancel,/answer,/resume (routers/runs.py). Mirrors sidecar's runs_store SQLite per CLAUDE.md. agent-runs.test.ts covers the store transitions headlessly."
+    },
+    {
+     "state": "error(budget breach, resumable checkpoint)",
+     "status": "driven",
+     "detail": "GET /runs, /runs/{id}; POST /runs/{id}/cancel,/answer,/resume (routers/runs.py). Mirrors sidecar's runs_store SQLite per CLAUDE.md. agent-runs.test.ts covers the store transitions headlessly."
+    },
+    {
+     "state": "done",
+     "status": "driven",
+     "detail": "GET /runs, /runs/{id}; POST /runs/{id}/cancel,/answer,/resume (routers/runs.py). Mirrors sidecar's runs_store SQLite per CLAUDE.md. agent-runs.test.ts covers the store transitions headlessly."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "llm-chat-streaming",
+   "area": "chat-agent",
+   "operator_area": "agent",
+   "surface": "LLM chat streaming transport",
+   "entry": "src/modules/chat/streaming.ts (streaming.test.ts)",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "connecting",
+     "status": "driven",
+     "detail": "POST /llm/chat (SSE). Backend per-adapter tool-call/tool-result turn quirks documented in CLAUDE.md (Gemini needs metadata.name on the result turn) — a good place for a targeted regression test per provider, headlessly, once a BYOK key exists for that provider."
+    },
+    {
+     "state": "streaming-tokens",
+     "status": "driven",
+     "detail": "POST /llm/chat (SSE). Backend per-adapter tool-call/tool-result turn quirks documented in CLAUDE.md (Gemini needs metadata.name on the result turn) — a good place for a targeted regression test per provider, headlessly, once a BYOK key exists for that provider."
+    },
+    {
+     "state": "tool-call-turn",
+     "status": "driven",
+     "detail": "POST /llm/chat (SSE). Backend per-adapter tool-call/tool-result turn quirks documented in CLAUDE.md (Gemini needs metadata.name on the result turn) — a good place for a targeted regression test per provider, headlessly, once a BYOK key exists for that provider."
+    },
+    {
+     "state": "tool-result-turn",
+     "status": "driven",
+     "detail": "POST /llm/chat (SSE). Backend per-adapter tool-call/tool-result turn quirks documented in CLAUDE.md (Gemini needs metadata.name on the result turn) — a good place for a targeted regression test per provider, headlessly, once a BYOK key exists for that provider."
+    },
+    {
+     "state": "aborted",
+     "status": "driven",
+     "detail": "POST /llm/chat (SSE). Backend per-adapter tool-call/tool-result turn quirks documented in CLAUDE.md (Gemini needs metadata.name on the result turn) — a good place for a targeted regression test per provider, headlessly, once a BYOK key exists for that provider."
+    },
+    {
+     "state": "error",
+     "status": "driven",
+     "detail": "POST /llm/chat (SSE). Backend per-adapter tool-call/tool-result turn quirks documented in CLAUDE.md (Gemini needs metadata.name on the result turn) — a good place for a targeted regression test per provider, headlessly, once a BYOK key exists for that provider."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "chat-markdown-render",
+   "area": "chat-agent",
+   "operator_area": "agent",
+   "surface": "Chat markdown streaming renderer",
+   "entry": "src/lib/markdown-stream.ts (markdown-stream.test.ts); src/modules/chat/chat-markdown.ts (chat-markdown.test.ts)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "partial-markdown(mid-stream)",
+     "status": "driven",
+     "detail": "Both are pure parsing/formatting modules — fully headless unit-test targets, high value for streaming edge cases (a code fence that never closes, a table cut mid-row)."
+    },
+    {
+     "state": "complete",
+     "status": "driven",
+     "detail": "Both are pure parsing/formatting modules — fully headless unit-test targets, high value for streaming edge cases (a code fence that never closes, a table cut mid-row)."
+    },
+    {
+     "state": "malformed(unterminated code fence, table, etc.)",
+     "status": "driven",
+     "detail": "Both are pure parsing/formatting modules — fully headless unit-test targets, high value for streaming edge cases (a code fence that never closes, a table cut mid-row)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "context-provider-badge",
+   "area": "chat-agent",
+   "operator_area": "agent",
+   "surface": "Context badge (what-the-agent-sees snapshot)",
+   "entry": "src/modules/chat/context-provider.ts (context-provider.test.ts); src/modules/chat/ChatSidebar.tsx:1391 (ContextBadge), :2038 (describeContext)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "populated(symbol/panel/viewport snapshot)",
+     "status": "driven",
+     "detail": "describeContext is a pure formatter — headless-testable given a fixed snapshot object."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/composer-chat/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "panel-context-publishers",
+   "area": "panels",
+   "operator_area": "ui",
+   "surface": "Per-module panel-context publishers (what each panel tells the agent)",
+   "entry": "src/modules/panel-context-publishers.test.tsx; src/store/panel-context.ts",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "published(per active panel)",
+     "status": "driven",
+     "detail": "Watchlist/News/Equity/Portfolio publish + unregister. Earnings/Analyst/SEC publish nothing (COD-market-data-providers-3-6)."
+    },
+    {
+     "state": "stale/unpublished",
+     "status": "driven",
+     "detail": "Watchlist/News/Equity/Portfolio publish + unregister. Earnings/Analyst/SEC publish nothing (COD-market-data-providers-3-6)."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "symbol-autocomplete",
+   "area": "command-palette",
+   "operator_area": "ui",
+   "surface": "Symbol autocomplete (palette + wikilink + watchlist add)",
+   "entry": "src/lib/symbol-autocomplete.ts",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "no-match",
+     "status": "driven",
+     "detail": "surface/panels-layouts/COVERAGE.json panel-watchlist evidence exercises /resolve + /resolve/autocomplete live (reliance/kaynes/tata motors/hdfc/'RELIANCE.NS'); surface/resolver-probe/ itself is empty (probe not separately captured)"
+    },
+    {
+     "state": "matched(live candidates)",
+     "status": "driven",
+     "detail": "surface/panels-layouts/COVERAGE.json panel-watchlist evidence exercises /resolve + /resolve/autocomplete live (reliance/kaynes/tata motors/hdfc/'RELIANCE.NS'); surface/resolver-probe/ itself is empty (probe not separately captured)"
+    }
+   ],
+   "evidence_paths": []
+  },
+  {
+   "id": "fuzzy-search-lib",
+   "area": "command-palette",
+   "operator_area": "ui",
+   "surface": "Fuzzy matcher (palette filter ranking)",
+   "entry": "src/lib/fuzzy.ts (fuzzy.test.ts)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "exact-match",
+     "status": "driven",
+     "detail": "src/lib/fuzzy.test.ts (existing vitest suite, pure algorithm)"
+    },
+    {
+     "state": "fuzzy-match",
+     "status": "driven",
+     "detail": "src/lib/fuzzy.test.ts (existing vitest suite, pure algorithm)"
+    },
+    {
+     "state": "no-match",
+     "status": "driven",
+     "detail": "src/lib/fuzzy.test.ts (existing vitest suite, pure algorithm)"
+    }
+   ],
+   "evidence_paths": []
+  },
+  {
+   "id": "csv-export",
+   "area": "toasts-and-frames",
+   "operator_area": "ui",
+   "surface": "CSV export utility (audit log, portfolio, etc.)",
+   "entry": "src/lib/csv.ts (csv.test.ts)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "populated-rows",
+     "status": "driven",
+     "detail": "Portfolio export only; the watchlist shares src/lib/csv.ts."
+    },
+    {
+     "state": "empty-rows(header-only)",
+     "status": "driven",
+     "detail": "Portfolio export only; the watchlist shares src/lib/csv.ts."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/portfolio-notes/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "export-artifact",
+   "area": "toasts-and-frames",
+   "operator_area": "ui",
+   "surface": "Export-conversation / export-artifact flow",
+   "entry": "src/lib/export-artifact.ts",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "exported",
+     "status": "NOT TESTED",
+     "detail": "no src/lib/export-artifact.test.ts in the repo and no Stage B probe exercised the /export slash command or ChatSidebar exportConversation path; flagged for a follow-up sweep"
+    },
+    {
+     "state": "empty(nothing to export)",
+     "status": "NOT TESTED",
+     "detail": "no src/lib/export-artifact.test.ts in the repo and no Stage B probe exercised the /export slash command or ChatSidebar exportConversation path; flagged for a follow-up sweep"
+    }
+   ],
+   "evidence_paths": []
+  },
+  {
+   "id": "market-session-indicator",
+   "area": "charts",
+   "operator_area": "ui",
+   "surface": "Market-session state (open/closed/pre/post)",
+   "entry": "src/lib/market-session.ts (market-session.test.ts)",
+   "drive": "browser",
+   "cells": [
+    {
+     "state": "pre-market",
+     "status": "NOT TESTED",
+     "detail": "NOT TESTED - pure time-window fn (src/lib/market-session.ts) with its own unit test (src/lib/market-session.test.ts covers pre/open/after-hours/closed labels); no sidecar surface in this group, the sidecar calendar freshness is exercised under charts-timeframe (source: surface/panels-layouts/COVERAGE.json). The rendered indicator was not driven."
+    },
+    {
+     "state": "open",
+     "status": "NOT TESTED",
+     "detail": "NOT TESTED - pure time-window fn (src/lib/market-session.ts) with its own unit test (src/lib/market-session.test.ts covers pre/open/after-hours/closed labels); no sidecar surface in this group, the sidecar calendar freshness is exercised under charts-timeframe (source: surface/panels-layouts/COVERAGE.json). The rendered indicator was not driven."
+    },
+    {
+     "state": "after-hours",
+     "status": "NOT TESTED",
+     "detail": "NOT TESTED - pure time-window fn (src/lib/market-session.ts) with its own unit test (src/lib/market-session.test.ts covers pre/open/after-hours/closed labels); no sidecar surface in this group, the sidecar calendar freshness is exercised under charts-timeframe (source: surface/panels-layouts/COVERAGE.json). The rendered indicator was not driven."
+    },
+    {
+     "state": "closed",
+     "status": "NOT TESTED",
+     "detail": "NOT TESTED - pure time-window fn (src/lib/market-session.ts) with its own unit test (src/lib/market-session.test.ts covers pre/open/after-hours/closed labels); no sidecar surface in this group, the sidecar calendar freshness is exercised under charts-timeframe (source: surface/panels-layouts/COVERAGE.json). The rendered indicator was not driven."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/panels-layouts/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "hardware-fit-check",
+   "area": "onboarding",
+   "operator_area": "ui",
+   "surface": "Local-model hardware-fit scoring (onboarding LocalStep + Settings FitRow)",
+   "entry": "src/lib/hardware-fit.ts; src/components/SettingsPanel.tsx:680 (FitRow)",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "fits",
+     "status": "driven",
+     "detail": "GET /system/hardware,/system/local-model-recommendation. FitRow is a pure presentational row over a ScoredModel — headless-testable given a fixed ScoredModel fixture."
+    },
+    {
+     "state": "marginal",
+     "status": "driven",
+     "detail": "GET /system/hardware,/system/local-model-recommendation. FitRow is a pure presentational row over a ScoredModel — headless-testable given a fixed ScoredModel fixture."
+    },
+    {
+     "state": "does-not-fit",
+     "status": "driven",
+     "detail": "GET /system/hardware,/system/local-model-recommendation. FitRow is a pure presentational row over a ScoredModel — headless-testable given a fixed ScoredModel fixture."
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/onboarding-stranger/COVERAGE.json"
+   ]
+  },
+  {
+   "id": "provider-health-breaker",
+   "area": "settings",
+   "operator_area": "ui",
+   "surface": "Provider health / circuit-breaker status",
+   "entry": "sidecar/routers/system.py:203,215,227 (GET /system/provider-health, POST /trip,/reset)",
+   "drive": "api",
+   "cells": [
+    {
+     "state": "healthy",
+     "status": "driven",
+     "detail": "No frontend surface for this located in this pass (not opened) — likely internal/ops-only; flag for Stage 1 to confirm whether Settings > Advanced actually surfaces it or if it's sidecar-internal only. GET is safe; the trip/reset POSTs mutate shared provider state — never call th"
+    },
+    {
+     "state": "tripped(circuit open)",
+     "status": "driven",
+     "detail": "No frontend surface for this located in this pass (not opened) — likely internal/ops-only; flag for Stage 1 to confirm whether Settings > Advanced actually surfaces it or if it's sidecar-internal only. GET is safe; the trip/reset POSTs mutate shared provider state — never call th"
+    },
+    {
+     "state": "reset",
+     "status": "driven",
+     "detail": "No frontend surface for this located in this pass (not opened) — likely internal/ops-only; flag for Stage 1 to confirm whether Settings > Advanced actually surfaces it or if it's sidecar-internal only. GET is safe; the trip/reset POSTs mutate shared provider state — never call th"
+    }
+   ],
+   "evidence_paths": [
+    "r15/surface/failure-inducer/COVERAGE.json",
+    "r15/surface/settings-plugins/COVERAGE.json"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,4 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ grep -n 'validate\|R15-UI-089\|llm/keys' src/modules/marketplace/MarketplacePanel.tsx src/store/marketplace.ts | head -20; grep -rn 'R15-UI-089' src --include=*.test.ts* | head -5
+exit=0
+src/modules/marketplace/MarketplacePanel.test.tsx:155:describe("MarketplacePanel — CredentialForm blocks a definite auth failure (R15-UI-089)", () => {

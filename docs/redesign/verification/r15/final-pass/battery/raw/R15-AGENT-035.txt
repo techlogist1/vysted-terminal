@@ -1,0 +1,20 @@
+# R15-AGENT-035 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:31:39+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+echo '== lock hold 1: launch ollama llama3.1:8b max_tokens=1000 =='; cat $B/out/L-AGENT-035a.txt
+echo '== lock hold 2: POST /runs/{id}/resume of the breached run =='; cat $B/out/L-AGENT-035b.txt
+--- output ---
+== lock hold 1: launch ollama llama3.1:8b max_tokens=1000 ==
+# launch {"prompt": "Use the price_data tool for AAPL, then summarize.", "provider": "ollama", "model": "llama3.1:8b", "budget": {"max_tokens": 1000}}
+launch resp: 201 {'run_id': '558b44e917124da5912d8719e9e62686'}
+final status poll: error (13 polls)
+{"id": "558b44e917124da5912d8719e9e62686", "status": "error", "provider": "ollama", "model": "llama3.1:8b", "cost": {"tokens": 6453, "spend_usd": 0.0, "steps": 1}, "budget": {"max_tokens": 1000, "max_spend_usd": 1.0, "max_wall_seconds": 600.0, "max_steps": 12}, "detail": "token ceiling 1000 reached (6453 used)", "question": null, "plan": null}
+activity: []
+EXIT=0
+== lock hold 2: POST /runs/{id}/resume of the breached run ==
+resume HTTP 200 {'resumed': True}
+final status poll: error (4 polls)
+{"id": "558b44e917124da5912d8719e9e62686", "status": "error", "provider": "ollama", "model": "llama3.1:8b", "cost": {"tokens": 12991, "spend_usd": 0.0, "steps": 2}, "budget": {"max_tokens": 1000, "max_spend_usd": 1.0, "max_wall_seconds": 600.0, "max_steps": 12}, "detail": "token ceiling 1000 reached (6538 used)", "question": null, "plan": null}
+activity: []
+EXIT=0
+
+EXIT=0 (0.0s)

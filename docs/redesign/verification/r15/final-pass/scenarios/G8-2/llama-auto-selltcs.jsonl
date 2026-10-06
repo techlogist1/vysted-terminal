@@ -1,0 +1,2 @@
+{"kind": "delta", "text": "{\"name\": \"portfolio_update_position\", \"parameters\": {\"asset_class\": \"equity\", \"cost_basis\": None, \"note\": None, \"purchased_at\": None, \"position_id\": \"TCS position in user's portfolio (ask for ID to delete or update)\", \"quantity\": 0, \"symbol\": \"TCS.NS\"}}"}
+{"kind": "done", "usage": {"input_tokens": 6362, "output_tokens": 74, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

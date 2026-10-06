@@ -1,0 +1,55 @@
+import asyncio, httpx
+from services.search.base import SearchError, SearchResult, SearchResponse
+from services.search.keyless import KeylessSearchBackend
+from services.search.breaker import breaker_for, reset_breakers
+from services.search.mojeek import MojeekSearchBackend
+from services.search.brave import BraveSearchBackend
+from services.search.ddg import DdgSearchBackend
+from services.search.transport import FetchResult
+
+CAPTCHA = "<html><body><h1>Captcha</h1> JavaScript is required to complete this challenge.</body></html>"
+DDG_CHALLENGE = ("<html><body><div class='anomaly-modal__title'>Unfortunately, bots use DuckDuckGo too.</div>"
+                 "<div>Please complete the following challenge to confirm this search was made by a human.</div>"
+                 "<div>Select all squares containing a duck:</div></body></html>")
+async def nosleep(*a, **k): pass
+
+class RowStub:
+    async def search(self, q, *, options=None):
+        r = SearchResult(title="Unusual traffic from your computer network", url="https://duckduckgo.com/x", snippet="verify you are a human")
+        return SearchResponse(results=[r], citations=[], backend="ddg", query=q)
+
+async def keyless(engines, label):
+    reset_breakers()
+    try:
+        r = await KeylessSearchBackend(engines=engines, sleeper=nosleep).search("infosys results")
+        print(label, "-> OK results", len(r.results), "backend", r.backend)
+    except SearchError as e:
+        print(label, "-> SearchError", e.reason, "|", str(e)[:160])
+    for eid in engines:
+        b = breaker_for(eid); print("   breaker", eid, "state", getattr(b, "state", "?"), "failures", getattr(b, "_failures", "?"))
+
+async def main():
+    # register repro
+    await keyless({"ddg": RowStub()}, "REGISTER-REPRO row stub")
+    # acceptance: mojeek 200 captcha
+    async def mj(url, **k): return FetchResult(status_code=200, text=CAPTCHA, url=url)
+    try:
+        await MojeekSearchBackend(fetch=mj).search("x"); print("MOJEEK direct -> no raise")
+    except SearchError as e: print("MOJEEK direct -> SearchError", e.reason, e)
+    await keyless({"mojeek": MojeekSearchBackend(fetch=mj)}, "ACCEPT keyless mojeek captcha")
+    # fresh: brave 200 captcha
+    await keyless({"brave": BraveSearchBackend(fetch=mj)}, "FRESH keyless brave captcha")
+    # fresh: real DDG backend, both endpoints answer 200 with the DDG challenge page
+    for label, body in (("FRESH DDG 200 generic captcha", CAPTCHA), ("FRESH DDG 200 duck challenge", DDG_CHALLENGE)):
+        tr = httpx.MockTransport(lambda req, body=body: httpx.Response(200, text=body))
+        async with httpx.AsyncClient(transport=tr) as c:
+            d = DdgSearchBackend(client=c)
+            try:
+                r = await d.search("x"); print(label, "direct -> OK results", len(r.results))
+            except SearchError as e: print(label, "direct -> SearchError", e.reason)
+            await keyless({"ddg": d}, label + " keyless")
+    # fresh: all three blocked with 200 pages -> should be rate_limited
+    tr = httpx.MockTransport(lambda req: httpx.Response(200, text=DDG_CHALLENGE))
+    async with httpx.AsyncClient(transport=tr) as c:
+        await keyless({"ddg": DdgSearchBackend(client=c), "brave": BraveSearchBackend(fetch=mj), "mojeek": MojeekSearchBackend(fetch=mj)}, "FRESH all-three 200 challenge")
+asyncio.run(main())

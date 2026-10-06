@@ -1,0 +1,5 @@
+import datetime as dt
+from services import locale
+print("max NSE holiday:", max(locale._NSE_HOLIDAYS), "max US:", max(locale._US_HOLIDAYS))
+print("2027-01-26 (Republic Day) trading day IN:", locale._is_trading_day(dt.date(2027,1,26),"IN"))
+print("sessions 2027-01-25..27 IN:", locale.trading_sessions_between(dt.date(2027,1,25), dt.date(2027,1,27), "IN"))

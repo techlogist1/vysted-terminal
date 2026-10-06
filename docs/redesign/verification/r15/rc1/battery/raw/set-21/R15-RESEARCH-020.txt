@@ -1,0 +1,5 @@
+Source check: services/search/base.py:122 `DEFAULT_CITATION_LIMIT = 8`, :125 `def result_limit
+(options)`. All four backends (brave.py:30/111, ddg.py:37/334, mojeek.py:29/103, searxng.py:37)
+import and call the shared `result_limit(opts)` - no hand-copied cap logic remains; searxng.py's
+docstring (line 82) references `services.search.base.result_limit` directly.
+Verdict: holds (source-confirmed).

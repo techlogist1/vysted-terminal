@@ -1,0 +1,6 @@
+[   0.8s] done: {"kind": "done", "usage": {"input_tokens": 2738, "output_tokens": 12, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+What would you like to discuss about Indian stocks today?
+
+=== ok · 0.8s · events {'delta': 11, 'done': 1} · usage in=2738 out=12 · est $0.00000 · llama3.1:8b

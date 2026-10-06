@@ -1,0 +1,10 @@
+data: {"kind":"run-start","runId":"6e09a79d-d703-4a44-bf11-6267fca36dd1","startedAt":1790507946974}
+
+data: {"kind":"node-start","runId":"6e09a79d-d703-4a44-bf11-6267fca36dd1","nodeId":"n1","nodeType":"ai.agent_invoke","startedAt":1790507946976}
+
+data: {"kind":"node-error","runId":"6e09a79d-d703-4a44-bf11-6267fca36dd1","nodeId":"n1","message":"ai.agent_invoke (strategy_critic): No Anthropic API key is set — add it in Settings.","durationMs":110.433417}
+
+data: {"kind":"node-error","runId":"6e09a79d-d703-4a44-bf11-6267fca36dd1","nodeId":"n2","message":"upstream node failed","durationMs":0.0}
+
+data: {"kind":"run-error","runId":"6e09a79d-d703-4a44-bf11-6267fca36dd1","message":"failures in nodes: ['n1', 'n2']","durationMs":112.219959}
+

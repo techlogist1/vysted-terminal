@@ -1,0 +1,12 @@
+# rc1-vshard-10 working log (gate round 5)
+
+- 16:34 IST 27 Sep: candidate worktree HEAD = 633f844071d972b337f4c3526d86555c80df0568 (checked). Seed copied to scratchpad/rc1-round-5-data-rc1-vshard-10. Own sidecar from worktree source on :52610, sleep pid 87612; /health ok.
+- 16:35-16:37: Yahoo circuit opened TWICE with zero user requests before the first open (16:35:29 t=47s; 16:36:35), each preceded by three crawler (fundamentals_warm._crawl_once -> provider_registry.get_fundamentals -> yfinance _provider_error weight 1.0) throttles. LIFECYCLE-020 own repro reproduces.
+- CODE-DATA-023: both named comments carry composition not counts; live nse-all 3506 (EQ 2584/ETF 351/SM 571), bse-all 5042, india-all 5891 match the composition. holds. Adjacent: nse_bhavcopy.py:38 '~2,675 symbols' + 'SM ... outside the master' stale.
+- DATA-063: live parity TCS/SBIN.NS/ITC.BO/RELIANCE.BO/NIFTYBEES.NS eod, ETH/USDT crypto live; empty-series in-process 200 on both routes. holds. Intraday IN + US legs 429 (upstream Yahoo throttle on this IP).
+- LEAD-004 / LEAD-051: live NDTV/JONJUA quarterly-gap wording (no 'half-yearly'), TCS.NS no reason, SME FORGEAUTO/TECHERA/HOLMARC/UNIHEALTH/WOL3D stay half-yearly; constructed 1-quarter / migrant / Dec-FY IPO shapes read quarterly-gap. hold.
+- LEAD-050: in-process row_relevant: GE repro True, ALL/IT/ON/AI negatives hold, stoplisted SO/GO/BE prose False, 'NYSE: SO' True, XP/BP/GE-allcaps True. GM/MU/KO/HD/BA/JD bare mentions False at candidate AND at base 522c3246 (guard `if len(symbol) >= 3` since 54f4e9c2) -> pre-existing, adjacent not refutation. holds.
+- RESEARCH-001: in-process news tool + gate_news live: ON/IT/AI/KEY/LOW/SO/NOW/CAT kept_region_feed=0 (ON dropped 10/10, IT 8/8, AI 7/7); RELIANCE.NS 2 off-entity dropped with honest note; BDL literal Sterling&Wilson item dropped (also when alias-tagged or via_symbol_feed for IN). holds.
+- LEAD-049 holds (nifty50 50/50 TMPV, resolve TMPV first, seeds clean). LEAD-048 holds (scratch vitest 10/10, worktree left clean). LEAD-043 holds (no-key auth on 7 providers x invoke, 5 x /llm/chat; bad key auth). CODE-DATA-023 holds.
+- LIFECYCLE-020 refuted: 7 crawler-driven opens by 16:48:29 (opens_total 7). Entry stands at two failures: recorded only, no fix round (lead decides).
+- 16:49: own sidecar stopped (kill sleep pid 87612; worker 87613 gone; :52610 free). Evidence verifier/shard-10.md, findings findings/rc1-vshard-10.json.

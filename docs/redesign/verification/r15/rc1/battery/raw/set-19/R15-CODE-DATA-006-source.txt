@@ -1,0 +1,4 @@
+402:    function finish(patch: Partial<ScreenerState>): boolean {
+443:    async function runUnary(describe: (err: unknown) => string): Promise<ScreenerResult | null> {
+479:      return runUnary(() => `Sidecar unreachable: ${fetchErrMsg}`);
+483:      return runUnary((err) => (err instanceof Error ? err.message : "screener run failed"));

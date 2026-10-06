@@ -1,0 +1,25 @@
+$ count <input elements in non-test src/**/*.tsx with/without id|name|aria-label; grep axe/lighthouse/jsx-a11y in package.json
+inputs 78 without id/name/aria-label 33 files 22
+package.json:73:    "eslint-plugin-jsx-a11y": "^6.10.2",
+package.json:87:    "vitest-axe": "^0.1.0"
+eslint.config.mjs:5:import jsxA11y from "eslint-plugin-jsx-a11y";
+eslint.config.mjs:13:    plugins: { react: reactPlugin, "react-hooks": reactHooks, "jsx-a11y": jsxA11y },
+eslint.config.mjs:20:      // rather than the full jsx-a11y `recommended` bundle, which spans
+eslint.config.mjs:30:      "jsx-a11y/label-has-associated-control": ["error", { assert: "either" }],
+
+$ same count but only id|name (the repro literal)
+inputs 78 missing id/name 76
+$ a11y gate in tests
+src/vitest-axe.d.ts
+src/components/SettingsPanel.test.tsx
+3:import { axe } from "vitest-axe";
+4:import * as axeMatchers from "vitest-axe/matchers";
+68:// runs the real axe-core ruleset against the rendered DOM — this catches
+70:// (jsx-a11y/label-has-associated-control) cannot, since it can only see JSX,
+72:expect.extend(axeMatchers);
+926:  it("has no axe violations in its default (Preferences) state (R15-UI-071 smoke)", async () => {
+932:    const results = await axe(container);
+5:import jsxA11y from "eslint-plugin-jsx-a11y";
+13:    plugins: { react: reactPlugin, "react-hooks": reactHooks, "jsx-a11y": jsxA11y },
+20:      // rather than the full jsx-a11y `recommended` bundle, which spans
+30:      "jsx-a11y/label-has-associated-control": ["error", { assert: "either" }],

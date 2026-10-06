@@ -1,0 +1,10 @@
+[   3.2s] done: {"kind": "done", "usage": {"input_tokens": 2746, "output_tokens": 57, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+You sold 5 TCS shares at ₹3,100 each.
+
+To calculate your proceeds, let's multiply the number of shares by the sale price: 5 x ₹3,100 = ₹15,500.
+
+Your proceeds from selling these shares are ₹15,500.
+
+=== ok · 3.2s · events {'delta': 56, 'done': 1} · usage in=2746 out=57 · est $0.00000 · llama3.1:8b

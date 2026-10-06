@@ -1,0 +1,15 @@
+OWN-REPRO removed: 3 out-of-range: 0
+## Kaynes Technology (KAYNES.NS)
+
+Revenue grew 29% year on year [1]. Earnings growth: -0.4% (TTM). Order book stands at Rs 6,000 cr [2].
+
+The outlook remains constructive [3].
+SURVIVES Merged Sources: False | References: False | [n]: False | constructive kept: True
+### Sources removed 1 survives: False
+FRESH '## Citations': removed=0 list_survives=True
+FRESH '**Sources cited:**': removed=0 list_survives=True
+FRESH '## Source List': removed=0 list_survives=True
+FRESH '## Key sources': removed=0 list_survives=True
+FRESH 'Further reading:': removed=0 list_survives=True
+FRESH '## References': removed=1 list_survives=False
+FRESH 'Sources:': removed=1 list_survives=False

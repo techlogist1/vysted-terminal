@@ -1,0 +1,91 @@
+[
+ {
+  "key": "rc1-vshard-3:1",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-060",
+  "title": "20-F ownership lane parses [] for ADRs whose 20-F has a holders table (IBN, HDB); route answers bare not_applicable with no 20-F note",
+  "repro": "GET :52603/disclosures/shareholding?symbol=IBN and ?symbol=HDB at 633f8440 -> coverage not_applicable, major_shareholders []; IBN 20-F 0000950103-26-010820 has 'MAJOR SHAREHOLDERS' (pct-then-shares), HDB 20-F 0001193125-26-322004 has 'PRINCIPAL SHAREHOLDERS'; sec_ownership.parse_major_shareholders returns []",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-3-raw/DATA-060-fresh-20f-parse.txt",
+  "suspected_files": [
+   "sidecar/services/sec_ownership.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:2",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-AGENT-044",
+  "title": "add_to_watchlist on MAZAGONDOCK fails with no suggestion; register test requires MAZDOCK or a failed ack with a suggestion",
+  "repro": "GET :52603/resolve?q=MAZAGONDOCK (region IN) -> resolved None, needs_disambiguation False, candidates [] -> host add fails 'did not resolve to a listing' with no candidate; 'Mazagon Dock' resolves MAZDOCK 0.92; pinned host-actions.test.ts:201-223 enshrines the no-suggestion path",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-3-raw/AGENT-044-resolve.txt",
+  "suspected_files": [
+   "src/lib/host-actions.ts",
+   "sidecar/services/resolution_policy.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:3",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-UI-029",
+  "title": "Macro search failure renders as 'No matching series' (false empty); keyless FRED search is a 502",
+  "repro": "Macro panel, FRED tab (default), type 'unemployment': live /macro/search?q=unemployment&provider=fred -> 502 FRED-key sentence; store/macro.ts search catch sets [] -> picker shows 'No results for \"unemployment\" on fred.'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-3-raw/UI-030-UI-029-fresh-vitest.txt",
+  "suspected_files": [
+   "src/store/macro.ts",
+   "src/modules/macro/MacroSeriesPicker.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:4",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-AGENT-030",
+  "title": "Ollama adapter catch-all humanizes internal exceptions as an Ollama/provider error",
+  "repro": "services/llm/ollama.py:206-210, 279-283 except Exception -> humanize('ollama', exc); humanize('ollama', RuntimeError('runs_store: database connection is closed')) -> 'Something went wrong with Ollama.' code unknown",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-3-raw/AGENT-030.txt",
+  "suspected_files": [
+   "sidecar/services/llm/ollama.py",
+   "sidecar/services/errors.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:5",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-RESEARCH-032",
+  "title": "Onboarding local-model recommendation collapses any sidecar failure (incl. a 500 with a reason) to 'Couldn't reach the local engine'",
+  "repro": "src/lib/hardware-fit.ts:63-74 raw fetch, !resp.ok or throw -> null; OnboardingFlow.tsx:646 renders 'Couldn't reach the local engine to check your hardware.'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-3.md",
+  "suspected_files": [
+   "src/lib/hardware-fit.ts",
+   "src/components/OnboardingFlow.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:6",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-RESEARCH-024",
+  "title": "Perplexity/Sonar research sources drop published_at although search_results carry a date",
+  "repro": "services/research/perplexity.py:180 and sonar.py:201 build ResearchSource without published_at",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-3.md",
+  "suspected_files": [
+   "sidecar/services/research/perplexity.py",
+   "sidecar/services/research/sonar.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:7",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-AGENT-044",
+  "title": "/resolve candidates for a guessed ticker can omit the obvious listing (RELIANCEIND -> NV20BEES/RPOWER, not RELIANCE)",
+  "repro": "GET :52603/resolve?q=RELIANCEIND (region IN) -> needs_disambiguation, candidates NV20BEES, RPOWER, RS, QTZM",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-3-raw/AGENT-044-resolve.txt",
+  "suspected_files": [
+   "sidecar/services/resolution_policy.py"
+  ]
+ }
+]

@@ -1,0 +1,79 @@
+{
+  "certified": [
+    "R15-LIFECYCLE-010",
+    "R15-UI-014",
+    "R15-LIFECYCLE-011",
+    "R15-UI-012",
+    "R15-CODE-PLATFORM-011",
+    "R15-RESEARCH-032",
+    "R15-LIFECYCLE-023",
+    "R15-UI-013",
+    "R15-AGENT-028",
+    "R15-UI-057",
+    "R15-UI-049",
+    "R15-UI-019",
+    "R15-CODE-AGENT-006",
+    "R15-AGENT-055",
+    "R15-AGENT-056",
+    "R15-AGENT-081",
+    "R15-AGENT-061",
+    "R15-AGENT-030",
+    "R15-LEAD-005",
+    "R15-DATA-081",
+    "R15-UI-030",
+    "R15-UI-029",
+    "R15-DATA-058",
+    "R15-LIFECYCLE-019",
+    "R15-LIFECYCLE-022",
+    "R15-UI-039",
+    "R15-CODE-DATA-002",
+    "R15-CODE-DATA-003",
+    "R15-DATA-051",
+    "R15-AGENT-045",
+    "R15-DATA-084",
+    "R15-DATA-085",
+    "R15-DATA-086",
+    "R15-CODE-AGENT-004",
+    "R15-LEAD-019",
+    "R15-CODE-AGENT-007",
+    "R15-CODE-AGENT-016",
+    "R15-LIFECYCLE-014",
+    "R15-CODE-RESEARCH-003"
+  ],
+  "needs_gui": [
+    "R15-LIFECYCLE-001"
+  ],
+  "not_certified": [
+    {
+      "id": "R15-DATA-061",
+      "reason": "Half fixed. The yfinance and app-handler legs hold live (/quotes/ZZZZNOTREAL -> 404 not_found with a sentence; network-down /history/AAPL -> 503 network). But the entry's own repro GET /macro/GDP still returns 502 provider_error with raw library text: \"World Bank upstream error for 'GDP'/'IND': APIError: JSON decoding error (https://api.worldbank.org/...)\", with the action 'Retry, or try again later.'. The mapper keeps str(exc) as detail for kind=None, which contradicts C5 ('raw text only in the sidecar log'). A fresh case in the same class also fails: /history/XYZ%2FABC -> 502 \"yfinance history failed for 'XYZ/ABC': 'Response' object has no attribute 'get'\". IMF upstream 404s are classified provider_error/502, not not_found."
+    },
+    {
+      "id": "R15-UI-053",
+      "reason": "The route fix is real: /macro/IFS%2FA.US.NGDP_R_K_IX?provider=imf now reaches the IMF provider instead of Starlette's 404. The entry's outcome still holds from the outside world, though: the Macro panel's IMF provider is 100% dead. All 8 catalog ids, including IFS/A.IN.NGDP_R_K_IX, now return 502 \"IMF upstream error ... 404 Client Error: Not Found for url: https://api.imf.org/external/sdmx/2.1/data/IFS/...\". api.imf.org's SDMX 2.1 IFS dataflow answers 204 empty, while the SDMX 3.0 dataflows (e.g. CPI) answer 200. The catalog needs live IMF ids."
+    },
+    {
+      "id": "R15-RESEARCH-027",
+      "reason": "Much improved but short of the target. Per-leg latency_ms is stamped, the witness time-box works live ('52-week range cross-check timed out after 6s - dropped'), and the web round runs alongside the fan-out. NORMAL wall fell from 33-38 s to 7.7-19.7 s. But 2 of 5 cold live runs still miss the <=15 s FR-070 target: KSE via the agent took 16.1 s ('pulled 4/4 data sources' 15,401 ms), and Fusion Finance took 19.7 s over MCP. The price/fundamentals legs ahead of the witnesses are not time-boxed, and Yahoo was throttling (429) during the window."
+    },
+    {
+      "id": "R15-UI-015",
+      "reason": "Not claimed: the integrator recorded it as a partial landing that stays open (earnings/screener still flatten the error). Its macro leg holds live: keyless FRED DGS10 502 loaded exactly once, with no 12-retry storm."
+    },
+    {
+      "id": "R15-AGENT-046",
+      "reason": "Not claimed: not delivered in batch 8."
+    },
+    {
+      "id": "R15-CODE-AGENT-008",
+      "reason": "Not claimed: not delivered in batch 8. Live, the research tool result still carries no 'brief' key (C6)."
+    },
+    {
+      "id": "R15-CODE-PLATFORM-021",
+      "reason": "Not claimed: not delivered in batch 8."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-8-int@04eb5e16092eb8643a93270a82c9bb28ac7922f0"
+}

@@ -1,0 +1,26 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  36.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_7eb3c3a7643f4d9aa9d8bdd7912e87c7", "name": "price_data", "input": {"symbol": "TCS.NS", "timeframe": "1d"}}
+[  38.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_36b08e2498c24704b67cb2dbc1f11fc9", "name": "price_data", "input": {"symbol": "HINDUNILVR.ZZ", "timeframe": "1d"}}
+[  39.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_19e93015100f4d519f03ccb05f485788", "name": "price_data", "input": {"symbol": "TCS.NS"}}
+[  41.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_db6f31eb5e8d434095b132b761c4eef4", "name": "price_data", "input": {"symbol": "HUL"}}
+[  44.0s] tool_result: {"kind": "tool_result", "tool_call_id": "call_7eb3c3a7643f4d9aa9d8bdd7912e87c7", "name": "price_data", "ok": true, "error": null}
+[  45.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_36b08e2498c24704b67cb2dbc1f11fc9", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'HINDUNILVR.ZZ' from 'yfinance'"}
+[  47.9s] tool_result: {"kind": "tool_result", "tool_call_id": "call_19e93015100f4d519f03ccb05f485788", "name": "price_data", "ok": true, "error": null}
+[  48.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_db6f31eb5e8d434095b132b761c4eef4", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'HUL' from 'yfinance'"}
+[  58.8s] heartbeat: {"kind": "heartbeat"}
+[  68.8s] heartbeat: {"kind": "heartbeat"}
+[  78.8s] heartbeat: {"kind": "heartbeat"}
+[  88.8s] heartbeat: {"kind": "heartbeat"}
+[  98.8s] heartbeat: {"kind": "heartbeat"}
+[ 108.8s] heartbeat: {"kind": "heartbeat"}
+[ 118.8s] heartbeat: {"kind": "heartbeat"}
+[ 123.7s] done: {"kind": "done", "usage": {"input_tokens": 11393, "output_tokens": 30, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of TCS is ₹2082.0.
+
+Unfortunately, the terminal's data does not include the latest price of HUL.
+
+=== ok · 123.7s · events {'heartbeat': 10, 'tool_use': 4, 'tool_result': 4, 'delta': 29, 'done': 1} · usage in=11393 out=30 · est $0.00000 · llama3.1:8b

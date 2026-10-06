@@ -1,0 +1,33 @@
+6:* ``corporate_announcements(symbol, exchange=None, limit=20)`` — the merged
+56:async def _corporate_announcements(args: dict[str, Any]) -> dict[str, Any]:
+73:        response = await corporate_disclosures.get_announcements_cached(symbol, exchange, limit)
+180:        response = await corporate_disclosures.get_announcements_cached(
+231:    register_tool("corporate_announcements", _corporate_announcements)
+240:    "_corporate_announcements",
+--- research/iter.py gather_floor call sites ---
+599:async def get_announcements_cached(
+600-    symbol: str, exchange: str | None = None, limit: int = DEFAULT_LIMIT
+601-) -> AnnouncementsResponse:
+602-    """:func:`get_announcements` through :mod:`services.data_cache` — the one
+603-    cached entry point the router, the agent tool and research share. Raises
+604-    :class:`ProviderError` like the uncached call; a failure is never cached."""
+605-    normalized = symbol.strip().upper()
+606-    cache_key = f"disclosures:announcements:{normalized}:{exchange or 'ALL'}:{limit}"
+607-    cached = await data_cache.get(cache_key, ANNOUNCEMENTS_TTL_SECONDS)
+608-    if isinstance(cached, dict):
+609-        try:
+610-            return AnnouncementsResponse.model_validate(cached)
+611-        except Exception:  # noqa: BLE001
+612-            logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
+613-    response = await asyncio.to_thread(get_announcements, normalized, exchange, limit)
+614-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+615-    return response
+616-
+617-
+618-def _not_applicable(bare: str) -> dict[str, str]:
+619-    """The out-of-coverage answer for a non-NSE/BSE instrument (C3, D-B7-3)."""
+620-    return {
+621-        "coverage": "not_applicable",
+622-        "note": f"{bare} is not an NSE/BSE instrument; Indian exchange disclosures do not apply",
+623-    }
+624-

@@ -1,0 +1,137 @@
+[
+  {
+    "raw_id": "COD-research-retrieval-relevance-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: SearxngBackend reads only 'maxResults' (searxng.py:263) while web_search._dispatch sends only 'numResults' (web_search.py:198), and `results` is never sliced (searxng.py:205-215); stub repro returned 40 results / 8 citations for numResults=3. Severity lowered: the research brief recorder reads citations (deep.py:602), which stay capped at 8, so the harm is agent-loop context bloat plus an 8-row ceiling, and only on the SearXNG tier, which the user has to opt into (Docker setup or a custom URL). The keyless default tier honours the cap (ddg.py:401).",
+    "evidence": "sidecar/services/search/searxng.py:205, sidecar/services/search/searxng.py:263, sidecar/services/agent_tools/web_search.py:198, sidecar/services/agent_tools/web_search.py:218, sidecar/services/search/ddg.py:401, sidecar/services/research/deep.py:602",
+    "evidence_checked": "code read plus stub repro against the source; the agent_runtime tool-result path has no truncation (grep turned up none)",
+    "repro_check": "stub httpx client returning 40 rows -> SearxngBackend.search('q', options={'numResults':3,...}) -> len(results)=40, len(citations)=8"
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The mechanism holds: index_tail `[\\s-]?\\d{2,3}(?![a-z0-9])` (relevance.py:407-412) scores 'BAJFINANCE 200 DMA breakout' at 0.0/dropped and the same title without the 200 at 1.0. It also drops 'BAJFINANCE 52-week high'. Corrected: the INFY example is wrong, because a 4-digit number fails the lookahead and 'INFY 1500 target' scores 1.0/kept. Severity lowered: it bites only when the title names the TICKER alone (not the brand token) followed by a 2-3 digit number. Most news headlines name the company ('Bajaj Finance ...'), and the brand path is unaffected.",
+    "evidence": "sidecar/services/research/relevance.py:407, sidecar/services/research/relevance.py:412, sidecar/services/research/relevance.py:440, sidecar/services/research/deep.py:611",
+    "evidence_checked": "ran entity_match/row_relevant on 7 title variants with ResearchTarget(BAJFINANCE/INFY, region IN) on a moneycontrol URL",
+    "repro_check": "BAJFINANCE 200 DMA -> 0.0 False; no-200 -> 1.0 True; INFY 1500 -> 1.0 True (claim wrong); INFY 150 -> 0.0 False; BAJFINANCE 52-week high -> 0.0 False"
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: record_success() and any_engine_answered=True run before _filter_results (keyless.py:163-165). A stubbed challenge-page row yielded SearchResponse(results=[]) with breaker closed/_failures=0. The more common real-world path is broader than stated: a 200 DDG block page parses to zero rows (ddg.py:385-394 comment: 'markup drift or a soft block') and hits the same success branch. Brave/Mojeek treat only status codes as blocks (brave.py:122-129, mojeek.py:114-121). Severity lowered: an empty engine rotates to the next one (keyless.py:175-176), so the user-visible harm is a wasted DDG hop per search plus 'found nothing' instead of 'rate-limited' only when all three engines soft-block together.",
+    "evidence": "sidecar/services/search/keyless.py:163, sidecar/services/search/keyless.py:175, sidecar/services/search/keyless.py:186, sidecar/services/search/ddg.py:385, sidecar/services/search/brave.py:122, sidecar/services/search/mojeek.py:114",
+    "evidence_checked": "stub repro through KeylessSearchBackend(engines={'ddg': stub}) with a challenge-text row and with an empty result list",
+    "repro_check": "both stubs -> results=[], backend='keyless', breaker_for('ddg') state=closed _failures=0"
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: 'all rights reserved' is in LOW_QUALITY_MARKERS (keyless.py:80) and _filter_results drops a whole SERP result on any marker (keyless.py:98). The exact Route Mobile IR row is dropped before it reaches relevance.",
+    "evidence": "sidecar/services/search/keyless.py:80, sidecar/services/search/keyless.py:84, sidecar/services/search/keyless.py:98",
+    "evidence_checked": "ran _filter_results on the cited row",
+    "repro_check": "_filter_results([routemobile.com/investors row with '(c) 2025 ... All rights reserved.'], set()) == []"
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: both comments promise an instant read with no network probe (web_search.py:10-11, :85-86), but the first call per process awaits refresh() -> docker version/inspect/port plus a 5s health probe (searxng_manager.py:337-353, :412-446). The flag is also set before the await (:348-349). Corrected on magnitude: a wedged daemon costs at most one ~15s `docker version` timeout, because code 124 means daemon_running=False and refresh returns early (searxng_manager.py:361-371, :420-431). A healthy Docker is sub-second and no CLI returns 127 immediately, so 'tens of seconds' is overstated. A concurrent first search that reads the stale None falls back to keyless and does not fail.",
+    "evidence": "sidecar/services/agent_tools/web_search.py:10, sidecar/services/agent_tools/web_search.py:85, sidecar/services/searxng_manager.py:348, sidecar/services/searxng_manager.py:361, sidecar/services/searxng_manager.py:412, sidecar/services/searxng_manager.py:103",
+    "evidence_checked": "code-only (did not disturb Docker on the operator's machine)",
+    "repro_check": "code read: ready_base_url_detected -> refresh -> detect (_DOCKER_TIMEOUT_SECS=15) -> early return on daemon not running"
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The 'no wall-clock deadline / minutes per step' claim is refuted. agent_runtime._dispatch_tool wraps registry tools in asyncio.wait_for with catalog timeout_seconds=25.0 for web_search (agent_runtime.py:652-666, catalog.py:313), and deep research rounds carry a 90s per-round guard (deep.py:79). The finding's failing-path arithmetic is also off: Lite is tried only after a zero-row success, so a failing DDG turn is 2x2=4 POSTs (plus up to 4 impersonated 403 retries). What survives: DDG's nested budget (up to ~48s of 12s timeouts) exceeds the 25s outer budget. A hanging DDG therefore burns the whole tool budget and wait_for cancels the call before the rotation reaches Brave/Mojeek, so failover never happens.",
+    "evidence": "sidecar/services/agent_runtime.py:652, sidecar/services/agent_tools/catalog.py:313, sidecar/services/research/deep.py:79, sidecar/services/search/keyless.py:219, sidecar/services/search/ddg.py:60, sidecar/services/search/ddg.py:385",
+    "evidence_checked": "code read; ran catalog.timeout_for('web_search') in sidecar venv",
+    "repro_check": "catalog.timeout_for('web_search') -> 25.0; grep wait_for in agent_runtime.py -> :655"
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real and self-admitted: pacing.py:31-32 says 'DDG ~3s mirrors the existing ~20/min token bucket in ddg.py', and both throttles run (keyless.py:220, ddg.py:384/391). Severity lowered: the bucket starts full with capacity 20 (ddg.py:74, _TokenBucket init) and RequestQueue already spaces DDG at 3s, so the bucket only adds latency after sustained Lite-fallback double-spends. This is a drift and maintenance risk, not a normal-use defect.",
+    "evidence": "sidecar/services/search/pacing.py:33, sidecar/services/search/ddg.py:69, sidecar/services/search/ddg.py:384, sidecar/services/search/ddg.py:391, sidecar/services/search/keyless.py:220",
+    "evidence_checked": "code read",
+    "repro_check": "n/a (design)"
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Mechanism confirmed: record_failure runs on every attempt (keyless.py:227) with ATTEMPTS_PER_ENGINE=2 == DEFAULT_FAIL_THRESHOLD=2, so one fully failed search opens the breaker for 45s. The docstring states this as intended (keyless.py:214-217). Corrected: for DDG each keyless attempt already wraps ddg.py's own 2-attempt loop (ddg.py:60, :212), so benching takes 4+ consecutive failed POSTs, not 'a momentary blip'. The 'blocking engine stays closed' half duplicates finding 3.",
+    "evidence": "sidecar/services/search/keyless.py:214, sidecar/services/search/keyless.py:227, sidecar/services/search/pacing.py:42, sidecar/services/search/breaker.py:39, sidecar/services/search/ddg.py:60",
+    "evidence_checked": "code read",
+    "repro_check": "n/a (design)"
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real in code: _impersonated_fallback returns None for any non-2xx including 429 (ddg.py:196-198), and the 403 branch raises SearchError(unreachable) without a reason (ddg.py:225-233). Severity lowered: the mislabel reaches the user only when Brave and Mojeek also fail without any of them rate-limiting (keyless.py:180-198). The keyless error text says 'Wait a moment and retry', not 'no backend configured'. The claim that 403-then-429 is DDG's 'most common hard-block shape' is unverified.",
+    "evidence": "sidecar/services/search/ddg.py:196, sidecar/services/search/ddg.py:225, sidecar/services/search/ddg.py:233, sidecar/services/search/keyless.py:180, sidecar/services/search/keyless.py:192",
+    "evidence_checked": "code read",
+    "repro_check": "n/a (design)"
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-10",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Holds in substance: no web ResearchSource carries a date, and domain is the literal 'web' for citation rows (deep.py:602-614; Citation has url/title/excerpt only). Corrected on mechanism and fix: ResearchSource itself has no date field (models.py:62-69), so reading `results` would not add dates. Row `source` is the BACKEND id ('searxng'/'mojeek'), not a domain. No keyless engine sets published_at (grep empty), so only the opt-in SearXNG tier has dates to lose. Fixing this means a published_at field end to end plus a URL-derived domain.",
+    "evidence": "sidecar/services/research/deep.py:602, sidecar/services/research/deep.py:614, sidecar/services/research/models.py:62, sidecar/services/search/base.py:132, sidecar/services/search/searxng.py:246",
+    "evidence_checked": "code read plus grep for published_at across the engines",
+    "repro_check": "grep published_at in brave/mojeek/ddg -> no hits"
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-11",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: setup() catches only CancelledError (searxng_manager.py:486-493). write_settings (mkdir/write_text, :227-240) runs unguarded at :531 while its sibling pick_port is guarded (:532-536). grep confirms _log (:62) is never called. Severity lowered: the trigger is an unwritable or full app data dir, and every SQLite store in the sidecar shares that dir and would fail first. The one-click flow does not hit this in normal use.",
+    "evidence": "sidecar/services/searxng_manager.py:486, sidecar/services/searxng_manager.py:531, sidecar/services/searxng_manager.py:227, sidecar/services/searxng_manager.py:62",
+    "evidence_checked": "code read; grep '_log\\.' on searxng_manager.py -> no hits",
+    "repro_check": "n/a (design)"
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-12",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: locale_domains, detect_searxng, breaker_status, untrusted_context_message and KNOWN_BACKENDS have no production callers outside their defining module, package __init__ re-exports and tests. The docstrings still describe them as live routing: base.py:21-23, searxng.py:18-27 (including the 8888/8080 port probing that production never does), searxng_manager.py:40-42. Production resolves SearXNG only via config.get_searxng_url or ready_base_url_detected (web_search.py:78-88).",
+    "evidence": "sidecar/services/search/base.py:21, sidecar/services/search/searxng.py:18, sidecar/services/searxng_manager.py:40, sidecar/services/agent_tools/web_search.py:78, sidecar/services/search/breaker.py:135, sidecar/services/search/scrub.py:105",
+    "evidence_checked": "grep of every symbol across sidecar/ excluding .venv",
+    "repro_check": "hits only in the defining module, services/search/__init__.py re-exports and sidecar/tests/"
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-13",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Mechanism confirmed: refresh() returns early on STATE_ERROR (searxng_manager.py:413-414), so a container fixed by hand is bypassed. Severity lowered and 'forever' refuted: the error state renders 'Setup failed: <reason>' with a Retry CTA (SettingsPanel.tsx:866-867, :916-920). Retry runs setup(), which handles an already-running container straight to READY (searxng_manager.py:506-509, :560-565), and a process restart also clears it.",
+    "evidence": "sidecar/services/searxng_manager.py:413, sidecar/services/searxng_manager.py:506, src/components/SettingsPanel.tsx:866, src/components/SettingsPanel.tsx:916",
+    "evidence_checked": "code read (backend plus SettingsPanel)",
+    "repro_check": "n/a (design)"
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-14",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds: brave.py and mojeek.py share _clean, _is_organic_url, the _parse dedup loop, the status branches and _coerce_limit almost verbatim. After normalizing engine names, diff shows 78 differing lines rather than the stated 104, which does not change the finding.",
+    "evidence": "sidecar/services/search/brave.py:140, sidecar/services/search/mojeek.py:48, sidecar/services/search/mojeek.py:74, sidecar/services/search/mojeek.py:132",
+    "evidence_checked": "name-normalized diff of the two files",
+    "repro_check": "sed s/brave|mojeek/X/ then diff -> 78 +/- lines of ~150"
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-15",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds: relevance._host_matches (relevance.py:306-307) is the same expression as finance._matches (finance.py:122-124), and relevance already imports finance (relevance.py:20). A third copy sits in brave/mojeek _is_organic_url.",
+    "evidence": "sidecar/services/research/relevance.py:306, sidecar/services/research/finance.py:122, sidecar/services/research/relevance.py:20",
+    "evidence_checked": "code read",
+    "repro_check": "n/a (design)"
+  }
+]

@@ -1,0 +1,8 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9  grep -rn 'tray|Tray' src-tauri/src/*.rs src-tauri/tauri.conf.json src-tauri/Cargo.toml =>
+(0 hits)
+docs/BLUEPRINT.md:74-78:
+
+**Rust layer (Tauri 2.x core):**
+- Desktop shell (windowing, system tray, OS integration)
+- File system access
+- Secure key storage (OS keychain integration on each platform)

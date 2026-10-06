@@ -1,0 +1,6 @@
+final-cand/sidecar @ d38b5d1a — every keyless engine benched (breaker open), no network
+ddg allow()= False cooldown 45
+brave allow()= False cooldown 45
+mojeek allow()= False cooldown 45
+SearchError reason= unreachable | keyless web search has no engine available right now — DuckDuckGo: cooling down (45s); Brave: cooling down (45s); Mojeek: cooling down (45s). Wait a moment and retry, or add an Exa key / local SearXNG for a dedicated route.
+fast._NO_WEB_NOTE used for reason!=rate_limited: No web-search backend configured — structured data only

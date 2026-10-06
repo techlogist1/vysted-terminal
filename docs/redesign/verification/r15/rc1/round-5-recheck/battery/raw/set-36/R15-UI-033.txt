@@ -1,0 +1,37 @@
+No permanent pinned test exists for this entry (checked
+src/modules/marketplace/MarketplacePanel.test.tsx: only 3 its, none about
+configure/credential rejection -- the batch-9 certification used a scratch
+vitest file that was deleted afterward, same as the original register
+repro). Per role rule, vitest suites are never run here; re-verified via
+the live network leg the fix actually depends on, plus source confirmation
+of the call chain.
+
+1) Live leg (same call the fix makes): reused the R15-DATA-094 live probe
+   above -- GET /news/sources/status with X-Vysted-Newsapi-Key: <fake>
+   returns {"newsapi":"unauthorized"} (port 52348, this shard's sidecar).
+
+2) Source-confirmed call chain at 949c3c9f:
+   src/store/marketplace.ts:33-53 probeNewsApiKeyOrThrow(key): calls
+     sidecarGet("/news/sources/status", ..., {X-Vysted-Newsapi-Key: key});
+     "if (status.newsapi === 'unauthorized') throw new Error('NewsAPI
+     rejected this key')".
+   src/store/marketplace.ts:192-220 configure(): for pluginId
+     "vysted-news" field "newsapi_key", calls
+     "await probeNewsApiKeyOrThrow(value)" BEFORE "await setSecret(...)" --
+     a throw here means setSecret is never reached (keychain untouched);
+     comment at :219 confirms the surrounding finally re-throws rather than
+     swallowing.
+   src/modules/marketplace/MarketplacePanel.tsx:349-357 onSubmit: "R15-UI-033:
+     configure() used to have no error path here" -- now
+     "configure(entry.pluginId, values).then(onDone).catch((err) =>
+     setValidationError(...))" -- the form stays open with the message
+     instead of silently closing.
+
+VERDICT: holds. The live network leg the fix depends on (unauthorized
+newsapi status for a fake key) is reproduced live and identical to
+DATA-094's result; the source chain from that response to
+probeNewsApiKeyOrThrow's throw, to configure() aborting before setSecret,
+to the panel's .catch(setValidationError) is unbroken and matches the
+batch-9 certification ("Configure, paste the fake key, then Save. The form
+shows 'NewsAPI rejected this key', and nothing is written to the
+keychain").

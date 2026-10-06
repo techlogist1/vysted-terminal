@@ -1,0 +1,223 @@
+{
+  "query": "Saksoft Limited \u2014 revenue growth trajectory, margin trends, and current valuation analysis",
+  "symbol": "SAKSOFT",
+  "mode": "DEEP",
+  "depth": "heavy",
+  "markdown": "# Saksoft Limited (SAKSOFT) \u2014 Integrated Research Brief\n\n**As of 10 June 2026** | **Sector:** Technology \u2013 IT Services | **Exchange:** NSE/BSE\n\n---\n\n## Revenue Growth Trajectory\n\n- **TTM Revenue:** \u20b910,072 million (\u20b910,071,912,448) [11].\n- **TTM Revenue Growth (YoY):** +3.7% [11]. This single-digit expansion points to a mature or decelerating demand phase, but no three- or five-year CAGR can be computed because audited annual revenue figures for prior fiscal years were not present in any gathered filing [1][2][3][4][11].\n- **Sequential / Geographic Breakdown:** Not available. Quarterly results for Sep\u20112025 [4], Dec\u20112025 [3], and Mar\u20112026 [1][2] were filed but their text was not extracted in a form that allows quarter\u2011over\u2011quarter or vertical/geography analysis.\n- **Management Guidance:** The Q4 FY26 earnings call transcript (filed 2 June 2026) was part of the evidence set but **not ingested** [5][6]; therefore no forward\u2011looking commentary on deal pipeline, bookings, or expected growth inflection can be reported from this run.\n\n---\n\n## Margin Trends\n\n| Metric | TTM Value | Source |\n|--------|-----------|--------|\n| Operating (EBIT) Margin | 16.79% | [11] |\n| Net Profit Margin | 13.23% | [11] |\n| EBITDA Margin | Not available in this run | [1][2][3][4][11] |\n\n- Only current\u2011period margins are observable. **No historical (FY22\u2013FY26) margin series** could be extracted from any regulatory filing [1][2][3][4] or the fundamentals snapshot [11]. Consequently, a multi\u2011year trend in operating leverage, utilisation, or pricing cannot be assessed.\n- The earnings call transcript [5][6], which would normally discuss cost\u2011optimisation actions, headcount, and attrition, was not processed.\n\n---\n\n## Valuation\n\n| Metric | Value | Source |\n|--------|-------|--------|\n| Closing Price (NSE, 10 Jun 2026) | \u20b9142.28 | [10] |\n| Trailing P/E | 13.96\u00d7 | [11] |\n| Forward P/E | 4.17\u00d7 | [11] |\n| EV/EBITDA (TTM) | 8.51\u00d7 | [11] |\n| Price/Sales (TTM) | 1.81\u00d7 | [11] |\n| Price/Book | 2.34\u00d7 | [11] |\n| Dividend Yield | 0.71% | [11] |\n| 52\u2011Week Range | \u20b9107.59 \u2013 \u20b9253.99 | [11] |\n\n- The **steep gap between trailing P/E (14\u00d7) and forward P/E (4.2\u00d7)** implies the market is pricing in a sharp earnings recovery, yet the 3.7% TTM revenue growth does not by itself confirm that trajectory. The EV/EBITDA of 8.5\u00d7 is modest for an IT\u2011services mid\u2011cap, suggesting the stock already discounts the recent slowdown and known risks.\n- **Peer comparison is not possible** \u2014 no multiples or margin data for comparable mid\u2011cap IT firms (e.g., Persistent Systems, Cyient, L&T Technology Services) were provided in the evidence set [1\u201311].\n\n---\n\n## Key Risks\n\n1. **Demand slowdown:** TTM growth of +3.7% [11] is well below typical IT\u2011services industry averages; without guidance from the unevaluated earnings call [5][6], the near\u2011term outlook remains opaque.\n2. **Currency exposure:** The company reports in INR but likely earns a significant share in USD. No forex sensitivity analysis or hedging disclosure was found in any filing [1][2][3][4][7][8][9].\n3. **Attrition and employee metrics:** Not addressed in available filings. The earnings call transcript [5][6] would normally contain headcount trends and attrition rates, but these were not extracted.\n4. **Client concentration:** No disclosure of top\u2011client revenue share was found [1][2][3][4][11]. Moat strength in digital engineering cannot be evaluated from this evidence.\n\n---\n\n## Catalysts & Re\u2011rating Potential\n\n- **Valuation floor:** The stock trades 32% below its 52\u2011week high [11], and the forward P/E of ~4.2\u00d7 and EV/EBITDA of 8.5\u00d7 are low on an absolute basis, suggesting limited downside if growth stabilises.\n- **Upside triggers:** An acceleration in revenue growth or margin expansion from the current 16.8% OPM could drive re\u2011rating. However, **no concrete catalysts** (e.g., announced deal wins, margin\u2011improvement initiatives) were found in the filed board outcomes [1][2][3][4] or management\u2011change announcements [7][8].\n- **Qualitative context missing:** The earnings call transcript [5][6] \u2014 the primary vehicle for management\u2019s outlook \u2014 was not ingested, leaving the re\u2011rating case unsubstantiated.\n\n---\n\n## Key Limitations of This Analysis\n\n1. **No historical annual data:** Audited revenue, EBITDA, and margin series for FY22\u2013FY26 were not present in any of the examined filings [1][2][3][4][11], preventing CAGR or margin\u2011trend calculations.\n2. **No peer benchmarks:** The evidence set does not include multiples or margin data for any defined peer group [1\u201311].\n3. **Qualitative gaps:** Competitive moat, client concentration, market positioning, and management\u2019s strategic commentary are absent from all sources except the unevaluated transcript [5][6].\n4. **Share count not disclosed:** The fundamentals snapshot [11] provides direct P/E and P/B multiples, but no standalone share count is available in the filings to cross\u2011verify.\n\n---\n\n## Bottom Line\n\nSaksoft displays modest TTM revenue growth (+3.7%) and healthy margins (OPM 16.8%, NPM 13.2%). Its valuation multiples \u2014 trailing P/E 14\u00d7, forward P/E 4.2\u00d7, EV/EBITDA 8.5\u00d7 \u2014 appear low on an absolute basis and suggest the market is discounting a prolonged slowdown while simultaneously pricing a sharp earnings recovery. However, without historical trends, peer context, or management guidance (the Q4 FY26 earnings call transcript was not ingested), no reliable assessment of growth trajectory, margin sustainability, or relative valuation can be made. A comprehensive view requires supplementary annual reports, industry peer data, and the qualitative content of management\u2019s earnings commentary.",
+  "sources": [
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/03e389c9-1d06-4667-bcc0-ec69b41febcf.pdf",
+      "title": "Board Meeting Outcome for Financial Results March 31, 2026",
+      "excerpt": "BSE \u00b7 Board Meeting \u00b7 2026-05-25T13:48:01.757000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_25052026134035_OutcomeofBM25052026Signed.pdf",
+      "title": "Saksoft Limited has submitted to the Exchange, the financial results for the period ended March 31, 2026.",
+      "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2026-05-25T13:41:54+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_02022026125728_OutcomeSEintimationsigned.pdf",
+      "title": "Saksoft Limited has submitted to the Exchange, the financial results for the period ended December 31, 2025.",
+      "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2026-02-02T12:57:42+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_10112025123949_OutcomeSEIntimationsigned.pdf",
+      "title": "Saksoft Limited has submitted to the Exchange, the financial results for the period ended September 30, 2025.",
+      "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2025-11-10T12:42:44+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/e5245b6a-ea85-45b1-96c2-52eb3df7b513.pdf",
+      "title": "Announcement under Regulation 30 (LODR)-Earnings Call Transcript",
+      "excerpt": "BSE \u00b7 Company Update \u00b7 2026-06-02T18:18:31.877000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_02062026181355_Earningscalltransacript.pdf",
+      "title": "Saksoft Limited has informed the Exchange about Transcript",
+      "excerpt": "NSE \u00b7 Analysts/Institutional Investor Meet/Con. Call Updates \u00b7 2026-06-02T18:14:03+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/4e4ff600-373b-49ca-b934-782bbd237952.pdf",
+      "title": "Announcement under Regulation 30 (LODR)-Change in Management",
+      "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-29T15:03:28.003000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_29052026144751_VVR_Babu_cessation-Reg_30signed.pdf",
+      "title": "Saksoft Limited has informed the Exchange about change in Management",
+      "excerpt": "NSE \u00b7 Change in Management \u00b7 2026-05-29T14:48:13+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/38d86f8a-d437-4e71-99f2-3d4aae138a26.pdf",
+      "title": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-27T17:19:56.613000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "vysted://price/SAKSOFT",
+      "title": "Price for SAKSOFT",
+      "excerpt": "Structured price snapshot via nse_direct gathered this run.",
+      "domain": "nse_direct"
+    },
+    {
+      "url": "vysted://fundamentals/SAKSOFT",
+      "title": "Fundamentals for SAKSOFT",
+      "excerpt": "Structured fundamentals snapshot via yfinance gathered this run.",
+      "domain": "yfinance"
+    },
+    {
+      "url": "vysted://news/SAKSOFT",
+      "title": "News for SAKSOFT",
+      "excerpt": "Structured news pull.",
+      "domain": "vysted"
+    }
+  ],
+  "sourceCount": 12,
+  "cost": {
+    "tokens": 0,
+    "spendUsd": 0
+  },
+  "webAvailable": true,
+  "structured": {
+    "resolved": {
+      "ok": true,
+      "query": "Saksoft Limited \u2014 revenue",
+      "region": "IN",
+      "resolved": {
+        "symbol": "SAKSOFT",
+        "name": "Saksoft Limited",
+        "exchange": "NSE",
+        "region": "IN",
+        "asset_class": "equity",
+        "yahoo_symbol": "SAKSOFT.NS",
+        "confidence": 0.83
+      },
+      "needs_disambiguation": false,
+      "candidates": [
+        {
+          "symbol": "SAKSOFT",
+          "name": "Saksoft Limited",
+          "exchange": "NSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "SAKSOFT.NS",
+          "confidence": 0.83
+        },
+        {
+          "symbol": "BSOFT",
+          "name": "BIRLASOFT LIMITED",
+          "exchange": "NSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "BSOFT.NS",
+          "confidence": 0.699
+        },
+        {
+          "symbol": "SANSTAR",
+          "name": "Sanstar Limited",
+          "exchange": "NSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "SANSTAR.NS",
+          "confidence": 0.68
+        }
+      ]
+    },
+    "price": {
+      "ok": true,
+      "provider": "nse_direct",
+      "data": {
+        "symbol": "SAKSOFT",
+        "price": 142.28,
+        "change": 1.509999999999991,
+        "change_percent": 1.0726717340342338,
+        "volume": 193697,
+        "currency": "INR",
+        "market_state": "CLOSED",
+        "timestamp": "2026-06-10T00:00:00Z",
+        "provider": "nse_direct",
+        "freshness": null
+      }
+    },
+    "fundamentals": {
+      "ok": true,
+      "provider": "yfinance",
+      "data": {
+        "symbol": "SAKSOFT.NS",
+        "name": "Saksoft Limited",
+        "sector": "Technology",
+        "industry": "Information Technology Services",
+        "currency": "INR",
+        "market_cap": 18188959744,
+        "pe_ratio": 13.962709,
+        "forward_pe": 4.1675453,
+        "peg_ratio": null,
+        "price_to_book": 2.3355603,
+        "price_to_sales": 1.8059093,
+        "ev_to_ebitda": 8.514,
+        "book_value": 60.919,
+        "dividend_yield": 0.0070999999999999995,
+        "dividend_per_share": 1,
+        "eps": 10.19,
+        "beta": 0.356,
+        "fifty_two_week_high": 253.99,
+        "fifty_two_week_low": 107.59,
+        "fifty_two_week_change": -0.32083756,
+        "roe": 0.19065,
+        "roa": 0.10484,
+        "gross_margin": 0.492,
+        "operating_margin": 0.16792999,
+        "profit_margin": 0.13232,
+        "debt_to_equity": 0.05607,
+        "current_ratio": 2.166,
+        "quick_ratio": 1.882,
+        "revenue_ttm": 10071912448,
+        "net_income_ttm": 1332697984,
+        "free_cash_flow": 851386496,
+        "shares_outstanding": 127839193,
+        "revenue_growth": 0.037,
+        "earnings_growth": 0.216,
+        "held_percent_insiders": 0.72541,
+        "held_percent_institutions": 0.00217,
+        "provider": "yfinance"
+      }
+    },
+    "panel": [
+      {
+        "angle": 1,
+        "note": null,
+        "symbol": "SAKSOFT"
+      },
+      {
+        "angle": 2,
+        "note": null,
+        "symbol": "SAKSOFT"
+      },
+      {
+        "angle": 3,
+        "note": null,
+        "symbol": "SAKSOFT"
+      }
+    ],
+    "cross_check": {
+      "skipped": true,
+      "reason": "wall-clock ceiling 240s reached (280.2s elapsed)"
+    }
+  },
+  "createdAt": 1781110916873
+}

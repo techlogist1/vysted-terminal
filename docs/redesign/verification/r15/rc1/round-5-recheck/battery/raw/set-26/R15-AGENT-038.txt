@@ -1,0 +1,9 @@
+=== R15-AGENT-038 (in-process fake-provider probe, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, sidecar :52340) ===
+CMD: one-shot fake provider (delta 'Hello.' + done, no tool call); RunBudget(max_steps=1).
+
+{
+  "status": "done",
+  "detail": "completed (step ceiling 1 reached (1 taken) on the final round)",
+  "answer_present": true,
+  "answer_text": "Hello."
+}

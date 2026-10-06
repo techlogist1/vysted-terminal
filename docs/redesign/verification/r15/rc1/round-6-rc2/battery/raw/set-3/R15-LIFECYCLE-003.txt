@@ -1,0 +1,4 @@
+ci_pinned: repro is a frontend store/workspace.ts scenario (vitest only); battery never runs suites. Existence check at ace7dd76:
+COMMAND: grep -nE 'autosaves nothing during the launch restore' src/lib/workspace.test.ts
+1489:  it("autosaves nothing during the launch restore; the first save after it carries the research space", async () => {
+EXIT: 0

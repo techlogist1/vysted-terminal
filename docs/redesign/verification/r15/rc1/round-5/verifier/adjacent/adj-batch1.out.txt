@@ -1,0 +1,41 @@
+## S7-5 gemini free-tier per-minute 429
+insufficient_credit | Your Google Gemini account is out of credit or quota. | Add credit or check your plan, or switch provider in Settings.
+## S5-1 formula validate
+(pe_ratio > 3) > 0.5 -> {"ok":true,"error":null,"position":null,"fields":["pe_ratio"]}
+roe > (pe_ratio < 15) -> {"ok":true,"error":null,"position":null,"fields":["pe_ratio","roe"]}
+(pe_ratio < 15) == 1 -> {"ok":true,"error":null,"position":null,"fields":["pe_ratio"]}
+pe_ratio < 15 and roe > 0.1 -> {"ok":true,"error":null,"position":null,"fields":["pe_ratio","roe"]}
+## S4-2 privacy copy
+ugrep: warning: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-9bc600e-fix-int/src/modules/settings/SettingsPanel.tsx: No such file or directory
+## S3-1 macro search catch
+5: * loaded :type:`MacroSeriesExtended` payloads, plus a cached search-result
+34:/** Cache key for a search query: ``"<provider>:<query-lower>"``. */
+35:function searchKey(provider: MacroProvider, query: string): string {
+51:  /** Per-(provider, query) cached search rows. */
+52:  searchResults: Record<string, MacroSearchResult[]>;
+    }
+  },
+
+  search: async (provider, query, limit = 25) => {
+    if (!query) return;
+    const key = searchKey(provider, query);
+    try {
+      const results = await sidecarGet<MacroSearchResult[]>("/macro/search", {
+        q: query,
+        provider,
+        limit,
+      });
+      set((state) => ({
+        searchResults: { ...state.searchResults, [key]: results },
+      }));
+    } catch {
+      set((state) => ({
+        searchResults: { ...state.searchResults, [key]: [] },
+      }));
+    }
+  },
+
+  loadCatalog: async (provider) => {
+    if (get().catalogByProvider[provider]) return;
+    set((state) => ({ catalogError: { ...state.catalogError, [provider]: undefined } }));
+    try {

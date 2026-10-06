@@ -1,0 +1,17 @@
+{
+ "tag": "packs-S2B",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md, then docs/redesign/verification/r15/tooling/PROMPT_census.md's PACK section, then docs/redesign/verification/r15/tooling/PROMPT_data_s2.md, in that order. These packs are IN PROGRESS or a stub already: read the existing file at your output path FIRST and finish it, never restart it.",
+ "stages": [
+  {
+   "label": "pack",
+   "model": "sonnet",
+   "effort": "high",
+   "prompt": "Your slot is \"{{id}}\" (manifest.json symbol \"{{symbol}}\"). Existing file: docs/redesign/verification/r15/battery/packs/{{id}}_{{symbol}}.json ({{state}}). Follow PROMPT_data_s2.md's PACK stage continue-from-existing rule; return the RESULT object."
+  }
+ ],
+ "items": [
+  {"id": "P3", "symbol": "CHTR", "state": "385-byte stub"},
+  {"id": "P18", "symbol": "ONC", "state": "in progress"},
+  {"id": "S3", "symbol": "VERTEX", "state": "in progress"}
+ ]
+}

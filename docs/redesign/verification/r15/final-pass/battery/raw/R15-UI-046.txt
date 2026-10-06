@@ -1,0 +1,16 @@
+# R15-UI-046 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:51+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+curl -s -m 30 "$H/workspace"; echo; grep -n '__autosave__\|reserved' src/lib/workspace.ts | head -5; grep -n 'reserved' src/lib/workspace.test.ts | head -3
+--- output ---
+["__autosave__"]
+606:    // workspace file (or the `__autosave__` slot) still resolves its memory.
+642:  // persists under `__autosave__` but a space's memory must converge on the
+761:  // The reserved slots (`__autosave__`) are internal, never a user workspace.
+765:/** A user-chosen workspace name: non-empty, never a reserved `__` slot (R15-UI-046). */
+772:    throw new WorkspaceError(`Names starting with "__" are reserved; choose another name.`);
+297:    // local-searxng → tier_a, custom URL preserved.
+1472:  it("hides the reserved __autosave__ slot and refuses reserved names (R15-UI-046)", async () => {
+1484:    await expect(saveWorkspace("__mine")).rejects.toThrow(/reserved/);
+
+EXIT=0 (0.0s)

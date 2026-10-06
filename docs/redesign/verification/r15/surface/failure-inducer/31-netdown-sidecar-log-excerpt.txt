@@ -1,0 +1,21 @@
+# excerpt: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vysted-iso/seat-failure-inducer/sidecar-netdown.log (sidecar :52224 booted with HTTP(S)_PROXY=http://127.0.0.1:9, NO_PROXY=127.0.0.1,localhost)
+16:provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'TCS.NS'
+17:provider yfinance failed for fundamentals, falling through: yfinance fundamentals failed for 'TCS.NS': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 9 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+31:provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'INFY.NS'
+32:provider yfinance failed for fundamentals, falling through: yfinance fundamentals failed for 'INFY.NS': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 9 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+57:$AAPL: possibly delisted; no price data found  (period=1y)
+58:$AAPL: possibly delisted; no price data found  (period=5d)
+59:provider yfinance failed for quote, falling through: yfinance quote failed for 'AAPL': 'PriceHistory' object has no attribute '_dividends'
+65:INFO:     127.0.0.1:63006 - "GET /quotes?symbols=RELIANCE,TCS,AAPL HTTP/1.1" 200 OK
+67:provider nse failed for ohlcv, falling through: nse: EOD fetch failed for 'INFY': HTTPSConnectionPool(host='www.nseindia.com', port=443): Max retries exceeded with url: /report-detail/eq_security (Caused by ProxyError('Unable to connect to proxy', NewConnectionError("HTTPSConnection(host='127.0.0.1', port=9): Failed to establish a new connection: [Errno 61] Connection refused")))
+68:INFO:     127.0.0.1:63024 - "GET /history/INFY?timeframe=1d HTTP/1.1" 200 OK
+69:$AAPL: possibly delisted; no price data found  (period=1y)
+70:provider yfinance failed for ohlcv, falling through: correctness gate: empty series for 'AAPL' from 'yfinance'
+71:INFO:     127.0.0.1:63051 - "GET /history/AAPL?timeframe=1d HTTP/1.1" 200 OK
+72:provider yfinance failed for fundamentals, falling through: yfinance fundamentals failed for 'TCS': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 9 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+73:INFO:     127.0.0.1:63053 - "GET /fundamentals/TCS HTTP/1.1" 502 Bad Gateway
+74:news: RSS source Economic Times Markets failed after retries: All connection attempts failed
+75:news: RSS source ET Stocks failed after retries: All connection attempts failed
+76:news: RSS source LiveMint failed after retries: All connection attempts failed
+77:news: RSS source Zerodha Pulse failed after retries: All connection attempts failed
+78:INFO:     127.0.0.1:63060 - "GET /news?limit=3 HTTP/1.1" 502 Bad Gateway

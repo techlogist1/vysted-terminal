@@ -1,0 +1,11 @@
+# R15-CODE-PLATFORM-051 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'text-positive\|pnlTone' src/modules/portfolio/PortfolioPanel.tsx | cut -c1-180
+--- output ---
+86:function pnlTone(pnl: number): string {
+87:  return pnl > 0 ? "text-positive" : pnl < 0 ? "text-negative" : "text-charcoal-200";
+622:            <span className={pnlTone(r.pnl)}>
+981:                  <span className={`whitespace-nowrap ${pnlTone(b.pnl)}`}>
+987:              <span className={`whitespace-nowrap ${pnlTone(summary.totalPnl)}`}>
+
+EXIT=0 (0.0s)

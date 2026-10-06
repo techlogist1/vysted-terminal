@@ -1,0 +1,281 @@
+{
+  "sha": "4d893147def983623de681effd1bfbae2e7441c5",
+  "sha7": "4d893147",
+  "mode": "refresh",
+  "previous_sha": "f444479031d7d493b7955b9af041d18e7c7a40cc",
+  "delta_since_previous": {
+    "commits": ["b7707120", "b3b4034d", "c8d807a6", "3d64ca17", "4d893147"],
+    "diffstat_per_dir": {
+      "docs": { "files": 2086, "add": 207509, "del": 867 },
+      "sidecar": { "files": 190, "add": 55420, "del": 2430 },
+      "src": { "files": 124, "add": 6273, "del": 1341 },
+      "scripts": { "files": 15, "add": 1027, "del": 702 },
+      "types": { "files": 6, "add": 105, "del": 15 },
+      "vitest.config.ts": { "files": 1, "add": 1, "del": 1 },
+      "specs": { "files": 1, "add": 15, "del": 7 },
+      "pnpm-lock.yaml": { "files": 1, "add": 3, "del": 0 },
+      "package.json": { "files": 1, "add": 2, "del": 1 },
+      "CHANGELOG.md": { "files": 1, "add": 359, "del": 0 }
+    }
+  },
+  "versions": {
+    "package_json": { "value": "0.8.0", "source": "package.json:3" },
+    "cargo_toml": { "value": "0.8.0", "source": "src-tauri/Cargo.toml:3" },
+    "tauri_conf": { "value": "0.8.0", "source": "src-tauri/tauri.conf.json:4" },
+    "sidecar_app_py": { "value": "0.8.0", "source": "sidecar/app.py:329" },
+    "host_version": { "value": "0.8.0", "source": "src/lib/plugin-bootstrap.ts:38" },
+    "cargo_lock_entry": { "value": "0.8.0", "source": "src-tauri/Cargo.lock:5486-5487" },
+    "version_consistent": true,
+    "0.9.0_already_present": true,
+    "0.9.0_occurrences_non_load_bearing": [
+      "docs/BLUEPRINT.md:238",
+      "docs/redesign/DECISIONS_FOR_OPERATOR.md:237",
+      "sidecar/tests/test_schema_version.py:226,238",
+      "src/lib/plugin-runtime.test.ts:564",
+      "src-tauri/Cargo.lock (unrelated crate versions: rand_chacha, schemars, etc.)"
+    ]
+  },
+  "version_occurrences": {
+    "grep_scope": "git grep -nF '0.8.0' <sha> -- . ':!CHANGELOG.md' ':!docs/archive' ':!docs/redesign/verification' ':!docs/screenshots' ':!pnpm-lock.yaml'",
+    "total_hits": 99,
+    "load_bearing": [
+      "package.json:3,77",
+      "plugins/vysted-lenses/manifest.json:6",
+      "plugins/vysted-news/manifest.json:6",
+      "plugins/yfinance/manifest.json:6",
+      "sidecar/app.py:329",
+      "sidecar/tests/test_data_cache.py:131,133,141,142,150",
+      "sidecar/tests/test_schema_version.py:220,223,228,229,239",
+      "src-tauri/Cargo.lock:281,290,758,2426,2443,3351,3368,5487",
+      "src-tauri/Cargo.toml:3",
+      "src-tauri/tauri.conf.json:4",
+      "src/components/SettingsPanel.test.tsx:886",
+      "src/lib/plugin-agents.test.ts:77",
+      "src/lib/plugin-bootstrap.ts:38",
+      "src/lib/plugin-runtime.test.ts:511,521,530,555,558,560,563,564,565,568,569",
+      "src/lib/plugin-runtime.ts:133",
+      "src/lib/workspace.test.ts:1574",
+      "src/modules/marketplace/MarketplacePanel.test.tsx:40",
+      "src/store/marketplace.test.ts:46"
+    ],
+    "prose": [
+      "BLOCKERS.md:3,45,212,262,278",
+      "README.md:15,53,66",
+      "docs/CURRENT_STATE.md:151,262,636,815,845",
+      "docs/redesign/AGENT_TOOLUSE_PLAN.md:5,82,241",
+      "docs/redesign/DECISIONS.md:120,131",
+      "docs/redesign/DECISIONS_FOR_OPERATOR.md:146",
+      "docs/redesign/HANDOFF_VERIFIED.md:22",
+      "docs/redesign/OVERNIGHT_BUILD_REPORT.md:4",
+      "docs/redesign/OVERNIGHT_BUILD_REPORT_R4S3.md:70,79,157,235,280",
+      "docs/redesign/R4_BUILD_SEQUENCE.md:9,187",
+      "docs/redesign/R4_DESIGN_LANGUAGE.md:367",
+      "docs/redesign/R9_TRACK_LOOP_REPORT.md:5",
+      "docs/redesign/REBUILD_R3_REPORT.md:3,17,108,130,174,239,301",
+      "docs/redesign/REBUILD_R3_SPEC.md:72,745,850,854",
+      "docs/redesign/REBUILD_R4_REPORT.md:9,124",
+      "docs/redesign/REBUILD_R4_SESSION2_REPORT.md:4,149",
+      "docs/redesign/REBUILD_R4_SPEC.md:10",
+      "docs/research/phase-10/blueprint-bugfix.md:3",
+      "docs/research/phase-10/blueprint-customizability.md:5,552",
+      "docs/research/phase-10/hunt-error-surfaces.md:409",
+      "docs/research/phase-10/hunt-rust-tauri.md:26,401",
+      "docs/research/phase-10/map-ai-copilot.md:173",
+      "docs/research/phase-10/map-extensibility.md:8"
+    ]
+  },
+  "sidecars": {
+    "external_bin": [
+      "binaries/vysted-sidecar",
+      "binaries/vysted-openbb-mcp-sidecar",
+      "binaries/vysted-sec-edgar-mcp-sidecar"
+    ],
+    "external_bin_source": "src-tauri/tauri.conf.json:40-44",
+    "orchestrator": "scripts/ensure-all-sidecars.mjs",
+    "spec_table": "scripts/sidecar-specs.mjs",
+    "entries": [
+      {
+        "name": "vysted-sidecar",
+        "kind": "main",
+        "ensure_script": "scripts/ensure-sidecar.mjs",
+        "pyinstaller_name": "vysted-sidecar",
+        "entry": "sidecar/app.py (FastAPI app)",
+        "source_dir": "sidecar/",
+        "requirements": "sidecar/requirements-dev.txt",
+        "venv": "sidecar/.venv",
+        "venv_present": true,
+        "spawn_file": "src-tauri/src/lib.rs:276"
+      },
+      {
+        "name": "vysted-openbb-mcp-sidecar",
+        "kind": "mcp",
+        "ensure_script": "scripts/ensure-openbb-mcp-sidecar.mjs",
+        "pyinstaller_name": "vysted-openbb-mcp-sidecar",
+        "entry": "openbb_mcp_server.app.app:main",
+        "source_dir": "sidecar/openbb_mcp_subprocess/",
+        "requirements": "sidecar/openbb_mcp_subprocess/requirements.txt",
+        "venv": "sidecar/openbb_mcp_subprocess/.venv",
+        "venv_present": true,
+        "spawn_file": "src-tauri/src/openbb_mcp.rs"
+      },
+      {
+        "name": "vysted-sec-edgar-mcp-sidecar",
+        "kind": "mcp",
+        "ensure_script": "scripts/ensure-sec-edgar-mcp-sidecar.mjs",
+        "pyinstaller_name": "vysted-sec-edgar-mcp-sidecar",
+        "entry": "sec_edgar_mcp.server",
+        "source_dir": "sidecar/sec_edgar_mcp_subprocess/",
+        "requirements": "sidecar/sec_edgar_mcp_subprocess/requirements.txt",
+        "venv": "sidecar/sec_edgar_mcp_subprocess/.venv",
+        "venv_present": true,
+        "spawn_file": "src-tauri/src/sec_edgar_mcp.rs"
+      }
+    ]
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint . && node scripts/audit-design-tokens.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "sidecar:build": "node scripts/ensure-sidecar.mjs --force",
+    "openbb-mcp-sidecar:build": "node scripts/ensure-openbb-mcp-sidecar.mjs --force",
+    "sec-edgar-mcp-sidecar:build": "node scripts/ensure-sec-edgar-mcp-sidecar.mjs --force",
+    "sidecars:build": "node scripts/ensure-all-sidecars.mjs --force",
+    "ci-local": "pnpm install --frozen-lockfile && node scripts/ensure-all-sidecars.mjs && pnpm lint && pnpm format:check && pnpm typecheck && cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && python -m pip install ruff==0.15.12 && ruff check sidecar && ruff format --check sidecar && pnpm test && cargo test --manifest-path src-tauri/Cargo.toml && cd sidecar && python -m pip install -r requirements-dev.txt && pytest",
+    "tauri": "tauri",
+    "tauri:mcp": "tauri dev --features dev-tools",
+    "tauri:dev": "pnpm tauri:mcp"
+  },
+  "ci": [
+    { "file": ".github/workflows/build.yml", "name": "build", "on": ["push:branches:[main]", "pull_request"], "jobs": ["build"], "os_matrix": ["windows-latest", "macos-latest", "ubuntu-latest"] },
+    { "file": ".github/workflows/lint.yml", "name": "lint", "on": ["push:branches:[main]", "pull_request"], "jobs": ["lint"], "os_matrix": ["windows-latest", "macos-latest", "ubuntu-latest"] },
+    { "file": ".github/workflows/test.yml", "name": "test", "on": ["push:branches:[main]", "pull_request"], "jobs": ["test"], "os_matrix": ["windows-latest", "macos-latest", "ubuntu-latest"] }
+  ],
+  "plugins": {
+    "dirs": ["example", "openbb-mcp", "vysted-lenses", "vysted-news", "yfinance"],
+    "note": "CLAUDE.md's BUNDLED_PLUGINS/PLUGIN_COMPANIONS model is stale at this sha; the actual catalog is src/lib/marketplace.ts:59 CATALOG_ROWS (5 entries, 1:1 with the 5 plugin dirs). Filed as R15-DOCS-015 (blocked_tier4).",
+    "catalog_rows_source": "src/lib/marketplace.ts:59",
+    "catalog_entries": [
+      { "plugin_id": "vysted-yfinance", "source": "src/lib/marketplace.ts:63" },
+      { "plugin_id": "openbb-mcp", "source": "src/lib/marketplace.ts:79" },
+      { "plugin_id": "vysted-lenses", "source": "src/lib/marketplace.ts:94" },
+      { "plugin_id": "vysted-news", "source": "src/lib/marketplace.ts:108" },
+      { "plugin_id": "vysted-example", "source": "src/lib/marketplace.ts:143" }
+    ]
+  },
+  "agents": {
+    "count": 13,
+    "ids": ["buffett", "copilot", "dalio", "druckenmiller", "graham", "klarman", "lynch", "marks", "munger", "portfolio_advisor", "researcher", "soros", "strategy_critic"],
+    "source_dir": "sidecar/agents/",
+    "roster_test_assertion": "sidecar/tests/test_agent_runtime.py:213"
+  },
+  "panels": {
+    "module_dirs": ["agent-builder", "analyst-ratings", "backtest", "chart", "chat", "earnings", "equity-overview", "macro", "marketplace", "news", "node-editor", "notes", "platform", "plugin-manager", "portfolio", "quant", "research", "safety", "screener", "sec", "watchlist"],
+    "modules_without_panels": ["chat", "safety"],
+    "sample": {
+      "agent-builder": { "panel": "agent-builder", "command": "agent-builder.open" },
+      "analyst-ratings": { "panel": "analyst-ratings", "command": "analyst-ratings.open" },
+      "backtest": { "panel": "backtest", "command": "backtest.open" },
+      "chart": { "panel": "chart", "command": "chart.open" },
+      "earnings": { "panel": "earnings-calendar", "command": "earnings.open-calendar" },
+      "equity-overview": { "panel": "equity-overview", "command": "equity-overview.open" },
+      "macro": { "panel": "macro", "command": "macro.open" },
+      "marketplace": { "panel": "marketplace", "command": "marketplace.open" },
+      "news": { "panel": "news", "command": "news.open" },
+      "node-editor": { "panel": "node-editor", "command": "node-editor.open" },
+      "notes": { "panel": "notes", "command": "notes.open" },
+      "platform": { "panel": "settings", "commands": ["platform.open-settings", "platform.save-workspace", "platform.load-workspace", "platform.new-research-space"] },
+      "plugin-manager": { "panel": "plugin-manager", "command": "plugin-manager.open" },
+      "portfolio": { "panel": "portfolio", "command": "portfolio.open" },
+      "quant": { "panels": ["option-pricer", "greeks-dashboard", "option-chain", "bond-pricer", "yield-curve"], "commands": ["quant.open-option-pricer", "quant.open-greeks-dashboard", "quant.open-option-chain", "quant.open-bond-pricer"] },
+      "research": { "panel": "brief", "command": "research.open" },
+      "screener": { "panel": "screener-panel", "command": "screener.open" },
+      "sec": { "module_id": "sec-filings", "panel": "sec-filings", "command": "sec-filings.open" },
+      "watchlist": { "panel": "watchlist", "command": "watchlist.open" }
+    }
+  },
+  "register": {
+    "source": "docs/redesign/verification/vysted-r15-register.json",
+    "counts": { "raw": 887, "entries": 652, "rejections": 76, "critical": 16, "high": 116, "medium": 293, "low": 227 },
+    "status_counts": { "fixed": 391, "open": 206, "blocked_tier4": 25, "removed_with_feature": 14, "needs_gui": 11, "not_a_defect": 5 },
+    "open_critical_high_medium": [{ "id": "R15-LEAD-035", "severity": "medium", "subsystem": "agent-tools" }],
+    "needs_gui": ["R15-CODE-AGENT-001", "R15-LIFECYCLE-001", "R15-LIFECYCLE-008", "R15-UI-009", "R15-UI-022", "R15-UI-025", "R15-UI-050", "R15-UI-083", "R15-UI-084", "R15-DOCS-024", "R15-LIFECYCLE-040"],
+    "blocked_tier4": ["R15-AGENT-017", "R15-RELEASE-001", "R15-RELEASE-002", "R15-RELEASE-003", "R15-RELEASE-004", "R15-AGENT-049", "R15-AGENT-064", "R15-CODE-FRONTEND-013", "R15-CODE-PLATFORM-010", "R15-CODE-PLATFORM-015", "R15-CODE-PLATFORM-071", "R15-CODE-PLATFORM-073", "R15-CROSS-PLATFORM-001", "R15-DOCS-002", "R15-DOCS-003", "R15-DOCS-015", "R15-UI-044", "R15-UI-088", "R15-CODE-PLATFORM-063", "R15-DOCS-008", "R15-DOCS-011", "R15-RELEASE-012", "R15-LEAD-030", "R15-LEAD-037", "R15-LEAD-038"],
+    "refresh_4c6dfe8c": {
+      "note": "register.status_counts/open_critical_high_medium/blocked_tier4 above are the 4d893147 capture, unchanged (append-only file). As of 4c6dfe8c (batch-24 merged 6778f892), R15-LEAD-035 moved open -> blocked_tier4 under the operator's three-failure rule (escalation, not a fresh-verifier concurrence; verifier REFUSED certification a 4th time). Current values: status_counts.open=205, status_counts.blocked_tier4=26, open_critical_high_medium=[], blocked_tier4 list gains R15-LEAD-035.",
+      "source": "docs/redesign/verification/vysted-r15-register.json (read directly), docs/redesign/verification/r15/stage-c/batch-24/{VERDICTS.md,LEAD-035-CONCURRENCE.md}, docs/redesign/DECISIONS_FOR_OPERATOR.md §4.10"
+    }
+  },
+  "decisions": {
+    "source": "docs/redesign/DECISIONS_FOR_OPERATOR.md",
+    "battery_items": [
+      { "id": "4.5 R15-CODE-PLATFORM-063", "status": "open, blocked_tier4", "line": 416 },
+      { "id": "4.6 R15-DOCS-008", "status": "open, blocked_tier4", "line": 433 },
+      { "id": "4.7 R15-DOCS-011", "status": "open, blocked_tier4", "line": 446 },
+      { "id": "4.8 R15-RELEASE-012", "status": "open, blocked_tier4", "line": 460 },
+      { "id": "4.9 R15-LEAD-030", "status": "blocked_tier4 (fresh verifier concurred, batch-23)", "line": 524 },
+      { "id": "4.10 R15-LEAD-035", "status": "open (verifier REFUSED blocked_tier4; batch-24 fix + concurrence pending) as of 4d893147; UPDATE as of 4c6dfe8c: blocked_tier4 under the operator's three-failure rule (escalation, not concurrence -- verifier REFUSED a 4th time in batch-24, merge 6778f892; DECISIONS §4.10 carries the operator's (a)/(b) options at rc1, lead recommends (b))", "line": 574 },
+      { "id": "4.11 R15-LEAD-037", "status": "blocked_tier4 (verifier concurred on corrected wording)", "line": 608 },
+      { "id": "4.12 R15-LEAD-038", "status": "blocked_tier4 (verifier concurred)", "line": 647 }
+    ],
+    "tier4_flagged_2x": ["2.8", "2.9", "2.10", "2.11", "2.12", "2.13", "2.14", "2.15", "2.16", "2.17", "2.18", "2.19", "2.20", "2.21"],
+    "closed_or_superseded": ["1.2 (SUPERSEDED, D81)", "2.3 (CLOSED, D81)", "2.4 (CLOSED, D81)", "2.5 (CLOSED, D81)"]
+  },
+  "git": {
+    "base_tag": "r13-bedrock",
+    "commits_since_base_tag_total": 879,
+    "commits_since_base_tag_first_parent": 265,
+    "first_parent_merges_since_base_tag": [
+      "c155e5ad", "86ae79c4", "1abef99b", "ec7f7cd6", "ebc5ed41", "292ba53a", "d64640d2",
+      "74ee3468", "17301f54", "a217a529", "ef33c7f6", "57897778", "4097dac4", "f407107f",
+      "6b702305", "68bb7aa4", "e81c9e7c", "5e147317", "1574ed8e", "dcbe7bae", "c81d879b",
+      "806a90ca", "a122dbf6", "0290aaa0", "2d99cdab"
+    ],
+    "stage_c_dirs_at_sha": ["batch-2", "batch-3", "batch-4", "batch-5", "batch-6", "batch-7", "batch-8", "batch-9", "batch-10", "batch-11", "batch-12", "batch-13", "batch-14", "batch-15", "batch-16", "batch-17", "batch-18", "batch-19", "batch-20", "batch-21", "batch-22", "batch-23"],
+    "batch_24_tracked_at_sha": false,
+    "batch_24_live_dir_note": "untracked live dir has only PLAN.md at capture time; no LEAD-035-CONCURRENCE.md yet",
+    "verdicts_tally_per_batch": {
+      "batch-2": "approve", "batch-3": "approve", "batch-4": "approve", "batch-5": "approve",
+      "batch-6": "approve", "batch-7": "approve", "batch-8": "approve", "batch-9": "approve",
+      "batch-10": "approve; 50 certified / 1 needs GUI / 4 not certified / 1 concurred",
+      "batch-11": "approve; 18 certified / 0 needs GUI / 2 not certified / 3 concurred proposals",
+      "batch-12": "19 certified / 3 not certified (RESEARCH-007, DOCS-017, AGENT-090) / 0 needs_gui",
+      "batch-13": "approve; 2 certify",
+      "batch-14": "approve",
+      "batch-15": "approve; no entry certifies, no regression",
+      "batch-16": "approve; 2 certify, LEAD-030 not certified",
+      "batch-17": "approve; 1 certified (LEAD-031), LEAD-030 not certified",
+      "batch-18": "approve; 2 certified (LEAD-033, LEAD-034), LEAD-030 not certified",
+      "batch-19": "approve; 0 certified, LEAD-030 not certified a fifth time",
+      "batch-20": "approve; 0 certified, LEAD-030 not certified a sixth time (LEAD-036 also not certified)",
+      "batch-21": "approve; 0 certified, LEAD-030 not certified a seventh time (LEAD-035/036 notes)",
+      "batch-22": "block",
+      "batch-23": "block"
+    },
+    "decisions_md_new_D_numbers_since_base_tag": ["D81", "D82", "D83", "D84", "D85", "D86", "D87", "D88", "D89", "D90", "D91", "D92"]
+  },
+  "licence": {
+    "LICENSE_first_heading": "# PolyForm Strict License 1.0.0",
+    "LICENSE_APACHE_present": true,
+    "LICENSING_md_present": true,
+    "package_json_license": "SEE LICENSE IN LICENSE",
+    "cargo_toml_license_file": "../LICENSE"
+  },
+  "tools": {
+    "gitleaks": false,
+    "trufflehog": false,
+    "cargo-license": false,
+    "pip-licenses": false,
+    "pnpm_version": "10.32.1",
+    "cargo_version": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+    "venvs_present": {
+      "sidecar/.venv": true,
+      "sidecar/openbb_mcp_subprocess/.venv": true,
+      "sidecar/sec_edgar_mcp_subprocess/.venv": true
+    }
+  }
+}

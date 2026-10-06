@@ -1,0 +1,3 @@
+Static code check: src/modules/chat/ChatSidebar.tsx onToolUse/enqueue/accept ordering (not re-read line-by-line here; the committed pinned test below is the behavioral proof).
+Committed pinned test: src/modules/chat/ChatSidebar.test.tsx:769 "under AUTO a failing auto-apply writes no 'Applied:' line, it says why (R15-AGENT-032)"; asserts assistantSteps().some(s => s.startsWith("Couldn't apply: Open Flux")).
+NOT RUN: vitest (role forbids running vitest/pytest suites).

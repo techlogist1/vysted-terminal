@@ -1,0 +1,14 @@
+# R15-CODE-FRONTEND-024 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; ls src/lib/indicator-presets.ts src/lib/fuzzy.ts src/lib/indicator-presets.test.ts src/lib/fuzzy.test.ts 2>&1; echo '$ grep dead symbols (excluding the pin)'; grep -rnE 'fuzzyRank|fuzzyScore|exportNoteMd|presetFor|indicator-presets' src | grep -v 'src/lib/dead-surface.test.ts' ; echo "grep exit (1=none) ${PIPESTATUS[0]}"; grep -n 'DEAD_SYMBOLS = \|finds zero references' src/lib/dead-surface.test.ts
+--- output ---
+ls: src/lib/fuzzy.test.ts: No such file or directory
+ls: src/lib/fuzzy.ts: No such file or directory
+ls: src/lib/indicator-presets.test.ts: No such file or directory
+ls: src/lib/indicator-presets.ts: No such file or directory
+$ grep dead symbols (excluding the pin)
+grep exit (1=none) 0
+12:const DEAD_SYMBOLS = ["fuzzyRank", "fuzzyScore", "fuzzyScoreWithIndices", "exportNoteMd"];
+33:  it("finds zero references to fuzzyRank/fuzzyScore/exportNoteMd under src/", () => {
+
+EXIT=0 (0.2s)

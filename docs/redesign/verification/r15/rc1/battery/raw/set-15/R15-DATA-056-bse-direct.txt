@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "<string>", line 5, in <module>
+    rows = bse_provider.get_shareholding('CREST')
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/bse_provider.py", line 805, in get_shareholding
+    quarters = _fetch_shp_index(code)
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/bse_provider.py", line 869, in _fetch_shp_index
+    raise ProviderError(f"bse shareholding: index HTTP {resp.status_code}")
+services.errors.ProviderError: bse shareholding: index HTTP 403

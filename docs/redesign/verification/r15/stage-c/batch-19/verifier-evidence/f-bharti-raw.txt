@@ -1,0 +1,14 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_9e887b6f51404a219d412624ec104a4a", "name": "fundamentals", "input": {"symbol": "BHARTIARTL.NSE"}}
+[  49.1s] heartbeat: {"kind": "heartbeat"}
+[  54.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_9e887b6f51404a219d412624ec104a4a", "name": "fundamentals", "ok": false, "error": "timeout"}
+[  59.0s] done: {"kind": "done", "usage": {"input_tokens": 2865, "output_tokens": 78, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+It looks like there's a timeout error when trying to fetch the fundamentals for BHARTIARTL.NSE. This could be due to a coverage gap or a hang in the data retrieval process.
+
+However, I can still try to fetch the fundamental data again or explore alternative sources. Would you like me to retry fetching the data or provide an explanation of what caused this timeout error?
+
+=== ok · 59.0s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 79, 'done': 1} · usage in=2865 out=78 · est $0.00000 · llama3.1:8b

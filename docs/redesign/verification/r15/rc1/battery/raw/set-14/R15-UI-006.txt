@@ -1,0 +1,19 @@
+=== limit 200, asc ===
+HTTP 200
+result_count 200
+matched_count 2711
+evaluated None
+n rows 200
+first5 [0.028834065, 0.05778432, 0.09241947, 0.1086351, 0.124308825]
+last5 [5.4874372, 11.543471, 19.845514, 21.15306, 22.732843]
+strictly ascending (non-decreasing) True
+=== limit 1000, asc ===
+HTTP 200
+result_count 1000
+matched_count 2711
+evaluated None
+=== market_cap sort, NULL handling ===
+HTTP 200
+HTTP 200
+desc last5 caps [None, None, None, None, None]
+asc last5 caps [None, None, None, None, None]

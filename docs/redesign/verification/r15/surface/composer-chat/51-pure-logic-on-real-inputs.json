@@ -1,0 +1,169 @@
+{
+  "collapse": [
+    {
+      "width": 220,
+      "step": "icons",
+      "plan": {
+        "model": "icon",
+        "depthExpands": false
+      }
+    },
+    {
+      "width": 300,
+      "step": "icons",
+      "plan": {
+        "model": "icon",
+        "depthExpands": false
+      }
+    },
+    {
+      "width": 360,
+      "step": "compact",
+      "plan": {
+        "model": "short",
+        "depthExpands": true
+      }
+    },
+    {
+      "width": 420,
+      "step": "full",
+      "plan": {
+        "model": "full",
+        "depthExpands": true
+      }
+    },
+    {
+      "width": 520,
+      "step": "full",
+      "plan": {
+        "model": "full",
+        "depthExpands": true
+      }
+    },
+    {
+      "width": 800,
+      "step": "full",
+      "plan": {
+        "model": "full",
+        "depthExpands": true
+      }
+    }
+  ],
+  "depthCycle": [
+    [
+      "normal",
+      "deep"
+    ],
+    [
+      "deep",
+      "ultra"
+    ],
+    [
+      "ultra",
+      "normal"
+    ]
+  ],
+  "modelPicker": {
+    "groups": [
+      {
+        "label": null,
+        "options": [
+          "llama3.1:8b",
+          "qwen2.5:7b",
+          "qwen3:8b"
+        ]
+      }
+    ],
+    "selectedIsNoTools": false
+  },
+  "plusMenu": [
+    {
+      "title": "Context",
+      "items": [
+        "@chart",
+        "@news",
+        "@filings",
+        "@terminal"
+      ]
+    },
+    {
+      "title": "Scope",
+      "items": [
+        "@watchlist",
+        "@portfolio"
+      ]
+    },
+    {
+      "title": "Route to",
+      "items": [
+        "@analyst",
+        "@quant"
+      ]
+    }
+  ],
+  "mentions": {
+    "open": {
+      "open": true,
+      "query": "ana"
+    },
+    "analystPrefix": "[Act as a fundamental analyst] is BDL cheap vs peers?",
+    "quantStack": "[Act as a fundamental analyst] [Act as a quantitative analyst] check COCHINSHIP momentum",
+    "noAgent": "@watchlist what moved"
+  },
+  "slash": {
+    "empty": [
+      "research",
+      "compare",
+      "chart",
+      "screener",
+      "watch",
+      "portfolio",
+      "layout",
+      "export",
+      "sources",
+      "clear"
+    ],
+    "c": [
+      "chart",
+      "clear",
+      "compare",
+      "screener",
+      "watch",
+      "sources",
+      "research"
+    ],
+    "closedAfterSpace": false,
+    "screener": "screen for defence stocks P/E < 40",
+    "research": "research Mazagon Dock",
+    "bareTicker": null,
+    "count": 10
+  },
+  "queue": {
+    "afterRemove": [
+      "first",
+      "third"
+    ],
+    "head": "first",
+    "rest": [
+      "third"
+    ]
+  },
+  "divergenceChip": {
+    "no_ack": true,
+    "kept_previous": false,
+    "failed": false
+  },
+  "markdown": {
+    "t1Frames": 232,
+    "t1FramesWithOpenFence": 0,
+    "leakedToolCallRenderedAs": "{\"name\": \"write_note\", \"parameters\": {\"note\": \"Cochin Shipyard: valuation looks stretched at ~54x trailing P/E; revisit after Q2 results.\"}}",
+    "cutFence": "```python\nprint(1)\n```",
+    "cutTable": "| a | b |\n|---|---|\n| 1 | 2"
+  },
+  "elapsed": [
+    "0.0s",
+    "0.9s",
+    "61s",
+    "3725s"
+  ]
+}

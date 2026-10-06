@@ -1,0 +1,2 @@
+{"kind": "error", "message": "The requested model is not available on OpenRouter \u2014 pick another model.", "action": "Choose a different model in Settings.", "detail": "Error code: 400 - {'error': {'message': 'zzz-nonsense/not-a-model-9000:free is not a valid model ID', 'code': 400}, 'user_id': '<redacted>'}", "code": "model_not_found"}
+{"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}

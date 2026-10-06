@@ -1,0 +1,14 @@
+{
+ "symbol": "ZEAL",
+ "kind": null,
+ "count": 0,
+ "deals": [],
+ "sources": [
+  "NSE bulk",
+  "NSE block",
+  "NSE sast"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": "BSE ZEAL is a different company; only the NSE feed is served"
+}

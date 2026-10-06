@@ -1,0 +1,11 @@
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/marketplace-lifecycle.test.ts
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/marketplace.test.ts
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/store/marketplace.test.ts
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/modules/marketplace/MarketplacePanel.test.tsx
+45:      throw new Error("NewsAPI rejected this key");
+47:  } catch (err) {
+48:    if (err instanceof Error && err.message === "NewsAPI rejected this key") {
+86:    } catch {
+110:          const config = (await runtime?.readConfig(id).catch(() => null)) ?? {
+119:    } catch {
+214:            await deleteSecret(account).catch(() => undefined);

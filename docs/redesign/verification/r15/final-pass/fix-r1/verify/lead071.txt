@@ -1,0 +1,5 @@
+  from starlette.testclient import TestClient as TestClient  # noqa
+/earnings/AAPL/history earnings_history -> 429 {"detail":"The data provider is throttled right now — try again shortly.","code":"rate_limited","action":"Wait a minute, then retry."} | 2nd 429 | upstream raises 2 | cache rows 0
+/earnings/MSFT/surprises earnings_history -> 429 {"detail":"The data provider is throttled right now — try again shortly.","code":"rate_limited","action":"Wait a minute, then retry."} | 2nd 429 | upstream raises 2 | cache rows 0
+/earnings/NVDA/history earnings_dates -> 429 {"detail":"The data provider is throttled right now — try again shortly.","code":"rate_limited","action":"Wait a minute, then retry."} | 2nd 429 | upstream raises 2 | cache rows 0
+/earnings/TSLA/history info -> 429 {"detail":"The data provider is throttled right now — try again shortly.","code":"rate_limited","action":"Wait a minute, then retry."} | 2nd 429 | upstream raises 2 | cache rows 0

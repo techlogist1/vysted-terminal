@@ -1,0 +1,2 @@
+=== CODE-PLATFORM-036: CustomDslStrategy double-compile ===
+129:    def __init__(self, params: dict[str, Any]) -> None:

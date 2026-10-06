@@ -1,0 +1,9 @@
+data: {"kind":"run-start","runId":"0a7d77d9-1cc5-41d9-9efc-3f9cd629fec6","startedAt":1790466624991}
+
+data: {"kind":"node-start","runId":"0a7d77d9-1cc5-41d9-9efc-3f9cd629fec6","nodeId":"ag","nodeType":"ai.agent_invoke","startedAt":1790466624991}
+
+data: {"kind":"node-output","runId":"0a7d77d9-1cc5-41d9-9efc-3f9cd629fec6","nodeId":"ag","outputs":{"content":"Pineapple is not an available topic of discussion within the Vysted terminal.","agent_id":"copilot"},"durationMs":38082.430334}
+
+data: {"kind":"run-complete","runId":"0a7d77d9-1cc5-41d9-9efc-3f9cd629fec6","durationMs":38083.300417}
+
+rmdir: /tmp/vysted-r15-ollama.lock: No such file or directory

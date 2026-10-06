@@ -1,0 +1,29 @@
+async def test_stream_chat_tool_use_carries_streamed_input(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # R15-AGENT-004: the API starts a tool_use block with ``input: {}`` and
+    # streams the arguments as input_json_delta fragments; the event must
+    # carry the accumulated arguments. (This replaced a hand-built fixture
+    # whose start block was pre-filled, a shape the API never sends.)
+    body = _sse(
+        _MESSAGE_START,
+        {
+            "type": "content_block_start",
+            "index": 0,
+            "content_block": {"type": "thinking", "thinking": "", "signature": ""},
+        },
+        {
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {"type": "thinking_delta", "thinking": "Let me consider..."},
+        },
+        {"type": "content_block_stop", "index": 0},
+        *_tool_block(1, "toolu_01", "get_quote", ['{"symbol": "RELI', 'ANCE.NS"}']),
+        *_MESSAGE_END,
+    )
+    out = await _stream_real_sdk(monkeypatch, body)
+    assert [e.kind for e in out] == ["thinking", "tool_use", "done"]
+    assert out[1].tool_call_id == "toolu_01"
+    assert out[1].name == "get_quote"
+    assert out[1].input == {"symbol": "RELIANCE.NS"}
+    assert out[2].finish_reason == "tool_use"

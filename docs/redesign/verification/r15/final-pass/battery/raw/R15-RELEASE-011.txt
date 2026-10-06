@@ -1,0 +1,22 @@
+# R15-RELEASE-011 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'coverage' package.json | cut -c1-200; grep -n -A12 'coverage: {' vitest.config.ts; grep -n 'pnpm test\|ci-local\|coverage' .github/workflows/*.yml | head
+--- output ---
+21:    "ci-local": "pnpm install --frozen-lockfile && node scripts/ensure-all-sidecars.mjs && pnpm lint && pnpm format:check && pnpm typecheck && cargo fmt --manifest-path src-tauri/Cargo.toml --check
+71:    "@vitest/coverage-v8": "^4.1.6",
+12:    coverage: {
+13-      provider: "v8",
+14-      thresholds: {
+15-        // R15-RELEASE-011: no threshold + no gate meant coverage could regress
+16-        // to zero unnoticed. `autoUpdate` ratchets this number UP to the real
+17-        // measured coverage the next time `vitest run --coverage` passes (wired
+18-        // into `ci-local`) and never down, so it self-bootstraps from this
+19-        // starting floor without a hand-picked number, while still catching a
+20-        // real regression below whatever was last measured.
+21-        lines: 81.4,
+22-        autoUpdate: true,
+23-      },
+24-    },
+.github/workflows/test.yml:72:        run: pnpm test
+
+EXIT=0 (0.0s)

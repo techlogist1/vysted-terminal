@@ -1,0 +1,84 @@
+{
+  "harness_failure": "battery-raw-missing",
+  "count": 13,
+  "missing": [
+    {
+      "id": "R15-DATA-020",
+      "shard": 3,
+      "set": "raw/set-15",
+      "reason": "no_file"
+    },
+    {
+      "id": "R15-DATA-023",
+      "shard": 3,
+      "set": "raw/set-15",
+      "reason": "no_file"
+    },
+    {
+      "id": "R15-DATA-025",
+      "shard": 3,
+      "set": "raw/set-15",
+      "reason": "no_file"
+    },
+    {
+      "id": "R15-DATA-026",
+      "shard": 3,
+      "set": "raw/set-15",
+      "reason": "no_file"
+    },
+    {
+      "id": "R15-DATA-056",
+      "shard": 3,
+      "set": "raw/set-15",
+      "reason": "no_file"
+    },
+    {
+      "id": "R15-DATA-052",
+      "shard": 3,
+      "set": "raw/set-36",
+      "reason": "no_file"
+    },
+    {
+      "id": "R15-DATA-069",
+      "shard": 3,
+      "set": "raw/set-36",
+      "reason": "no_file"
+    },
+    {
+      "id": "R15-LEAD-016",
+      "shard": 3,
+      "set": "raw/set-36",
+      "reason": "no_file"
+    },
+    {
+      "id": "R15-LEAD-049",
+      "shard": 3,
+      "set": "raw/set-82",
+      "reason": "no_file"
+    },
+    {
+      "id": "R15-RELEASE-006",
+      "shard": 6,
+      "set": "raw/set-47",
+      "reason": "no_file"
+    },
+    {
+      "id": "R15-UI-035",
+      "shard": 10,
+      "set": "raw/set-28",
+      "reason": "no_file"
+    },
+    {
+      "id": "R15-UI-036",
+      "shard": 10,
+      "set": "raw/set-28",
+      "reason": "no_file"
+    },
+    {
+      "id": "R15-UI-037",
+      "shard": 10,
+      "set": "raw/set-28",
+      "reason": "no_file"
+    }
+  ]
+}

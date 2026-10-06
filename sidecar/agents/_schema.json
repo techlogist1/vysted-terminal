@@ -32,12 +32,11 @@
       "type": "array",
       "items": { "type": "string", "minLength": 1 },
       "uniqueItems": true,
-      "description": "Allow-list of tool ids the agent may call. Tool ids resolve at the host. Common values: `\"price_data\"`, `\"fundamentals\"`, `\"news\"`, `\"backtest_summary\"`."
+      "description": "Specialty tool ids this agent's persona is written around (surfaced as `tools` in GET /agents, beside `effective_tools`, the real grant) — NOT an enforced allow-list: every first-party agent is granted the catalog's full default tool set at load time (`agent_runtime._grant_first_party_hands`), so this list only documents the ids the system prompt was tuned for (R15-AGENT-072). Common values: `\"price_data\"`, `\"fundamentals\"`, `\"news\"`, `\"backtest_summary\"`."
     },
     "defaultProvider": {
       "type": "string",
-      "enum": ["anthropic", "openai", "gemini", "groq", "ollama", "deepseek", "xai"],
-      "description": "Default `LLMProviderId` (one of the seven BYOK providers). User may override at invocation time."
+      "description": "Default `LLMProviderId`. User may override at invocation time. No enum here: the loader (`agent_runtime._load_schema`) fills it from `config/model_registry.json` provider ids, the one source."
     },
     "defaultModel": {
       "type": "string",

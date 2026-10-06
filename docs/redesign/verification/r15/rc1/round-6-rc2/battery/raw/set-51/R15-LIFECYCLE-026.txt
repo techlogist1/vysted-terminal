@@ -1,0 +1,10 @@
+# candidate ace7dd76 sidecar pid 74594 :52344; light load: 8 cheap GETs per 60 s cycle, 3 cycles (~3 min)
+start: 05:51:04 07:28   0:28.76
+cycle 1 end: 05:51:57 08:21   0:31.90
+cycle 2 end: 05:52:49 09:13   0:34.07
+cycle 3 end: 05:53:41 10:05   0:34.66
+--- idle 5s main-thread check
+USER           PID   TT   %CPU STAT PRI     STIME     UTIME COMMAND
+lokavyasingh 74594   ??    0.3 S    31T   0:00.78   0:14.00 /opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python main.py --host 127.0.0.1 --port 52344 --data-dir /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-data-rc1-battery-4
+             74594         0.0 S    31T   0:00.00   0:00.00 
+             74594         0.0 S    31T   0:00.12   0:02.18 

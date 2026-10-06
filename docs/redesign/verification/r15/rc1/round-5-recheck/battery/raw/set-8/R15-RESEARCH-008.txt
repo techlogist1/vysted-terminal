@@ -1,0 +1,12 @@
+=== R15-RESEARCH-008 repro: keyless search rotation timing vs 25s tool cap ===
+candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, in-process direct handler timing (own sidecar :52358 venv, no Docker/SearXNG — t1_keyless)
+ddg: FAIL in 0.3s (SearchError: keyless web search (DuckDuckGo) is rate-limiting right now — wait a moment and retry, or add an Exa key / local SearXNG for a dedicated route)
+brave: FAIL in 0.5s (SearchError: Brave HTML search is blocking/rate-limiting right now (HTTP 429) — rotating to the next keyless engine)
+mojeek: FAIL in 1.0s (SearchError: Mojeek: blocked (challenge page))
+rotation: FAIL in 8.5s (SearchError: keyless web search has no engine available right now — DuckDuckGo: rate-limiting; Brave: rate-limiting; Mojeek: rate-limiting. Wait a moment and retry, or add an Exa key / local SearXNG for a dedicated route.)
+
+-- static: services/search/pacing.py bounded backoff --
+ATTEMPTS_PER_ENGINE=2, base backoff ~0.4s * factor^attempt + jitter (per-engine min-interval 2-3s), never the ~20s nested-retry-per-attempt the original bug had
+
+NOTE: all 3 keyless engines were rate-limited/blocked from this IP at the time of this probe (DDG 202/rate-limit, Brave 429, Mojeek challenge/403) — this is a shared external-service condition hit by every parallel gate-round shard querying these free engines concurrently, not a product regression. What the repro DOES confirm: total rotation wall time to exhaust all 3 engines and fail was 8.5s (well inside the 25s tool cap), vs the original bug's ~42.5s from DDG alone burning nested retries. The bounded-backoff mechanism holds; engine availability is an environmental variable outside the product's control.
+exit: 0 (script), engines env-blocked

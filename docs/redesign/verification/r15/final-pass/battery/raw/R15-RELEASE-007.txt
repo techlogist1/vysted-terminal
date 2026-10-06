@@ -1,0 +1,21 @@
+# R15-RELEASE-007 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$PATH; cd "$C"
+grep -rn audit-design package.json .github/workflows/; echo "grep exit=$?"
+node scripts/audit-design-tokens.mjs | tail -1; echo "exit=${PIPESTATUS[0]}"
+D=$(mktemp -d "$B/out/aud7.XXXX"); mkdir -p $D/src; printf 'export const A = () => <div className="gap-1.5 px-[7px] text-[12px]" />;\n' > $D/src/bad.tsx
+REL=$(python3 -c "import os;print(os.path.relpath('$D/src', '$PWD'))"); node scripts/audit-design-tokens.mjs "$REL" 2>&1 | tail -6; echo "exit=${PIPESTATUS[0]}"; rm -rf $D
+--- output ---
+package.json:10:    "lint": "eslint . && node scripts/audit-design-tokens.mjs",
+grep exit=0
+design-token audit clean (392 files)
+exit=0
+../fb3/out/aud7.4L5B/src/bad.tsx:1  arbitrary value  text-[12px]
+
+— per-file —
+   3  ../fb3/out/aud7.4L5B/src/bad.tsx
+
+3 violation(s) of R9_DESIGN_SYSTEM.md
+exit=1
+
+EXIT=0 (0.2s)

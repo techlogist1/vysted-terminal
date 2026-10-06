@@ -1,0 +1,7 @@
+CMD: node_modules/.bin/vitest run src/store/app.test.ts (targeted, not full suite)
+ ✓ src/store/app.test.ts > sidecar status follows reachability > a refused call flips connected to error; a later answer flips back and re-runs a panel load 104ms
+ ✓ src/store/app.test.ts > sidecar status follows reachability > while in error, /health is re-probed until the engine answers 3ms
+ ✓ src/lib/use-sidecar-retry.test.ts > useRetryOnSidecarReady (R15-UI-015) > settles after one attempt when the engine answered (a keyless 502) 10ms
+ ✓ src/lib/use-sidecar-retry.test.ts > useRetryOnSidecarReady (R15-UI-015) > retries a raw fetch failure (the engine is not up yet) 3ms
+Both sub-tests pass: 'a refused call flips connected to error; a later answer flips back and re-runs a panel load' and 'while in error, /health is re-probed until the engine answers'.
+VERDICT: ci_pinned (test: src/store/app.test.ts > sidecar status follows reachability)

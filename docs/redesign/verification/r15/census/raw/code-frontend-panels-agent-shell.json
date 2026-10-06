@@ -1,0 +1,152 @@
+[
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-1",
+    "title": "Agent Builder's tool allow-list is a hand-copied 20-id subset of the sidecar's 50-id derived catalog — custom agents can never be granted research, web_search or publish_brief",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "cd sidecar && ./.venv/bin/python -c \"import sys;sys.path.insert(0,'.');from services.agent_tools.catalog import agent_selectable_tool_ids as f;print(len(f()))\" -> 50. src/modules/agent-builder/form.tsx:21-42 declares 20. Open the Agent Builder panel: the Tools row renders exactly those 20 (AgentBuilderPanel.tsx:319-337), so 30 selectable ids -- research, web_search, news, publish_brief, market_overview, corporate_announcements, shareholding_pattern, get_portfolio, get_terminal_state and every host action -- have no UI affordance.",
+    "evidence": "src/modules/agent-builder/form.tsx:16-42, src/modules/agent-builder/AgentBuilderPanel.tsx:319-337, sidecar/services/agent_tools/catalog.py:1520-1528, sidecar/models/custom_agent.py:28-38",
+    "notes": "Information leakage (APOSD #4): the host's tool vocabulary is re-declared on the frontend, the invariant held only by the comment at form.tsx:16-20. The sidecar deliberately DERIVES its copy (custom_agent.py:28-38 names the previous hand-maintained set as the bug it fixed) and the frontend re-introduced the same bug one layer up. The comment's claim that this is 'verified by test_capability_catalog.py' is false -- that test audits the Python registry/catalog pair only. Consequence: 'build your own analyst' ships an analyst that cannot research, search the web, read the terminal or publish a brief. Smallest fix: serve the ids (extend GET /llm/providers or add GET /agents/tool-ids) and render from the response, exactly as knownModels already rides the wire (types/ai.ts:75-77); keep the static array only as a pre-sidecar fallback."
+  },
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-2",
+    "title": "Editing a custom agent silently strips every tool outside the frontend's 20-id list",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "Create an agent via the sidecar (POST /custom-agents with tools:[\"research\",\"web_search\",\"price_data\"] -- accepted, custom_agent.py:56-63 validates against the 50-id catalog). In the Agent Builder click Edit on it, change only the Name, click 'Save changes' -> PUT /custom-agents/{id} sends tools:[\"price_data\"]. research and web_search are gone, with no warning, diff or undo.",
+    "evidence": "src/modules/agent-builder/AgentBuilderPanel.tsx:141-170 (the reconcile loop at :157-163 iterates KNOWN_TOOL_IDS only), src/modules/agent-builder/form.tsx:139-141, sidecar/models/custom_agent.py:56-63",
+    "notes": "Mechanism: handleEdit computes next.tools = new Set(agent.tools) (AgentBuilderPanel.tsx:60) but never assigns it -- it diffs only the 20 known ids via toggleTool, so unknown ids never enter form state; validate() then filters the payload to the same 20 (form.tsx:139-141). Two independent gates drop the same data. Consequence: silent loss of user configuration on an unrelated edit; the agent quietly stops being able to research. Smallest fix: keep the agent's full tools set in state (setField('tools', next.tools), render unknown ids as read-only chips) and delete the filter at form.tsx:139-141 -- the sidecar already validates."
+  },
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-3",
+    "title": "Editing a custom agent silently rewrites an unknown defaultProvider to \"anthropic\" — openrouter is a real provider missing from the frontend list",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "cd sidecar && ./.venv/bin/python -c \"import sys;sys.path.insert(0,'.');from services import model_registry;print(sorted(model_registry.provider_ids()))\" -> includes 'openrouter'; types/ai.ts:43-51 includes it too; src/modules/agent-builder/form.tsx:46-54 lists 7 and omits it. Edit a custom agent whose default_provider is 'openrouter' -> formStateFromAgent returns 'anthropic' (AgentBuilderPanel.tsx:61-63), the select shows Anthropic, and Save writes default_provider:'anthropic'.",
+    "evidence": "src/modules/agent-builder/AgentBuilderPanel.tsx:51-67, src/modules/agent-builder/form.tsx:46-54, types/ai.ts:43-51, sidecar/models/custom_agent.py:39-43",
+    "notes": "Information leakage + 'design for the future' (APOSD #4/#17): the sidecar's provider list is config-driven by design (model_registry.json) and the frontend hardcodes a snapshot of it, so every added provider ships a stale builder. The ?? 'anthropic' fallback converts the staleness from a visible error into a silent overwrite of the user's routing choice -- and OpenRouter is the provider the onboarding headline itself recommends (OnboardingFlow.tsx:256-265). Smallest fix: render the select from GET /llm/providers and keep the agent's own value instead of the anthropic fallback."
+  },
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-4",
+    "title": "The Agent Builder test asserts the UI against the very constants it is meant to guard, so it can never fail on catalog drift",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "design — src/modules/agent-builder/agent-builder.test.tsx:137 loops `for (const tool of KNOWN_TOOL_IDS)` asserting a button exists for each, and :143 asserts the provider <select> options `toEqual([...KNOWN_PROVIDER_IDS])`. Both constants are the hardcoded arrays in form.tsx. Deleting 30 ids from form.tsx (or adding openrouter to the sidecar) leaves the suite green.",
+    "evidence": "src/modules/agent-builder/agent-builder.test.tsx:133-144, src/modules/agent-builder/form.tsx:21-54",
+    "notes": "Special-general mixture / special-casing to satisfy a test: the assertion is a tautology (UI rendered from X equals X), so it certifies the drift in findings 1-3 rather than catching it. Consequence: the one automated guard over this seam is inert, and a reviewer reading the test believes the list is covered. Smallest fix: assert against a checked-in fixture of the sidecar's agent_selectable_tool_ids()/provider_ids() output (or fetch it in a contract test), not against the frontend constant."
+  },
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-5",
+    "title": "The chat transcript writes \"Applied: <change>\" synchronously, before the async apply can fail and re-pend the change",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "Autonomy=AUTO, agent emits a host-action tool_use whose args are incomplete: ChatSidebar.tsx:963-970 appends 'Applied: <title>' immediately after enqueue(); store/proposed-changes.ts:118-120 fires accept() asynchronously, :150-153 gets null from applyHostActionAsync, :163-167 re-pends the change with a detail. Result on screen: the transcript says 'Applied: Chart NVDA' while ProposedChangesReview.tsx:121-125 below says \"Couldn't apply: … — try again.\" The transcript line is never corrected.",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:940-971, src/modules/chat/ChatSidebar.tsx:572-592, src/store/proposed-changes.ts:113-122, src/store/proposed-changes.ts:148-168, src/modules/chat/ProposedChangesReview.tsx:121-125",
+    "notes": "Different layer, different abstraction (APOSD #6) + duplicated truth: the store OWNS the auto-apply decision (proposed-changes.ts:118) and its outcome, yet the presentation layer re-derives the predicate from useAgentAutonomyStore.getState() at two call sites. enqueueSlashChange (ChatSidebar.tsx:583-589) is already a degraded copy -- it omits the `kind !== \"order\"` half entirely. Consequence: the durable transcript (which the user reads back, and which the runtime's divergence check compares against) states a cockpit mutation landed when it did not. Smallest fix: have enqueue return the outcome (or accept() resolve to applied|staged|failed) and write the step line from that single value at both call sites."
+  },
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-6",
+    "title": "Onboarding collapses every key-validation failure into \"That key wasn't accepted by OpenRouter\" — a booting sidecar reads as a bad key",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "First run, sidecar not yet listening (or offline): paste a VALID OpenRouter key -> validateKey's fetch throws -> catch returns false (OnboardingFlow.tsx:87-89) -> status 'invalid' (:349-351) -> the UI renders \"That key wasn't accepted by OpenRouter. Check it and try again.\" (:408-411). Same message for HTTP 500, for a 404 route, and for a genuinely rejected key.",
+    "evidence": "src/components/OnboardingFlow.tsx:74-90, src/components/OnboardingFlow.tsx:343-363, src/components/OnboardingFlow.tsx:408-417, src/components/KeyEntryDialog.tsx:175-189",
+    "notes": "Swallowed exception turning a transport failure into a false, confident claim about the user's credential -- APOSD #9 (define errors out of existence) inverted: a Promise<boolean> throws away the one bit that mattered. The SIBLING surface does it correctly: KeyEntryDialog.postValidate returns {ok, detail} and surfaces `sidecar returned ${status}` (KeyEntryDialog.tsx:183-185), rendered at :148-153 -- so this is an inconsistency, not a missing capability. This is the product's first-run headline path, and the sidecar's own boot is the most likely thing to be unready at that instant. Neither call has a timeout. Smallest fix: lift postValidate into lib/, call it from both, distinguish invalid (provider said no) from unreachable, and add AbortSignal.timeout()."
+  },
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-7",
+    "title": "Clearing a field in the Delegate budget editor removes that ceiling entirely — an unbounded-spend autonomous run",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "Switch the composer to Delegate mode, clear the \"$\" box in the budget row, send a task. BudgetConfig.tsx:40-45: e.target.value === '' -> n = undefined -> Number.isFinite(undefined) is false -> maxSpendUsd: undefined. lib/delegate-runs.ts:97-102 puts it in the body and JSON.stringify DROPS the key, so the sidecar receives no max_spend_usd; sidecar/services/budget_guard.py:152-156 guards every ceiling behind `if self.max_X is not None`, so absent = no ceiling. The durable background run has unlimited spend.",
+    "evidence": "src/modules/chat/BudgetConfig.tsx:5-13, src/modules/chat/BudgetConfig.tsx:28-46, src/lib/delegate-runs.ts:96-103, sidecar/services/budget_guard.py:96-106, sidecar/services/budget_guard.py:152-157",
+    "notes": "Pull complexity downward (APOSD #7): the component documents itself as 'bounded … so an autonomous run can never overrun unbounded' and 'the trust gate for autonomous spend' (BudgetConfig.tsx:5-6, 15-19), and then exposes a one-keystroke path to the exact state it promises cannot exist. An empty number box reads as 'default', not as 'off', so the failure is invisible at the moment of the decision. Money-relevant and BYOK. Smallest fix: in the onChange, fall back to DEFAULT_DELEGATE_BUDGET[key] (and clamp negatives to it) instead of undefined -- four keys, one expression; the 'no ceiling' state then has no UI path."
+  },
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-8",
+    "title": "The command palette ignores the rebindable palette.open keybinding its own docstring says it resolves",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "Rebind palette.open in the keybindings store to something other than mod+k. CommandPalette.tsx:76-81 tests only `(event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k'` and never reads the store, so the new binding does nothing and the old one still fires. The sibling AgentDock does read it (AgentDock.tsx:70: useKeybindingsStore.getState().bindingFor('agent.toggle')).",
+    "evidence": "src/components/CommandPalette.tsx:20-22, src/components/CommandPalette.tsx:75-84, src/components/AgentDock.tsx:68-78, src/store/keybindings.ts:59",
+    "notes": "Consistency (APOSD #15) + comment that contradicts code: 'palette.open' is a declared, rebindable action (keybindings.ts:59) and the file header claims the listener 'resolves the palette.open binding -- falls back to meta+k / ctrl+k directly if the keybindings store is unavailable'. There is no resolution step at all, only the fallback. Consequence: user-facing configuration is silently dead, and the next maintainer trusts the docstring. Smallest fix: copy the four-line AgentDock pattern (bindingFor + matchesEvent, keeping the literal as the unavailable-store fallback)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-9",
+    "title": "Missing-API-key early return leaves an orphaned user turn in the transcript with no assistant reply and no error row",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "Select a key-requiring provider with no key in the keychain, type a prompt, press Enter. ChatSidebar.tsx:765 appends the user message; :788-795 then discovers getSecret returned null, sets an ephemeral status line and RETURNS. The user's message stands alone in the transcript forever -- no assistant bubble, no ErrorRow, no Retry -- and the status line is wiped by the next send (:735).",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:765, src/modules/chat/ChatSidebar.tsx:787-806, src/modules/chat/ChatSidebar.tsx:1238-1250",
+    "notes": "Ordering defect: the precondition check runs after the state mutation it should gate. The file already has the right surface for this -- beginAssistant + fail() renders a persistent ErrorRow with the human message and a Retry button (:1430-1477) -- so the fix is to use it rather than to invent one. Consequence: the transcript stops being a faithful record (a question that was never asked of any model looks asked), and the keyless branch at :796-806 has the same shape. Smallest fix: move the provider/key resolution above appendUser, or emit a failed assistant message instead of returning bare."
+  },
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-10",
+    "title": "Deleting a custom agent is one unconfirmed click, and the delete path throws away the server's reason while the save path surfaces it",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "In the Agent Builder's 'Your agents' list, click the x next to any agent: AgentBuilderPanel.tsx:487 calls handleDelete directly -> DELETE /custom-agents/{id}. No confirm dialog, no undo, no trash. The agent's system prompt and tool grants are gone. On failure, deleteCustomAgent (:104-111) throws `delete failed (${status})` with the response body discarded, so the user sees a bare status code.",
+    "evidence": "src/modules/agent-builder/AgentBuilderPanel.tsx:104-111, src/modules/agent-builder/AgentBuilderPanel.tsx:172-191, src/modules/agent-builder/AgentBuilderPanel.tsx:484-491, src/modules/agent-builder/AgentBuilderPanel.tsx:90-101",
+    "notes": "Consistency (APOSD #15): writeCustomAgent five lines above parses the JSON body for `detail` and surfaces the server's real reason; deleteCustomAgent does not, for no stated reason. Combined with the unconfirmed destructive click, a mis-click destroys hand-authored agent configuration with no recovery and a failed delete is unexplainable. Smallest fix: reuse the same detail-extraction helper for both, and require a second click (inline 'Delete?' confirm on the row) before the DELETE fires."
+  },
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-11",
+    "title": "The onboarding banner permanently nags the local-model user and contradicts the onboarding flow's own keyless promise",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "Complete onboarding via the 'Run it locally / private & free' path (OnboardingFlow.tsx:266-273, LocalStep.activate sets provider=ollama). No keychain key exists, so provider-keys.ts:58-62 hasAnyKey() returns false (it counts only requiresKey providers) and OnboardingBanner.tsx:32 shows the banner: \"Add a cloud provider key — or run a local model (Ollama) — to unlock the assistant, agents, and research tools.\" The agent is already working. Dismissal is component useState (:26), so it returns on every relaunch.",
+    "evidence": "src/components/OnboardingBanner.tsx:26-32, src/components/OnboardingBanner.tsx:49-53, src/store/provider-keys.ts:58-62, src/components/OnboardingFlow.tsx:249-253, src/components/OnboardingFlow.tsx:266-273",
+    "notes": "The gate asks 'is a BYOK key configured' when the question is 'is an AI model reachable'. The copy also contradicts the flow shipped alongside it: OnboardingFlow.tsx:249-253 states web research runs keyless, the banner says research tools need a key. Consequence: the product tells a correctly-configured user, on every launch, that it is not configured -- and the two first-run surfaces disagree about what works without a key. Smallest fix: gate on hasAnyKey() OR an active keyless provider (the ollama default already lives in useLLMProvidersStore), and persist the dismissal alongside the onboarding 'seen' marker."
+  },
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-12",
+    "title": "Key-entry dialog has no validation timeout and disables Cancel while validating",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "Open the key dialog for any provider and Save against a sidecar that accepts the connection but never responds (or a provider endpoint that hangs): postValidate's fetch has no timeout or AbortSignal (KeyEntryDialog.tsx:175-189), so status stays 'validating' indefinitely; the Save button is disabled (:165) and so is Cancel (:161). The dialog shows 'Validating…' with no working button.",
+    "evidence": "src/components/KeyEntryDialog.tsx:155-168, src/components/KeyEntryDialog.tsx:175-189, src/components/OnboardingFlow.tsx:74-90",
+    "notes": "Network call with no ceiling, plus an escape hatch disabled exactly when it is needed. Escape still closes via Radix, so this is a stuck surface rather than a hard lock -- but Cancel is the affordance the user reaches for and it is dead. Same missing timeout in OnboardingFlow.validateKey. Smallest fix: AbortSignal.timeout(15000) on both fetches and let Cancel abort the in-flight validation instead of being disabled by it."
+  },
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-13",
+    "title": "The context badge's visibility is gated on string equality with a user-facing sentence minted 850 lines away",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "design — ChatSidebar.tsx:1191 renders the badge only when `contextBadge !== \"Context: none\"`; that exact literal is produced by describeContext at :2044. Change the copy at :2044 to \"No panel context\" and the badge renders on every boot with the standing dead row the R9 stray-item audit removed; change it at :1191 only and the badge disappears entirely. Neither edit fails a test.",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:1189-1191, src/modules/chat/ChatSidebar.tsx:2037-2064",
+    "notes": "Obviousness (APOSD #16) + duplicated truth: a render decision is encoded in prose. The function already knows whether there is context; it flattens that to a string and the caller re-derives it by comparison. Consequence: a copy edit silently changes behaviour, in either direction, with no failing test. Smallest fix: return a discriminated value ({kind:'none'} | {kind:'panels', text}) and branch on kind."
+  },
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-14",
+    "title": "\"The focused symbol\" is extracted three different ways with three different rules, coupled only by a comment",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "design — the same panel-context bus is read by (a) ChatSidebar.describeContext:2053-2061 (symbol -> ticker, raw case, also reads timeframe), (b) SuggestionChips.useFocusedSymbol:50-66 (symbol -> ticker, uppercased), (c) context-provider.captureTerminalState:276-278 (focused chart's symbol, else charts[0], else watchlist.selected, else watchlist[0]). Focus an equity panel publishing {ticker:'infy'}: the badge says 'Context: … (infy)', the chips offer 'Research $INFY', and the agent's terminal snapshot reports focusedSymbol null (it only looks at chart* sources).",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:2052-2062, src/modules/chat/SuggestionChips.tsx:45-67, src/modules/chat/context-provider.ts:275-278",
+    "notes": "Repetition of nontrivial logic (APOSD #4/#15); the coupling is asserted by a comment at SuggestionChips.tsx:45-46 ('mirroring describeContext in ChatSidebar') rather than by structure, and the three have ALREADY diverged on casing and on which sources count. Consequence: the badge, the suggestion chips and what the agent is actually told about 'what you're looking at' can disagree in the same instant -- directly against the product's context-fidelity promise. Smallest fix: one exported focusedSymbolFromBus(bus) in context-provider.ts, consumed by all three."
+  },
+  {
+    "raw_id": "COD-frontend-panels-agent-shell-15",
+    "title": "The command palette's agent row re-parses an id prefix instead of reading the agent object it already holds",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "frontend-panels-agent-shell",
+    "repro": "design — CommandPalette.tsx:184 does `setActiveAgent(item.id.replace(/^agent:/, ''))` while the same PaletteItem carries `agentSummary` (set at store/command-palette.ts:220-226) whose `.id` is the unprefixed value. If the corpus id scheme changes (e.g. to 'agents/<id>'), the strip silently no-ops and the palette sets the active agent to the literal 'agents/buffett', which resolves to no agent -- the persona chip falls back to humanizeAgentId and sends route to a nonexistent agent.",
+    "evidence": "src/components/CommandPalette.tsx:175-207, src/store/command-palette.ts:219-227, src/modules/chat/ChatSidebar.tsx:496-505",
+    "notes": "Information leakage (APOSD #4): the id encoding chosen in the store is decoded by string surgery in a component, so the encoding is known in two places. The failure is silent rather than loud because ChatSidebar.activeAgent resolves an unknown id to null and humanizeAgentId happily renders it. Smallest fix: `setActiveAgent(item.agentSummary.id)` -- the data is already on the item."
+  }
+]

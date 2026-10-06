@@ -1,0 +1,6 @@
+=== AMAL.BO ===
+provider bse bars 256
+=== RELIANCE.BO ===
+provider bse bars 256
+=== AMAL.NS control ===
+provider nse_direct bars 29

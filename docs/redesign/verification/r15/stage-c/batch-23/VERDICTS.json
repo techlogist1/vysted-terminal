@@ -1,0 +1,13 @@
+{
+  "certified": [],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-LEAD-035",
+      "reason": "REGRESSION against base 93ba12da on fresh explicit data requests. The batch-22 six keep-surface controls and every batch-21/22 no-tool phrasing now behave per SPEC (b22v_035 24/24 OK; live 6/6 keep-surface called price_data at the /quotes price, 13/13 no-tool phrasings made no call and staged nothing). Seven fresh keep-surface phrasings the writer did not pin keep 42-55 tools on base and lose all of them on 9aa9fb6c: 'Don't just use the tools blindly — check the TCS.NS price...', 'Never call the tools twice for one symbol; get the INFY.NS price.', 'Don't call functions you don't need, just get me SBIN.NS's latest price.', 'No lookups needed for TCS, I know it; what is ITC.NS trading at?', 'Never use the search tools, only the quote: INFY.NS price?', 'Don't use the tools for arithmetic; get the TCS.NS price.', 'Do not call the tools again for TCS, just get INFY.NS price.'. Live on llama3.1:8b all 7 made no call and streamed fabricated prices narrated as fetched (SBIN ₹949.50 vs 983.0, ITC ₹384.65 vs 269.0, TCS ₹2,993.70 vs 2082.0, INFY ₹443.85/₹1,245.25/₹1,213.10 vs 1000.2). The cause is that a negated verb+object fires whatever follows the object in its clause, so a scoped or qualified negation (an adverb, a relative clause, 'for X', 'needed for', or a named 'search tools') empties the surface."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-23-int@9aa9fb6c3e664c7d7d2bfd8756f3727b52eda891"
+}

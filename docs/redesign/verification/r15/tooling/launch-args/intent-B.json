@@ -1,0 +1,61 @@
+{
+ "tag": "intent-B",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly.",
+ "stages": [
+  {
+   "label": "verify",
+   "model": "fable",
+   "prompt": "Your task spec is the INTENT section of docs/redesign/verification/r15/tooling/PROMPT_census.md, with <source> = \"{{source}}\", <start> = {{start}}, <end> = {{end}}."
+  }
+ ],
+ "items": [
+  {
+   "id": "spec-0",
+   "source": "spec",
+   "start": 0,
+   "end": 45
+  },
+  {
+   "id": "spec-45",
+   "source": "spec",
+   "start": 45,
+   "end": 90
+  },
+  {
+   "id": "spec-90",
+   "source": "spec",
+   "start": 90,
+   "end": 135
+  },
+  {
+   "id": "spec-135",
+   "source": "spec",
+   "start": 135,
+   "end": 180
+  },
+  {
+   "id": "spec-180",
+   "source": "spec",
+   "start": 180,
+   "end": 221
+  },
+  {
+   "id": "deferred-0",
+   "source": "deferred",
+   "start": 0,
+   "end": 42
+  },
+  {
+   "id": "deferred-42",
+   "source": "deferred",
+   "start": 42,
+   "end": 84
+  },
+  {
+   "id": "deferred-84",
+   "source": "deferred",
+   "start": 84,
+   "end": 124
+  }
+ ]
+}

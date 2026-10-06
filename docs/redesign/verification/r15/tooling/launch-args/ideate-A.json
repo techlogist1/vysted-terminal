@@ -1,0 +1,29 @@
+{
+ "tag": "ideate-A",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly (you are read-only thinking; ignore its raw-finding shape).",
+ "stages": [
+  {
+   "label": "seat",
+   "model": "fable",
+   "prompt": "Your task spec is the IDEATE section of docs/redesign/verification/r15/tooling/PROMPT_census.md, with <seat-id> = \"{{id}}\" and <seat> = {{seat}}."
+  }
+ ],
+ "items": [
+  {
+   "id": "bloomberg",
+   "seat": "a Bloomberg Terminal power user of 15 years (buy-side PM, lives in functions, launchpad, alerts, MSG; knows exactly what a terminal must do before it earns desk space and what Bloomberg still cannot do)"
+  },
+  {
+   "id": "retail",
+   "seat": "a first-time Indian retail investor, 24, opened a Zerodha account last year, holds 9 stocks picked from YouTube and Telegram tips, intimidated by annual reports, terrified of operators and pump-and-dumps in small caps"
+  },
+  {
+   "id": "forensic",
+   "seat": "a micro-cap forensic investor from the ValuePickr school: reads every annual report, related-party note, auditor change, pledge filing and credit-rating rationale; has been burned by governance blow-ups; trusts filings, not aggregators"
+  },
+  {
+   "id": "quant",
+   "seat": "a quant who runs systematic factor and event strategies on Indian equities: cares about point-in-time data, survivorship, corporate-action adjustment, reproducibility, backtest honesty and turning any research answer into a testable rule"
+  }
+ ]
+}

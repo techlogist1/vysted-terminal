@@ -1,0 +1,88 @@
+=== R15-CODE-FRONTEND-005: autosave triggers for chart-drawings / keybindings / research-spaces ===
+--- PERSISTED_SLICES entries with these stores ---
+35:} from "@/store/chart-drawings";
+36:import { useKeybindingsStore } from "@/store/keybindings";
+40:import { useResearchSpacesStore } from "@/store/research-spaces";
+70:  chartDrawings?: WorkspaceDrawings;
+167:   * relaunch (`src/store/research-spaces.ts`). Optional for older blobs.
+169:  researchSpaces?: WorkspaceResearchSpaces;
+329:    key: "chartDrawings",
+331:    read: () => ({ chartDrawings: useChartDrawingsStore.getState().snapshot() }),
+335:      for (const [panelId, list] of Object.entries(workspace.chartDrawings?.byPanel ?? {})) {
+567:    key: "researchSpaces",
+569:    read: () => ({ researchSpaces: useResearchSpacesStore.getState().snapshot() }),
+571:      if (workspace.researchSpaces && typeof workspace.researchSpaces === "object") {
+574:          .replaceAll(workspace.researchSpaces as WorkspaceResearchSpaces);
+777: * data (portfolios, watchlist, notes, brief, settings, keybindings, research
+1188:    researchSpaces: useResearchSpacesStore.getState().snapshot(),
+1214:    useResearchSpacesStore.getState().replaceAll(before.researchSpaces);
+  },
+  {
+    // A drawing from a blob that predates `symbol`/`timeframe` is adopted by
+    // its panel's restored view (or the chart defaults).
+    key: "chartDrawings",
+    scope: "layout",
+    read: () => ({ chartDrawings: useChartDrawingsStore.getState().snapshot() }),
+    restore: (workspace) => {
+      const views = chartViewsOf(workspace);
+      const byPanel: WorkspaceDrawings["byPanel"] = {};
+      for (const [panelId, list] of Object.entries(workspace.chartDrawings?.byPanel ?? {})) {
+        const view = views[panelId];
+        byPanel[panelId] = list.map((d) => ({
+          ...d,
+          symbol: d.symbol ?? view?.symbol ?? DEFAULT_CHART_SYMBOL,
+          timeframe: d.timeframe ?? view?.timeframe ?? DEFAULT_CHART_TIMEFRAME,
+        }));
+      }
+      useChartDrawingsStore.getState().replaceAll({ byPanel });
+    },
+    subscribe: onChange(useChartDrawingsStore, (s) => s.byPanel),
+          .setSavedScreens(deserializeSavedScreens(JSON.stringify(workspace.savedScreens)));
+      }
+    },
+    subscribe: onChange(useScreenerStore, (s) => s.savedScreens),
+  },
+  {
+    // The durable per-space agent-memory archive (S-19).
+    key: "researchSpaces",
+    scope: "global",
+    read: () => ({ researchSpaces: useResearchSpacesStore.getState().snapshot() }),
+    restore: (workspace) => {
+      if (workspace.researchSpaces && typeof workspace.researchSpaces === "object") {
+        useResearchSpacesStore
+          .getState()
+          .replaceAll(workspace.researchSpaces as WorkspaceResearchSpaces);
+      }
+    },
+    subscribe: onChange(useResearchSpacesStore, (s) => s.byName),
+  },
+  {
+    // TYPED research-space marker (only on a research space). Restoring it
+--- wireAutosave / subscribe-all ---
+  }
+}
+
+/**
+ * Wire every {@link PERSISTED_SLICES} trigger to {@link autosaveLayout} (the
+ * dockview layout's own trigger is wired by PanelHost). Returns the teardown.
+ */
+export function wireAutosaveTriggers(): () => void {
+  const unsubscribes = PERSISTED_SLICES.map((slice) => slice.subscribe(autosaveLayout));
+  return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
+}
+
+/** Test helper: back to the pre-restore state (autosave gated, nothing pending). */
+export function resetWorkspacePersistenceForTests(): void {
+  if (autosaveTimer !== null) {
+    clearTimeout(autosaveTimer);
+  }
+  autosaveTimer = null;
+  restoreSettled = false;
+  autosaveInFlight = false;
+  autosaveQueued = false;
+36:import { useKeybindingsStore } from "@/store/keybindings";
+777: * data (portfolios, watchlist, notes, brief, settings, keybindings, research
+36:import { useKeybindingsStore } from "@/store/keybindings";
+473:    read: () => ({ keybindingOverrides: useKeybindingsStore.getState().overrides }),
+476:        useKeybindingsStore.getState().setOverrides(workspace.keybindingOverrides);
+479:    subscribe: onChange(useKeybindingsStore, (s) => s.overrides),

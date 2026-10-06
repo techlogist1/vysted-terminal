@@ -12,10 +12,13 @@ services use:
   so a per-call connect/handshake/teardown does not dominate latency.
 - :func:`reset_clients` is the test-friendly cache-purge.
 
-Reconnect-on-error: any transport-level failure (the underlying anyio
-streams close, the JSON-RPC request times out, the server returns an
-:class:`mcp.McpError`) drops the cached session so the next call rebuilds
-it. That keeps the call sites idiom-free — they call ``list_tools()`` or
+Reconnect-on-error: any failure of a call (the underlying anyio streams
+close, the JSON-RPC request times out, the server returns an
+:class:`mcp.McpError`, the transport's task group cancels) drops the cached
+session so the next call rebuilds it, and surfaces as a
+:class:`~services.errors.ProviderError` so the provider registry falls
+through; only a genuine cancellation of the calling task propagates. That
+keeps the call sites idiom-free — they call ``list_tools()`` or
 ``call_tool(...)`` and the wrapper handles the connection-state machine.
 """
 
@@ -23,14 +26,16 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from contextlib import AsyncExitStack
+import os
+from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
 
-import mcp
 from mcp.client.session import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
 from mcp.client.streamable_http import streamablehttp_client
+
+from services.errors import ProviderError
 
 _log = logging.getLogger(__name__)
 
@@ -72,7 +77,8 @@ class McpClient:
         self.args = args or []
         self.env = env or {}
         self._session: ClientSession | None = None
-        self._exit_stack: AsyncExitStack | None = None
+        self._owner: asyncio.Task[None] | None = None
+        self._stop: asyncio.Event | None = None
         self._lock = asyncio.Lock()
         # Bumped every time a new session is opened. A failing call captures the
         # generation it ran against and passes it to ``close()`` so a stale
@@ -81,44 +87,69 @@ class McpClient:
         self._generation = 0
 
     async def _open(self) -> ClientSession:
-        """Open the transport and return an initialised :class:`ClientSession`."""
-        exit_stack = AsyncExitStack()
-        try:
-            if self.transport == "http":
-                if not self.endpoint:
-                    raise ValueError(
-                        f"MCP server {self.server_id!r} is configured for http transport "
-                        "but no endpoint was provided."
-                    )
-                read_stream, write_stream, _get_session_id = await exit_stack.enter_async_context(
-                    streamablehttp_client(self.endpoint)
-                )
-            elif self.transport == "stdio":
-                if not self.command:
-                    raise ValueError(
-                        f"MCP server {self.server_id!r} is configured for stdio transport "
-                        "but no command was provided."
-                    )
-                params = StdioServerParameters(
-                    command=self.command, args=list(self.args), env=dict(self.env) or None
-                )
-                read_stream, write_stream = await exit_stack.enter_async_context(
-                    stdio_client(params)
-                )
-            else:
+        """Open the transport and return an initialised :class:`ClientSession`.
+
+        The transport and session contexts are entered and exited in a dedicated
+        owner task. Their anyio task groups cancel the task that hosts them when
+        the child dies; hosting them in the request task let a dead child cancel
+        whichever request happened to open the session (R15-LIFECYCLE-005).
+        """
+        if self.transport == "http":
+            if not self.endpoint:
                 raise ValueError(
-                    f"Unknown MCP transport {self.transport!r} for server {self.server_id!r}."
+                    f"MCP server {self.server_id!r} is configured for http transport "
+                    "but no endpoint was provided."
                 )
-
-            session = await exit_stack.enter_async_context(
-                ClientSession(read_stream, write_stream, read_timeout_seconds=_REQUEST_TIMEOUT)
+            transport_cm: Any = streamablehttp_client(self.endpoint)
+        elif self.transport == "stdio":
+            if not self.command:
+                raise ValueError(
+                    f"MCP server {self.server_id!r} is configured for stdio transport "
+                    "but no command was provided."
+                )
+            params = StdioServerParameters(
+                command=self.command, args=list(self.args), env=dict(self.env) or None
             )
-            await asyncio.wait_for(session.initialize(), timeout=_INIT_TIMEOUT_S)
-        except Exception:
-            await exit_stack.aclose()
-            raise
+            transport_cm = stdio_client(params)
+        else:
+            raise ValueError(
+                f"Unknown MCP transport {self.transport!r} for server {self.server_id!r}."
+            )
 
-        self._exit_stack = exit_stack
+        ready: asyncio.Future[ClientSession] = asyncio.get_running_loop().create_future()
+        stop = asyncio.Event()
+
+        async def _own() -> None:
+            session: ClientSession | None = None
+            try:
+                async with transport_cm as streams:
+                    async with ClientSession(
+                        streams[0], streams[1], read_timeout_seconds=_REQUEST_TIMEOUT
+                    ) as session:
+                        await asyncio.wait_for(session.initialize(), timeout=_INIT_TIMEOUT_S)
+                        if not ready.done():
+                            ready.set_result(session)
+                        await stop.wait()
+            except BaseException as exc:  # noqa: BLE001 - the transport's failure lands here
+                while isinstance(exc, BaseExceptionGroup):
+                    exc = exc.exceptions[0]  # the task group wraps the real cause
+                if not ready.done():
+                    ready.set_exception(
+                        ProviderError(f"MCP server {self.server_id!r} failed to open: {exc!r}")
+                    )
+                _log.debug("MCP %r transport ended: %r", self.server_id, exc)
+            finally:
+                if session is not None and self._session is session:
+                    self._session = None
+
+        owner = asyncio.create_task(_own(), name=f"mcp-{self.server_id}")
+        try:
+            session = await ready
+        except asyncio.CancelledError:
+            owner.cancel()
+            raise
+        self._owner = owner
+        self._stop = stop
         self._session = session
         self._generation += 1
         return session
@@ -142,23 +173,35 @@ class McpClient:
         async with self._lock:
             if expected_generation is not None and expected_generation != self._generation:
                 return  # a newer session was already opened; don't tear it down
-            if self._exit_stack is not None:
-                try:
-                    await self._exit_stack.aclose()
-                except Exception as exc:  # noqa: BLE001
-                    _log.debug("MCP client %r close raised: %s", self.server_id, exc)
-            self._exit_stack = None
+            owner, self._owner = self._owner, None
+            if self._stop is not None:
+                self._stop.set()
+            self._stop = None
             self._session = None
+            if owner is not None:
+                await owner
+
+    async def _failed(self, exc: BaseException, what: str, generation: int) -> ProviderError:
+        """Drop the session a call failed on and return the ProviderError to raise.
+
+        A ``CancelledError`` while this task is not itself being cancelled came
+        from the transport, not from the caller, so it is a failure like any
+        other; a genuine outer cancellation is re-raised untouched.
+        """
+        task = asyncio.current_task()
+        if isinstance(exc, asyncio.CancelledError) and task is not None and task.cancelling():
+            raise exc
+        _log.debug("MCP %r %s failed, dropping session: %r", self.server_id, what, exc)
+        await self.close(expected_generation=generation)
+        return ProviderError(f"MCP server {self.server_id!r} {what} failed: {exc!r}")
 
     async def list_tools(self) -> list[dict[str, Any]]:
         """Return the external server's tool definitions as plain dicts."""
         session, generation = await self._ensure_session()
         try:
             result = await session.list_tools()
-        except (TimeoutError, mcp.McpError, OSError) as exc:
-            _log.debug("MCP %r list_tools failed, dropping session: %s", self.server_id, exc)
-            await self.close(expected_generation=generation)
-            raise
+        except (Exception, asyncio.CancelledError) as exc:
+            raise await self._failed(exc, "list_tools", generation) from exc
         return [
             {
                 "name": tool.name,
@@ -173,18 +216,14 @@ class McpClient:
 
         Returns ``{"isError", "content"}`` where ``content`` is a list of
         text/image/resource blocks shaped to match ``McpContentBlock`` in
-        ``types/mcp.ts``. Transport-level failures drop the cached session
-        so the next call reconnects.
+        ``types/mcp.ts``. Any failure drops the cached session so the next
+        call reconnects, and raises :class:`ProviderError`.
         """
         session, generation = await self._ensure_session()
         try:
             result = await session.call_tool(name, arguments or {})
-        except (TimeoutError, mcp.McpError, OSError) as exc:
-            _log.debug(
-                "MCP %r call_tool(%s) failed, dropping session: %s", self.server_id, name, exc
-            )
-            await self.close(expected_generation=generation)
-            raise
+        except (Exception, asyncio.CancelledError) as exc:
+            raise await self._failed(exc, f"call_tool({name})", generation) from exc
 
         content: list[dict[str, Any]] = []
         for block in result.content:
@@ -203,7 +242,15 @@ class McpClient:
                 # Future-proof: stringify any unknown block so callers always
                 # have something to log even if the spec adds new block kinds.
                 content.append({"type": "text", "text": str(block)})
-        return {"isError": bool(result.isError), "content": content}
+        return {
+            "isError": bool(result.isError),
+            "content": content,
+            # FastMCP 3.x tools with an ``output_schema`` reply with structured
+            # content alongside (or instead of) a text block; pass it through so
+            # a caller whose decode falls back to it (e.g. sec_filings_provider)
+            # sees real data instead of "no content" (R15-CODE-AGENT-025).
+            "structuredContent": getattr(result, "structuredContent", None),
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -248,3 +295,104 @@ async def reset_clients() -> None:
         _clients.clear()
     for client in clients:
         await client.close()
+
+
+# ---------------------------------------------------------------------------
+# LocalMcpSubprocess — shared shape for a Tauri-spawned, env-var-discovered
+# local MCP server (openbb-mcp, sec-edgar-mcp, ...).
+# ---------------------------------------------------------------------------
+
+
+class LocalMcpSubprocess:
+    """Discovery + status + health-tracked calls for one local MCP subprocess.
+
+    ``openbb_mcp_provider`` and ``sec_filings_provider`` each re-implemented
+    this (env-var endpoint discovery, ``is_available``, ``status``, the cached
+    client, and the last-call health flags) with small divergences
+    (R15-CODE-AGENT-024). This owns that shared shape; a provider keeps only
+    its own tool names and ``decode`` — the JSON-body extraction from a raw
+    ``call_tool`` result, which differs per upstream server.
+    """
+
+    def __init__(self, server_id: str, *, port_env: str, host_env: str) -> None:
+        self.server_id = server_id
+        self.port_env = port_env
+        self.host_env = host_env
+        self._available: bool | None = None
+        self.last_tool_call_ok: bool | None = None
+        self.last_error: str | None = None
+
+    def resolve_endpoint(self) -> str | None:
+        """Return the Streamable-HTTP endpoint, or ``None`` if not bundled.
+
+        A port of ``"0"`` is the Tauri core's graceful-degrade signal (it
+        spawned the child but the bind failed) and is treated the same as
+        "not set".
+        """
+        port = os.environ.get(self.port_env)
+        if not port or port == "0":
+            return None
+        host = os.environ.get(self.host_env, "127.0.0.1")
+        return f"http://{host}:{port}/mcp"
+
+    def is_available(self) -> bool:
+        """Return whether the subprocess is reachable in this build."""
+        if self._available is None:
+            self._available = self.resolve_endpoint() is not None
+        return bool(self._available)
+
+    async def status(self, provider: str) -> dict[str, Any]:
+        """Status payload for a plugin-manager ``GET .../status`` route.
+
+        Configured is not enough: after a failed call the provider is down
+        until the next call succeeds (R15-LIFECYCLE-005).
+        """
+        endpoint = self.resolve_endpoint()
+        available = endpoint is not None and self.last_tool_call_ok is not False
+        return {
+            "available": available,
+            "provider": provider,
+            "endpoint": endpoint,
+            "lastToolCallOk": self.last_tool_call_ok,
+            "lastError": self.last_error,
+        }
+
+    async def _get_client(self) -> McpClient:
+        endpoint = self.resolve_endpoint()
+        if endpoint is None:
+            raise ProviderError(
+                f"{self.server_id} subprocess is not running — {self.port_env} not set."
+            )
+        return await get_client(self.server_id, transport="http", endpoint=endpoint)
+
+    async def call_tool_json(
+        self,
+        name: str,
+        arguments: dict[str, Any],
+        *,
+        decode: Callable[[dict[str, Any], str], Any],
+    ) -> Any:
+        """Invoke ``name``, decode via the caller's ``decode``, and track health.
+
+        One try over the call AND the decode: an ``isError`` / undecodable
+        payload is a failed call too, so the health flags record it
+        (R15-DATA-083).
+        """
+        client = await self._get_client()
+        try:
+            decoded = decode(await client.call_tool(name, arguments), name)
+        except Exception as exc:
+            self.last_tool_call_ok = False
+            self.last_error = f"{type(exc).__name__}: {exc}"
+            if isinstance(exc, ProviderError):
+                raise
+            raise ProviderError(f"{self.server_id} call {name!r} failed: {exc}") from exc
+        self.last_tool_call_ok = True
+        self.last_error = None
+        return decoded
+
+    def reset_for_tests(self) -> None:
+        """Clear cached availability + health state. Used only from tests."""
+        self._available = None
+        self.last_tool_call_ok = None
+        self.last_error = None

@@ -1,0 +1,13 @@
+# R15-RESEARCH-013 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:48+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/r013.py 2>&1 | grep -v Warning
+--- output ---
+
+JUMBO.BO ok= True provider= bse n= 7
+
+AMAL.BO ok= True provider= nse+bse n= 7
+
+RELIANCE.NS ok= True provider= nse+bse n= 7
+BSE lane down (simulated): provider= nse
+
+EXIT=0 (8.1s)

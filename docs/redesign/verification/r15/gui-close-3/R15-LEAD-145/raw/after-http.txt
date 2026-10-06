@@ -1,0 +1,10 @@
+GET http://127.0.0.1:65424/health
+{"status":"ok","service":"vysted-sidecar","version":"0.9.0","providers":{"analyst_rating":"openbb-mcp (yfinance fallback)","balance_sheet":"openbb-mcp (yfinance fallback)","cash_flow":"openbb-mcp (yfinance fallback)","fundamentals":"openbb-mcp (yfinance fallback)","income_statement":"openbb-mcp (yfinance fallback)","macro_series":"openbb-mcp","ohlcv":"ccxt (nse_direct, nse, bse, yfinance fallback)","quote":"ccxt (nse_direct, nse, bse, yfinance fallback)","openbb-mcp":"available"},"agents_degraded":[]}
+GET /portfolio/positions (count, flagged rows)
+count 84
+2 AAPL 1000000000000000.0 1e-08
+3 AAPL -50.0 -10.0
+4 AAPL 1000000000000000.0 1e-08
+workspaces after boot:
+phase9test.vysted-workspace
+phase9test.vysted-workspace False None

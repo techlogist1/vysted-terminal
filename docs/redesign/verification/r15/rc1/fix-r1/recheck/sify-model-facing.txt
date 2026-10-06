@@ -1,0 +1,2 @@
+fundamentals {'currency': 'USD', 'financial_currency': 'INR', 'revenue_ttm': '₹4,651 cr', 'market_cap': 'USD 971.35M'}
+financial_statements keys ['ok', 'symbol', 'statement', 'period', 'provider', 'periods', 'periods_available', 'lines'] False {'label': 'Tax Effect Of Unusual Items', 'values': {'2026-03-31': 3200000.0, '2025-03-31': 56400000.0, '2024-03-31': 46800000.0, '2023-03-31': 13476870.983065, '2022-03-31': None}}

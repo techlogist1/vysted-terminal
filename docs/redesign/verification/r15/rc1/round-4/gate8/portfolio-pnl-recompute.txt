@@ -1,0 +1,10 @@
+== csv1: header=['Symbol', 'Quantity', 'Cost basis', 'Asset class', 'Currency', 'Price', 'Market value', 'P&L', 'P&L %', 'Weight %', 'Note']
+   symbols csv=['RELIANCE.NS', 'AAPL', 'TCS.NS'] holdings=['RELIANCE.NS', 'AAPL', 'TCS.NS'] match=True
+   RELIANCE.NS: fetched INR 1226.0 (nse_direct) -> mv 12260.0000 pnl 1260.0000 pct 11.4545 | csv mv 12260 pnl 1260 pct 11.454545454545455 | fields_ok=True numbers_ok=True weight=''
+   AAPL: fetched USD 341.07000732421875 (yfinance) -> mv 1705.3500 pnl 205.3500 pct 13.6900 | csv mv 1705.3500366210938 pnl 205.35003662109375 pct 13.690002441406248 | fields_ok=True numbers_ok=True weight=''
+   TCS.NS: fetched INR 2082.0 (nse_direct) -> mv 6246.0000 pnl -1254.0000 pct -16.7200 | csv mv 6246 pnl -1254 pct -16.72 | fields_ok=True numbers_ok=True weight=''
+== csv2: header=['Symbol', 'Quantity', 'Cost basis', 'Asset class', 'Currency', 'Price', 'Market value', 'P&L', 'P&L %', 'Weight %', 'Note']
+   symbols csv=['AAPL', 'TCS.NS'] holdings=['AAPL', 'TCS.NS'] match=True
+   AAPL: fetched USD 341.07000732421875 (yfinance) -> mv 2728.5601 pnl 248.5601 pct 10.0226 | csv mv 2728.56005859375 pnl 248.56005859375 pct 10.0225830078125 | fields_ok=True numbers_ok=True weight=''
+   TCS.NS: fetched INR 2082.0 (nse_direct) -> mv 6246.0000 pnl -1254.0000 pct -16.7200 | csv mv 6246 pnl -1254 pct -16.72 | fields_ok=True numbers_ok=True weight=''
+ALL_MATCH True

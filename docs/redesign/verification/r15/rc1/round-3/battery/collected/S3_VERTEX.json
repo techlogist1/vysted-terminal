@@ -1,0 +1,5020 @@
+{
+ "slot": "S3",
+ "symbol": "VERTEX",
+ "manifest_name": "Vertex Securities Ltd",
+ "exchange": "BSE",
+ "bse_code": "531950",
+ "collected_at": "2026-09-26T21:47:31+0530",
+ "sidecar": "http://127.0.0.1:52313",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52313/resolve?q=VERTEX",
+   "status": 200,
+   "elapsed_ms": 2,
+   "body": {
+    "ok": true,
+    "query": "VERTEX",
+    "region": "IN",
+    "resolved": {
+     "symbol": "VERTEX",
+     "name": "Vertex Securities Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "VERTEX.BO",
+     "confidence": 1.0,
+     "isin": "INE316D01024",
+     "bse_code": "531950",
+     "industry": null,
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "X",
+     "face_value": 2.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "VERTEX",
+      "name": "Vertex Securities Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "VERTEX.BO",
+      "confidence": 1.0,
+      "isin": "INE316D01024",
+      "bse_code": "531950",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 2.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52313/resolve?q=Vertex+Securities+Ltd",
+   "status": 200,
+   "elapsed_ms": 613,
+   "body": {
+    "ok": true,
+    "query": "Vertex Securities Ltd",
+    "region": "IN",
+    "resolved": null,
+    "needs_disambiguation": true,
+    "candidates": [
+     {
+      "symbol": "VERTEX",
+      "name": "Vertex Securities Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "VERTEX.BO",
+      "confidence": 1.0,
+      "isin": "INE316D01024",
+      "bse_code": "531950",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 2.0
+     },
+     {
+      "symbol": "VERTEXPP",
+      "name": "Vertex Securities Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "VERTEXPP.BO",
+      "confidence": 1.0,
+      "isin": "IN9316D01014",
+      "bse_code": "890234",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 2.0
+     },
+     {
+      "symbol": "RRSECUR",
+      "name": "RR Securities Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "RRSECUR.BO",
+      "confidence": 0.8421,
+      "isin": "INE474H01014",
+      "bse_code": "530917",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "P",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "SHREESEC",
+      "name": "Shree Securities Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "SHREESEC.BO",
+      "confidence": 0.8293,
+      "isin": "INE397C01026",
+      "bse_code": "538975",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "Z",
+      "face_value": 1.0
+     },
+     {
+      "symbol": "BERYLSE",
+      "name": "Beryl Securities Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "BERYLSE.BO",
+      "confidence": 0.8293,
+      "isin": "INE508J01015",
+      "bse_code": "531582",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "PEETISEC",
+      "name": "Peeti Securities Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "PEETISEC.BO",
+      "confidence": 0.8293,
+      "isin": "INE328D01011",
+      "bse_code": "531352",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52313/resolve?q=531950",
+   "status": 200,
+   "elapsed_ms": 2,
+   "body": {
+    "ok": true,
+    "query": "531950",
+    "region": "IN",
+    "resolved": {
+     "symbol": "VERTEX",
+     "name": "Vertex Securities Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "VERTEX.BO",
+     "confidence": 1.0,
+     "isin": "INE316D01024",
+     "bse_code": "531950",
+     "industry": null,
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "X",
+     "face_value": 2.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "VERTEX",
+      "name": "Vertex Securities Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "VERTEX.BO",
+      "confidence": 1.0,
+      "isin": "INE316D01024",
+      "bse_code": "531950",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 2.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52313/quotes/VERTEX?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 1655,
+   "body": {
+    "symbol": "VERTEX",
+    "price": 3.11,
+    "change": 0.06000000000000005,
+    "change_percent": 1.9672131147541003,
+    "volume": 0.68,
+    "open": 3.05,
+    "high": 3.19,
+    "low": 2.9,
+    "prev_close": 3.05,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-25T00:00:00Z",
+    "provider": "bse",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52313/fundamentals/VERTEX",
+   "status": 200,
+   "elapsed_ms": 10288,
+   "body": {
+    "symbol": "VERTEX.BO",
+    "name": "Vertex Securities Limited",
+    "sector": "Financial Services",
+    "industry": "Capital Markets",
+    "sector_source": "yfinance",
+    "currency": "INR",
+    "financial_currency": null,
+    "ratio_price": 3.11,
+    "market_cap": 460355808.0,
+    "pe_ratio": null,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 2.2717311,
+    "price_to_sales": 6.451084,
+    "ev_to_ebitda": null,
+    "book_value": 1.369,
+    "dividend_yield": 0.0,
+    "dividend_per_share": null,
+    "eps": -0.25,
+    "beta": 1.038,
+    "fifty_two_week_high": 4.96,
+    "fifty_two_week_low": 2.26,
+    "fifty_two_week_change": -0.24879229,
+    "fifty_two_week_high_date": "2025-09-30",
+    "fifty_two_week_low_date": "2026-03-18",
+    "listing_date": null,
+    "first_trade_date": "2002-07-11",
+    "forward_pe_fiscal_year": null,
+    "roe": -0.2157,
+    "roa": -0.065799996,
+    "gross_margin": 0.57614,
+    "operating_margin": -1.0558,
+    "profit_margin": -0.33151,
+    "debt_to_equity": 0.5140100000000001,
+    "current_ratio": 1.301,
+    "quick_ratio": 0.537,
+    "roce": -0.14260301557596933,
+    "basis": "standalone",
+    "revenue_ttm": 67850000.0,
+    "net_income_ttm": -25380000.0,
+    "free_cash_flow": null,
+    "shares_outstanding": 74012189.0,
+    "revenue_growth": -0.059134107708553325,
+    "earnings_growth": -1.7640449438202248,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.77676004,
+    "held_percent_institutions": 0.0,
+    "dividend_per_share_ttm": 0.0,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector_source": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ratio_price": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:56:28+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "market_cap": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:56:28+00:00",
+      "reason": "market cap 460,355,808 diverges more than 25% from price x shares outstanding (230,177,908, price from the ratio price) \u2014 the figures may be from different sessions or share classes; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "pe_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": "P/E not meaningful for a loss-making company (negative EPS)",
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:56:28+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:56:28+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_book": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:56:28+00:00",
+      "reason": "shares outstanding 74,012,189 disagrees by 50% with the 148,024,376 shares implied by market cap / price (460,355,808 / 3.11, price from the ratio price) \u2014 the per-share figures may sit on a stale share count (e.g. before a rights issue or IPO); kept, flagged; P/B 2.272 disagrees by 50.0% with market cap / the provider's newest filed stockholders' equity (460,355,808 / 101,295,000 as of 2026-03-31 = 4.54) \u2014 the book value behind it may sit on a stale share count; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:56:28+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ev_to_ebitda": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:56:28+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "book_value": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": "shares outstanding 74,012,189 disagrees by 50% with the 148,024,376 shares implied by market cap / price (460,355,808 / 3.11, price from the ratio price) \u2014 the per-share figures may sit on a stale share count (e.g. before a rights issue or IPO); kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_yield": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": "no dividends paid (trailing 12m)",
+      "label": "no dividends paid (trailing 12m)",
+      "basis_note": null
+     },
+     "dividend_per_share": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "beta": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:56:28+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "listing_date": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "first_trade_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe_fiscal_year": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "roe": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "roa": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "debt_to_equity": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "current_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "quick_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "roce": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "annual EBIT / (total assets - current liabilities)"
+     },
+     "basis": {
+      "status": "ok",
+      "provider": "exchange-filings",
+      "as_of": "2026-09-26T16:17:17.362838+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "free_cash_flow": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "shares_outstanding": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": "shares outstanding 74,012,189 disagrees by 50% with the 148,024,376 shares implied by market cap / price (460,355,808 / 3.11, price from the ratio price) \u2014 the per-share figures may sit on a stale share count (e.g. before a rights issue or IPO); kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": "exchange-filed (BSE) figure served; the provider's -2.0% disagrees with it \u2014 not served",
+      "label": "standalone, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "held_percent_insiders": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": "yfinance insiders 77.68% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (promoter group: 36.43%) beyond 3pp (insiders \u2260 promoter group); kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "held_percent_institutions": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:17:11.254995+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": "no dividends paid (trailing 12m)",
+      "label": "no dividends paid (trailing 12m)",
+      "basis_note": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52313/fundamentals/VERTEX/income",
+   "status": 200,
+   "elapsed_ms": 340,
+   "body": {
+    "symbol": "VERTEX.BO",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31",
+     "2022-03-31"
+    ],
+    "lines": [
+     {
+      "label": "operating_revenue",
+      "values": {
+       "2026-03-31": 65928000.0,
+       "2025-03-31": 79306000.0,
+       "2024-03-31": 77802000.0,
+       "2023-03-31": 67192000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_revenue",
+      "values": {
+       "2026-03-31": 65928000.0,
+       "2025-03-31": 79306000.0,
+       "2024-03-31": 77802000.0,
+       "2023-03-31": 67192000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cost_of_revenue",
+      "values": {
+       "2026-03-31": 70848000.0,
+       "2025-03-31": 70397000.0,
+       "2024-03-31": 59808000.0,
+       "2023-03-31": 51759000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "gross_profit",
+      "values": {
+       "2026-03-31": -4920000.0,
+       "2025-03-31": 8909000.0,
+       "2024-03-31": 17994000.0,
+       "2023-03-31": 15433000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "rent_and_landing_fees",
+      "values": {
+       "2026-03-31": 1395000.0,
+       "2025-03-31": 953000.0,
+       "2024-03-31": 1176000.0,
+       "2023-03-31": 1221000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "general_and_administrative_expense",
+      "values": {
+       "2026-03-31": 4100000.0,
+       "2025-03-31": 3855000.0,
+       "2024-03-31": 4478000.0,
+       "2023-03-31": 2330000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "selling_and_marketing_expense",
+      "values": {
+       "2026-03-31": 611000.0,
+       "2025-03-31": 434000.0,
+       "2024-03-31": 1674000.0,
+       "2023-03-31": 7412000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "selling_general_and_admin_expense",
+      "values": {
+       "2026-03-31": 4711000.0,
+       "2025-03-31": 4289000.0,
+       "2024-03-31": 6152000.0,
+       "2023-03-31": 9742000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "depreciation_income_statement",
+      "values": {
+       "2026-03-31": 2462000.0,
+       "2025-03-31": 2542000.0,
+       "2024-03-31": 2398000.0,
+       "2023-03-31": 2629000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "amortization",
+      "values": {
+       "2026-03-31": 123000.0,
+       "2025-03-31": 123000.0,
+       "2024-03-31": 123000.0,
+       "2023-03-31": 71000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "depreciation_and_amortization_in_income_statement",
+      "values": {
+       "2026-03-31": 2585000.0,
+       "2025-03-31": 2665000.0,
+       "2024-03-31": 2521000.0,
+       "2023-03-31": 2700000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_operating_expenses",
+      "values": {
+       "2026-03-31": 11018000.0,
+       "2025-03-31": 11961000.0,
+       "2024-03-31": 7831000.0,
+       "2023-03-31": 9052000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "operating_expense",
+      "values": {
+       "2026-03-31": 22753000.0,
+       "2025-03-31": 22868000.0,
+       "2024-03-31": 20254000.0,
+       "2023-03-31": 25428000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "operating_income",
+      "values": {
+       "2026-03-31": -27673000.0,
+       "2025-03-31": -13959000.0,
+       "2024-03-31": -2260000.0,
+       "2023-03-31": -9995000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_income_non_operating",
+      "values": {
+       "2026-03-31": 7048000.0,
+       "2025-03-31": 8199000.0,
+       "2024-03-31": 10081000.0,
+       "2023-03-31": 13767000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_expense_non_operating",
+      "values": {
+       "2026-03-31": 3616000.0,
+       "2025-03-31": 4248000.0,
+       "2024-03-31": 5252000.0,
+       "2023-03-31": 11873000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_other_finance_cost",
+      "values": {
+       "2026-03-31": 397000.0,
+       "2025-03-31": 477000.0,
+       "2024-03-31": 646000.0,
+       "2023-03-31": 313000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_non_operating_interest_income_expense",
+      "values": {
+       "2026-03-31": 3035000.0,
+       "2025-03-31": 3474000.0,
+       "2024-03-31": 4183000.0,
+       "2023-03-31": 1581000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "write_off",
+      "values": {
+       "2026-03-31": 2837000.0,
+       "2025-03-31": 39000.0,
+       "2024-03-31": 306000.0,
+       "2023-03-31": -52000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "special_income_charges",
+      "values": {
+       "2026-03-31": -2837000.0,
+       "2025-03-31": -39000.0,
+       "2024-03-31": -306000.0,
+       "2023-03-31": 52000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_operating_income_expenses",
+      "values": {
+       "2026-03-31": 3818000.0,
+       "2025-03-31": 3505000.0,
+       "2024-03-31": 3000000.0,
+       "2023-03-31": 2759000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_pre_tax_income",
+      "values": {
+       "2026-03-31": -23657000.0,
+       "2025-03-31": -7019000.0,
+       "2024-03-31": 4620000.0,
+       "2023-03-31": -5563000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tax_provision",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": -31000.0,
+       "2023-03-31": -71000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_continuous_operations",
+      "values": {
+       "2026-03-31": -23657000.0,
+       "2025-03-31": -7019000.0,
+       "2024-03-31": 4651000.0,
+       "2023-03-31": -5492000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_discontinuous_operations",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_income_including_noncontrolling_interests",
+      "values": {
+       "2026-03-31": -23657000.0,
+       "2025-03-31": -7019000.0,
+       "2024-03-31": 4651000.0,
+       "2023-03-31": -5492000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "minority_interests",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 2000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income",
+      "values": {
+       "2026-03-31": -23657000.0,
+       "2025-03-31": -7019000.0,
+       "2024-03-31": 4653000.0,
+       "2023-03-31": -5492000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "otherunder_preferred_stock_dividend",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_attributable_to_common_shareholders",
+      "values": {
+       "2026-03-31": -23657000.0,
+       "2025-03-31": -7019000.0,
+       "2024-03-31": 4653000.0,
+       "2023-03-31": -5492000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "diluted_ni_availto_com_stockholders",
+      "values": {
+       "2026-03-31": -23657000.0,
+       "2025-03-31": -7019000.0,
+       "2024-03-31": 4653000.0,
+       "2023-03-31": -5492000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "basic_earnings_per_share",
+      "values": {
+       "2026-03-31": -0.239928,
+       "2025-03-31": -0.071186,
+       "2024-03-31": 0.045038,
+       "2023-03-31": -0.052544,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "diluted_earnings_per_share",
+      "values": {
+       "2026-03-31": -0.239928,
+       "2025-03-31": -0.071186,
+       "2024-03-31": 0.045038,
+       "2023-03-31": -0.052544,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "weighted_average_basic_shares_outstanding",
+      "values": {
+       "2026-03-31": 98600546.0,
+       "2025-03-31": 98600546.0,
+       "2024-03-31": 98600545.0,
+       "2023-03-31": 98600545.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "weighted_average_diluted_shares_outstanding",
+      "values": {
+       "2026-03-31": 98600546.0,
+       "2025-03-31": 98600546.0,
+       "2024-03-31": 98600545.0,
+       "2023-03-31": 98600545.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "rent_expense_supplemental",
+      "values": {
+       "2026-03-31": 1395000.0,
+       "2025-03-31": 953000.0,
+       "2024-03-31": 1176000.0,
+       "2023-03-31": 1221000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_expenses",
+      "values": {
+       "2026-03-31": 93601000.0,
+       "2025-03-31": 93265000.0,
+       "2024-03-31": 80062000.0,
+       "2023-03-31": 77187000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_from_continuing_and_discontinued_operation",
+      "values": {
+       "2026-03-31": -23657000.0,
+       "2025-03-31": -7019000.0,
+       "2024-03-31": 4653000.0,
+       "2023-03-31": -5492000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "normalized_income",
+      "values": {
+       "2026-03-31": -20859000.0,
+       "2025-03-31": -7049000.0,
+       "2024-03-31": 4867200.0,
+       "2023-03-31": -5543336.329319,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_income",
+      "values": {
+       "2026-03-31": 7048000.0,
+       "2025-03-31": 8199000.0,
+       "2024-03-31": 10081000.0,
+       "2023-03-31": 13767000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_expense",
+      "values": {
+       "2026-03-31": 3616000.0,
+       "2025-03-31": 4248000.0,
+       "2024-03-31": 5252000.0,
+       "2023-03-31": 11873000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_interest_income",
+      "values": {
+       "2026-03-31": 3035000.0,
+       "2025-03-31": 3474000.0,
+       "2024-03-31": 4183000.0,
+       "2023-03-31": 1581000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "ebit",
+      "values": {
+       "2026-03-31": -20041000.0,
+       "2025-03-31": -2771000.0,
+       "2024-03-31": 9872000.0,
+       "2023-03-31": 6310000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "ebitda",
+      "values": {
+       "2026-03-31": -17456000.0,
+       "2025-03-31": -106000.0,
+       "2024-03-31": 12393000.0,
+       "2023-03-31": 9010000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "reconciled_cost_of_revenue",
+      "values": {
+       "2026-03-31": 70848000.0,
+       "2025-03-31": 70397000.0,
+       "2024-03-31": 59808000.0,
+       "2023-03-31": 51759000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "reconciled_depreciation",
+      "values": {
+       "2026-03-31": 2585000.0,
+       "2025-03-31": 2665000.0,
+       "2024-03-31": 2521000.0,
+       "2023-03-31": 2700000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_from_continuing_operation_net_minority_interest",
+      "values": {
+       "2026-03-31": -23657000.0,
+       "2025-03-31": -7019000.0,
+       "2024-03-31": 4653000.0,
+       "2023-03-31": -5492000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_unusual_items_excluding_goodwill",
+      "values": {
+       "2026-03-31": -2798000.0,
+       "2025-03-31": 30000.0,
+       "2024-03-31": -306000.0,
+       "2023-03-31": 52000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_unusual_items",
+      "values": {
+       "2026-03-31": -2798000.0,
+       "2025-03-31": 30000.0,
+       "2024-03-31": -306000.0,
+       "2023-03-31": 52000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "normalized_ebitda",
+      "values": {
+       "2026-03-31": -14658000.0,
+       "2025-03-31": -136000.0,
+       "2024-03-31": 12699000.0,
+       "2023-03-31": 8958000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tax_rate_for_calcs",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.3,
+       "2023-03-31": 0.012763,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tax_effect_of_unusual_items",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": -91800.0,
+       "2023-03-31": 663.670681,
+       "2022-03-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52313/fundamentals/VERTEX/balance",
+   "status": 200,
+   "elapsed_ms": 496,
+   "body": {
+    "symbol": "VERTEX.BO",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31",
+     "2022-03-31"
+    ],
+    "lines": [
+     {
+      "label": "cash_financial",
+      "values": {
+       "2026-03-31": 42749000.0,
+       "2025-03-31": 14716000.0,
+       "2024-03-31": 13687000.0,
+       "2023-03-31": 118483000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cash_and_cash_equivalents",
+      "values": {
+       "2026-03-31": 42749000.0,
+       "2025-03-31": 14716000.0,
+       "2024-03-31": 13687000.0,
+       "2023-03-31": 118483000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "short_term_investments",
+      "values": {
+       "2026-03-31": 8416000.0,
+       "2025-03-31": 6343000.0,
+       "2024-03-31": 14426000.0,
+       "2023-03-31": 129365000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cash_cash_equivalents_and_short_term_investments",
+      "values": {
+       "2026-03-31": 51165000.0,
+       "2025-03-31": 21059000.0,
+       "2024-03-31": 28113000.0,
+       "2023-03-31": 118483000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "gross_accounts_receivable",
+      "values": {
+       "2026-03-31": 51249000.0,
+       "2025-03-31": 80596000.0,
+       "2024-03-31": 74536000.0,
+       "2023-03-31": 148976000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "allowance_for_doubtful_accounts_receivable",
+      "values": {
+       "2026-03-31": -19851000.0,
+       "2025-03-31": -29682000.0,
+       "2024-03-31": -29678000.0,
+       "2023-03-31": -29385000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "accounts_receivable",
+      "values": {
+       "2026-03-31": 31398000.0,
+       "2025-03-31": 50914000.0,
+       "2024-03-31": 44858000.0,
+       "2023-03-31": 119591000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "taxes_receivable",
+      "values": {
+       "2026-03-31": 4056000.0,
+       "2025-03-31": 4165000.0,
+       "2024-03-31": 439000.0,
+       "2023-03-31": 372000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_receivables",
+      "values": {
+       "2026-03-31": 34150000.0,
+       "2025-03-31": 34150000.0,
+       "2024-03-31": 34150000.0,
+       "2023-03-31": 37533000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "prepaid_assets",
+      "values": {
+       "2026-03-31": 12525000.0,
+       "2025-03-31": 14705000.0,
+       "2024-03-31": 13009000.0,
+       "2023-03-31": 69557000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_current_assets",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 8831000.0,
+       "2022-03-31": 8523000.0
+      }
+     },
+     {
+      "label": "total_current_assets",
+      "values": {
+       "2026-03-31": 129238000.0,
+       "2025-03-31": 86678000.0,
+       "2024-03-31": 120130000.0,
+       "2023-03-31": 345164000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "machinery_furniture_equipment",
+      "values": {
+       "2026-03-31": 58100000.0,
+       "2025-03-31": 56611000.0,
+       "2024-03-31": 56202000.0,
+       "2023-03-31": 55477000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_properties",
+      "values": {
+       "2026-03-31": 11936000.0,
+       "2025-03-31": 3936000.0,
+       "2024-03-31": 7316000.0,
+       "2023-03-31": 5510000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "construction_in_progress",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 37000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 77000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "plant_property_equipment_gross",
+      "values": {
+       "2026-03-31": 70036000.0,
+       "2025-03-31": 63927000.0,
+       "2024-03-31": 63518000.0,
+       "2023-03-31": 61064000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "accumulated_depreciation",
+      "values": {
+       "2026-03-31": -62452000.0,
+       "2025-03-31": -59991000.0,
+       "2024-03-31": -57448000.0,
+       "2023-03-31": -55053000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "plant_property_equipment_net",
+      "values": {
+       "2026-03-31": 7584000.0,
+       "2025-03-31": 3936000.0,
+       "2024-03-31": 6070000.0,
+       "2023-03-31": 6011000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "goodwill",
+      "values": {
+       "2026-03-31": 8160000.0,
+       "2025-03-31": 8160000.0,
+       "2024-03-31": 8155000.0,
+       "2023-03-31": 8155000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_intangible_assets",
+      "values": {
+       "2026-03-31": 742000.0,
+       "2025-03-31": 865000.0,
+       "2024-03-31": 989000.0,
+       "2023-03-31": 1112000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "goodwill_and_other_intangible_assets",
+      "values": {
+       "2026-03-31": 8902000.0,
+       "2025-03-31": 9025000.0,
+       "2024-03-31": 9144000.0,
+       "2023-03-31": 9267000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "available_for_sale_securities",
+      "values": {
+       "2026-03-31": 213299000.0,
+       "2025-03-31": 224336000.0,
+       "2024-03-31": 261723000.0,
+       "2023-03-31": 129365000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "investmentin_financial_assets",
+      "values": {
+       "2026-03-31": 213299000.0,
+       "2025-03-31": 224336000.0,
+       "2024-03-31": 261723000.0,
+       "2023-03-31": 129365000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_assets",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 693000.0,
+       "2024-03-31": 693000.0,
+       "2023-03-31": 513000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "defined_pension_benefit",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_current_assets",
+      "values": {
+       "2026-03-31": 9107000.0,
+       "2025-03-31": 11168000.0,
+       "2024-03-31": 9927000.0,
+       "2023-03-31": 77000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_non_current_assets",
+      "values": {
+       "2026-03-31": 230423000.0,
+       "2025-03-31": 272768000.0,
+       "2024-03-31": 278069000.0,
+       "2023-03-31": 145528000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_assets",
+      "values": {
+       "2026-03-31": 359662000.0,
+       "2025-03-31": 359447000.0,
+       "2024-03-31": 398196000.0,
+       "2023-03-31": 490692000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "accounts_payable",
+      "values": {
+       "2026-03-31": 174993000.0,
+       "2025-03-31": 190451000.0,
+       "2024-03-31": 223100000.0,
+       "2023-03-31": 292862000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_payable",
+      "values": {
+       "2026-03-31": 1567000.0,
+       "2025-03-31": 1749000.0,
+       "2024-03-31": 4360000.0,
+       "2023-03-31": 3927000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "payables",
+      "values": {
+       "2026-03-31": 176560000.0,
+       "2025-03-31": 192200000.0,
+       "2024-03-31": 227460000.0,
+       "2023-03-31": 296789000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "pensionand_other_post_retirement_benefit_plans_current",
+      "values": {
+       "2026-03-31": 2046000.0,
+       "2025-03-31": 2261000.0,
+       "2024-03-31": 1796000.0,
+       "2023-03-31": 943000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_debt",
+      "values": {
+       "2026-03-31": 35909000.0,
+       "2025-03-31": 34028000.0,
+       "2024-03-31": 28794000.0,
+       "2023-03-31": 73570000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 3868000.0,
+       "2025-03-31": 121000.0,
+       "2024-03-31": 1448000.0,
+       "2023-03-31": 1097000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 39777000.0,
+       "2025-03-31": 34149000.0,
+       "2024-03-31": 30242000.0,
+       "2023-03-31": 74667000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_current_liabilities",
+      "values": {
+       "2026-03-31": 742000.0,
+       "2025-03-31": 734000.0,
+       "2024-03-31": 1541000.0,
+       "2023-03-31": 1253000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_liabilities",
+      "values": {
+       "2026-03-31": 219125000.0,
+       "2025-03-31": 229344000.0,
+       "2024-03-31": 261039000.0,
+       "2023-03-31": 373652000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_provisions",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 2261000.0,
+       "2024-03-31": 1796000.0,
+       "2023-03-31": 943000.0,
+       "2022-03-31": 886268.0
+      }
+     },
+     {
+      "label": "long_term_debt",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 2708000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 3868000.0,
+       "2025-03-31": null,
+       "2024-03-31": 1541000.0,
+       "2023-03-31": 1097000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 3805000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_liabilities",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tradeand_other_payables_non_current",
+      "values": {
+       "2026-03-31": 2046000.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_pension_and_other_postretirement_benefit_plans",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 1796000.0,
+       "2023-03-31": 943000.0,
+       "2022-03-31": 675000.0
+      }
+     },
+     {
+      "label": "preferred_securities_outside_stock_equity",
+      "values": {
+       "2026-03-31": 20000000.0,
+       "2025-03-31": 20000000.0,
+       "2024-03-31": 20000000.0,
+       "2023-03-31": 20000000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_current_liabilities",
+      "values": {
+       "2026-03-31": -3000.0,
+       "2025-03-31": -1000.0,
+       "2024-03-31": 1448000.0,
+       "2023-03-31": -758000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_non_current_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 24242000.0,
+       "2025-03-31": 27041000.0,
+       "2024-03-31": 26840000.0,
+       "2023-03-31": 26199000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 243367000.0,
+       "2025-03-31": 256385000.0,
+       "2024-03-31": 287879000.0,
+       "2023-03-31": 399851000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "common_stock",
+      "values": {
+       "2026-03-31": 185030000.0,
+       "2025-03-31": 148024000.0,
+       "2024-03-31": 148024000.0,
+       "2023-03-31": 148024000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "capital_stock",
+      "values": {
+       "2026-03-31": 185030000.0,
+       "2025-03-31": 148024000.0,
+       "2024-03-31": 148024000.0,
+       "2023-03-31": 148024000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "additional_paid_in_capital",
+      "values": {
+       "2026-03-31": 18249000.0,
+       "2025-03-31": 18249000.0,
+       "2024-03-31": 18249000.0,
+       "2023-03-31": 18249000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "retained_earnings",
+      "values": {
+       "2026-03-31": -104027000.0,
+       "2025-03-31": -80269000.0,
+       "2024-03-31": -73010000.0,
+       "2023-03-31": -77429000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_equity_interest",
+      "values": {
+       "2026-03-31": -1000.0,
+       "2025-03-31": -1000.0,
+       "2024-03-31": -52702000.0,
+       "2023-03-31": -57183000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_common_equity",
+      "values": {
+       "2026-03-31": 101295000.0,
+       "2025-03-31": 88062000.0,
+       "2024-03-31": 95322000.0,
+       "2023-03-31": 90841000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "minority_interest",
+      "values": {
+       "2026-03-31": 15000000.0,
+       "2025-03-31": 15000000.0,
+       "2024-03-31": 14995000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_equity_non_controlling_interests",
+      "values": {
+       "2026-03-31": 116295000.0,
+       "2025-03-31": 103062000.0,
+       "2024-03-31": 110317000.0,
+       "2023-03-31": 90841000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_capitalization",
+      "values": {
+       "2026-03-31": 101295000.0,
+       "2025-03-31": 88062000.0,
+       "2024-03-31": 95322000.0,
+       "2023-03-31": 90841000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "common_stock_equity",
+      "values": {
+       "2026-03-31": 101295000.0,
+       "2025-03-31": 88062000.0,
+       "2024-03-31": 95322000.0,
+       "2023-03-31": 90841000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "capital_lease_obligations",
+      "values": {
+       "2026-03-31": 3868000.0,
+       "2025-03-31": 121000.0,
+       "2024-03-31": 1448000.0,
+       "2023-03-31": 1097000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_tangible_assets",
+      "values": {
+       "2026-03-31": 92393000.0,
+       "2025-03-31": 79037000.0,
+       "2024-03-31": 86178000.0,
+       "2023-03-31": 81574000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "working_capital",
+      "values": {
+       "2026-03-31": -89887000.0,
+       "2025-03-31": -142666000.0,
+       "2024-03-31": -140909000.0,
+       "2023-03-31": -28488000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "invested_capital",
+      "values": {
+       "2026-03-31": 137204000.0,
+       "2025-03-31": 122090000.0,
+       "2024-03-31": 124116000.0,
+       "2023-03-31": 164411000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tangible_book_value",
+      "values": {
+       "2026-03-31": 92393000.0,
+       "2025-03-31": 79037000.0,
+       "2024-03-31": 86178000.0,
+       "2023-03-31": 81574000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_debt",
+      "values": {
+       "2026-03-31": 39777000.0,
+       "2025-03-31": 34149000.0,
+       "2024-03-31": 30242000.0,
+       "2023-03-31": 74667000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_debt",
+      "values": {
+       "2026-03-31": 13159000.0,
+       "2025-03-31": 19312000.0,
+       "2024-03-31": 15107000.0,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "share_issued",
+      "values": {
+       "2026-03-31": 148024378.0,
+       "2025-03-31": 98600545.0,
+       "2024-03-31": 98600545.0,
+       "2023-03-31": 98600545.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "ordinary_shares_number",
+      "values": {
+       "2026-03-31": 148024378.0,
+       "2025-03-31": 98600545.0,
+       "2024-03-31": 98600545.0,
+       "2023-03-31": 98600545.0,
+       "2022-03-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52313/fundamentals/VERTEX/cashflow",
+   "status": 200,
+   "elapsed_ms": 423,
+   "body": {
+    "symbol": "VERTEX.BO",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31",
+     "2022-03-31"
+    ],
+    "lines": [
+     {
+      "label": "net_income_from_continuing_operations",
+      "values": {
+       "2026-03-31": -23657000.0,
+       "2025-03-31": -7019000.0,
+       "2024-03-31": 4620000.0,
+       "2023-03-31": -5563000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "pension_and_employee_benefit_expense",
+      "values": {
+       "2026-03-31": 499000.0,
+       "2025-03-31": -241000.0,
+       "2024-03-31": -238000.0,
+       "2023-03-31": -54000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "depreciation",
+      "values": {
+       "2026-03-31": 2585000.0,
+       "2025-03-31": 2665000.0,
+       "2024-03-31": 2521000.0,
+       "2023-03-31": 2700000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "amortization_cash_flow",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 150286.0
+      }
+     },
+     {
+      "label": "depreciation_and_amortization",
+      "values": {
+       "2026-03-31": 2585000.0,
+       "2025-03-31": 2665000.0,
+       "2024-03-31": 2521000.0,
+       "2023-03-31": 2700000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "deferred_tax",
+      "values": {
+       "2026-03-31": 93000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_cash_items",
+      "values": {
+       "2026-03-31": -3887000.0,
+       "2025-03-31": -5411000.0,
+       "2024-03-31": -6398000.0,
+       "2023-03-31": -3287000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_receivables",
+      "values": {
+       "2026-03-31": 14712000.0,
+       "2025-03-31": -6180000.0,
+       "2024-03-31": 74426000.0,
+       "2023-03-31": -57048000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_payable",
+      "values": {
+       "2026-03-31": -15469000.0,
+       "2025-03-31": -32672000.0,
+       "2024-03-31": -68162000.0,
+       "2023-03-31": -27309000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_other_current_assets",
+      "values": {
+       "2026-03-31": 13756000.0,
+       "2025-03-31": 47648000.0,
+       "2024-03-31": -159444000.0,
+       "2023-03-31": 4205000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_other_current_liabilities",
+      "values": {
+       "2026-03-31": 787000.0,
+       "2025-03-31": -3102000.0,
+       "2024-03-31": -1089000.0,
+       "2023-03-31": 798000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_working_capital",
+      "values": {
+       "2026-03-31": 13571000.0,
+       "2025-03-31": 6159000.0,
+       "2024-03-31": -153416000.0,
+       "2023-03-31": -79297000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "taxes_refund_paid",
+      "values": {
+       "2026-03-31": 109000.0,
+       "2025-03-31": -644000.0,
+       "2024-03-31": 1789000.0,
+       "2023-03-31": 1291000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "operating_cash_flow",
+      "values": {
+       "2026-03-31": -5883000.0,
+       "2025-03-31": -4366000.0,
+       "2024-03-31": -150817000.0,
+       "2023-03-31": -84162000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "investments_in_property_plant_and_equipment",
+      "values": {
+       "2026-03-31": -6216000.0,
+       "2025-03-31": -410000.0,
+       "2024-03-31": -725000.0,
+       "2023-03-31": -447000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "sale_of_ppe",
+      "values": {
+       "2026-03-31": 106000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_ppe_purchase_and_sale",
+      "values": {
+       "2026-03-31": -6110000.0,
+       "2025-03-31": -410000.0,
+       "2024-03-31": -725000.0,
+       "2023-03-31": -447000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "purchase_of_intangibles",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": -750000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_intangibles_purchase_and_sale",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": -750000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "purchase_of_investment",
+      "values": {
+       "2026-03-31": -500000.0,
+       "2025-03-31": -50000.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": -76000000.0
+      }
+     },
+     {
+      "label": "sale_of_investment",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 85000000.0,
+       "2023-03-31": 29250000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_investment_purchase_and_sale",
+      "values": {
+       "2026-03-31": -500000.0,
+       "2025-03-31": -50000.0,
+       "2024-03-31": 85000000.0,
+       "2023-03-31": 29250000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_received_cfi",
+      "values": {
+       "2026-03-31": 4763000.0,
+       "2025-03-31": 4760000.0,
+       "2024-03-31": 10811000.0,
+       "2023-03-31": 16641000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_other_investing_changes",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": -1000.0,
+       "2023-03-31": null,
+       "2022-03-31": 1000.0
+      }
+     },
+     {
+      "label": "investing_cash_flow",
+      "values": {
+       "2026-03-31": -1847000.0,
+       "2025-03-31": 4300000.0,
+       "2024-03-31": 95168000.0,
+       "2023-03-31": 92701000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_issuance",
+      "values": {
+       "2026-03-31": 1880000.0,
+       "2025-03-31": 5234000.0,
+       "2024-03-31": null,
+       "2023-03-31": 34242000.0,
+       "2022-03-31": 3305000.0
+      }
+     },
+     {
+      "label": "long_term_debt_payments",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 0.0,
+       "2024-03-31": -44018000.0,
+       "2023-03-31": -2776000.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_long_term_debt_issuance",
+      "values": {
+       "2026-03-31": 1880000.0,
+       "2025-03-31": 5234000.0,
+       "2024-03-31": -44018000.0,
+       "2023-03-31": 31466000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_issuance_payments_of_debt",
+      "values": {
+       "2026-03-31": 1880000.0,
+       "2025-03-31": 5234000.0,
+       "2024-03-31": -44018000.0,
+       "2023-03-31": 31466000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "issuance_of_common_equity",
+      "values": {
+       "2026-03-31": 37006000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_common_stock_issuance",
+      "values": {
+       "2026-03-31": 37006000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_paid_cff",
+      "values": {
+       "2026-03-31": -3123000.0,
+       "2025-03-31": -4139000.0,
+       "2024-03-31": -5130000.0,
+       "2023-03-31": -11742000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_other_financing_charges",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 100.0,
+       "2023-03-31": null,
+       "2022-03-31": -1000.0
+      }
+     },
+     {
+      "label": "financing_cash_flow",
+      "values": {
+       "2026-03-31": 35763000.0,
+       "2025-03-31": 1095000.0,
+       "2024-03-31": -49148000.0,
+       "2023-03-31": 19724000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_change_in_cash_and_equivalents",
+      "values": {
+       "2026-03-31": 28033000.0,
+       "2025-03-31": 1029000.0,
+       "2024-03-31": -104797000.0,
+       "2023-03-31": 28263000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "beginning_cash_position",
+      "values": {
+       "2026-03-31": 14716000.0,
+       "2025-03-31": 13686000.0,
+       "2024-03-31": 118483000.0,
+       "2023-03-31": 90220000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_cash_adjustment_outside_changein_cash",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 1000.0,
+       "2024-03-31": -1000.0,
+       "2023-03-31": -1000.0,
+       "2022-03-31": -3.0
+      }
+     },
+     {
+      "label": "end_cash_position",
+      "values": {
+       "2026-03-31": 42749000.0,
+       "2025-03-31": 14716000.0,
+       "2024-03-31": 13686000.0,
+       "2023-03-31": 118483000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "capital_expenditure",
+      "values": {
+       "2026-03-31": -6216000.0,
+       "2025-03-31": -410000.0,
+       "2024-03-31": -725000.0,
+       "2023-03-31": -1197000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "issuance_of_capital_stock",
+      "values": {
+       "2026-03-31": 37006000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "issuance_of_debt",
+      "values": {
+       "2026-03-31": 1880000.0,
+       "2025-03-31": 5234000.0,
+       "2024-03-31": null,
+       "2023-03-31": 34242000.0,
+       "2022-03-31": 3305000.0
+      }
+     },
+     {
+      "label": "repayment_of_debt",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 0.0,
+       "2024-03-31": -44018000.0,
+       "2023-03-31": -2776000.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "free_cash_flow",
+      "values": {
+       "2026-03-31": -12099000.0,
+       "2025-03-31": -4776000.0,
+       "2024-03-31": -151542000.0,
+       "2023-03-31": -85359000.0,
+       "2022-03-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52313/fundamentals/VERTEX/ratings",
+   "status": 200,
+   "elapsed_ms": 456,
+   "body": {
+    "symbol": "VERTEX.BO",
+    "consensus": null,
+    "target_mean": null,
+    "target_high": null,
+    "target_low": null,
+    "strong_buy": 0,
+    "buy": 0,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance",
+    "as_of": "2026-09-26T16:17:23.856837Z"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=VERTEX",
+   "status": 200,
+   "elapsed_ms": 4027,
+   "body": {
+    "symbol": "VERTEX",
+    "count": 109,
+    "patterns": [
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2026-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 36.43,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 63.57,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 63.57,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-07-21",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/531950_2172026142418_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2026-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 36.43,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 63.57,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 63.57,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/531950_1162026181143_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2026-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 36.43,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 63.57,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 63.57,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-04-21",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/531950_2142026184930_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2026-03-30",
+      "quarter_basis": null,
+      "promoter_percent": 36.7,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 63.3,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 63.3,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-04-08",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/531950_842026183828_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2025-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 73.41,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 26.59,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 26.59,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-01-21",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/531950_2112026115416_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2025-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 73.41,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 26.59,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 26.59,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-10-14",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/531950_1410202519938_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2025-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 73.41,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 26.59,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 26.59,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-07-21",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/531950_2172025161721_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2025-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 73.41,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 26.59,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 26.59,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_1752025125151_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2025-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 73.41,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 26.59,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 26.59,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-04-21",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_2142025163215_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2024-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 73.41,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 26.59,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 26.59,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-01-04",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_41202514369_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2024-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 73.37,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 26.63,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 26.63,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_182202517302_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2024-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 73.41,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 26.59,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 26.59,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-10-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_1810202418157_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2024-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 73.41,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 26.59,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 26.59,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-07-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_1872024165139_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2024-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 73.41,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 26.59,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 26.59,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-04-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_164202411349_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2023-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 73.41,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 26.59,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 26.59,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-01-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_161202495741_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2023-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 73.41,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 26.59,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 26.59,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-10-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_1810202317339_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2023-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-07-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_207202320486_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2023-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_2752023183228_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2023-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-04-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_1942023203617_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2022-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-01-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_1912023164856_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2022-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-10-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_20102022153331_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2022-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-08-02",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_28202217620_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2022-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-07-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_2072022172137_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2022-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-04-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_1842022174336_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2021-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-01-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_2012022213231_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2021-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-10-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_18102021171158_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2021-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-07-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_1972021181323_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2021-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-04-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_2042021155334_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2020-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-01-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_2012021144621_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2020-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-10-21",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_20102020224117_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2020-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-07-21",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_217202003928_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2020-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-05-12",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_12520201808_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2019-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-01-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_1812020113844_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2019-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-10-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_16102019111557_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2019-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-07-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_2072019144833_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2019-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-04-17",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_1742019125834_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2018-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-01-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_1812019185551_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2018-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-10-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_19102018185734_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2018-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-07-10",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_1072018152530_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2018-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-04-10",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_104201817554_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2017-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-01-11",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_111201813482_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2017-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-10-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_16102017131929_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2017-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-07-17",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_177201711628_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2017-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-04-15",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_15420171663_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2016-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-01-05",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_512017155122_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2016-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-10-12",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_12102016121659_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2016-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-07-21",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/531950_2172016101223_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2016-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-04-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2015-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2015-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2015-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2015-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2014-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2014-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2014-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2014-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2013-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2013-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2013-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2013-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2012-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2012-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2012-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2012-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2011-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2011-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2011-07-02",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2011-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2011-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2010-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2010-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2010-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2010-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2009-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2009-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2009-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2009-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2008-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2008-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2008-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2008-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2007-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2007-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2007-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2007-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2006-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2006-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2006-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2006-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2005-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2005-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2005-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2005-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2004-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2004-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2004-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2004-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2003-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2003-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2003-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2003-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2002-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2002-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2002-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2002-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2001-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2001-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2001-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "VERTEX",
+      "quarter_end": "2001-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     }
+    ],
+    "coverage": "covered",
+    "note": null,
+    "provider": null,
+    "major_shareholders": [],
+    "source_url": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=VERTEX&limit=25",
+   "status": 200,
+   "elapsed_ms": 237,
+   "body": {
+    "symbol": "VERTEX",
+    "exchange": null,
+    "count": 23,
+    "announcements": [
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/61794028-8234-4baa-ac08-88bc7578f5dc.pdf",
+      "ts": "2026-09-21T18:23:53.703000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d42d1d48-71b4-45f6-946f-bac5870df2e3.pdf",
+      "ts": "2026-09-16T18:57:40.967000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ec9b1ea8-fb8b-421a-b61f-72dcdb5bc1b1.pdf",
+      "ts": "2026-09-05T13:47:24.143000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Reg. 34 (1) Annual Report.",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/10774cc8-4db4-4928-a689-5ef1a2b697f2.pdf",
+      "ts": "2026-09-03T20:54:21.353000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Notice Of The 33Rd Annual General Meeting Of Vertex Securities Limited.",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/df093a3d-5647-4363-a18b-1c9bd13ce26d.pdf",
+      "ts": "2026-09-03T20:39:53.843000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d162757b-e329-4a34-8e5c-78b340c7370d.pdf",
+      "ts": "2026-08-29T16:29:11.527000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Appointment Of Ramesh S As Vice President - Distributions\r\n(Senior Management Personnel)",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/abeca917-c3ce-4706-8c39-2ed419900f0a.pdf",
+      "ts": "2026-08-01T18:20:35.583000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3d2869c2-787f-4aee-9208-70bfb1348d85.pdf",
+      "ts": "2026-07-31T20:21:35.473000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Monitoring Agency Report For The Quarter Ended June 30, 2026.",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8c5d3030-893f-4519-afdc-70aa225f955d.pdf",
+      "ts": "2026-07-30T19:38:47.293000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Board Meeting Outcome for Outcome Of The Board Meeting",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/742e87ab-c1eb-4005-ac3e-b4201faa265a.pdf",
+      "ts": "2026-07-30T19:21:27.093000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Board Meeting Intimation for Prior Intimation Under Regulation 29 Of SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015, As Amended ('Listing Regulations')",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b2d88593-e51c-4210-91c3-a826c7a0904f.pdf",
+      "ts": "2026-07-24T17:07:49.003000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/786a7787-5484-479c-90b9-5627680c86d8.pdf",
+      "ts": "2026-07-14T17:26:52.857000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/00fcfdff-83f5-4c05-b889-c70d698af404.pdf",
+      "ts": "2026-06-25T15:38:25.963000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Clarification On Price Movement",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e931a6c9-4c44-43e9-9640-f3db59494d3c.pdf",
+      "ts": "2026-06-11T18:06:43.187000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Clarification sought from Vertex Securities Ltd",
+      "category": "Company Update",
+      "attachment_url": null,
+      "ts": "2026-06-11T12:55:18.320000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Compliances-Reg.24(A)-Annual Secretarial Compliance",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/645d4a16-4914-42f0-8a39-49a133127b72.pdf",
+      "ts": "2026-05-29T19:34:25.997000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Monitoring Agency Report",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/fbb7356f-4c85-4c62-af06-3b6ef19dd496.pdf",
+      "ts": "2026-05-12T16:19:41.047000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/4f3c675f-5826-4189-af6d-0f3eaf8dc650.pdf",
+      "ts": "2026-05-12T16:10:12.650000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Submission Of Financial Statement For The Quarter Ended March 31, 2026.",
+      "category": "Result",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b46a55e8-1b4b-4e6e-a451-73cc61b83a3c.pdf",
+      "ts": "2026-05-11T20:06:43.697000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Board Meeting Outcome for Outcome Of Board Meeting Held On Monday, May 11, 2026",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c84b87a5-1ba0-4f18-9fa2-3b2a1523a9a4.pdf",
+      "ts": "2026-05-11T19:36:42.840000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Board Meeting Intimation for Prior Intimation Under Regulation 29 Of SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015, As Amended ('Listing Regulations')",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/aa39e9d8-4c45-434a-bf9a-84a9b1d8ffc0.pdf",
+      "ts": "2026-05-05T19:39:08.610000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/76f7603e-c597-44d5-8f46-b0a450e7d002.pdf",
+      "ts": "2026-04-11T17:43:09.840000+05:30"
+     },
+     {
+      "symbol": "VERTEX",
+      "exchange": "BSE",
+      "headline": "Disclosures under Reg. 29(2) of SEBI (SAST) Regulations, 2011",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/CBFE6138_8366_4E5D_A55C_6E1BB9313E2E_125401.pdf",
+      "ts": "2026-04-06T12:54:05.023000+05:30"
+     }
+    ],
+    "sources": [
+     "BSE"
+    ],
+    "errors": {},
+    "windows": {
+     "BSE": {
+      "window_start": "2026-04-06",
+      "window_end": "2026-09-26"
+     }
+    },
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52313/disclosures/results?symbol=VERTEX",
+   "status": 200,
+   "elapsed_ms": 173,
+   "body": {
+    "symbol": "VERTEX",
+    "count": 10,
+    "events": [
+     {
+      "symbol": "VERTEX",
+      "company": "Vertex Securities Ltd.",
+      "purpose": "Results",
+      "description": null,
+      "date": "2026-07-30",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "VERTEX",
+      "company": "Vertex Securities Ltd.",
+      "purpose": "Results",
+      "description": null,
+      "date": "2026-05-11",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "VERTEX",
+      "company": "Vertex Securities Ltd.",
+      "purpose": "General",
+      "description": null,
+      "date": "2026-03-06",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "VERTEX",
+      "company": "Vertex Securities Ltd.",
+      "purpose": "Rights",
+      "description": null,
+      "date": "2026-03-06",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "VERTEX",
+      "company": "Vertex Securities Ltd.",
+      "purpose": "Results",
+      "description": null,
+      "date": "2026-02-10",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "VERTEX",
+      "company": "Vertex Securities Ltd.",
+      "purpose": "General",
+      "description": null,
+      "date": "2026-01-28",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "VERTEX",
+      "company": "Vertex Securities Ltd.",
+      "purpose": "Rights",
+      "description": null,
+      "date": "2026-01-28",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "VERTEX",
+      "company": "Vertex Securities Ltd.",
+      "purpose": "Results",
+      "description": null,
+      "date": "2025-11-11",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "VERTEX",
+      "company": "Vertex Securities Ltd.",
+      "purpose": "Results",
+      "description": null,
+      "date": "2025-07-29",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "VERTEX",
+      "company": "Vertex Securities Ltd.",
+      "purpose": "General",
+      "description": null,
+      "date": "2025-04-30",
+      "exchange": "BSE"
+     }
+    ],
+    "sources": [
+     "BSE"
+    ],
+    "errors": {},
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

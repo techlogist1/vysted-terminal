@@ -1,0 +1,24 @@
+cmd: inspect.isasyncgenfunction / iscoroutinefunction on stream_chat @e032be7
+base       asyncgen=False coroutine=True
+anthropic  asyncgen=True coroutine=False
+gemini     asyncgen=True coroutine=False
+groq       asyncgen=True coroutine=False
+ollama     asyncgen=True coroutine=False
+openai     asyncgen=True coroutine=False
+
+sidecar/services/llm/base.py:129-151 (abstract async def, body = raise NotImplementedError, no yield)
+    @abstractmethod
+    async def stream_chat(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        api_key: str | None = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[LLMStreamEvent]:
+        """
+        raise NotImplementedError
+
+cmd: grep -rn '.stream_chat(' sidecar/services (callers iterate without await)
+sidecar/services/agent_runtime.py:2065:            adapter.stream_chat(
+sidecar/services/llm/native_search.py:276:        stream = adapter.stream_chat(
+sidecar/services/llm/oneshot.py:107:        stream = adapter.stream_chat(

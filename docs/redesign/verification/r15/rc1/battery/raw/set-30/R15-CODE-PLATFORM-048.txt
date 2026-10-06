@@ -1,0 +1,48 @@
+=== CODE-PLATFORM-048 ===
+  async load(pluginId: string): Promise<PluginPersistedConfig | null> {
+    return this.store.get(pluginId) ?? null;
+  }
+  async save(config: PluginPersistedConfig): Promise<void> {
+    this.store.set(config.pluginId, { ...config });
+  }
+}
+
+function defaultContext(context?: PluginRuntimeContext): Required<PluginRuntimeContext> {
+  return {
+    now: context?.now ?? (() => Date.now()),
+    resolveDataDir: context?.resolveDataDir ?? ((id) => `plugins/${id}`),
+    sidecarBaseUrl: context?.sidecarBaseUrl ?? "http://127.0.0.1:0",
+    hostVersion: context?.hostVersion ?? "0.0.0",
+    persistence: context?.persistence ?? new InMemoryPersistence(),
+    resolveSecrets: context?.resolveSecrets ?? (async () => ({})),
+    host: context?.host ?? { attach: async () => {}, detach: async () => {} },
+    defaultEnabled: context?.defaultEnabled ?? (() => true),
+  };
+}
+
+/** Parse a `major.minor.patch` semver into a numeric triple (pre-release/build ignored).
+ *  Strips a leading range operator (`>=`, `>`, `^`, `~`, `=`, `<`) first so a manifest
+ *  written as `">=0.8.0"` parses to its floor `[0,8,0]` instead of `[0,0,0]`. */
+function parseSemver(version: string): [number, number, number] {
+  const cleaned = version.trim().replace(/^[\^~>=<\s]+/, "");
+  const core = cleaned.split("+")[0].split("-")[0];
+  const parts = core.split(".").map((p) => Number.parseInt(p, 10));
+  return [
+    Number.isFinite(parts[0]) ? parts[0] : 0,
+    Number.isFinite(parts[1]) ? parts[1] : 0,
+    Number.isFinite(parts[2]) ? parts[2] : 0,
+  ];
+}
+
+/**
+    await this.unloadPlugin(pluginId);
+    await this.detach(pluginId);
+  }
+
+  /** Remove a plugin entirely: persist installed:false + enabled:false, unload
+   *  it and withdraw its contributions. */
+  async removePlugin(pluginId: string): Promise<void> {
+    await this.patchConfig(pluginId, { installed: false, enabled: false });
+    await this.unloadPlugin(pluginId);
+    await this.detach(pluginId);
+  }

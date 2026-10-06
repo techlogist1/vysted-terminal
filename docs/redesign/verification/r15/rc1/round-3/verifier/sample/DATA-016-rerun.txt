@@ -1,0 +1,8 @@
+# R15-DATA-016 own repro re-run (certified batch-4): GET /fundamentals/DAL on :52312, candidate 5ff9be041180c1c316ad48ceb120a23549a7575a, region IN seed -> DAL.BO; raw body fund-DAL.json
+symbol DAL.BO name Dynamic Archistructures Limited ratio_price 49.88
+fifty_two_week_high None status withheld reason no trades in 52 weeks (last trade 2025-03-12); withheld
+fifty_two_week_low None status withheld reason no trades in 52 weeks (last trade 2025-03-12); withheld
+fifty_two_week_change 0.0 status ok reason None
+fifty_two_week_high_date 2025-09-25 status ok reason None
+fifty_two_week_low_date 2025-09-25 status ok reason None
+# result: own repro does NOT reproduce (range withheld with 'no trades in 52 weeks (last trade 2025-03-12)'). Adjacent low: the 52-week high/low DATES are served status ok (2025-09-25) for values that are withheld.

@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  40.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_bc0b67d0effa4568a8f8edd7d4de5322", "name": "portfolio_update_position", "input": {"asset_class": "equity", "cost_basis": 0, "note": "", "purchased_at": "", "position_id": "", "quantity": -4, "symbol": "WIPRO"}}
+[  40.4s] tool_result: {"kind": "tool_result", "tool_call_id": "call_bc0b67d0effa4568a8f8edd7d4de5322", "name": "portfolio_update_position", "ok": true, "error": null}
+[  44.0s] research_step: {"kind": "research_step", "tool_call_id": "call_bc0b67d0effa4568a8f8edd7d4de5322", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_update_position WIPRO. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  44.0s] done: {"kind": "done", "usage": {"input_tokens": 2958, "output_tokens": 40, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I've proposed an update to your portfolio. This will sell 4 shares of WIPRO at ₹170 from your holdings, but it's pending your review and acceptance in the proposal bar.
+
+=== ok · 44.0s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 40, 'research_step': 1, 'done': 1} · usage in=2958 out=40 · est $0.00000 · llama3.1:8b

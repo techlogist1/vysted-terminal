@@ -1,0 +1,1010 @@
+{
+ "stocks": [
+  {
+   "symbol": "ITC",
+   "entity": {
+    "name": "ITC Limited",
+    "nse_symbol": "ITC",
+    "bse_code": "500875",
+    "isin": "INE154A01025",
+    "sector": "Fast Moving Consumer Goods",
+    "industry": "Diversified FMCG"
+   },
+   "figures": {
+    "close_price_inr": 282.4,
+    "price_as_of": "2026-06-11 (NSE official close)",
+    "market_cap_inr_crore": 353707,
+    "pe_ttm": 17.1,
+    "week52_high": 428.55,
+    "week52_low": 275.05,
+    "drawdown_from_high_pct": 34.1,
+    "dividend_per_share_fy26_inr": 14.5,
+    "dividend_yield_pct": 5.13,
+    "q4_fy26_revenue_inr_crore": 23821.48,
+    "q4_fy26_pat_inr_crore": 5469.74,
+    "revenue_growth_yoy_pct": 16.91,
+    "pat_growth_yoy_pct": -72.39,
+    "roe_pct": 29.3,
+    "book_value_inr": 57.9
+   },
+   "sources": [
+    {
+     "url": "https://nsearchives.nseindia.com/products/content/sec_bhavdata_full_11062026.csv",
+     "used_for": "Official NSE bhavcopy 11-Jun-2026: ITC EQ close 282.40, last 282.65, prev close 283.65, day H/L 283.25/281.20"
+    },
+    {
+     "url": "https://nsearchives.nseindia.com/content/CM_52_wk_High_low_11062026.csv",
+     "used_for": "Official NSE 52-week high 428.55 (10-Jun-2025) and low 275.05 (04-Jun-2026), effective 11-Jun-2026"
+    },
+    {
+     "url": "https://www.bseindia.com/download/BhavCopy/Equity/BhavCopy_BSE_CM_0_0_0_20260611_F_0000.CSV",
+     "used_for": "Official BSE bhavcopy: ISIN INE154A01025, scrip code 500875, name ITC LTD., BSE close 282.30"
+    },
+    {
+     "url": "https://www.screener.in/company/ITC/consolidated/",
+     "used_for": "Market cap Rs 3,53,707 Cr, P/E 16.9, book value Rs 57.9, ROE 29.3%, div yield 5.13%, 52w ~427/275, consolidated quarterly table (Mar-26 net-of-excise sales 17,825, PAT 5,470; Mar-25 sales 18,765, PAT 19,808)"
+    },
+    {
+     "url": "https://www.screener.in/company/ITC/",
+     "used_for": "BSE 500875 / NSE ITC, sector Fast Moving Consumer Goods / industry Diversified FMCG, standalone Q4 FY26 sales 16,050 Cr, PAT 5,113 Cr, standalone ROE 29.6%, BV 55.8"
+    },
+    {
+     "url": "https://www.google.com/finance/quote/ITC:NSE",
+     "used_for": "Cross-check: last price 282.65 (Jun 11, 15:59 IST), prev close 283.65, 52w range 275.05-428.10, mcap 3.53T, P/E 17.12, yield 5.13%"
+    },
+    {
+     "url": "https://groww.in/blog/itc-limited-q4-fy26-results",
+     "used_for": "Q4 FY26 consolidated: revenue 23,821.48 Cr vs 20,376.36 (+16.91%), PAT continuing ops 5,469.74 Cr vs 19,807.88 (-72.3%), excise 5,996.80 vs 1,611.36 Cr, FY26 revenue 89,913.33 Cr / PAT 21,018.15 Cr, EPS 16.52, dividend 6.50 interim + 8.00 final = 14.50"
+    },
+    {
+     "url": "https://www.storyboard18.com/brand-marketing/itc-q4-fy26-results-net-profit-rises-6-1-to-rs-5470-crore-cigarette-business-drives-growth-98825.htm",
+     "used_for": "Adjusted (ex-exceptional) PAT growth +6.1% YoY for Q4 FY26"
+    },
+    {
+     "url": "https://www.angelone.in/news/stocks/itc-declares-rs-8-final-dividend-for-fy26-record-date-set-for-may-27",
+     "used_for": "Final dividend Rs 8/share FY26, record date 27-May-2026; cross-check of total FY26 dividend Rs 14.50"
+    },
+    {
+     "url": "https://trendlyne.com/equity/647/ITC/itc-ltd/",
+     "used_for": "Price cross-check 282.40 (NSE 11 Jun 2026, -0.44%), NSE/BSE codes, alternate classification: sector Food Beverages & Tobacco / industry Cigarettes-Tobacco Products"
+    }
+   ],
+   "confidence_notes": "PRICE BASIS: NSE official CLOSE_PRICE 11-Jun-2026 = 282.40 (bhavcopy; trendlyne agrees); last traded price was 282.65 (NSE bhavcopy LAST_PRICE, Google Finance); BSE close = 282.30. Apps may show any of these three. DRAWDOWN ARITHMETIC: (428.55 - 282.40)/428.55 x 100 = 146.15/428.55 x 100 = 34.10%. Using LTP 282.65 instead: 145.90/428.55 = 34.04%; using Google's 52w high 428.10 with LTP: 145.45/428.10 = 33.98%. 52W HIGH DISAGREEMENT: NSE official file says 428.55 on 10-Jun-2025; Google Finance shows 428.10 (likely a strict-365-day window excluding 10-Jun-2025); screener shows ~427 (rounded). Low agrees everywhere: 275.05 (04-Jun-2026, a fresh 52w low hit last week). MARKET CAP: screener 3,53,707 Cr (at its 282 snapshot); Google ~3.53T; at official close 282.40 x ~12,518 Cr shares it is ~3,53,500 Cr — treat 3.53-3.54 lakh Cr as the band. P/E TTM: 17.1 = 282.40 / TTM EPS 16.52 (consolidated continuing ops, attributable; Google 17.12 at 282.65); screener computes 16.9 as mcap/total TTM consolidated PAT (21,018 Cr) — both defensible, basis differs. DIVIDEND FY26 = interim 6.50 (paid 27-Feb-2026) + final 8.00 (record 27-May-2026, AGM 23-Jul-2026, payout 24-29 Jul) = 14.50 total; yield = 14.50/282.40 = 5.134% ~ 5.13% (matches screener and Google; note final dividend not yet AGM-approved as of 11-Jun-2026). Q4 FY26 (Jan-Mar 2026) IS REPORTED, basis CONSOLIDATED, continuing operations: revenue from operations 23,821.48 Cr vs 20,376.36 (+16.91%); PAT 5,469.74 Cr vs 19,807.88 (-72.39% reported). TWO BIG DISTORTIONS an app might trip on: (1) PAT base Q4 FY25 included a one-time ~15,179 Cr exceptional gain on the ITC Hotels demerger — ex-exceptional PAT growth is +6.1% YoY (Storyboard18); (2) revenue growth is inflated by a cigarette excise-duty reclassification effective Feb-2026 (excise 5,996.80 Cr in Q4 FY26 vs 1,611.36 Cr) — net-of-excise revenue FELL ~5.0% (17,824.68 vs 18,765.00, exactly reconciling screener's quarterly table). One MSN headline cites revenue 23,625 Cr — outlier, likely a different revenue line; two sources (Groww, Daily Pioneer) agree on 23,821.48. Standalone Q4 FY26 for reference: sales 16,050 Cr, PAT 5,113 Cr (matches Business Standard's 5,113 headline). ROE 29.3% and book value 57.9 are CONSOLIDATED per screener (standalone: 29.6% / 55.8); single-source for these two — could not get a second independent ROE/BV fetch (moneycontrol and economictimes blocked, trendlyne metrics paywalled), so treat as screener-basis figures. ROE is flattered by FY26 PAT vs post-demerger equity base. SECTOR/INDUSTRY: NSE-style classification (via screener) = Fast Moving Consumer Goods / Diversified FMCG; trendlyne uses Food, Beverages & Tobacco / Cigarettes-Tobacco Products — both listed since the app could use either taxonomy."
+  },
+  {
+   "symbol": "LT",
+   "entity": {
+    "name": "Larsen & Toubro Limited",
+    "nse_symbol": "LT",
+    "bse_code": "500510",
+    "isin": "INE018A01030",
+    "sector": "Industrials",
+    "industry": "Construction — Civil Construction (BSE classification: Sector=Industrials, IndustryNew=Construction, ISubGroup=Civil Construction; face value ₹2, BSE Group A / SENSEX constituent)"
+   },
+   "figures": {
+    "close_price_inr": 3862,
+    "price_as_of": "2026-06-11 (NSE official close from NSE bhavcopy; BSE close same day: 3859.45)",
+    "market_cap_inr_crore": 531327,
+    "pe_ttm": 33,
+    "week52_high": 4440,
+    "week52_low": 3288.1,
+    "drawdown_from_high_pct": 13.02,
+    "dividend_per_share_fy26_inr": 38,
+    "dividend_yield_pct": 0.98,
+    "q4_fy26_revenue_inr_crore": 82762.18,
+    "q4_fy26_pat_inr_crore": 5326,
+    "revenue_growth_yoy_pct": 11.25,
+    "pat_growth_yoy_pct": -3.11,
+    "roe_pct": 15.9,
+    "book_value_inr": 794.4
+   },
+   "sources": [
+    {
+     "url": "https://archives.nseindia.com/products/content/sec_bhavdata_full_11062026.csv",
+     "used_for": "Official NSE close price 11-Jun-2026: CLOSE_PRICE 3862.00 (PREV_CLOSE 3917.50, LAST_PRICE 3871.70, HIGH 3909.80, LOW 3854.40). Authoritative for close."
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=500510&seriesid=",
+     "used_for": "ISIN INE018A01030, BSE code 500510, face value ₹2.00, sector Industrials / Civil Construction, Group A/SENSEX; also BSE ConPE 28.01 (incl-NCI basis)."
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=500510",
+     "used_for": "BSE 52-week high 4440.00 (24/02/2026) and low 3288.65 (23/03/2026)."
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=500510&seriesid=",
+     "used_for": "BSE close 3859.45 as of 11 Jun 26 16:00, prev close 3917.35, full legal name Larsen & Toubro Ltd."
+    },
+    {
+     "url": "https://www.screener.in/company/LT/consolidated/",
+     "used_for": "Market cap ₹5,31,327 Cr, close ₹3,862 (11 Jun), P/E 32.4, ROE 15.9%, BV ₹794, div yield 0.98%, 52w 4440/3288, Q4 table (incl-NCI PAT 6,133 vs 6,156)."
+    },
+    {
+     "url": "https://www.google.com/finance/quote/LT:NSE",
+     "used_for": "Cross-check: P/E 33.13, mcap 5.31T, 52w range 3288.10–4440.00, prev close 3917.50, div yield 0.98%."
+    },
+    {
+     "url": "https://upstox.com/news/market-news/earnings/larsen-and-toubro-q4-results-net-profit-dips-3-revenue-rises-to-82-762-crore-yo-y-recommends-final-dividend-of-38-for-fy-26/article-193181/",
+     "used_for": "Q4 FY26 consolidated: revenue ₹82,762 Cr vs ₹74,392 Cr (+11.3%), PAT ₹5,326 Cr vs ₹5,497 Cr (−3%); FY26 revenue ₹2,85,874 Cr (+12%), reported PAT ₹16,084 Cr incl ₹1,155 Cr one-time labor-code provision; final dividend ₹38 (record date 22-May-2026)."
+    },
+    {
+     "url": "https://stockanalysis.com/quote/nse/LT/statistics/",
+     "used_for": "Cross-check: price 3862.00 (11 Jun), PE TTM 33.01, BV/share 794.47, ROE 16.95%, DPS ₹38, shares outstanding ~1.38B."
+    },
+    {
+     "url": "https://groww.in/stocks/larsen-toubro-ltd",
+     "used_for": "Cross-check: close 3862.00 (−1.42%), 52w 4440.00/3288.10, BV 794.41, ROE 14.72%, PE 28.43 (incl-NCI basis), mcap ₹5,38,921 Cr (outlier)."
+    },
+    {
+     "url": "https://www.indmoney.com/stocks/dividend/larsen-and-toubro-ltd-dividend",
+     "used_for": "Dividend history: confirms no FY26 interim; ₹34 ex-date 03-Jun-2025 is FY25 final, ₹38 declared 05-May-2026 ex-date 22-May-2026 is FY26 final."
+    },
+    {
+     "url": "https://scanx.trade/stock-market-news/companies/larsen-toubro-announces-38-per-share-final-dividend-for-fy26-record-date-fixed-at-may-22-2026/40217031",
+     "used_for": "FY26 final dividend ₹38, record date 22-May-2026, AGM 5-Jun-2026, payment 10-Jun-2026 (via search snippet)."
+    }
+   ],
+   "confidence_notes": "BASIS: consolidated throughout. CLOSE: NSE official close ₹3,862.00 on 11-Jun-2026 (bhavcopy CLOSE_PRICE = last-30-min avg; LAST_PRICE was 3,871.70, which is what Google Finance displays — an app showing 3,871.70 is showing LTP, not close). BSE close 3,859.45. DRAWDOWN arithmetic: (4,440.00 − 3,862.00)/4,440.00 × 100 = 578.00/4,440.00 × 100 = 13.0180% ≈ 13.02%. 52W LOW disagrees slightly by exchange: NSE 3,288.10 (Google+Groww) vs BSE 3,288.65 (23-Mar-2026); high 4,440.00 on both (24-Feb-2026). MARKET CAP: screener ₹5,31,327 Cr (= 3,862 × ~137.58 Cr shares), corroborated by Google/stockanalysis ~5.31T; Groww shows ₹5,38,921 Cr (outlier, larger implied share count) — not used. P/E TTM sources DISAGREE: 33.0 chosen (= 5,31,327 Cr mcap ÷ FY26 reported attributable PAT ₹16,084 Cr = 33.03; Google 33.13; stockanalysis 33.01); screener shows 32.4; Groww 28.43 and BSE ConPE 28.01 use PAT including non-controlling interests; on recurring PAT ₹17,238 Cr the P/E would be 30.8. Q4 FY26 (Jan–Mar 2026, reported 5-May-2026): revenue ₹82,762.18 Cr vs ₹74,392 Cr → +11.25%; PAT attributable to owners ₹5,326 Cr vs ₹5,497 Cr → −3.11% (−171/5,497). Screener's quarterly table shows net profit 6,133 vs 6,156 (−0.4%) because it includes non-controlling interests — a diff against screener-fed apps will show this. PAT decline is base-effect (Q4 FY25 had ₹475 Cr exceptional gain). FY26 full year: revenue ₹2,85,874 Cr (+12%), reported PAT ₹16,084 Cr (includes one-time ₹1,155 Cr labor-code provision), recurring PAT ₹17,238 Cr (+18%). DIVIDEND FY26: single final ₹38/share (no interim — L&T's pattern; the ₹34 ex-date 03-Jun-2025 in dividend-history tables is FY25's final paid during FY26; do not sum it into FY26). Yield = 38/3,862 × 100 = 0.9839% ≈ 0.98% (screener 0.98, Groww/stockanalysis 0.97 on slightly different price basis). ROE sources DISAGREE: screener 15.9% (chosen; ≈ recurring PAT/year-end equity), Groww 14.72% (= reported 16,084/year-end equity ~1,09,300 Cr), stockanalysis 16.95% (likely recurring/avg equity) — range 14.7–17.0 depending on PAT and equity basis. BOOK VALUE: 794.4 (stockanalysis 794.47, Groww 794.41, screener 794 — consolidated incl. minority per screener convention). NSE quote API was Akamai-blocked; bhavcopy archive used instead (authoritative). Moneycontrol and ET were unfetchable; Trendlyne equity/1115 URL resolved to Raymond (wrong ID) — neither used."
+  },
+  {
+   "symbol": "PERSISTENT",
+   "entity": {
+    "name": "Persistent Systems Limited",
+    "nse_symbol": "PERSISTENT",
+    "bse_code": "533179",
+    "isin": "INE262H01021",
+    "sector": "Information Technology",
+    "industry": "IT Services & Consulting (NSE basic industry: Computers - Software & Consulting)"
+   },
+   "figures": {
+    "close_price_inr": 4874,
+    "price_as_of": "2026-06-11",
+    "market_cap_inr_crore": 76831,
+    "pe_ttm": 41.2,
+    "week52_high": 6599,
+    "week52_low": 4449.1,
+    "drawdown_from_high_pct": 26.14,
+    "dividend_per_share_fy26_inr": 40,
+    "dividend_yield_pct": 0.82,
+    "q4_fy26_revenue_inr_crore": 4055.94,
+    "q4_fy26_pat_inr_crore": 529.26,
+    "revenue_growth_yoy_pct": 25.1,
+    "pat_growth_yoy_pct": 33.7,
+    "roe_pct": 27.3,
+    "book_value_inr": 496.85
+   },
+   "sources": [
+    {
+     "url": "https://www.screener.in/company/PERSISTENT/consolidated/",
+     "used_for": "Close price ₹4,874 (11 Jun), market cap ₹76,831 cr, 52w high/low ₹6,599/₹4,449, book value ₹497, ROE 27.3% (FY26), Q4 FY26 quarterly table (sales ₹4,056 cr, PAT ₹529 cr vs ₹3,242 cr/₹396 cr YoY), FY26 annual sales ₹14,748 cr / PAT ₹1,865 cr, equity ₹7,838 cr, face value ₹5"
+    },
+    {
+     "url": "https://www.persistent.com/media/press-releases/q4-fy26-results/",
+     "used_for": "Official Q4 FY26 consolidated revenue ₹40,559.4 mn (+25.1% YoY), PAT ₹5,292.6 mn (+33.7% YoY); FY26 revenue ₹147,484.5 mn (+23.5%), FY26 PAT ₹18,651.2 mn (+33.2%); FY26 total dividend ₹40/share (final ₹18) vs ₹35 in FY25"
+    },
+    {
+     "url": "https://trendlyne.com/equity/1023/PERSISTENT/persistent-systems-ltd/",
+     "used_for": "Independent confirmation of close ₹4,874.00 on 11 Jun 2026 (-1.10%), NSE symbol, BSE code 533179, and displayed '26.14% fall from 52W high' matching my drawdown arithmetic"
+    },
+    {
+     "url": "https://dhan.co/stocks/persistent-systems-ltd-share-price/",
+     "used_for": "Third confirmation of close ₹4,874.00 on 11 Jun 2026 15:50, market cap ₹76,887 cr, 52w range ₹6,599/₹4,449.10, book value ₹496.85, sector Information Technology"
+    },
+    {
+     "url": "https://www.google.com/finance/quote/PERSISTENT:NSE",
+     "used_for": "52-week range ₹4,449.10–₹6,599.00, P/E 41.09 cross-check, previous close ₹4,928 (10 Jun); its ₹4,885 was a last-trade tick, not official close"
+    },
+    {
+     "url": "https://www.angelone.in/news/stocks/persistent-systems-dividend-record-date-on-january-27-declared-interim-dividend-of-rs-22",
+     "used_for": "FY26 interim dividend ₹22/share with record date 27 Jan 2026"
+    },
+    {
+     "url": "https://upstox.com/stocks/persistent-systems-ltd-share-price/INE262H01021/",
+     "used_for": "ISIN INE262H01021 confirmation (also in BSE URL slug with scrip code 533179)"
+    }
+   ],
+   "confidence_notes": "CLOSE PRICE: ₹4,874.00 on Thu 11 Jun 2026 confirmed by 3 independent sources (screener.in, Trendlyne, Dhan; all dated 11 Jun, -1.10% on prev close ₹4,928). Google Finance showed ₹4,885 at 15:57 IST — that is a last-traded tick, not the official NSE close; rejected. DRAWDOWN ARITHMETIC: (6,599.00 − 4,874.00)/6,599.00 × 100 = 1,725/6,599 × 100 = 26.1404% ≈ 26.14%; Trendlyne independently displays '26.14% fall from 52W high', exact match. MARKET CAP: screener ₹76,831 cr vs Dhan ₹76,887 cr (0.07% apart — intraday share-count rounding); Google showed ₹75,529 cr (75.529B×10... i.e. 755.29B INR), an outlier likely from stale share count; reported screener's 76,831. Implied shares ≈ 15.76–15.77 cr, consistent with Q4 basic EPS ₹33.55 on PAT ₹529.3 cr. P/E TTM: sources disagree — screener displayed 39.8, Google 41.09, Dhan 41.70. Computed from verified figures: ₹76,831 cr ÷ FY26 consolidated PAT ₹1,865.1 cr (TTM = FY26 since Q4 FY26 is latest) = 41.19 ≈ 41.2; reported the computed value since screener's 39.8 is inconsistent with its own PAT figure (76,831/1,865 = 41.2). DIVIDEND: FY26 components — interim ₹22 (record date 27 Jan 2026) + final ₹18 (recommended with Q4 FY26 results) = ₹40 total, confirmed in company press release ('₹40 vs ₹35 FY25'). Caveat: the ₹18 final is board-recommended, subject to AGM approval which may not have occurred by 11 Jun 2026. YIELD: computed per task definition as FY26 DPS/close = 40/4,874 = 0.8207% ≈ 0.82%. Source-displayed yields differ by basis: screener 0.72% (= ₹35 FY25 basis) and Dhan 0.45% (= ₹22 interim-only basis) — both arithmetic-consistent with their bases, neither matches the task's FY26-total definition. Q4 FY26 (Jan–Mar 2026, CONSOLIDATED, reported 100%): revenue ₹40,559.4 mn = ₹4,055.94 cr (+25.1% YoY vs ₹3,242 cr), PAT ₹5,292.6 mn = ₹529.26 cr (+33.7% YoY vs ₹396 cr) — official press release, cross-checked against screener quarterly table; growth %s are company-stated and match recomputation (4,055.9/3,242.3−1 = 25.1%; 529.3/395.9−1 = 33.7%). ROE: sources disagree — screener 27.3% (FY26, average-equity basis; plausible: 1,865 cr PAT on avg equity ~₹6,840 cr) vs Dhan 22.16% (basis unclear; PAT/closing equity would give 23.8%). Reported screener's 27.3%; flag this as the figure most likely to differ across apps depending on average vs closing equity. BOOK VALUE: ₹496.85 (Dhan) ≈ ₹497 (screener); sanity check: equity ₹7,838 cr ÷ 15.77 cr shares = ₹497 ✓. 52W LOW: ₹4,449.10 (Google/Dhan; screener rounds to ₹4,449). All figures consolidated basis where applicable."
+  },
+  {
+   "symbol": "FEDERALBNK",
+   "entity": {
+    "name": "The Federal Bank Limited",
+    "nse_symbol": "FEDERALBNK",
+    "bse_code": "500469",
+    "isin": "INE171A01029",
+    "sector": "Financial Services (Banking)",
+    "industry": "Banks — Private Sector Bank"
+   },
+   "figures": {
+    "close_price_inr": 309.75,
+    "price_as_of": "2026-06-11 (NSE close)",
+    "market_cap_inr_crore": 76400,
+    "pe_ttm": 17.6,
+    "week52_high": 316.7,
+    "week52_low": 185.11,
+    "drawdown_from_high_pct": 2.19,
+    "dividend_per_share_fy26_inr": 1.2,
+    "dividend_yield_pct": 0.39,
+    "q4_fy26_revenue_inr_crore": 9132.47,
+    "q4_fy26_pat_inr_crore": 1393.25,
+    "revenue_growth_yoy_pct": 11.98,
+    "pat_growth_yoy_pct": 25.7,
+    "roe_pct": 11.6,
+    "book_value_inr": 162
+   },
+   "sources": [
+    {
+     "url": "https://www.screener.in/company/FEDERALBNK/consolidated/",
+     "used_for": "Close price/date, market cap (₹76,475 cr), P/E TTM 17.6, 52w range, dividend yield 0.39%, consolidated book value ₹162, ROE 11.6%, consolidated quarterly table (Mar-2026 interest income 7,947 / PAT 1,392; Mar-2025 7,108 / 1,120), BSE code 500469"
+    },
+    {
+     "url": "https://www.screener.in/company/FEDERALBNK/",
+     "used_for": "Standalone cross-check: BV ₹157, ROE ~11%, Mar-2026 standalone PAT ₹1,259 cr"
+    },
+    {
+     "url": "https://trendlyne.com/equity/412/FEDERALBNK/federal-bank-ltd/",
+     "used_for": "NSE close ₹309.75 on 11 Jun 2026 (-0.43%), sector/industry (Banking & Finance / Banks), BSE code"
+    },
+    {
+     "url": "https://trendlyne.com/equity/Dividend/FEDERALBNK/412/federal-bank-ltd-dividend/",
+     "used_for": "Dividend history (final-only: ₹1.20 ex 22-Aug-2025, ₹1.20 ex 23-Aug-2024, ₹1.00 ex 11-Aug-2023); confirms NO interim dividend in FY26"
+    },
+    {
+     "url": "https://www.tickertape.in/stocks/federal-bank-FED",
+     "used_for": "Close ₹309.75 on 11-Jun-2026, market cap ₹76,399.92 cr, P/E 17.61, 52w 316.70/185.11, dividend yield 0.39%"
+    },
+    {
+     "url": "https://www.google.com/finance/quote/FEDERALBNK:NSE?hl=en",
+     "used_for": "52w range 185.11–316.70, P/E 17.59, prev close ₹311.10 (10-Jun); DIVERGENT last price ₹310.80 — see notes"
+    },
+    {
+     "url": "https://simplywall.st/stocks/in/banks/nse-federalbnk/federal-bank-shares",
+     "used_for": "Close ₹309.75, market cap ₹763.7 bn, P/E 17.6x, 52w 316.70/185.11, FY26 recommended final DPS ₹1.20, TTM EPS ₹17.62"
+    },
+    {
+     "url": "https://scanx.trade/stock-market-news/companies/federal-bank-reports-strong-q4-performance-with-revenue-growth-to-74-billion/38998032",
+     "used_for": "Q4 FY26 results announced 29-Apr-2026: standalone total income ₹8,544.04 cr, standalone PAT ₹1,259.10 cr (+22.2% YoY), FY26 PAT ₹4,117.32 cr (vs ₹4,051.89 FY25), final dividend 60% = ₹1.20/share on FV ₹2"
+    },
+    {
+     "url": "https://univest.in/blogs/the-federal-bank-limited-q4-fy26-results-pat-1259-crore",
+     "used_for": "Standalone Q4 FY26 PAT ₹1,259.10 cr vs ₹1,030.23 cr Q4 FY25 (+22.21%), NII ₹3,173 cr, GNPA 1.62%, CRAR 17.25%"
+    },
+    {
+     "url": "https://www.capitalmarket.com/markets/news/corporate-results/board-of-federal-bank-recommends-final-dividend/1688451",
+     "used_for": "Consolidated Q4 FY26 (via search result summary): PAT ₹1,393.25 cr +25.7% YoY; total income ₹9,132.47 cr vs ₹8,155.29 cr (+12%); FY26 total income ₹34,272.42 cr; final dividend recommendation"
+    },
+    {
+     "url": "https://www.investonline.in/markets/stocks/INE171A01029/500469/FEDERALBNK/EQ/the-federal-bank-ltd",
+     "used_for": "ISIN INE171A01029, BSE 500469, NSE FEDERALBNK, legal name The Federal Bank Ltd"
+    },
+    {
+     "url": "https://choiceindia.com/stocks/the-federal-bank-ltd-dividend",
+     "used_for": "₹1.20 dividend ex/record date 22-Aug-2025 (this is FY25's final, paid during FY26 — not a FY26 interim)"
+    }
+   ],
+   "confidence_notes": "CLOSE PRICE: ₹309.75 (NSE, 11-Jun-2026) confirmed by Trendlyne (timestamped \"NSE 11 Jun 2026 3:31 PM\"), Tickertape, Simply Wall St, and Screener's -0.43% change (309.75 = 311.10 prev close − 1.35). Google Finance alone showed ₹310.80 \"as of Jun 11 3:59 PM IST\" with same prev close ₹311.10 — outlier, possibly closing-session/feed artifact; if the app under test shows ~310.80 it is likely Google-fed. Data was pulled shortly after midnight IST 12-Jun (Yahoo server header: Thu 11 Jun 18:49 GMT), so all live quotes = 11-Jun close. MARKET CAP spread across sources: Tickertape ₹76,399.92 cr, SWS ₹76,370 cr, Screener ₹76,475 cr, Google ₹76,180 cr — reported 76,400; differences are share-count/price-basis rounding (~246.6 cr shares × 309.75). P/E TTM 17.59–17.61 across Google/Tickertape/Screener (consolidated; standalone P/E is 18.6 per Screener). DRAWDOWN arithmetic: (316.70 − 309.75)/316.70 × 100 = 6.95/316.70 × 100 = 2.1945% ≈ 2.19% (using Google's 310.80 it would be 1.86%). DIVIDEND FY26: single FINAL dividend ₹1.20/share (60% of FV ₹2) recommended by board 29-Apr-2026, subject to AGM approval — ex-date not yet set as of 11-Jun-2026; NO FY26 interim (Trendlyne history shows final-only pattern: FY25 ₹1.20, FY24 ₹1.20, FY23 ₹1.00). The ₹1.20 with ex-date 22-Aug-2025 is FY25's final paid during FY26 — do not double count. One search summary claimed a \"₹0.60 interim\" — that is a conflation of \"60%\" with ₹0.60; rejected. YIELD arithmetic: 1.20/309.75 × 100 = 0.3874% ≈ 0.39% (matches Screener/Tickertape trailing yield since trailing DPS is also 1.20). Q4 FY26 (Mar-2026 quarter, reported 29-Apr-2026), CONSOLIDATED basis as requested: total income ₹9,132.47 cr vs ₹8,155.29 cr → +11.98% YoY; PAT ₹1,393.25 cr, +25.7% YoY as reported by Capital Market/Angel One (implied base ₹1,108.4 cr). CAVEAT: Screener's consolidated table shows Mar-2025 PAT ₹1,120 cr, which implies +24.4% — likely attributable-vs-including-minority-interest difference (Fedbank Financial Services is a ~61%-owned listed subsidiary); both stated, did not average. REVENUE DEFINITION caveat: 9,132.47 is consolidated TOTAL income (incl. other income); Screener's consolidated \"revenue\" (interest earned only) is ₹7,947 cr (+11.8% YoY vs 7,108); standalone total income ₹8,544.04 cr, standalone PAT ₹1,259.10 cr (+22.2% vs 1,030.23). Match against whichever basis the app uses. ROE 11.6% is consolidated per Screener — single explicit source, but corroborated by Screener standalone \"ROE last year 11%\" and implied TTM EPS 17.62/avg BV ≈ 11–12%. BOOK VALUE ₹162 = consolidated (Screener); standalone is ₹157 (Screener); Tickertape's P/B 2.15 implies ~₹144 — derived figure, least reliable, noted only. 52-WEEK range 316.70/185.11 confirmed by three sources (Google, Tickertape, SWS) — NSE basis. Sector/industry: NSE-style classification is Financial Services / Private Sector Bank; Tickertape labels it Financials / Private Banks; Trendlyne Banking & Finance / Banks — wording varies by provider, identity is unambiguous. Could not fetch NSE official API (Akamai 403), Moneycontrol (blocked domain), Yahoo (429/503) — all figures rest on the secondary sources above, each cross-checked at least twice except ROE as noted."
+  },
+  {
+   "symbol": "KPITTECH",
+   "entity": {
+    "name": "KPIT Technologies Limited",
+    "nse_symbol": "KPITTECH",
+    "bse_code": "542651",
+    "isin": "INE04I401011",
+    "sector": "Information Technology",
+    "industry": "Computers - Software & Consulting (BSE official); Trendlyne: Software & Services / IT Consulting & Software"
+   },
+   "figures": {
+    "close_price_inr": 736.9,
+    "price_as_of": "2026-06-11",
+    "market_cap_inr_crore": 20173,
+    "pe_ttm": 31.65,
+    "week52_high": 1434,
+    "week52_low": 625,
+    "drawdown_from_high_pct": 48.61,
+    "dividend_per_share_fy26_inr": 7.5,
+    "dividend_yield_pct": 1.02,
+    "q4_fy26_revenue_inr_crore": 1711,
+    "q4_fy26_pat_inr_crore": 163.05,
+    "revenue_growth_yoy_pct": 11.95,
+    "pat_growth_yoy_pct": -33.38,
+    "roe_pct": 21,
+    "book_value_inr": 129
+   },
+   "sources": [
+    {
+     "url": "https://www.screener.in/company/KPITTECH/consolidated/",
+     "used_for": "Close ~Rs 737 (11 Jun), market cap Rs 20,173 cr, P/E 29.8 (flagged), 52w 1,434/625, book value Rs 129, ROE 21.0%, quarterly table Mar25-Mar26 (sales 1,528/1,539/1,588/1,617/1,711; PAT 245/172/169/133/163; EPS 8.93/6.27/6.17/4.86/5.95)"
+    },
+    {
+     "url": "https://trendlyne.com/equity/141324/KPITTECH/kpit-technologies-ltd/",
+     "used_for": "NSE close Rs 736.90 on 11 Jun 2026 (+3.95, +0.54%), BSE code 542651, sector/industry, 48.63% fall-from-52wH cross-check"
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=542651&seriesid=",
+     "used_for": "BSE official close 736.40 / prev close 734.00, as-on 11 Jun 26 16:00, full name KPIT Technologies Ltd"
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=542651&seriesid=",
+     "used_for": "ISIN INE04I401011, scrip 542651, face value Rs 10, Group A / BSE 500, sector Information Technology, industry Computers - Software & Consulting"
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=542651",
+     "used_for": "BSE 52-week high 1,433.00 (19-Jun-2025) and low 625.00 (17-Mar-2026)"
+    },
+    {
+     "url": "https://stockanalysis.com/quote/nse/KPITTECH/dividend/",
+     "used_for": "FY26 dividend total Rs 7.50/share, yield 1.02%, interim Rs 2.25 ex/record 4-Feb-2026 paid 28-Feb-2026; FY25 components (2.50 + 6.00) for convention check"
+    },
+    {
+     "url": "https://stockanalysis.com/quote/nse/KPITTECH/statistics/",
+     "used_for": "P/E TTM 31.65, ROE 19.73%, book value Rs 130.07, mkt cap Rs 200.6 bn, TTM net income Rs 6.37 bn, DPS 7.50"
+    },
+    {
+     "url": "https://scanx.trade/stock-market-news/companies/kpit-technologies-recommends-final-dividend-of-5-25-per-share/39597758",
+     "used_for": "FY26 final dividend Rs 5.25/share recommended at 6-May-2026 board; FY26 consolidated revenue Rs 64,549.31 mn, PAT Rs 6,373.70 mn; Q4 EBITDA margin 20.6%"
+    },
+    {
+     "url": "https://www.marketsmojo.com/news/result-analysis/kpit-technologies-q4-fy26-profit-plunge-masks-revenue-growth-as-margins-compress-3978433",
+     "used_for": "Q4 FY26 consolidated revenue Rs 1,711.00 cr (+11.95% YoY), PAT Rs 163.05 cr (-33.38% YoY), margins"
+    },
+    {
+     "url": "https://x.com/dividends_india/status/2016907731182244327",
+     "used_for": "FY26 interim dividend Rs 2.25, record date 4-Feb-2026; FY25 total Rs 8.5 / FY24 Rs 6.7 (fiscal-entitlement convention check)"
+    }
+   ],
+   "confidence_notes": "All figures from live fetches on 12 Jun 2026 for close of Thu 11 Jun 2026; nothing from memory. PRICE: NSE close Rs 736.90 (Trendlyne timestamped 11 Jun 2026; Screener shows rounded 737); BSE close Rs 736.40 (BSE official API, as-on 11 Jun 26 16:00). Field uses NSE. BASIS: all quarterly/annual figures CONSOLIDATED. Q4 FY26 (Jan-Mar 2026) IS reported (board meeting 6 May 2026): revenue Rs 1,711.00 cr vs 1,528 cr (+11.95% per marketsmojo; rounded-figure arithmetic (1711-1528)/1528 = 11.98%); PAT Rs 163.05 cr vs ~244.7 cr = -33.38%. PAT fell on margin compression (NPM 9.52% vs 16.01%); not an error. DRAWDOWN ARITHMETIC: (1434 - 736.90)/1434 = 697.10/1434 = 0.48612 -> 48.61% (BSE variant (1433-736.40)/1433 = 48.61% too; Trendlyne displays 48.63%, implying NSE high ~1,434.5). 52w high: Screener/NSE 1,434 vs BSE 1,433 (19-Jun-2025); low 625 on both (BSE date 17-Mar-2026). DIVIDEND: FY26 entitlement = Rs 2.25 interim (record 4-Feb-2026) + Rs 5.25 final (recommended 6-May-2026, record date not yet set) = Rs 7.50. Some aggregators (indmoney) show Rs 8.25 - that is a payment-window sum counting FY25's Rs 6.00 final paid Sep 2025; rejected. Yield = 7.50/736.90 = 1.018% -> 1.02% (stockanalysis agrees at 1.02%; Screener shows 1.15%, consistent with stale FY25 DPS 8.50). P/E DISAGREEMENT: Screener 29.8 vs stockanalysis 31.65. TTM PAT = 172+169+133+163 = Rs 637 cr (Screener's own quarters) = company FY26 PAT Rs 637.37 cr; 20,173/637.4 = 31.65, so 31.65 is arithmetic-consistent and used; Screener's 29.8 implies Rs 677 cr TTM PAT (unexplained, possibly exceptional-adjusted or stale). MKT CAP: Screener Rs 20,173 cr; stockanalysis Rs 20,060 cr (uses 27.22 cr shares, looks stale - EPS-implied count is 163.05/5.95 = 27.40 cr -> Rs 20,191 cr). Range 20,060-20,191; field uses 20,173. ROE DISAGREEMENT: Screener 21.0% (field value) vs stockanalysis 19.73% - methodology difference (avg vs ending equity); both consistent with FY26 PAT ~637 cr on equity ~3,200-3,500 cr. BOOK VALUE: Screener Rs 129 vs stockanalysis Rs 130.07 - within rounding/share-count tolerance. NSE's own site blocked all fetches (Akamai), so NSE-side identity rests on Trendlyne/Screener; ISIN and scrip code are from BSE's official API and are firm."
+  },
+  {
+   "symbol": "RATNAMANI",
+   "entity": {
+    "name": "Ratnamani Metals & Tubes Limited",
+    "nse_symbol": "RATNAMANI",
+    "bse_code": "520111",
+    "isin": "INE703B01027",
+    "sector": "Industrials (Capital Goods)",
+    "industry": "Iron & Steel Products"
+   },
+   "figures": {
+    "close_price_inr": 2532.3,
+    "price_as_of": "2026-06-11 (NSE close, Thursday; BSE close same day was 2529.70)",
+    "market_cap_inr_crore": 17735,
+    "pe_ttm": 36.78,
+    "week52_high": 3345,
+    "week52_low": 1936.5,
+    "drawdown_from_high_pct": 24.3,
+    "dividend_per_share_fy26_inr": 10,
+    "dividend_yield_pct": 0.39,
+    "q4_fy26_revenue_inr_crore": 1084.82,
+    "q4_fy26_pat_inr_crore": 115.91,
+    "revenue_growth_yoy_pct": -36.7,
+    "pat_growth_yoy_pct": -42.9,
+    "roe_pct": 12.6,
+    "book_value_inr": 586.46
+   },
+   "sources": [
+    {
+     "url": "https://www.screener.in/company/RATNAMANI/consolidated/",
+     "used_for": "Market cap ₹17,735 Cr, price ₹2,532 (11 Jun), P/E 36.2, BV ₹586, ROE 12.6%, full consolidated quarterly table (Mar-2026 sales 1,085 / NP 116 vs Mar-2025 1,715 / 203), FY26 ₹10 dividend announcement text (AGM 18 Aug 2026, record date 11 Aug, payout by 17 Sep) — raw HTML parsed directly, not just summarized"
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=520111&seriesid=",
+     "used_for": "BSE close 2,529.70 / prev close 2,518.70 / OHLC, timestamped '11 Jun 26 | 16:00' — confirms the close date"
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=520111&seriesid=",
+     "used_for": "ISIN INE703B01027, face value ₹2.00, BSE classification Industrials > Capital Goods > Industrial Products > Iron & Steel Products, Group A, standalone ROE 13.03, ConPE 33.18"
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=520111",
+     "used_for": "Dividend history — confirms NO interim dividend in FY26 (last ex-date 02 Sep 2025 was the FY25 ₹14 final); FY26 has only the recommended ₹10 final"
+    },
+    {
+     "url": "https://trendlyne.com/equity/1114/RATNAMANI/ratnamani-metals-tubes-ltd/",
+     "used_for": "NSE close ₹2,532.30 (+0.62%/+₹15.60) timestamped 'NSE 11 Jun, 2026 3:31 PM'; sector Metals & Mining / Iron & Steel-Intermediate Products (their own taxonomy)"
+    },
+    {
+     "url": "https://www.tickertape.in/stocks/ratnamani-metals-and-tubes-RMT",
+     "used_for": "Close ₹2,532.30 (11 Jun 2026), mcap ₹17,749.40 Cr, P/E TTM 36.78, 52w 3,345 / 1,936.50, div yield 0.39%, Q4 FY26 revenue ₹1,084.82 Cr, PAT ₹104.65 Cr (owners' share), FY26 final dividend ₹10 (500%)"
+    },
+    {
+     "url": "https://groww.in/stocks/ratnamani-metals-tubes-ltd",
+     "used_for": "Cross-check: close ₹2,532.30, mcap ₹17,654 Cr, P/E 33.03, 52w 1,936.50–3,345.00, ROE 11.74%, BV ₹586.46"
+    },
+    {
+     "url": "https://www.investywise.com/ratnamani-metals-tubes-q4-fy26-financial-results/",
+     "used_for": "FY26 consolidated full-year revenue ₹4,493.96 Cr and PAT ₹534.47 Cr; Q4 FY26 consolidated revenue ₹1,084.82 Cr; ₹10 dividend; debt-free standalone, order book >₹1,800 Cr"
+    },
+    {
+     "url": "https://www.indiaipo.in/news/detail/ratnamani-metals-q4-fy26-revenue-profit-decline-dividend-rs10-recommended",
+     "used_for": "Filing-level Q4 FY26 consolidated net profit ₹11,590.72 lakh vs ₹20,315.97 lakh YoY (via search-result corpus across indiaipo/scanx/whalesbook; direct page fetch returned only the title shell)"
+    }
+   ],
+   "confidence_notes": "BASIS: consolidated throughout, as requested. Latest reported quarter IS Q4 FY26 (Jan–Mar 2026), reported with FY26 audited results approved at the 15 May 2026 board meeting. PRICE: NSE close 2,532.30 on Thu 11 Jun 2026 (4 sources agree: Trendlyne timestamped 3:31 PM IST, Tickertape, Groww, Screener); BSE close was 2,529.70 — if the app shows ~2,529.7 it is using BSE. ARITHMETIC — drawdown: (3,345 − 2,532.30)/3,345 × 100 = 812.70/3,345 × 100 = 24.297 ≈ 24.30%. ARITHMETIC — dividend yield on FY26 DPS: 10/2,532.30 × 100 = 0.395 ≈ 0.39% (Tickertape shows 0.39%, Groww 0.40%; Screener displays 0.55% because it uses the TRAILING FY25 dividend of ₹14: 14/2,532 = 0.553%). FY26 DIVIDEND: single component only — final ₹10/share (500% on FV ₹2), RECOMMENDED, subject to AGM approval 18 Aug 2026; record date 11 Aug 2026, payout by 17 Sep 2026; BSE corporate-action history confirms no FY26 interims. 52-WEEK RANGE: high 3,345.00 unanimous; low DISAGREES — 1,936.50 (NSE basis, Tickertape + Groww) vs 1,900 (Screener, likely BSE series low); I report the NSE figure. Q4 PAT DISAGREES by basis: consolidated net profit ₹115.91 Cr (filing: ₹11,590.72 lakh; Screener rounds to 116) vs ₹104.65 Cr on Tickertape = PAT attributable to owners (cross-checks with Q4 EPS 14.93 × ~7.01 Cr shares = 104.6); I report total consolidated 115.91. YoY: revenue (1,084.82 − 1,715)/1,715 = −36.7% (Q4 FY25 revenue ₹1,715 Cr per Screener — paise-level precision not confirmed); PAT (115.91 − 203.16)/203.16 = −42.95% ≈ −42.9% (filing comparator ₹20,315.97 lakh). P/E TTM DISAGREES: I report 36.78 = 2,532.30 / TTM owners' EPS 68.84 (sum of last 4 quarterly EPS: 18.81+19.43+15.67+14.93; matches Tickertape); Screener displays 36.2; Groww 33.03 and BSE ConPE 33.18 use mcap/FY26 total PAT (17,654/534.47 = 33.03). MARKET CAP varies with share count: 17,735 Cr (Screener, reported), 17,749.4 (Tickertape), 17,654 (Groww) — treat anything in 17,650–17,750 as a match. ROE DISAGREES: 12.6% (Screener consolidated, reported), 11.74% (Groww), 13.03% (BSE standalone). BOOK VALUE: 586.46 (Groww) ≈ 586 (Screener), both consolidated — reported; Tickertape's P/B 4.84 implies ~523 (different basis, likely ex-minority or older period). NSE's own API was Akamai-blocked and Moneycontrol unreachable from this environment; BSE official APIs used instead for exchange-level provenance. Nothing reported from memory; every figure traces to a fetch above."
+  },
+  {
+   "symbol": "GARFIBRES",
+   "entity": {
+    "name": "Garware Technical Fibres Limited",
+    "nse_symbol": "GARFIBRES",
+    "bse_code": "509557",
+    "isin": "INE276A01018",
+    "sector": "Consumer Discretionary",
+    "industry": "Textiles & Apparels — Other Textile Products (BSE Group A / BSE 1000; screener shows Consumer Discretionary > Textiles > Other Textile Products)"
+   },
+   "figures": {
+    "close_price_inr": 689.7,
+    "price_as_of": "2026-06-11 (NSE close, Thu 11 Jun 2026; trendlyne timestamp 15:31 IST). BSE close same day: 690.40",
+    "market_cap_inr_crore": 6845,
+    "pe_ttm": 34.5,
+    "week52_high": 970,
+    "week52_low": 579.75,
+    "drawdown_from_high_pct": 28.9,
+    "dividend_per_share_fy26_inr": 9,
+    "dividend_yield_pct": 1.3,
+    "q4_fy26_revenue_inr_crore": 426.41,
+    "q4_fy26_pat_inr_crore": 57.26,
+    "revenue_growth_yoy_pct": -1.42,
+    "pat_growth_yoy_pct": -19.44,
+    "roe_pct": 16.1,
+    "book_value_inr": 136.44
+   },
+   "sources": [
+    {
+     "url": "https://www.screener.in/company/GARFIBRES/consolidated/",
+     "used_for": "Close ~690 (11 Jun), market cap 6,845 Cr, 52w 970/579, BV 136, ROE 16.1%, div yield 1.16%, BSE code, quarterly table (Mar-26: 426/57; Mar-25: 433/71), FY26 annual (1,529 / 199 Cr)"
+    },
+    {
+     "url": "https://trendlyne.com/equity/441/GARFIBRES/garware-technical-fibres-ltd/",
+     "used_for": "Exact NSE close 689.70 on 11 Jun 2026 15:31 IST; independent '28.90% fall from 52W high' confirming drawdown and 970 high; sector Textiles Apparels & Accessories"
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=509557&seriesid=",
+     "used_for": "ISIN INE276A01018, security ID GARFIBRES, scrip 509557, FV 10, Group A/BSE 1000, sector/industry classification, consolidated TTM EPS 20.01 and consolidated P/E 34.50, standalone P/E 32.44, standalone ROE 18.72%"
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=509557&seriesid=",
+     "used_for": "BSE 11 Jun 2026 session: LTP/close 690.40, open 689.95, high 692.00, low 668.70, prev close 690.00; confirms 11 Jun was a trading day; full name Garware Technical Fibres Ltd"
+    },
+    {
+     "url": "https://dhan.co/stocks/garware-technical-fibres-ltd-share-price/",
+     "used_for": "Second source: P/E 34.50, BV 136.44, ROE 18.65% (alt), 52w high 970.00 / low 579.75, mcap 6,846 Cr, face value 10"
+    },
+    {
+     "url": "https://www.business-standard.com/amp/markets/capital-market-news/garware-technical-fibres-slides-as-q4-pat-tanks-19-yoy-to-rs-57-cr-126052100440_1.html",
+     "used_for": "Q4 FY26 consolidated: net sales 426.41 Cr (-1.42% YoY vs 432.55), PAT 57.26 Cr (-19.44% YoY vs 71.08), PBT before exceptionals 91.83 Cr (-5.11%)"
+    },
+    {
+     "url": "https://trendlyne.com/equity/Dividend/GARFIBRES/441/garware-technical-fibres-ltd-dividend/",
+     "used_for": "Dividend history: FY26 interim Rs 8.00/share ex-date 14 Nov 2025; FY25 final Rs 1.50 ex 26 Aug 2025; trailing-12M dividend 9.50 and 1.38% TTM yield"
+    },
+    {
+     "url": "https://www.investywise.com/garware-technical-fibres-audited-results-and-dividend-recommendation/",
+     "used_for": "FY26 audited results announcement: board recommended final dividend Rs 1/share (10%), FY26 consolidated revenue 1,528.79 Cr and PAT 198.67 Cr (corroborated by scanx.trade)"
+    }
+   ],
+   "confidence_notes": "All figures from live fetches on 12 Jun 2026; nothing from memory. BASIS: consolidated throughout unless noted. CLOSE: NSE close 689.70 (trendlyne, 11 Jun 15:31 IST; screener shows rounded 690, -0.03% vs prev 689.90 — consistent). BSE closed at 690.40 same day — app diffs should expect 689.70 (NSE) or 690.40 (BSE) depending on feed. DRAWDOWN arithmetic: (970.00 − 689.70) / 970.00 × 100 = 280.30/970 = 28.897 → 28.90%; trendlyne independently displays 28.90%. MARKET CAP: screener 6,845 Cr, dhan 6,846 Cr; implied shares ~9.92 cr (FV 10; consistent with ConEPS 20.01 × 9.92 cr ≈ 198.6 Cr PAT). P/E TTM: reported 34.5 = consolidated (BSE ConPE 34.50, dhan 34.50; 689.70/20.01 = 34.47). DISAGREEMENT: screener shows 32.8 and BSE standalone PE is 32.44 — the app may show either; 34.5 is the correct consolidated TTM figure. DIVIDEND FY26: interim Rs 8.00 (80%, ex-date 14 Nov 2025) + final Rs 1.00 (10%, board-recommended with FY26 results, subject to AGM approval, ex-date not yet set) = Rs 9.00 total declared for FY26. Yield arithmetic: 9.00/689.70 × 100 = 1.3049 → 1.30%. Alternate yield bases the app might use: 1.16% (screener/dhan, Rs 8 only) or 1.38% (trendlyne TTM basis Rs 9.50 = FY25 final 1.50 + interim 8.00). Q4 FY26 (Jan–Mar 2026, reported ~21 May 2026, audited): consolidated revenue 426.41 Cr vs 432.55 → (426.41/432.55 − 1) = −1.42% YoY; PAT 57.26 Cr vs 71.08 → −19.44% YoY. Confirmed by both Business Standard and screener quarterly table (426/57 vs 433/71). FY26 full year: revenue 1,528.79 Cr, PAT 198.67 Cr (vs FY25 1,540/232 — both declined YoY). ROE DISAGREEMENT: screener 16.1% (consolidated, FY26 PAT vs net worth) vs dhan 18.65% / BSE standalone 18.72% — reported 16.1 as primary (consolidated, current-FY); both stated per instructions, not averaged. BOOK VALUE: 136.44 (dhan) / 136 (screener), consolidated; BSE standalone implied BV ~113.7 (price/PB 6.07) — app may show the standalone figure. 52W LOW 579.75 (dhan; screener rounds to 579) — single precise source for the decimal, rounded value double-confirmed. Note: share count is ~5x historical (~1.98 cr → ~9.92 cr), implying a bonus issue before the FY26 interim dividend; both FY26 dividend components are on the current (post-action) share base, so the Rs 9 sum is internally consistent."
+  },
+  {
+   "symbol": "CUMMINSIND",
+   "entity": {
+    "name": "Cummins India Limited",
+    "nse_symbol": "CUMMINSIND",
+    "bse_code": "500480",
+    "isin": "INE298A01020",
+    "sector": "Industrials / Capital Goods (BSE: Sector 'Industrials', Industry-New 'Capital Goods', Group A, BSE 100)",
+    "industry": "Industrial Products — Compressors, Pumps & Diesel Engines"
+   },
+   "figures": {
+    "close_price_inr": 5557,
+    "price_as_of": "2026-06-11 (Thursday) NSE close, from official NSE bhavcopy; BSE close same day was 5552.40",
+    "market_cap_inr_crore": 154102,
+    "pe_ttm": 65.2,
+    "week52_high": 6100,
+    "week52_low": 3212.2,
+    "drawdown_from_high_pct": 8.9,
+    "dividend_per_share_fy26_inr": 66,
+    "dividend_yield_pct": 1.19,
+    "q4_fy26_revenue_inr_crore": 2963.2,
+    "q4_fy26_pat_inr_crore": 649.46,
+    "revenue_growth_yoy_pct": 22.04,
+    "pat_growth_yoy_pct": 22.66,
+    "roe_pct": 30.2,
+    "book_value_inr": 305.74
+   },
+   "sources": [
+    {
+     "url": "https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_20260611_F_0000.csv.zip",
+     "used_for": "Official NSE close for 2026-06-11: ClsPric 5557.00 (open 5590.50, high 5709.50, low 5541.00, prev close 5609.50); also confirms ISIN INE298A01020"
+    },
+    {
+     "url": "https://nsearchives.nseindia.com/content/CM_52_wk_High_low_11062026.csv",
+     "used_for": "Official NSE 52-week high 6100.00 (29-MAY-2026) and low 3212.20 (20-JUN-2025) as of 11-Jun-2026"
+    },
+    {
+     "url": "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
+     "used_for": "Official legal name 'Cummins India Limited', series EQ, listing date 29-MAR-1995, face value Rs 2, ISIN INE298A01020"
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=500480&seriesid=",
+     "used_for": "BSE close 11 Jun 26 16:00: LTP 5552.40 (-0.98%), prev close 5607.25; scrip code 500480"
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=500480&seriesid=",
+     "used_for": "BSE classification (Industrials / Capital Goods / Industrial Products / Compressors, Pumps & Diesel Engines), ISIN, face value 2.00, consolidated EPS 85.20 and ConPE 65.17, standalone EPS 84.06/PE 66.05, BSE standalone ROE 35.98"
+    },
+    {
+     "url": "https://www.screener.in/company/CUMMINSIND/consolidated/",
+     "used_for": "Close Rs 5,557 as of 11 Jun (-0.94%), market cap Rs 1,54,102 Cr, P/E 63.6, book value ~Rs 306, ROE 30.2%, dividend yield 1.19%, quarterly table (Mar 2026 sales 3,011 / NP 649 vs Mar 2025 2,470 / 530)"
+    },
+    {
+     "url": "https://groww.in/stocks/cummins-india-ltd",
+     "used_for": "Cross-check: price 5,557.00 (-0.94%), 52w 6,100.00/3,212.20, book value 305.74, ROE 27.87%, div yield 1.18%, mcap 1,55,433 Cr, PE 65.81"
+    },
+    {
+     "url": "https://insights.dsij.in/dsijarticledetail/highest-ever-dividend-indias-leading-engine-manufacturer-reports-q4fy26-results-pat-jumps-23-id021",
+     "used_for": "Q4 FY26 consolidated filing detail: revenue from operations 2,963.20 Cr vs 2,428.13 Cr (+22.04%), PAT 649.46 Cr vs 529.50 Cr (+22.66%), total income 3,155.89 Cr; FY26 consolidated revenue 11,949.73 Cr, PAT 2,361.75 Cr; dividend Rs 46 final + Rs 20 interim"
+    },
+    {
+     "url": "https://www.multibagg.ai/market-pulse/articles/cummins-india-q4fy26-results-2026-cmq60ibu9dtu3mi0jtdlogcph",
+     "used_for": "Q4 FY26 cross-check: sales 2,963 Cr (+~22% YoY vs 2,428 Cr), PAT 649.46-650.12 Cr (+22% YoY), FY26 revenue 11,950 Cr, standalone FY26 PAT 2,330.18 Cr, dividend 46 final + 20 interim"
+    },
+    {
+     "url": "https://www.business-standard.com/markets/capital-market-news/cummins-india-q4-pat-jumps-25-yoy-recommends-final-dividend-of-rs-46-share-126052701271_1.html",
+     "used_for": "(via search snippet only; direct fetch returned 403) Final dividend Rs 46/share for FY26, interim Rs 20 declared 4 Feb 2026, record date 17 Jul 2026, payment on/before 4 Sep 2026"
+    }
+   ],
+   "confidence_notes": "CLOSE: NSE official bhavcopy ClsPric for 2026-06-11 = 5557.00 (settlement price also 5557.00); Screener and Groww both show 5,557 (-0.94%). BSE close same day = 5,552.40. High confidence.\n\n52-WEEK & DRAWDOWN: NSE official 52-wk file (11-Jun-2026): high 6,100.00 (29-May-2026), low 3,212.20 (20-Jun-2025) — Groww matches. Screener shows 6,143/3,202 (appears BSE-based); I used the NSE official figures. Drawdown arithmetic: (6100.00 - 5557.00)/6100.00 x 100 = 543.00/6100.00 x 100 = 8.9016 -> 8.90%. If the app uses screener's BSE high 6,143: (6143-5557)/6143 = 9.54%.\n\nMARKET CAP: Sources disagree slightly — Screener 1,54,102 Cr, Groww 1,55,433 Cr. Computed: 27.72 Cr shares (implied by FY26 consolidated PAT 2,361.75 Cr / BSE ConEPS 85.20 = 27.72 Cr; face value Rs 2, equity Rs 55.44 Cr) x 5,557 = 1,54,040 Cr. I report Screener's 1,54,102; true NSE-close-based value is ~1,54,040 Cr.\n\nP/E TTM: Disagreement. BSE API consolidated ConEPS = 85.20, ConPE = 65.17 (at BSE close 5552.40); at NSE close: 5557.00/85.20 = 65.22 (reported as 65.2). Screener shows 63.6 (implies EPS ~87.4, basis unclear); Groww 65.81 (standalone EPS 84.06+ basis). FY26 consolidated EPS 85.20 cross-checks exactly (2361.75/27.72). Since FY26 is the last reported quarter, TTM = FY26.\n\nDIVIDEND FY26: Interim Rs 20/share (declared 4 Feb 2026) + final Rs 46/share (recommended with Q4 results 27 May 2026, record date 17 Jul 2026, subject to AGM) = Rs 66 total — confirmed by Business Standard (snippet), DSIJ, Multibagg. Yield arithmetic: 66/5557 x 100 = 1.1877 -> 1.19% (Screener 1.19, Groww 1.18, consistent).\n\nQ4 FY26 (Jan-Mar 2026, CONSOLIDATED — reported 27 May 2026): revenue from operations 2,963.20 Cr vs 2,428.13 Cr; growth = 535.07/2428.13 = 22.04%. PAT 649.46 Cr vs 529.50 Cr; growth = 119.96/529.50 = 22.66%. Note: Screener's quarterly table shows Mar-2026 'Sales' 3,011 Cr (vs 2,470) — likely includes other operating income; the filing-level revenue-from-operations figure (2,963.20) is reported. Total income incl. other income was 3,155.89 Cr. Business Standard's '25% PAT jump' headline appears to be the standalone basis (standalone FY26 PAT 2,330.18 Cr per Multibagg).\n\nROE: Sources disagree — Screener 30.2% (consolidated, average-net-worth basis), Groww 27.87% (= FY26 consol PAT 2,361.75 / closing net worth ~8,475 Cr), BSE API 35.98% (standalone, basis unclear). Reported 30.2 (Screener convention); state both if diffing.\n\nBOOK VALUE: Groww 305.74 (consolidated, per share); Screener ~306 (rounded). Consistent.\n\nAll figures from live fetches on 12 Jun 2026; nothing taken from training memory. NSE quote API itself was blocked (Akamai), but the official NSE archive files (bhavcopy, 52-wk CSV, EQUITY_L) substitute as primary exchange sources."
+  },
+  {
+   "symbol": "POLYCAB",
+   "entity": {
+    "name": "Polycab India Limited",
+    "nse_symbol": "POLYCAB",
+    "bse_code": "542652",
+    "isin": "INE455K01017",
+    "sector": "Industrials / Capital Goods",
+    "industry": "Electrical Equipment & Parts — Wires & Cables"
+   },
+   "figures": {
+    "close_price_inr": 9372,
+    "price_as_of": "2026-06-11 (Thursday, NSE close 15:30 IST)",
+    "market_cap_inr_crore": 143431,
+    "pe_ttm": 52.96,
+    "week52_high": 9833,
+    "week52_low": 5760,
+    "drawdown_from_high_pct": 4.69,
+    "dividend_per_share_fy26_inr": 47,
+    "dividend_yield_pct": 0.5,
+    "q4_fy26_revenue_inr_crore": 8864,
+    "q4_fy26_pat_inr_crore": 786,
+    "revenue_growth_yoy_pct": 26.88,
+    "pat_growth_yoy_pct": 7.08,
+    "roe_pct": 24.5,
+    "book_value_inr": 798
+   },
+   "sources": [
+    {
+     "url": "https://www.screener.in/company/POLYCAB/consolidated/",
+     "used_for": "Close price ₹9,372 (11 Jun), P/E 52.8, book value ₹798, dividend yield 0.50%, ROE 24.5%, 52w high/low 9,833/5,760, Q4 FY26 consolidated sales ₹8,864 Cr & PAT ₹786 Cr vs Q4 FY25 ₹6,986 Cr & ₹734 Cr, FY26 revenue ₹28,884 Cr & PAT ₹2,708 Cr; also its market cap ₹1,41,149 Cr (flagged as outlier)"
+    },
+    {
+     "url": "https://stockanalysis.com/quote/nse/POLYCAB/",
+     "used_for": "Close ₹9,372.00 explicitly timestamped June 11, 2026 15:30 IST (-1.59%), market cap ₹1.43 trillion, TTM EPS 176.95, 52w range 5,760–9,833, DPS ₹47 with ex-date 19 Jun 2026, sector Industrials / industry Electrical Equipment & Parts"
+    },
+    {
+     "url": "https://stockanalysis.com/quote/nse/POLYCAB/dividend/",
+     "used_for": "Dividend history: ₹47/share ex-date 19 Jun 2026 pay 29 Jul 2026 (FY26 final); prior payout ₹35 ex-date 24 Jun 2025 was FY25's final — confirms single annual payout, no FY26 interim"
+    },
+    {
+     "url": "https://groww.in/stocks/polycab-india-ltd",
+     "used_for": "Close ₹9,372.00 / prev close ₹9,523.50, market cap ₹1,43,431 Cr, P/E 55.14, ROE 21.96%, book value ₹786.30, yield 0.49%, 52w 9,833/5,760"
+    },
+    {
+     "url": "https://www.bajajbroking.in/share-market-news/polycab-q4fy26-results-pat-up-7-percent-shares-gain-6-percent",
+     "used_for": "Q4 FY26 results cross-check: revenue +27% YoY to ₹8,865 Cr, PAT +7% to ₹786 Cr"
+    },
+    {
+     "url": "https://scanx.trade/stock-market-news/companies/polycab-india-board-approves-fy26-annual-results-recommends-47-per-share-dividend/39605444",
+     "used_for": "FY26 board-approved results: consolidated revenue ₹2,88,837.92 mn (vs ₹2,24,083.13 mn FY25), PAT ₹27,084.27 mn (vs ₹20,455.37 mn), final dividend ₹47/share recommended"
+    },
+    {
+     "url": "https://www.investonline.in/markets/stocks/INE455K01017/542652/POLYCAB/EQ/polycab-india-ltd",
+     "used_for": "Identity verification: ISIN INE455K01017, BSE scrip code 542652, NSE symbol POLYCAB"
+    },
+    {
+     "url": "https://nsearchives.nseindia.com/corporate/POLYCAB_28042026172110_Intimation_of_Earnings_Call.pdf",
+     "used_for": "Confirms Q4 FY26 earnings call intimation (Polycab India Limited letterhead, results reported early May 2026)"
+    }
+   ],
+   "confidence_notes": "CLOSE PRICE (high confidence): ₹9,372.00 on Thu 11 Jun 2026, triple-confirmed (screener.in \"as of 11 Jun -1.59%\", stockanalysis.com \"June 11, 2026 3:30 PM IST\", Groww prev close ₹9,523.50 → 9372−9523.5 = −151.5 = −1.59%). A search snippet claimed \"₹9540 as on 10 June\" vs the 9,523.50 prev close shown by Groww/stockanalysis — minor discrepancy on the 10-Jun close only; the 11-Jun close itself is consistent everywhere. MARKET CAP (sources disagree): reported 143,431 Cr per Groww, corroborated by stockanalysis (₹1.43T) and by EPS-implied share count (FY26 PAT 2,708.4 Cr ÷ TTM EPS 176.95 = 15.31 Cr shares; 15.31 Cr × 9,372 = ~1,43,485 Cr). Screener shows ₹1,41,149 Cr (implies 15.06 Cr shares — likely stale share count); both stated, not averaged. P/E TTM (sources disagree): I report 52.96 = 9,372 ÷ TTM EPS 176.95, identical to mcap/PAT (1,43,431 ÷ 2,708.4 = 52.96). Screener displays 52.8; stockanalysis header shows 53.82 (computed at prev close 9,523.5: 53.82 × 176.95 = 9,523); Groww shows 55.14 (unclear EPS basis). DRAWDOWN ARITHMETIC: (9,833 − 9,372)/9,833 × 100 = 461/9,833 × 100 = 4.6883 ≈ 4.69%. DIVIDEND: FY26 = single final dividend ₹47/share (board-recommended with Q4 FY26 results, ex-date 19 Jun 2026, pay 29 Jul 2026); NO interim in FY26 — the ₹35 paid Jul 2025 was FY25's final. Yield = 47/9,372 × 100 = 0.5015 ≈ 0.50% (stockanalysis/Groww show 0.49%, computed at prev close: 47/9,523.5 = 0.49%). Q4 FY26 (CONSOLIDATED basis, Jan–Mar 2026, reported early May 2026): revenue ₹8,864 Cr (news round to 8,865) vs ₹6,986 Cr → (8,864−6,986)/6,986 = 26.88% (news: 27%); PAT ₹786 Cr vs ₹734 Cr → 52/734 = 7.08% (news: 7%). ROE (sources disagree): reported 24.5% per screener (avg-equity basis); Groww shows 21.96% (closing-equity basis ≈ 2,708/12,030 = 22.5%) — methodology difference, both stated. BOOK VALUE (sources disagree): reported ₹798 per screener; Groww shows ₹786.30 — same ~₹12,020 Cr net worth divided by differing share counts (15.06 vs 15.30 Cr). SECTOR/INDUSTRY: classifications vary by vendor (stockanalysis: Industrials / Electrical Equipment & Parts; moneycontrol-style: Cables; NSE filings: Electricals/Capital Goods) — composite given. Moneycontrol and NSE's quote API were inaccessible (blocked), so official-exchange market cap could not be fetched directly; all figures above are from at least one fetched source, with disagreements enumerated rather than averaged."
+  },
+  {
+   "symbol": "JYOTHYLAB",
+   "entity": {
+    "name": "Jyothy Labs Limited",
+    "nse_symbol": "JYOTHYLAB",
+    "bse_code": "532926",
+    "isin": "INE668F01031",
+    "sector": "Fast Moving Consumer Goods",
+    "industry": "Household Products"
+   },
+   "figures": {
+    "close_price_inr": 199.99,
+    "price_as_of": "2026-06-11",
+    "market_cap_inr_crore": 7348,
+    "pe_ttm": 22.05,
+    "week52_high": 364.8,
+    "week52_low": 196.15,
+    "drawdown_from_high_pct": 45.18,
+    "dividend_per_share_fy26_inr": 3.5,
+    "dividend_yield_pct": 1.75,
+    "q4_fy26_revenue_inr_crore": 717,
+    "q4_fy26_pat_inr_crore": 67.52,
+    "revenue_growth_yoy_pct": 7.7,
+    "pat_growth_yoy_pct": -12.3,
+    "roe_pct": 19,
+    "book_value_inr": 55.8
+   },
+   "sources": [
+    {
+     "url": "https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_20260611_F_0000.csv.zip",
+     "used_for": "NSE official 11-Jun-2026 data: close (ClsPric) 199.99, last 199.51, prev close 198.70, O/H/L 198.50/202.95/196.31, volume 588,038; ISIN INE668F01031; legal name JYOTHY LABS LIMITED"
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=532926&seriesid=",
+     "used_for": "BSE 11-Jun-2026 close 200.85 (+1.13%), prev close 198.60, as-on '11 Jun 26 | 16:00'"
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=532926&seriesid=",
+     "used_for": "ISIN, sector 'Fast Moving Consumer Goods', industry 'Household Products', Group A / BSE 500, face value Rs 1, EPS 9.07, PE 22.14, PB 6.05, ROE 27.32 (standalone basis)"
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=532926",
+     "used_for": "FY26 dividend: single Final Dividend Rs 3.50, ex-date 29 Jun 2026, payment 14 Jul 2026; no FY26 interim; history FY25 3.50, FY24 3.50, FY23 3.00"
+    },
+    {
+     "url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=532926",
+     "used_for": "BSE full market cap Rs 7,375.50 Cr (at BSE 200.85, implies 36.72 cr shares), free-float mcap Rs 2,717.56 Cr"
+    },
+    {
+     "url": "https://www.screener.in/company/JYOTHYLAB/consolidated/",
+     "used_for": "Market cap Rs 7,348 Cr at price ~200, 52w 365/196, BV 55.8, ROE 19.0%, div yield 1.75%, FY25 consolidated comparatives (sales 2,847 Cr, PAT 370 Cr); NOTE: fundamentals snapshot stale, quarterly table ends Mar 2025"
+    },
+    {
+     "url": "https://www.google.com/finance/quote/JYOTHYLAB:NSE",
+     "used_for": "Last price 199.51 (Jun 11 15:59 IST), 52w high 364.80 / low 196.15, P/E 22.00, div yield 1.75%, mcap 73.91B (outlier)"
+    },
+    {
+     "url": "https://www.prokerala.com/news/articles/a1758676.html",
+     "used_for": "Q4 FY26 (announced 4 May 2026): revenue Rs 717 Cr (+7.7% vs Rs 666 Cr), PAT Rs 67.5 Cr (vs Rs 77 Cr), EBITDA 96.7 vs 112.3 (-14%), final dividend Rs 3.50"
+    },
+    {
+     "url": "https://www.equitybulls.com/category.php?id=370041",
+     "used_for": "Precise Q4 FY26 PAT figure Rs 67.52 crore (headline)"
+    },
+    {
+     "url": "https://www.whalesbook.com/corporate-news/English/consumer-products/Jyothy-Labs-FY26-Revenue-Up-Profit-Falls-indian-rupee350-Dividend-Recommended/69f869829d1c90664821a37f",
+     "used_for": "FY26 full year: revenue Rs 2,944.29 Cr vs FY25 Rs 2,843.92 Cr; PAT Rs 333.19 Cr vs Rs 371.17 Cr; Rs 3.50 final dividend; post-Bangladesh-divestment financials reflect Indian operations"
+    },
+    {
+     "url": "https://www.investywise.com/jyothy-labs-q4-fy26-earnings-transcript/",
+     "used_for": "FY26 revenue INR 2,944 Cr (+3.5%), PAT INR 333 Cr, EBITDA margin 15.3%, cash INR 1,000 Cr, final dividend INR 3.5"
+    }
+   ],
+   "confidence_notes": "CLOSE PRICE: NSE official close 199.99 (bhavcopy ClsPric, 11 Jun 2026); last traded price was 199.51 (Google Finance shows this as 'close'); BSE close 200.85. If the app shows ~199.5, it is using NSE last-trade; if ~200.85, BSE. DRAWDOWN ARITHMETIC: (364.80 - 199.99) / 364.80 x 100 = 164.81 / 364.80 x 100 = 45.18% (vs 52w high 364.80 from Google Finance; screener rounds to 365/196; NSE 52w band not directly retrievable - quote API blocked by Akamai). MARKET CAP: field uses screener 7,348 Cr (NSE-close basis, ~36.74 cr shares); BSE full mcap 7,375.50 Cr at BSE price 200.85 (36.72 cr shares); Google 73.91B is an outlier (implies 37.0 cr shares) - 7,344-7,376 Cr is the defensible range. P/E TTM: field 22.05 = 199.99 / 9.07 (BSE-reported FY26 EPS 9.07 = PAT 333.19 Cr / 36.72 cr shares); Google 22.00 at last price 199.51; BSE 22.14 at 200.85. WARNING: screener shows P/E 20.1 but its fundamentals snapshot is STALE (quarterly table ends Mar 2025, so its TTM EPS is FY25's ~10.07) - do not treat 20.1 as current. Q4 FY26 (Jan-Mar 2026, announced 4 May 2026): revenue Rs 717 Cr vs 666 Cr = +7.66% (~7.7% as company stated); PAT Rs 67.52 Cr vs ~77 Cr = -12.3% (67.52/77 - 1 = -12.31%; screener's stale page shows Mar-2025 PAT as 76 Cr - rounding/OCI difference, news/company base is 77). Basis: company results; after the Bangladesh subsidiary sale (Mar 2025) consolidated effectively equals Indian operations - treated as consolidated. FY26 full year: revenue 2,944.29 Cr (+3.5% vs 2,843.92), PAT 333.19 Cr (vs 371.17). DIVIDEND: FY26 = single final Rs 3.50 (BSE corporate actions; ex-date 29 Jun 2026, payment 14 Jul 2026), NO interim during FY26; yield = 3.50 / 199.99 = 1.7501% -> 1.75% (matches screener and Google independently). ROE - SOURCES DISAGREE: field 19.0% is screener consolidated but FY25-vintage; BSE shows 27.32% (standalone basis, FY26 EPS); arithmetic cross-check 333.19 / (~2,050 Cr FY25 consolidated net worth) ~ 16.3%, so true FY26 consolidated ROE is likely mid-teens - no fetched source publishes it directly. BOOK VALUE - SOURCES DISAGREE: field 55.8 is screener consolidated FY25 (stale; FY26 consolidated BV not published in any fetched source); BSE PB 6.05 implies standalone BV ~ 33.2. Identity fields are solid (NSE bhavcopy + two BSE API endpoints agree on ISIN/symbol/scrip)."
+  }
+ ],
+ "screen": {
+  "matching_companies": [
+   {
+    "symbol": "MASTEK",
+    "name": "Mastek Ltd",
+    "market_cap_inr_crore": 4868,
+    "pe_ttm": 11.5,
+    "roe_pct": 15.6
+   },
+   {
+    "symbol": "DATAMATICS",
+    "name": "Datamatics Global Services Ltd",
+    "market_cap_inr_crore": 4445,
+    "pe_ttm": 18.6,
+    "roe_pct": 16.4
+   },
+   {
+    "symbol": "CIGNITITEC",
+    "name": "Cigniti Technologies Ltd",
+    "market_cap_inr_crore": 3472,
+    "pe_ttm": 11.4,
+    "roe_pct": 26
+   },
+   {
+    "symbol": "RSYSTEMS",
+    "name": "R Systems International Ltd",
+    "market_cap_inr_crore": 2882,
+    "pe_ttm": 12.5,
+    "roe_pct": 24.4
+   },
+   {
+    "symbol": "NUCLEUS",
+    "name": "Nucleus Software Exports Ltd",
+    "market_cap_inr_crore": 1967,
+    "pe_ttm": 14.8,
+    "roe_pct": 15.5
+   },
+   {
+    "symbol": "CEINSYS",
+    "name": "Ceinsys Tech Ltd",
+    "market_cap_inr_crore": 1901,
+    "pe_ttm": 14.2,
+    "roe_pct": 24.8
+   },
+   {
+    "symbol": "SAKSOFT",
+    "name": "Saksoft Ltd",
+    "market_cap_inr_crore": 1831,
+    "pe_ttm": 13.4,
+    "roe_pct": 19.6
+   },
+   {
+    "symbol": "ACCELYA",
+    "name": "Accelya Solutions India Ltd",
+    "market_cap_inr_crore": 1674,
+    "pe_ttm": 16,
+    "roe_pct": 45.5
+   },
+   {
+    "symbol": "DSSL",
+    "name": "Dynacons Systems & Solutions Ltd",
+    "market_cap_inr_crore": 1667,
+    "pe_ttm": 19.66,
+    "roe_pct": 31.1
+   },
+   {
+    "symbol": "INFOBEAN",
+    "name": "InfoBeans Technologies Ltd",
+    "market_cap_inr_crore": 1587,
+    "pe_ttm": 18.3,
+    "roe_pct": 23.2
+   },
+   {
+    "symbol": "MCLOUD",
+    "name": "Magellanic Cloud Ltd",
+    "market_cap_inr_crore": 1319,
+    "pe_ttm": 11.4,
+    "roe_pct": 19.2
+   },
+   {
+    "symbol": "IVALUE",
+    "name": "iValue Infosolutions Ltd",
+    "market_cap_inr_crore": 1263,
+    "pe_ttm": 12.4,
+    "roe_pct": 19.8
+   },
+   {
+    "symbol": "EXPLEOSOL",
+    "name": "Expleo Solutions Ltd",
+    "market_cap_inr_crore": 1200,
+    "pe_ttm": 8.87,
+    "roe_pct": 19.2
+   },
+   {
+    "symbol": "XCHANGING",
+    "name": "Xchanging Solutions Ltd",
+    "market_cap_inr_crore": 685,
+    "pe_ttm": 11.5,
+    "roe_pct": 15.8
+   },
+   {
+    "symbol": "INNOVANA",
+    "name": "Innovana Thinklabs Ltd",
+    "market_cap_inr_crore": 664,
+    "pe_ttm": 17.4,
+    "roe_pct": 16
+   },
+   {
+    "symbol": "KSOLVES",
+    "name": "Ksolves India Ltd",
+    "market_cap_inr_crore": 661,
+    "pe_ttm": 19.2,
+    "roe_pct": 132
+   },
+   {
+    "symbol": "SAHANA",
+    "name": "Sahana System Ltd (NSE Emerge/SME)",
+    "market_cap_inr_crore": 631,
+    "pe_ttm": 9.29,
+    "roe_pct": 31.7
+   },
+   {
+    "symbol": "ONWARDTEC",
+    "name": "Onward Technologies Ltd",
+    "market_cap_inr_crore": 571,
+    "pe_ttm": 12.2,
+    "roe_pct": 19.5
+   },
+   {
+    "symbol": "INSPIRISYS",
+    "name": "Inspirisys Solutions Ltd",
+    "market_cap_inr_crore": 424,
+    "pe_ttm": 9.97,
+    "roe_pct": 53.6
+   },
+   {
+    "symbol": "SIGMA",
+    "name": "Sigma Solve Ltd",
+    "market_cap_inr_crore": 415,
+    "pe_ttm": 17.4,
+    "roe_pct": 37.8
+   },
+   {
+    "symbol": "VGINFOTECH",
+    "name": "Virtual Galaxy Infotech Ltd (NSE Emerge/SME)",
+    "market_cap_inr_crore": 398,
+    "pe_ttm": 8.63,
+    "roe_pct": 29.6
+   },
+   {
+    "symbol": "SYSTANGO",
+    "name": "Systango Technologies Ltd (NSE Emerge/SME)",
+    "market_cap_inr_crore": 321,
+    "pe_ttm": 10.1,
+    "roe_pct": 26.8
+   },
+   {
+    "symbol": "ALLETEC",
+    "name": "All E Technologies Ltd (NSE Emerge/SME)",
+    "market_cap_inr_crore": 278,
+    "pe_ttm": 10.4,
+    "roe_pct": 17.1
+   },
+   {
+    "symbol": "FIDEL",
+    "name": "Fidel Softech Ltd (NSE Emerge/SME)",
+    "market_cap_inr_crore": 227,
+    "pe_ttm": 15.8,
+    "roe_pct": 28.3
+   },
+   {
+    "symbol": "DRCSYSTEMS",
+    "name": "DRC Systems India Ltd",
+    "market_cap_inr_crore": 207,
+    "pe_ttm": 10.3,
+    "roe_pct": 22.6
+   },
+   {
+    "symbol": "OPTIVALUE",
+    "name": "OptiValue Tek Consulting Ltd (NSE Emerge/SME)",
+    "market_cap_inr_crore": 183,
+    "pe_ttm": 13.3,
+    "roe_pct": 22.2
+   },
+   {
+    "symbol": "ENSER",
+    "name": "Enser Communications Ltd (NSE Emerge/SME)",
+    "market_cap_inr_crore": 135,
+    "pe_ttm": 15.2,
+    "roe_pct": 23.2
+   },
+   {
+    "symbol": "MGSL",
+    "name": "Matrix Geo Solutions Ltd (NSE Emerge/SME)",
+    "market_cap_inr_crore": 94,
+    "pe_ttm": 9.35,
+    "roe_pct": 23
+   },
+   {
+    "symbol": "MOBILISE",
+    "name": "Mobilise App Lab Ltd (NSE Emerge/SME)",
+    "market_cap_inr_crore": 92.7,
+    "pe_ttm": 16.6,
+    "roe_pct": 29.4
+   },
+   {
+    "symbol": "DELAPLEX",
+    "name": "Delaplex Ltd (NSE Emerge/SME)",
+    "market_cap_inr_crore": 90.4,
+    "pe_ttm": 7.04,
+    "roe_pct": 15.7
+   },
+   {
+    "symbol": "CALSOFT",
+    "name": "California Software Company Ltd",
+    "market_cap_inr_crore": 46.8,
+    "pe_ttm": 4.4,
+    "roe_pct": 32.5
+   }
+  ],
+  "near_misses": [
+   {
+    "symbol": "SONATSOFTW",
+    "reason": "Fails market cap only: ₹7,134 cr (> 5,000). P/E 14.0, ROE 28.2% both pass."
+   },
+   {
+    "symbol": "TANLA",
+    "reason": "Fails market cap only: ₹6,635 cr (> 5,000). P/E 13.0, ROE 21.4% both pass."
+   },
+   {
+    "symbol": "NEWGEN",
+    "reason": "Fails market cap only: ₹6,484 cr (> 5,000). P/E 19.5 and ROE 20.2% pass — note P/E is itself a boundary value (19.54, standalone 20.4), so this name catches two boundary bugs at once."
+   },
+   {
+    "symbol": "TERASOFT",
+    "reason": "Fails P/E only: 21.1 (> 20). Mcap ₹524 cr, ROE 18.5% both pass."
+   },
+   {
+    "symbol": "AURIONPRO",
+    "reason": "Fails ROE only: 13.4% (< 15). Mcap ₹4,158 cr, P/E 19.10 pass — P/E is also a boundary value just under 20."
+   },
+   {
+    "symbol": "ZAGGLE",
+    "reason": "Fails ROE only: 10.0% standalone / 10.4% consolidated (< 15). Mcap ₹2,612 cr, P/E 18.9–19.7 pass (P/E also boundary: screener standalone default 19.66)."
+   },
+   {
+    "symbol": "BCG",
+    "reason": "Brightcom Group — fails ROE only: 9.99% (< 15). Mcap ₹2,060 cr, P/E 2.14 pass. Caveat: suspension revoked July 2025; trades on NSE in BE series (trade-for-trade); financials data quality is poor (past fraud investigation)."
+   },
+   {
+    "symbol": "EXCELSOFT",
+    "reason": "Excelsoft Technologies — fails ROE only: 9.83% (< 15). Mcap ₹900 cr, P/E 19.29 pass (P/E also a boundary value just under 20)."
+   },
+   {
+    "symbol": "KELLTONTEC",
+    "reason": "Fails ROE only on consolidated basis: 13.6% (< 15). Mcap ₹797 cr, P/E 8.69 pass. Contested: standalone ROE is 21.1% — a basis-handling bug would flip this name into the result set."
+   },
+   {
+    "symbol": "ADSL",
+    "reason": "Allied Digital — fails ROE only: 5.9% consolidated (< 15; FY26 had losses/impairment, standalone ROE −0.85%). Mcap ₹646 cr, P/E 17.96 pass."
+   },
+   {
+    "symbol": "MINDTECK",
+    "reason": "Fails ROE only: 12.1% (< 15). Mcap ₹642 cr, P/E 18.8 pass."
+   },
+   {
+    "symbol": "SUBEXLTD",
+    "reason": "Fails ROE only on consolidated basis: 9.91% (< 15). Mcap ₹562 cr, P/E 17.5 pass. Contested: standalone ROE 21.1% — basis-sensitive like Kellton."
+   },
+   {
+    "symbol": "DIGISPICE",
+    "reason": "Fails ROE only: 10.9% (< 15). Mcap ₹469 cr, P/E 19.27 pass (P/E also boundary, just under 20)."
+   },
+   {
+    "symbol": "CYBERTECH",
+    "reason": "Fails ROE only: 13.2% (< 15). Mcap ₹416 cr, P/E 13.7 pass."
+   },
+   {
+    "symbol": "3IINFOLTD",
+    "reason": "3i Infotech — fails ROE only: 11.1% (< 15). Mcap ₹352 cr, P/E 9.23 pass."
+   },
+   {
+    "symbol": "CANARYS",
+    "reason": "Canarys Automations — fails ROE only and right at the boundary: 14.6% (< 15 by 0.4pp). Mcap ₹112 cr, P/E 8.05 pass. Prime catch for a >= vs > boundary bug."
+   },
+   {
+    "symbol": "ROXHITECH",
+    "reason": "ROX Hi-Tech (NSE Emerge/SME) — fails ROE only on screener's default standalone basis: 14.6% (< 15), P/E 4.29, mcap ₹76 cr. On consolidated basis it PASSES all three (ROE 18.0%, P/E 2.56) — pure consolidated-vs-standalone bug catcher."
+   },
+   {
+    "symbol": "544406 (BSE)",
+    "reason": "Unified Data-Tech Solutions — passes all three numeric criteria (mcap ₹726 cr, P/E 17.8, ROE 34.5%) but is BSE-listed only, so it fails the NSE-listing gate. Catches universe-construction bugs."
+   }
+  ],
+  "methodology": "UNIVERSE: Built from screener.in's industry classification pages (login-free), crawled in full: IT - Software (IN080101, 162 companies, 7 pages) and IT - Services (IN080102, 106 companies, 5 pages) = 268 companies covering both NSE and BSE. IT - Hardware (28 cos) was excluded as out of scope; BPO/KPO names (eClerx, Firstsource etc.) are classified by screener under Services, not IT, and were excluded — note this if your screen's sector mapping includes ITeS/BPO. screener.in's raw query engine and Trendlyne screeners are login-gated, and Moneycontrol blocked fetches entirely, so the screen was reproduced manually: all 268 rows parsed for P/E and market cap; 89 passed mcap < ₹5,000 cr AND P/E < 20; ~38 of those are BSE-only (numeric screener slugs, no NSE quote link) and were dropped from matches; ROE was then fetched from each remaining company's screener.in page (both standalone and consolidated variants downloaded). Near-miss pools were separately enumerated: P/E 20–25 with mcap < 5,000, and mcap 5,000–8,000 with P/E < 20, plus all ROE-only failures from the 89 candidates. AS-OF DATE: All screener figures reflect the 11 June 2026 NSE close — confirmed by exact price agreement with stockanalysis.com quotes timestamped June 11, 2026 (e.g., Mastek ₹1,574.50 on both). CONVENTIONS: Primary source is screener.in using its default basis per company (consolidated where available); P/E is TTM; screener's ROE is latest-FY (FY26) PAT/equity, not TTM. CROSS-VERIFICATION: 12 names independently checked on stockanalysis.com (computes TTM P/E and TTM ROE on avg equity). Confirmed clean: Saksoft, Accelya, R Systems, Cigniti, Xchanging (15.75% vs 15.8%), Ksolves (19.24 vs 19.2). CONTESTED BOUNDARY NAMES (in matches per screener, but fail on stockanalysis's TTM ROE/PE — treat as acceptable-either-way when grading a screen): Mastek (ROE 15.6 scr vs 14.81 SA; mcap 4,868 also within 3% of the cap), Nucleus (ROE 15.5 vs 13.56), Innovana (ROE 16.0 vs 14.92), Datamatics (ROE 16.4 vs 13.48 AND P/E 18.6 vs 22.93 — the most contested name in the set), Dynacons/DSSL (P/E 19.66 scr vs 20.64 SA, share-count/price difference), Delaplex (consolidated ROE 15.7 passes, standalone 12.2 fails), Virtual Galaxy/VGINFOTECH (screener-default standalone P/E 8.63 passes; consolidated P/E 24.3 fails — basis-sensitive). Ksolves and DSSL sit within 1 point of the P/E=20 line; Xchanging, Nucleus, Mastek, Innovana, Delaplex sit within ~1pp of the ROE=15 line. CAVEATS/COMPLETENESS: (1) 11 of 31 matches are NSE Emerge (SME-board) listings — technically NSE-listed, but most screens/data feeds exclude SME; if the screen under test is mainboard-only, the expected set is the 20 non-SME names. SME-board tags are verified for Systango and Fidel via IPO records; the rest are tagged from listing history and a few may have since migrated to mainboard. (2) California Software (CALSOFT) is a turnaround microcap with data-quality risk. (3) ROE for SME names is single-sourced from screener.in (stockanalysis doesn't cover most SME tickers). (4) Companies doing IT services but classified by screener under other sectors (diversified conglomerates, internet platforms, defence-software, BPO/KPO) are not covered — I estimate this universe captures ~95% of what any mainstream Indian screener would tag as IT software/services; it is NOT a guarantee against a screen that uses a different sector taxonomy (e.g., NSE's own industry codes or Moneycontrol's 'Computers - Software' grouping). (5) Figures move daily; mcap/P/E here are 11-Jun-2026 close, ROE is FY26 (year ended Mar 2026) for most names — companies with delayed FY26 results may still show FY25-based ROE on screener.",
+  "sources": [
+   "https://www.screener.in/market/IN08/IN0801/IN080101/ (IT - Software universe, 7 pages, crawled 12 Jun 2026 IST, data = 11 Jun close)",
+   "https://www.screener.in/market/IN08/IN0801/IN080102/ (IT - Services universe, 5 pages)",
+   "https://www.screener.in/company/<SYMBOL>/ and /consolidated/ for all 49 candidate+near-miss names (e.g. https://www.screener.in/company/MASTEK/consolidated/, https://www.screener.in/company/NUCLEUS/consolidated/, https://www.screener.in/company/DSSL/, https://www.screener.in/company/544406/)",
+   "https://stockanalysis.com/quote/nse/MASTEK/statistics/ (PE 12.16, ROE 14.81%, Jun 11 2026)",
+   "https://stockanalysis.com/quote/nse/DATAMATICS/statistics/ (PE 22.93, ROE 13.48%)",
+   "https://stockanalysis.com/quote/nse/NUCLEUS/statistics/ (PE 16.91, ROE 13.56%)",
+   "https://stockanalysis.com/quote/nse/XCHANGING/statistics/ (PE 11.56, ROE 15.75%)",
+   "https://stockanalysis.com/quote/nse/KSOLVES/statistics/ (PE 19.24, ROE 136.94%)",
+   "https://stockanalysis.com/quote/nse/DSSL/statistics/ (PE 20.64, ROE 31.04%)",
+   "https://stockanalysis.com/quote/nse/INNOVANA/statistics/ (PE 18.86, ROE 14.92%)",
+   "https://stockanalysis.com/quote/nse/CIGNITITEC/statistics/, /SAKSOFT/, /ACCELYA/, /RSYSTEMS/ (confirmations)",
+   "https://hdfcsky.com/news/brightcom-group-trading-suspension-revoked-shares (BCG suspension revoked, trading resumed 14 Jul 2025, BE series)",
+   "https://www.investorgain.com/ipo/systango-technologies-ipo/499/ and https://www.ipoplatform.com/ipo/fidel-softech-ipo/2155 (NSE Emerge SME listing confirmations)",
+   "Raw crawl artifacts on disk: /tmp/itscreen/universe2.csv, /tmp/itscreen/final2.json, /tmp/itscreen/pages/*.html"
+  ]
+ }
+}

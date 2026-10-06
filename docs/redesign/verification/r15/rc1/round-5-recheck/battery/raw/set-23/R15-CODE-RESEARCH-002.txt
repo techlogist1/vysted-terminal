@@ -1,0 +1,3 @@
+snapshot_structured returned OK (did not raise)
+injected hits: ['sync', 'async']
+fundamentals ok: True

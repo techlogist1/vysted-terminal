@@ -1,0 +1,129 @@
+[
+ {
+  "key": "F-DOCS-001",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "",
+  "scenario": "docs-d",
+  "area": "docs",
+  "title": "docs/SIDECAR_API.md ('the contract') documents 20 of 111 live routes and states a CORS/allow-all-origins posture, a 501 macro hook and stub routers that the running sidecar contradicts",
+  "repro": "curl :52800/openapi.json -> 111 method+path pairs, 91 absent from SIDECAR_API.md (raw/final-docs/undocumented.txt). SIDECAR_API.md:16 'allows all origins' vs curl -H 'Origin: http://evil.example' :52800/health -> 403 (sidecar/app.py:289-293 ALLOWED_ORIGINS + _OriginGuardMiddleware). :31,:88 macro '501' vs GET /macro/GDP -> 422 and /health macro_series=openbb-mcp. :125-136 'Stub routers' vs /indicators (50 indicators), /portfolio/positions real.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "suspected_files": [
+   "docs/SIDECAR_API.md"
+  ]
+ },
+ {
+  "key": "F-DOCS-002",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "",
+  "scenario": "docs-f",
+  "area": "docs",
+  "title": "R12_HAND_TESTING_GUIDE.md, the only hand-testing guide, walks an order-placement 'safety showcase', a brokers plugin and a paper portfolio removed by D81",
+  "repro": "docs/redesign/R12_HAND_TESTING_GUIDE.md:37 'Orders (the safety showcase): ask \"buy 5 shares of RELIANCE at market\" ... ROUTES TO THE CONFIRM-BEFORE-PLACE DIALOG'; :7 'prepares (never places) orders', Next.js UI; :9 agent can 'only prepare [a broker order]'; :25 'my paper portfolio'; :36 six plugins incl. 'brokers' vs plugins/ at d38b5d1a = example, openbb-mcp, vysted-lenses, vysted-news, yfinance. Document, not product surface (src/ has 0 offers).",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "suspected_files": [
+   "docs/redesign/R12_HAND_TESTING_GUIDE.md"
+  ]
+ },
+ {
+  "key": "F-DOCS-004",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "",
+  "scenario": "docs-c",
+  "area": "release",
+  "title": "RELEASE_RUNBOOK.md step 1 tells the operator to merge the superseded worktree-agent-r15-version-0.9.0 branch although the 0.9.0 bump is already in the sha",
+  "repro": "docs/RELEASE_RUNBOOK.md:14-15 and :70-84 ('Neither commit is an ancestor ... merge worktree-agent-r15-version-0.9.0 ... restoring CLAUDE.md first'). At d38b5d1a all five version sources read 0.9.0 via 06879089 'chore(release): bump version to 0.9.0 in all five sources + Cargo.lock'; git merge-base --is-ancestor 517da226 HEAD still fails, so following the step merges a superseded bump plus its CLAUDE.md commit onto an already-bumped tree.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "suspected_files": [
+   "docs/RELEASE_RUNBOOK.md"
+  ]
+ },
+ {
+  "key": "F-DOCS-003",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "scenario": "docs-e",
+  "area": "docs",
+  "title": "MCP_INTEGRATION.md names 25 tools; the live MCP surface lists 39 (14 undocumented, incl. research, web_search, save_workflow, list_runs)",
+  "repro": "JSON-RPC initialize + tools/list on :52800/mcp/ -> 39 names (raw/final-docs/mcp-live.txt). Absent from MCP_INTEGRATION.md:117-121 and :134-143: compare_symbols, corporate_actions, corporate_announcements, earnings_call_transcript, exchange_deals, financial_statements, market_overview, option_chain, research, resolve_symbol, shareholding_pattern, web_search, list_runs, save_workflow. :207 sample toolCount 26 / 2025-06-18 vs live 39 / 2025-11-25. Doc-named-not-live: 0.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "suspected_files": [
+   "docs/MCP_INTEGRATION.md"
+  ]
+ },
+ {
+  "key": "F-DOCS-005",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "scenario": "docs-c",
+  "area": "docs",
+  "title": "CURRENT_STATE.md cites a missing build report, the deleted monte_carlo.py and an absent ConnectCard.tsx, and says version strings are stuck at 0.8.0 with 619 vitest / 942 pytest",
+  "repro": "CURRENT_STATE.md:38 docs/redesign/FOUNDATION_BUILD_REPORT.md absent (sibling of fixed R15-DOCS-023's dead link); :388 monte_carlo.py absent (deleted by fixed R15-CODE-PLATFORM-040); :594 ConnectCard.tsx absent from tree; :154,:265,:638-640,:879 '0.8.0' vs 0.9.0 in all sources; :10,:856 '619 vitest, 942 pytest' vs logs/ci-local.log:370 (2032) and :1295 (3921).",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "suspected_files": [
+   "docs/CURRENT_STATE.md"
+  ]
+ },
+ {
+  "key": "F-DOCS-006",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "scenario": "docs-b",
+  "area": "release",
+  "title": "RELEASE_RUNBOOK.md's 'verbatim' ci-local block differs from package.json ci-local",
+  "repro": "docs/RELEASE_RUNBOOK.md:252-262 has 'python -m pip ...' and 'pnpm test'; package.json scripts.ci-local at d38b5d1a has 'python3 -m pip ...' and 'vitest run --coverage'.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "suspected_files": [
+   "docs/RELEASE_RUNBOOK.md"
+  ]
+ },
+ {
+  "key": "F-DOCS-007",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "scenario": "docs-c",
+  "area": "docs",
+  "title": "README status cites 619 vitest / 942 pytest and '7 LLM providers'; the sha runs 2032 / 3921 and the sidecar lists 8 providers",
+  "repro": "README.md:48-49 vs logs/ci-local.log:370 'Tests 2032 passed' and :1295 '3921 passed'; README.md:41 lists 7 providers vs GET :52800/llm/providers -> anthropic, openai, gemini, groq, ollama, deepseek, xai, openrouter.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "suspected_files": [
+   "README.md"
+  ]
+ },
+ {
+  "key": "F-DOCS-008",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "scenario": "docs-e",
+  "area": "docs",
+  "title": "MCP discovery file and /mcp/status advertise different protocol revisions; the Rust sync comment points at a constant that does not exist",
+  "repro": "src-tauri/src/lib.rs:311-313 MCP_PROTOCOL_VERSION='2025-06-18', comment 'Mirrors _PROTOCOL_VERSION in sidecar/services/mcp_server.py'; no such constant: mcp_server.py:50,389-391 returns mcp.types.LATEST_PROTOCOL_VERSION; GET :52800/mcp/status -> protocolVersion 2025-11-25. Negotiation still works (initialize asking 2025-06-18 is answered with it).",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "suspected_files": [
+   "src-tauri/src/lib.rs",
+   "sidecar/services/mcp_server.py"
+  ]
+ },
+ {
+  "key": "F-DOCS-009",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DOCS-003",
+  "scenario": "docs-c",
+  "area": "docs",
+  "title": "README.md still says Next.js frontend (attach to blocked_tier4 R15-DOCS-003, whose files include README.md)",
+  "repro": "README.md:27 'Next.js static-export frontend', :155 'Next.js 16 frontend' vs package.json vite ^8.0.16, no next dependency.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "suspected_files": [
+   "README.md"
+  ]
+ }
+]

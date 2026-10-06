@@ -1,0 +1,23 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98, sidecar/.venv (in-process python call).
+Script (probe_095.py):
+  from services.agent_runtime import _guard_ratio_claims, _share_counts
+  sentence = "2026-06-26: One SIFY ADS represents six equity shares."
+  tool_result = "SIFY trades as an ADR. Each ADS represents 6 ordinary shares."
+  text = sentence + " The ADR-to-ordinary-share ratio was confirmed."
+  out = _guard_ratio_claims(text, [tool_result])
+  # + 5 unseen date shapes from the register's own fix_shape
+
+Exit: 0
+Output:
+share_counts: {'6', '1'}
+guarded output: '2026-06-26: One SIFY ADS represents six equity shares. The ADR-to-ordinary-share ratio was confirmed.'
+PASS: dated sourced sentence kept
+2026.06.26 -> KEPT
+Jun 26, 2026 -> KEPT
+(26-06-2026) -> KEPT
+26 Jun -> KEPT
+26/6/26 -> KEPT
+
+VERDICT: holds. The dated, sourced ADR-ratio sentence survives _guard_ratio_claims (its date
+digits are excluded from the share-count read by the _MARKED regex), across every date shape
+named in the register's fix_shape — matches batch-28's live cert exactly.

@@ -1,0 +1,158 @@
+=== R15-RESEARCH-003: citation numbering stability across rounds ===
+136:def _numbered_sources(findings: _Findings) -> str:
+138:    return "\n".join(f"[{i + 1}] {s.title} — {s.url}" for i, s in enumerate(findings.all_sources()))
+233:    priority = finance.priority_note(findings.all_sources())
+425:                findings.all_sources(),
+576:            f"({len(report.render())} chars, {len(findings.all_sources())} source(s))",
+664:                report.body.strip() or last_round_findings or findings.all_sources()
+705:            findings.all_sources(),
+878:    (:func:`_remap_markers`) — the model never renumbers.
+894:    never renumbers citations itself. A marker outside the angle's list points
+891:def _remap_markers(markdown: str, local: list[ResearchSource], merged: list[ResearchSource]) -> str:
+892-    """Rewrite an angle brief's ``[n]`` markers from its OWN numbered list to
+893-    the merged list's numbers, by url — deterministic, so the panel synthesis
+894-    never renumbers citations itself. A marker outside the angle's list points
+895-    at nothing and is dropped, and the residue it leaves is tidied."""
+896-    from services.research.citecheck import MARKER_RE, strip_invalid_markers
+897-
+898-    merged_number = {src.url: i + 1 for i, src in enumerate(merged)}
+899-
+900-    def _sub(match: re.Match[str]) -> str:
+901-        n = int(match.group(1))
+902-        if 1 <= n <= len(local):
+903-            return f"[{merged_number[local[n - 1].url]}]"
+904-        return ""
+905-
+906-    markdown, _ = strip_invalid_markers(markdown, len(local))
+907-    return MARKER_RE.sub(_sub, markdown)
+908-
+909-
+910-def _angle_sink(on_step: OnStep | None, index: int, label: str) -> OnStep:
+911-    """Wrap the parent sink so an explorer's steps are tagged with their angle —
+912-    so the activity surface SHOWS the parallel exploration happening."""
+913-    tag = f"angle {index + 1}"
+914-    short = label[:48]
+915-
+916-    async def _sink(step: ResearchStep) -> None:
+917-        await _emit(
+918-            on_step,
+919-            ResearchStep(
+920-                step.kind,
+921-                f"[{tag}: {short}] {step.detail}",
+922-                latency_ms=step.latency_ms,
+923-                status=step.status,
+924-            ),
+925-        )
+926-
+927-    return _sink
+928-
+929-
+930-async def run_heavy_research(
+931-    query: str,
+    a conservative scan: an explicit "no gaps" counts as complete, any gap
+    marker or negation ("not covered yet") does not, and otherwise only a
+    whole-word complete/sufficient/done does. Ambiguity returns False so the
+    loop keeps going (bounded by the budget) rather than calling a thin run done.
+    """
+    head = leading_token(text)
+    if head == "COMPLETE":
+        return True
+    if head in ("GAPS", "GAP", "INCOMPLETE"):
+        return False
+    low = re.sub(r"\bno (?:remaining |further |more )?gaps?\b", "complete", text.lower())
+    if not low.strip():
+        return False
+    gap_markers = ("gap", "missing", "incomplete", "not enough", "more research")
+    if any(g in low for g in gap_markers) or _REFLECT_NEGATION.search(low):
+        return False
+    return re.search(r"\b(?:complete|sufficient|done)\b", low) is not None
+
+
+class _Findings:
+    """Mutable accumulator threaded through the loop.
+
+    Holds the running findings text (for compress/synthesize), the web citations
+    gathered (the ``[n]`` sources), the structured provenance seen, the coverage
+    flags, and the run's RAW-EVIDENCE store (R9 B3): the full extracted page
+    text per visited URL, kept in-memory for the run so the citation spot-audit
+    can verify claims against the cited source's FULL text instead of its
+    two-line excerpt. Kept as a small object rather than a tuple so the round
+    helpers read/mutate it without a wide return signature.
+
+    ``evidence`` may be a SHARED dict (the heavy panel hands every explorer one
+    store so the merged citecheck sees all angles' page text).
+    """
+
+    __slots__ = (
+        "findings",
+        "web_sources",
+        "structured_sources",
+        "coverage",
+        "evidence",
+        "_numbered",
+    )
+
+    def __init__(self, *, evidence: dict[str, str] | None = None) -> None:
+        self.findings: list[str] = []
+        self.web_sources: list[ResearchSource] = []
+        self.structured_sources: list[ResearchSource] = []
+        self.coverage: dict[str, bool] = dict.fromkeys(_COVERAGE_DIMS, False)
+        self.evidence: dict[str, str] = evidence if evidence is not None else {}
+        self._numbered: list[ResearchSource] = []
+
+    def record_evidence(self, visited_pages: list[tuple[str, str]]) -> None:
+        """Fold a researcher's visited pages into the raw-evidence store."""
+        for url, text in visited_pages:
+            if url and text:
+                self.evidence.setdefault(url, text)
+
+    def all_sources(self) -> list[ResearchSource]:
+        """The numbered ``[n]`` source list — APPEND-ONLY, de-duplicated by url.
+
+        A source takes its number the first time the list is read after it was
+        gathered and keeps it for the rest of the run: a marker minted in round
+        1 still resolves to the same source when round 2 gathers more. Sources
+        first seen together are numbered web first, RANKED by domain tier
+        (R7: exchange/regulator/filings → Tier-1 press → general), then
+        structured provenance — ranking orders only the new numbers, never an
+        structured provenance — ranking orders only the new numbers, never an
+        existing one; the tier of every number rides the prompt as
+        :func:`services.research.finance.priority_note` over this same list.
+        The numbered prompt lists and ``brief.sources`` both come through here,
+        so markers and the rail always agree.
+        """
+        seen = {src.url for src in self._numbered}
+        for src in [*finance.rank_sources(self.web_sources), *self.structured_sources]:
+            if src.url not in seen:
+                seen.add(src.url)
+                self._numbered.append(src)
+        return list(self._numbered)
+
+
+def _record_structured(findings: _Findings, name: str, dim: str, result: dict[str, Any]) -> None:
+    """Fold a structured tool result into findings + coverage + provenance.
+
+    A ``news`` tool result (already relevance-gated by the researcher) cites
+    each kept item as its OWN source — its url, title and outlet — never one
+    generic "News for <SYM>" source standing in for a feed blend.
+    """
+    if not result.get("ok"):
+        return
+    findings.coverage[dim] = True
+    items = result.get("news")
+    if dim == "news" and isinstance(items, list):
+        from services.search.scrub import sanitize_inline
+
+        for item in items:
+            if not isinstance(item, dict) or not item.get("url"):
+                continue
+            url = str(item["url"])
+            findings.structured_sources.append(
+                ResearchSource(
+                    url=url,
+                    title=sanitize_inline(str(item.get("title") or url)),
+                    excerpt=sanitize_inline(str(item.get("summary") or "")),
+                    domain=str(item.get("source") or "news"),
+                    source_type="news",
+                )
+            )

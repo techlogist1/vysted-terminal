@@ -1,0 +1,30 @@
+## system.py provider-health routes
+209-    stale/seed basis."""
+210-    from services import provider_health
+211-
+212-    return {"yahoo": provider_health.status(provider_health.YAHOO)}
+213-
+214-
+215:@router.post("/provider-health/trip")
+216-async def trip_provider_health(payload: dict | None = None) -> dict:
+217-    """Force the Yahoo circuit OPEN (verification rig / induced-throttle
+218-    drills). Loopback-only; the circuit self-heals through its normal
+219:    half-open path, or POST /system/provider-health/reset closes it."""
+220-    from services import provider_health
+221-
+222-    weight = float((payload or {}).get("weight", 3.0))
+223-    provider_health.record_rate_limited(provider_health.YAHOO, weight=weight)
+224-    return {"yahoo": provider_health.status(provider_health.YAHOO)}
+225-
+226-
+227:@router.post("/provider-health/reset")
+228-async def reset_provider_health() -> dict:
+229-    """Close the Yahoo circuit (verification rig cleanup)."""
+230-    from services import provider_health
+231-
+232-    provider_health.record_success(provider_health.YAHOO)
+233-    return {"yahoo": provider_health.status(provider_health.YAHOO)}
+234-
+235-
+236-# ---------------------------------------------------------------------------
+237-# Diagnostics (R15-LIFECYCLE-008) — what a user hands a maintainer.

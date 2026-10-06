@@ -1,0 +1,16 @@
+[
+ {"cmd":"click","x":464,"y":500,"double":true},
+ {"cmd":"wait","seconds":1},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-084/ace7dd7-05-handle-max-1s.png"},
+ {"cmd":"wait","seconds":6},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-084/ace7dd7-06-handle-max-7s.png"},
+ {"cmd":"click","x":1390,"y":500,"double":true},
+ {"cmd":"wait","seconds":3},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-084/ace7dd7-07-handle-restored.png"},
+ {"cmd":"click","x":156,"y":56},
+ {"cmd":"wait","seconds":5},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-084/ace7dd7-08-header-max.png"},
+ {"cmd":"click","x":156,"y":56},
+ {"cmd":"wait","seconds":3},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-084/ace7dd7-09-header-restored.png"}
+]

@@ -1,0 +1,35 @@
+cmd: python get_provider('groq'|'gemini', base_url='http://127.0.0.1:9') @e032be7
+cmd: get_provider('groq', base_url='http://127.0.0.1:9') / ('gemini', ...) attrs
+groq GroqProvider no base_url attr []
+gemini GeminiProvider no base_url attr []
+
+sidecar/services/llm/__init__.py:81-96
+    if provider_id == "anthropic":
+        return AnthropicProvider(base_url=base_url)
+    if provider_id == "openai":
+        return OpenAIProvider(base_url=base_url)
+    if provider_id == "gemini":
+        return GeminiProvider()
+    if provider_id == "groq":
+        return GroqProvider()
+    if provider_id == "ollama":
+        return OllamaProvider(base_url=base_url)
+    if provider_id in ("deepseek", "xai", "openrouter"):
+        return OpenAIProvider(
+            base_url=base_url or model_registry.default_base_url_for(provider_id),
+            provider_id=provider_id,
+        )
+    raise ValueError(f"Unknown LLM provider id: {provider_id!r}")
+gemini.py:98-102
+class GeminiProvider(LLMProvider):
+    """Google Gemini adapter via the unified ``google-genai`` SDK."""
+
+    def _client(self, api_key: str | None) -> genai.Client:
+        return genai.Client(api_key=api_key)
+groq.py:103-108
+class GroqProvider(LLMProvider):
+    """Groq chat-completions adapter."""
+
+    def _client(self, api_key: str | None) -> groq.AsyncGroq:
+        return groq.AsyncGroq(api_key=api_key, timeout=client_timeout())
+

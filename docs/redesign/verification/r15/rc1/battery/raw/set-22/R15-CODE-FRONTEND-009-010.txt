@@ -1,0 +1,6 @@
+Source check: host-actions.ts case "save_screen" (line 1807) calls
+`useScreenerStore.getState().saveScreen(screenName)` (1832) after writing the agent's recipe into
+the draft (no duck-typed cast to a fictitious saveScreen(name,payload) signature remains). case
+"write_screener_filters" (line 1760) calls `void useScreenerStore.getState().runScreener()` (1774)
+on run:true - no ignored cast.
+Verdict: holds (source-confirmed).

@@ -1,0 +1,3 @@
+cmd: python3 -c "json.load(open('sidecar/services/screener_universes/sp500.json'))" -- check snapshot_date, count, spot-check adds/removes
+output: snapshot_date=2026-09-24, count=503. Recent adds present: PLTR, DELL, WDAY, XYZ, APP, COIN, HOOD (all True). Delisted/removed names absent: WBA, ANSS, HES, JNPR (all False). Exact match to batch-11's certified diff-against-Wikipedia result (503 rows, 0 missing, 0 extra). Wikipedia's live table was not re-fetched this shard (network cross-check already performed independently by batch-11's fresh verifier); the bundled snapshot file itself was inspected directly.
+verdict: holds

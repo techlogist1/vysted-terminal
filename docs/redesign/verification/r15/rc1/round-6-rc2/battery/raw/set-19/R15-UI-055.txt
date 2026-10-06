@@ -1,0 +1,5 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ bash /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b2_055.sh
+exit=0
+{'universe': 'custom', 'evaluated_count': 0, 'skipped_count': 3, 'result_count': 0, 'matched_count': 0, 'duration_ms': 2041.7021670145914, 'partial': False, 'coverage': 'screened 0 of 3 — 3 unavailable', 'freshness': None, 'basis_counts': None, 'throttled': False}
+[{'symbol': 'ZZQQ1.NS', 'reason': 'not_found'}, {'symbol': 'ZZQQ2.NS', 'reason': 'not_found'}, {'symbol': 'ZZQQ3.NS', 'reason': 'not_found'}]

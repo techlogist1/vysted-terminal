@@ -1,0 +1,8 @@
+ORIG wire: {'promoter_percent': 50.0, 'institutions_percent': 30.0, 'public_percent': 50.0, 'as_of_quarter': '2026-06-30', 'source': 'NSE', 'institutions_source': 'BSE', 'institutions_as_of': '2026-03-31'}
+ORIG institutions fact: {'value': 0.3, 'label': 'Institutional holding (exchange filing)', 'basis': 'BSE shareholding filing, 2026-03-31', 'unit': 'fraction'}
+ORIG promoter fact: {'value': 0.5, 'label': 'Promoter group (exchange filing)', 'basis': 'NSE shareholding filing, 2026-06-30', 'unit': 'fraction'}
+ORIG conflict: [{'provider': 'BSE shareholding filing', 'value': 30.0, 'basis': 'institutional holding as of 2026-03-31'}]
+req ['symbol', 'provider']
+VARIANT gate flag: {}
+VARIANT /fundamentals gate: {"field_meta": {"held_percent_institutions": {"status": "flagged", "provider": "yfinance", "as_of": null, "reason": "yfinance institutions 5.00% disagrees with the BSE shareholding filing for the quarter ended 2026-03-31 (institutional holding: 30.00%) beyond 3pp (provider institutions \u2260 exchange institutional holding); kept, flagged", "label": null, "basis_note": null}}}
+SIL {'quarter_end': '2026-06-30', 'source': 'NSE', 'institutions_percent': None, 'split_source': None, 'split_as_of': None} None

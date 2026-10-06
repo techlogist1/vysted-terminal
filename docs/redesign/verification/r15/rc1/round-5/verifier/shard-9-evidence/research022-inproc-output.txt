@@ -1,0 +1,19 @@
+REGISTER-REPRO row stub -> SearchError rate_limited | keyless web search has no engine available right now — DuckDuckGo: blocked (challenge page); Brave: unavailable; Mojeek: unavailable. Wait a moment and retry, o
+   breaker ddg state closed failures 1
+MOJEEK direct -> SearchError rate_limited Mojeek: blocked (challenge page)
+ACCEPT keyless mojeek captcha -> SearchError rate_limited | keyless web search has no engine available right now — DuckDuckGo: unavailable; Brave: unavailable; Mojeek: rate-limiting. Wait a moment and retry, or add an Ex
+   breaker mojeek state closed failures 1
+FRESH keyless brave captcha -> SearchError rate_limited | keyless web search has no engine available right now — DuckDuckGo: unavailable; Brave: rate-limiting; Mojeek: unavailable. Wait a moment and retry, or add an Ex
+   breaker brave state closed failures 1
+FRESH DDG 200 generic captcha direct -> OK results 0
+FRESH DDG 200 generic captcha keyless -> OK results 0 backend keyless
+   breaker ddg state closed failures 0
+FRESH DDG 200 duck challenge direct -> OK results 0
+FRESH DDG 200 duck challenge keyless -> OK results 0 backend keyless
+   breaker ddg state closed failures 0
+FRESH all-three 200 challenge -> OK results 0 backend keyless
+   breaker ddg state closed failures 0
+   breaker brave state closed failures 1
+   breaker mojeek state closed failures 1
+html 200 challenge + lite 202 anomaly -> OK results 0 backend keyless
+breaker ddg failures 0

@@ -1,0 +1,291 @@
+[
+ {
+  "autonomy": "ask",
+  "tool": "place_order",
+  "input": {
+   "symbol": "RELIANCE",
+   "side": "buy",
+   "quantity": 10,
+   "order_type": "market"
+  },
+  "enqueueOutcome": "staged",
+  "afterEnqueue": {
+   "kind": "panel",
+   "status": "pending",
+   "title": "place order",
+   "detail": null
+  },
+  "humanAccept": "failed",
+  "statusAfter": "pending",
+  "detail": "unknown action \"place_order\"",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "workspaceBlobsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "rp-ask-0",
+    "status": "failed",
+    "detail": {
+     "action": "place_order",
+     "symbol": "RELIANCE"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "ask",
+  "tool": "submit_order",
+  "input": {
+   "symbol": "INFY",
+   "side": "buy",
+   "quantity": 5,
+   "order_type": "limit",
+   "limit_price": 1400
+  },
+  "enqueueOutcome": "staged",
+  "afterEnqueue": {
+   "kind": "panel",
+   "status": "pending",
+   "title": "submit order",
+   "detail": null
+  },
+  "humanAccept": "failed",
+  "statusAfter": "pending",
+  "detail": "unknown action \"submit_order\"",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "workspaceBlobsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "rp-ask-1",
+    "status": "failed",
+    "detail": {
+     "action": "submit_order",
+     "symbol": "INFY"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "ask",
+  "tool": "portfolio_add_position",
+  "input": {
+   "symbol": "INFY",
+   "quantity": "five",
+   "cost_basis": -1
+  },
+  "enqueueOutcome": "staged",
+  "afterEnqueue": {
+   "kind": "data-write",
+   "status": "pending",
+   "title": "Add INFY @ ₹-1 to the portfolio",
+   "detail": null
+  },
+  "humanAccept": "failed",
+  "statusAfter": "pending",
+  "detail": "quantity must be greater than 0",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "workspaceBlobsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "rp-ask-2",
+    "status": "failed",
+    "detail": {
+     "action": "portfolio_add_position",
+     "symbol": "INFY"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "ask",
+  "tool": "portfolio_update_position",
+  "input": {
+   "position_id": "does-not-exist",
+   "quantity": 0
+  },
+  "enqueueOutcome": "staged",
+  "afterEnqueue": {
+   "kind": "data-write",
+   "status": "pending",
+   "title": "Update position in the portfolio",
+   "detail": null
+  },
+  "humanAccept": "failed",
+  "statusAfter": "pending",
+  "detail": "does-not-exist is not in the active portfolio",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "workspaceBlobsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "rp-ask-3",
+    "status": "failed",
+    "detail": {
+     "action": "portfolio_update_position"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "tool": "place_order",
+  "input": {
+   "symbol": "RELIANCE",
+   "side": "buy",
+   "quantity": 10,
+   "order_type": "market"
+  },
+  "enqueueOutcome": "failed",
+  "afterEnqueue": {
+   "kind": "panel",
+   "status": "pending",
+   "title": "place order",
+   "detail": "unknown action \"place_order\""
+  },
+  "humanAccept": "failed",
+  "statusAfter": "pending",
+  "detail": "unknown action \"place_order\"",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "workspaceBlobsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "rp-auto-0",
+    "status": "failed",
+    "detail": {
+     "action": "place_order",
+     "symbol": "RELIANCE"
+    }
+   },
+   {
+    "tool_call_id": "rp-auto-0",
+    "status": "failed",
+    "detail": {
+     "action": "place_order",
+     "symbol": "RELIANCE"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "tool": "submit_order",
+  "input": {
+   "symbol": "INFY",
+   "side": "buy",
+   "quantity": 5,
+   "order_type": "limit",
+   "limit_price": 1400
+  },
+  "enqueueOutcome": "failed",
+  "afterEnqueue": {
+   "kind": "panel",
+   "status": "pending",
+   "title": "submit order",
+   "detail": "unknown action \"submit_order\""
+  },
+  "humanAccept": "failed",
+  "statusAfter": "pending",
+  "detail": "unknown action \"submit_order\"",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "workspaceBlobsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "rp-auto-1",
+    "status": "failed",
+    "detail": {
+     "action": "submit_order",
+     "symbol": "INFY"
+    }
+   },
+   {
+    "tool_call_id": "rp-auto-1",
+    "status": "failed",
+    "detail": {
+     "action": "submit_order",
+     "symbol": "INFY"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "tool": "portfolio_add_position",
+  "input": {
+   "symbol": "INFY",
+   "quantity": "five",
+   "cost_basis": -1
+  },
+  "enqueueOutcome": "staged",
+  "afterEnqueue": {
+   "kind": "data-write",
+   "status": "pending",
+   "title": "Add INFY @ ₹-1 to the portfolio",
+   "detail": null
+  },
+  "humanAccept": "failed",
+  "statusAfter": "pending",
+  "detail": "quantity must be greater than 0",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "workspaceBlobsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "rp-auto-2",
+    "status": "staged",
+    "detail": {
+     "action": "portfolio_add_position",
+     "symbol": "INFY"
+    }
+   },
+   {
+    "tool_call_id": "rp-auto-2",
+    "status": "failed",
+    "detail": {
+     "action": "portfolio_add_position",
+     "symbol": "INFY"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "tool": "portfolio_update_position",
+  "input": {
+   "position_id": "does-not-exist",
+   "quantity": 0
+  },
+  "enqueueOutcome": "staged",
+  "afterEnqueue": {
+   "kind": "data-write",
+   "status": "pending",
+   "title": "Update position in the portfolio",
+   "detail": null
+  },
+  "humanAccept": "failed",
+  "statusAfter": "pending",
+  "detail": "does-not-exist is not in the active portfolio",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "workspaceBlobsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "rp-auto-3",
+    "status": "staged",
+    "detail": {
+     "action": "portfolio_update_position"
+    }
+   },
+   {
+    "tool_call_id": "rp-auto-3",
+    "status": "failed",
+    "detail": {
+     "action": "portfolio_update_position"
+    }
+   }
+  ]
+ }
+]

@@ -1,0 +1,16 @@
+# R15-UI-052 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:41+0530
+
+$ git merge-base --is-ancestor 6b70230 HEAD && echo 'closure 6b70230 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 6b70230 NOT an ancestor'
+[exit 0] [0.02s]
+closure 6b70230 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-UI-052\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.29s]
+src/components/OnboardingBanner.test.tsx:57:  it("does not claim nothing leaves the machine (R15-UI-052) — only keys do not", async () => {
+src/components/OnboardingFlow.test.tsx:34:// R15-UI-052: the welcome step used to claim "web research run[s] right now"
+src/components/OnboardingFlow.test.tsx:50:describe("OnboardingFlow welcome step (R15-UI-052)", () => {
+
+
+$ (cwd final-cand) grep -n -i 'runs right now\|Nothing leaves this computer\|fully local\|fully private' src/components/OnboardingFlow.tsx src/components/OnboardingBanner.tsx src/modules/chat/ChatSidebar.tsx; echo "false-promise phrases in shipped copy: $(grep -i -c 'runs right now\|Nothing leaves this computer' src/components/OnboardingFlow.tsx src/components/OnboardingBanner.tsx src/modules/chat/ChatSidebar.tsx | awk -F: '{s+=$2} END{print s}')"
+false-promise phrases in shipped copy: 0

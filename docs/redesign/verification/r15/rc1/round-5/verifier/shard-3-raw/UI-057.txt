@@ -1,0 +1,21 @@
+# UI-057 live: POST /llm/keys/validate with a BOGUS (non-secret) key plus whitespace; own sidecar :52603
+== provider=openai key=sk-vs3-bogus-key\ 
+{"ok":false,"reason":"invalid","detail":"OpenAI rejected this key."}
+== provider=openai key=$'\t'sk-vs3-bogus-key$'\n'
+{"ok":false,"reason":"invalid","detail":"OpenAI rejected this key."}
+== provider=anthropic key=sk-vs3-bogus-key\ 
+{"ok":false,"reason":"invalid","detail":"Anthropic rejected this key."}
+== provider=anthropic key=$'\t'sk-vs3-bogus-key$'\n'
+{"ok":false,"reason":"invalid","detail":"Anthropic rejected this key."}
+== provider=groq key=sk-vs3-bogus-key\ 
+{"ok":false,"reason":"invalid","detail":"Groq rejected this key."}
+== provider=groq key=$'\t'sk-vs3-bogus-key$'\n'
+{"ok":false,"reason":"invalid","detail":"Groq rejected this key."}
+== provider=deepseek key=sk-vs3-bogus-key\ 
+{"ok":false,"reason":"invalid","detail":"DeepSeek rejected this key."}
+== provider=deepseek key=$'\t'sk-vs3-bogus-key$'\n'
+{"ok":false,"reason":"invalid","detail":"DeepSeek rejected this key."}
+== provider=gemini key=sk-vs3-bogus-key\ 
+{"ok":false,"reason":"invalid","detail":"Google Gemini rejected this key."}
+== provider=gemini key=$'\t'sk-vs3-bogus-key$'\n'
+{"ok":false,"reason":"invalid","detail":"Google Gemini rejected this key."}

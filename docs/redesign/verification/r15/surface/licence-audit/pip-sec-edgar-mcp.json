@@ -1,0 +1,604 @@
+{
+ "requirements": "sidecar/sec_edgar_mcp_subprocess/requirements.txt",
+ "closure_size": 67,
+ "not_installed": [],
+ "packages": [
+  {
+   "name": "aiofiles",
+   "version": "25.1.0",
+   "license_expression": null,
+   "license": "Apache-2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Changelog, https://github.com/Tinche/aiofiles#history"
+  },
+  {
+   "name": "annotated-doc",
+   "version": "0.0.4",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/fastapi/annotated-doc"
+  },
+  {
+   "name": "annotated-types",
+   "version": "0.7.0",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://github.com/annotated-types/annotated-types"
+  },
+  {
+   "name": "anyio",
+   "version": "4.13.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://anyio.readthedocs.io/en/latest/"
+  },
+  {
+   "name": "attrs",
+   "version": "26.1.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://www.attrs.org/"
+  },
+  {
+   "name": "beautifulsoup4",
+   "version": "4.14.3",
+   "license_expression": null,
+   "license": "MIT License",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Download, https://www.crummy.com/software/BeautifulSoup/bs4/download/"
+  },
+  {
+   "name": "certifi",
+   "version": "2026.5.20",
+   "license_expression": null,
+   "license": "MPL-2.0",
+   "classifiers": [
+    "OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
+   ],
+   "home": "https://github.com/certifi/python-certifi"
+  },
+  {
+   "name": "cffi",
+   "version": "2.0.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://cffi.readthedocs.io/"
+  },
+  {
+   "name": "charset-normalizer",
+   "version": "3.4.7",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [],
+   "home": "Changelog, https://github.com/jawah/charset_normalizer/blob/master/CHANGELOG.md"
+  },
+  {
+   "name": "click",
+   "version": "8.4.0",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Changes, https://click.palletsprojects.com/page/changes/"
+  },
+  {
+   "name": "cryptography",
+   "version": "48.0.0",
+   "license_expression": "Apache-2.0 OR BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "changelog, https://cryptography.io/en/latest/changelog/"
+  },
+  {
+   "name": "edgartools",
+   "version": "5.31.3",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://github.com/dgunning/edgartools"
+  },
+  {
+   "name": "filelock",
+   "version": "3.29.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Documentation, https://py-filelock.readthedocs.io"
+  },
+  {
+   "name": "h11",
+   "version": "0.16.0",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "https://github.com/python-hyper/h11"
+  },
+  {
+   "name": "httpcore",
+   "version": "1.0.9",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "Documentation, https://www.encode.io/httpcore"
+  },
+  {
+   "name": "httpx",
+   "version": "0.28.1",
+   "license_expression": null,
+   "license": "BSD-3-Clause",
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "Changelog, https://github.com/encode/httpx/blob/master/CHANGELOG.md"
+  },
+  {
+   "name": "httpx-sse",
+   "version": "0.4.3",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [],
+   "home": "Homepage, https://github.com/florimondmanca/httpx-sse"
+  },
+  {
+   "name": "httpxthrottlecache",
+   "version": "0.3.5",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/paultiq/httpxthrottlecache"
+  },
+  {
+   "name": "humanize",
+   "version": "4.15.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://humanize.readthedocs.io/"
+  },
+  {
+   "name": "idna",
+   "version": "3.15",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Changelog, https://github.com/kjd/idna/blob/master/HISTORY.md"
+  },
+  {
+   "name": "Jinja2",
+   "version": "3.1.6",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "Changes, https://jinja.palletsprojects.com/changes/"
+  },
+  {
+   "name": "jsonschema",
+   "version": "4.26.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/python-jsonschema/jsonschema"
+  },
+  {
+   "name": "jsonschema-specifications",
+   "version": "2025.9.1",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://jsonschema-specifications.readthedocs.io/"
+  },
+  {
+   "name": "lxml",
+   "version": "6.1.1",
+   "license_expression": null,
+   "license": "BSD-3-Clause",
+   "classifiers": [],
+   "home": "https://lxml.de/"
+  },
+  {
+   "name": "markdown-it-py",
+   "version": "4.2.0",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Documentation, https://markdown-it-py.readthedocs.io"
+  },
+  {
+   "name": "MarkupSafe",
+   "version": "3.0.3",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Donate, https://palletsprojects.com/donate"
+  },
+  {
+   "name": "mcp",
+   "version": "1.27.1",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://modelcontextprotocol.io"
+  },
+  {
+   "name": "mdurl",
+   "version": "0.1.2",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://github.com/executablebooks/mdurl"
+  },
+  {
+   "name": "nest-asyncio",
+   "version": "1.6.0",
+   "license_expression": null,
+   "license": "BSD",
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "https://github.com/erdewit/nest_asyncio"
+  },
+  {
+   "name": "numpy",
+   "version": "2.4.6",
+   "license_expression": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+   "license": null,
+   "classifiers": [],
+   "home": "homepage, https://numpy.org"
+  },
+  {
+   "name": "orjson",
+   "version": "3.11.9",
+   "license_expression": "MPL-2.0 AND (Apache-2.0 OR MIT)",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: Apache Software License",
+    "OSI Approved :: MIT License",
+    "OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
+   ],
+   "home": "changelog, https://github.com/ijl/orjson/blob/master/CHANGELOG.md"
+  },
+  {
+   "name": "pandas",
+   "version": "3.0.3",
+   "license_expression": null,
+   "license": "BSD 3-Clause License",
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "homepage, https://pandas.pydata.org"
+  },
+  {
+   "name": "pyarrow",
+   "version": "24.0.0",
+   "license_expression": "Apache-2.0",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://arrow.apache.org/"
+  },
+  {
+   "name": "pycparser",
+   "version": "3.0",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/eliben/pycparser"
+  },
+  {
+   "name": "pydantic",
+   "version": "2.13.4",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/pydantic/pydantic"
+  },
+  {
+   "name": "pydantic_core",
+   "version": "2.46.4",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "https://github.com/pydantic/pydantic"
+  },
+  {
+   "name": "pydantic-settings",
+   "version": "2.14.1",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://github.com/pydantic/pydantic-settings"
+  },
+  {
+   "name": "Pygments",
+   "version": "2.20.0",
+   "license_expression": "BSD-2-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://pygments.org"
+  },
+  {
+   "name": "PyJWT",
+   "version": "2.12.1",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/jpadilla/pyjwt"
+  },
+  {
+   "name": "pyrate-limiter",
+   "version": "4.1.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/vutran1710/PyrateLimiter"
+  },
+  {
+   "name": "python-dateutil",
+   "version": "2.9.0.post0",
+   "license_expression": null,
+   "license": "Dual License",
+   "classifiers": [
+    "OSI Approved :: BSD License",
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "https://github.com/dateutil/dateutil"
+  },
+  {
+   "name": "python-dotenv",
+   "version": "1.2.2",
+   "license_expression": null,
+   "license": "BSD-3-Clause",
+   "classifiers": [],
+   "home": "Source, https://github.com/theskumar/python-dotenv"
+  },
+  {
+   "name": "python-multipart",
+   "version": "0.0.29",
+   "license_expression": "Apache-2.0",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Homepage, https://github.com/Kludex/python-multipart"
+  },
+  {
+   "name": "rank-bm25",
+   "version": "0.2.2",
+   "license_expression": null,
+   "license": "Apache2.0",
+   "classifiers": [],
+   "home": "https://github.com/dorianbrown/rank_bm25"
+  },
+  {
+   "name": "RapidFuzz",
+   "version": "3.14.5",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/rapidfuzz/RapidFuzz"
+  },
+  {
+   "name": "referencing",
+   "version": "0.37.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://referencing.readthedocs.io/"
+  },
+  {
+   "name": "requests",
+   "version": "2.34.2",
+   "license_expression": null,
+   "license": "Apache-2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Documentation, https://requests.readthedocs.io"
+  },
+  {
+   "name": "rich",
+   "version": "15.0.0",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Documentation, https://rich.readthedocs.io/en/latest/"
+  },
+  {
+   "name": "rpds-py",
+   "version": "0.30.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://rpds.readthedocs.io/"
+  },
+  {
+   "name": "sec-edgar-mcp",
+   "version": "1.0.8",
+   "license_expression": null,
+   "license": "AGPL-3.0",
+   "classifiers": [
+    "OSI Approved :: GNU Affero General Public License v3"
+   ],
+   "home": "Homepage, https://github.com/stefanoamorelli/sec-edgar-mcp"
+  },
+  {
+   "name": "shellingham",
+   "version": "1.5.4",
+   "license_expression": null,
+   "license": "ISC License",
+   "classifiers": [
+    "OSI Approved :: ISC License (ISCL)"
+   ],
+   "home": "https://github.com/sarugaku/shellingham"
+  },
+  {
+   "name": "six",
+   "version": "1.17.0",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "https://github.com/benjaminp/six"
+  },
+  {
+   "name": "soupsieve",
+   "version": "2.8.3",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://github.com/facelessuser/soupsieve"
+  },
+  {
+   "name": "sse-starlette",
+   "version": "3.4.4",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/sysid/sse-starlette"
+  },
+  {
+   "name": "stamina",
+   "version": "26.1.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Documentation, https://stamina.hynek.me/"
+  },
+  {
+   "name": "starlette",
+   "version": "1.0.0",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/Kludex/starlette"
+  },
+  {
+   "name": "tabulate",
+   "version": "0.10.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/astanin/python-tabulate"
+  },
+  {
+   "name": "tenacity",
+   "version": "9.1.4",
+   "license_expression": null,
+   "license": "Apache 2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "https://github.com/jd/tenacity"
+  },
+  {
+   "name": "textdistance",
+   "version": "4.6.3",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "https://github.com/orsinium/textdistance"
+  },
+  {
+   "name": "tqdm",
+   "version": "4.67.3",
+   "license_expression": null,
+   "license": "MPL-2.0 AND MIT",
+   "classifiers": [],
+   "home": "homepage, https://tqdm.github.io"
+  },
+  {
+   "name": "truststore",
+   "version": "0.10.4",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://truststore.readthedocs.io"
+  },
+  {
+   "name": "typer",
+   "version": "0.25.1",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/fastapi/typer"
+  },
+  {
+   "name": "typing_extensions",
+   "version": "4.15.0",
+   "license_expression": "PSF-2.0",
+   "license": null,
+   "classifiers": [],
+   "home": "Bug Tracker, https://github.com/python/typing_extensions/issues"
+  },
+  {
+   "name": "typing-inspection",
+   "version": "0.4.2",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/pydantic/typing-inspection"
+  },
+  {
+   "name": "Unidecode",
+   "version": "1.4.0",
+   "license_expression": null,
+   "license": "GPL",
+   "classifiers": [
+    "OSI Approved :: GNU General Public License v2 or later (GPLv2+)"
+   ],
+   "home": "UNKNOWN"
+  },
+  {
+   "name": "urllib3",
+   "version": "2.7.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Changelog, https://github.com/urllib3/urllib3/blob/main/CHANGES.rst"
+  },
+  {
+   "name": "uvicorn",
+   "version": "0.47.0",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Changelog, https://uvicorn.dev/release-notes"
+  }
+ ]
+}

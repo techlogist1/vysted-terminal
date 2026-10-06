@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  51.4s] done: {"kind": "done", "usage": {"input_tokens": 8665, "output_tokens": 90, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The dividend yield for TSLA is unavailable as the provider did not publish this field. The beta for TSLA is 1.845.
+
+Also, note that the trailing EPS for TSLA is flagged due to disagreement with the payload's net income / shares outstanding. The P/E it implies at the ratio price 377.9 is 392.2 — the EPS may be from a stale fiscal period; kept, flagged.
+
+=== ok · 51.4s · events {'heartbeat': 4, 'delta': 91, 'done': 1} · usage in=8665 out=90 · est $0.00000 · llama3.1:8b

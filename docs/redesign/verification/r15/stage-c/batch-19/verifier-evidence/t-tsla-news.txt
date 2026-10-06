@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_64444b7af5774957abafa6cba0a5398c", "name": "news", "input": {"symbols": ["TSLA"], "limit": 10}}
+[  37.5s] tool_result: {"kind": "tool_result", "tool_call_id": "call_64444b7af5774957abafa6cba0a5398c", "name": "news", "ok": true, "error": null}
+[  44.0s] done: {"kind": "done", "usage": {"input_tokens": 3308, "output_tokens": 52, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+According to Pulse by Zerodha, Tesla has expanded its presence in South India with a new retail outlet in Chennai.
+According to mint - news, Elon Musk and other corporate leaders attended a White House state dinner hosted by Donald Trump and Xi Jinping.
+
+=== ok · 44.0s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 51, 'done': 1} · usage in=3308 out=52 · est $0.00000 · llama3.1:8b

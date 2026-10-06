@@ -5,6 +5,15 @@ yfinance==1.3.0
 ccxt==4.5.53
 vaderSentiment==3.3.2
 httpx==0.28.1
+# R7 — browser-impersonating HTTP client for the keyless search tier (T1 engine
+# rotation past TLS-fingerprint walls) and NSE exchange-direct endpoints (their
+# anti-bot guards reject plain httpx). Ships a bundled libcurl-impersonate —
+# PyInstaller needs --collect-all=curl_cffi (see ensure-sidecar.mjs).
+curl_cffi==0.15.0
+# R7 — bs4 was only a TRANSITIVE dep (via yfinance); the keyless T1 engines
+# (Brave/Mojeek SERP parse) and the research full-page extractor import it
+# directly, so pin it explicitly to survive an upstream dep shuffle.
+beautifulsoup4==4.14.3
 feedparser==6.0.12
 numpy==2.4.4
 pandas==3.0.3
@@ -26,26 +35,6 @@ jsonschema>=4.0
 # deadlock (CLAUDE.md Gotcha). The retired Phase-2 OpenBB Tier-2 plugin
 # is gone in v0.4.0; its data surface is preserved through openbb-mcp.
 fastmcp==3.2.4
-
-# Phase 4 + 5 — broker execution SDKs (v0.5.0). Each broker adapter inherits
-# the safety-layer-enforced BrokerAdapter ABC in sidecar/services/broker_base.py.
-# Versions verified 2026-05-16 against the respective project PyPI/GitHub
-# release pages; bumps require a Tier-3 CHANGELOG entry.
-#
-# India:
-dhanhq==2.1.0
-smartapi-python==1.5.5
-kiteconnect==5.2.0
-#
-# US / Global:
-alpaca-py==0.42.0
-ib_async==2.1.0
-#
-# Forex:
-oandapyV20==0.7.2
-#
-# ccxt already pinned above for crypto data (Phase 1); v0.5.0 Teammate X
-# extends the same dependency to crypto execution.
 
 # Phase 6 — macro + research + QuantLib (v0.6.0). In-process deps live here;
 # the SEC EDGAR subprocess MCP server (sec-edgar-mcp) has its own
@@ -88,11 +77,20 @@ sdmx1==2.26.0
 # the originally-planned subprocess MCP server.
 fredapi==0.5.2
 
-# v0.6.5 — Tradesa V2 wrapper plugin. The official supabase-py client pulls
-# the realtime / postgrest / gotrue / storage3 / supafunc sub-packages as
-# transitive deps at a coordinated version set; pinning the umbrella package
-# is the canonical move. The sidecar's tradesa_v2_provider reads Tradesa V2's
-# Supabase tables read-only via the service_role key resolved from the OS
-# keychain at first call. Verified 2026-05-16 against
-# https://pypi.org/pypi/supabase/json — latest 2.30.0.
-supabase==2.30.0
+# R8 — PDF text extraction for the research visit path. Exchange results
+# filings / earnings-call transcripts (nsearchives.nseindia.com, bseindia.com
+# attachments) are PDFs; without this a results PDF in hand extracted nothing
+# and the brief concluded "no quarterly results announced". Pure-Python with a
+# literal __version__ and no package data — no extra PyInstaller flags needed
+# (verified against ensure-sidecar.mjs's --copy-metadata/--collect-data rules).
+pypdf==6.13.1
+
+# Pass B (B1) — keyless India NSE data. jugaad-data wraps the live NSE site to
+# serve T+1 EOD OHLCV for every NSE equity + ETF (GOLDBEES/NIFTYBEES/SILVERBEES),
+# the symbols yfinance is documented-unreliable for (#2612/#2055). It is the
+# correctness-gated India default (services/india_provider.py), ranked above
+# gated yfinance for the IN region. Pure-Python; pulls requests/appdirs/bs4/lxml
+# as transitive deps (already requests-adjacent via yfinance). __version__ is a
+# literal (no importlib.metadata), so no --copy-metadata is needed; it ships no
+# package data, so no --collect-data. Verified live against NSE 2026-06-01.
+jugaad-data==0.33.1

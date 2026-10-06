@@ -1,0 +1,764 @@
+{
+  "composer_intent": {
+    "items": {
+      "composer-1": {
+        "gold": "read",
+        "pred": "read",
+        "confidence": 0.7,
+        "signals": [
+          "\\bwhat('?s| is| are| was)\\b",
+          "\\?\\s*$"
+        ],
+        "compound": false
+      },
+      "composer-10": {
+        "gold": "read",
+        "pred": "read",
+        "confidence": 0.35,
+        "signals": [],
+        "compound": false
+      },
+      "composer-11": {
+        "gold": "build",
+        "pred": "build",
+        "confidence": 0.95,
+        "signals": [
+          "\\bset ?up\\b"
+        ],
+        "compound": true
+      },
+      "composer-13": {
+        "gold": "research",
+        "pred": "research",
+        "confidence": 0.95,
+        "signals": [
+          "\\bresearch\\b"
+        ],
+        "compound": false
+      },
+      "composer-14": {
+        "gold": "research",
+        "pred": "research",
+        "confidence": 0.95,
+        "signals": [
+          "\\bresearch\\b"
+        ],
+        "compound": false
+      },
+      "composer-18": {
+        "gold": "edit",
+        "pred": "edit",
+        "confidence": 0.95,
+        "signals": [
+          "\\badd\\b",
+          "\\b\\d[\\d,.]*\\s+[a-z][\\w.&-]*\\s+at\\s+\\S*\\d"
+        ],
+        "compound": false
+      },
+      "composer-23": {
+        "gold": "edit",
+        "pred": "read",
+        "confidence": 0.35,
+        "signals": [],
+        "compound": false
+      },
+      "composer-26": {
+        "gold": "edit",
+        "pred": "read",
+        "confidence": 0.35,
+        "signals": [],
+        "compound": false
+      },
+      "composer-28": {
+        "gold": "edit",
+        "pred": "edit",
+        "confidence": 0.95,
+        "signals": [
+          "\\bnotes?\\b"
+        ],
+        "compound": false
+      },
+      "composer-29": {
+        "gold": "read",
+        "pred": "read",
+        "confidence": 0.6,
+        "signals": [
+          "\\?\\s*$"
+        ],
+        "compound": false
+      },
+      "composer-3": {
+        "gold": "edit",
+        "pred": "edit",
+        "confidence": 0.95,
+        "signals": [
+          "\\badd\\b",
+          "\\bwatchlist\\b"
+        ],
+        "compound": false
+      },
+      "composer-30": {
+        "gold": "build",
+        "pred": "edit",
+        "confidence": 0.95,
+        "signals": [
+          "\\bscreen\\b"
+        ],
+        "compound": false
+      },
+      "composer-31": {
+        "gold": "build",
+        "pred": "edit",
+        "confidence": 0.95,
+        "signals": [
+          "\\bscreen\\b"
+        ],
+        "compound": false
+      },
+      "composer-32": {
+        "gold": "build",
+        "pred": "read",
+        "confidence": 0.35,
+        "signals": [],
+        "compound": false
+      },
+      "composer-35": {
+        "gold": "edit",
+        "pred": "edit",
+        "confidence": 0.95,
+        "signals": [
+          "\\bnotes?\\b"
+        ],
+        "compound": false
+      },
+      "composer-36": {
+        "gold": "edit",
+        "pred": "edit",
+        "confidence": 0.95,
+        "signals": [
+          "\\bjot\\b"
+        ],
+        "compound": false
+      },
+      "composer-37": {
+        "gold": "edit",
+        "pred": "edit",
+        "confidence": 0.95,
+        "signals": [
+          "\\badd\\b",
+          "\\bnotes?\\b"
+        ],
+        "compound": false
+      },
+      "composer-38": {
+        "gold": "research",
+        "pred": "research",
+        "confidence": 0.95,
+        "signals": [
+          "\\bresearch\\b"
+        ],
+        "compound": false
+      },
+      "composer-4": {
+        "gold": "edit",
+        "pred": "edit",
+        "confidence": 0.95,
+        "signals": [
+          "\\bnotes?\\b",
+          "\\bwrite\\b"
+        ],
+        "compound": false
+      },
+      "composer-42": {
+        "gold": "build",
+        "pred": "build",
+        "confidence": 0.75,
+        "signals": [
+          "\\bopen (a |the |my )?\\w+ (and|,)"
+        ],
+        "compound": true
+      },
+      "composer-43": {
+        "gold": "build",
+        "pred": "build",
+        "confidence": 0.95,
+        "signals": [
+          "\\bcompare\\b",
+          "\\bside[- ]?by[- ]?side\\b"
+        ],
+        "compound": false
+      },
+      "composer-48": {
+        "gold": "read",
+        "pred": "read",
+        "confidence": 0.6,
+        "signals": [
+          "\\bexplain\\b"
+        ],
+        "compound": false
+      },
+      "composer-50": {
+        "gold": "read",
+        "pred": "read",
+        "confidence": 0.7,
+        "signals": [
+          "\\bwhat('?s| is| are| was)\\b",
+          "\\?\\s*$"
+        ],
+        "compound": false
+      },
+      "composer-51": {
+        "gold": "build",
+        "pred": "build",
+        "confidence": 0.75,
+        "signals": [
+          "\\bpull up\\b"
+        ],
+        "compound": true
+      },
+      "composer-52": {
+        "gold": "research",
+        "pred": "research",
+        "confidence": 0.7,
+        "signals": [
+          "\\bresearch\\b"
+        ],
+        "compound": false
+      },
+      "composer-7": {
+        "gold": "build",
+        "pred": "build",
+        "confidence": 0.95,
+        "signals": [
+          "\\barrange\\b",
+          "\\bworkspace\\b",
+          "\\bcompare\\b",
+          "\\bside[- ]?by[- ]?side\\b"
+        ],
+        "compound": false
+      },
+      "composer-9": {
+        "gold": "read",
+        "pred": "read",
+        "confidence": 0.7,
+        "signals": [
+          "\\bwhat('?s| is| are| was)\\b",
+          "\\?\\s*$"
+        ],
+        "compound": false
+      }
+    },
+    "accuracy": 0.8148148148148148,
+    "n": 27
+  },
+  "entity_match": {
+    "items": {
+      "collision-10": {
+        "gold": "no",
+        "pred": "yes",
+        "score": 0.5
+      },
+      "collision-101": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "collision-102": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.6666666666666666
+      },
+      "collision-104": {
+        "gold": "yes",
+        "pred": "no",
+        "score": 0.0
+      },
+      "collision-106": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-109": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.3333333333333333
+      },
+      "collision-11": {
+        "gold": "no",
+        "pred": "yes",
+        "score": 0.5
+      },
+      "collision-113": {
+        "gold": "yes",
+        "pred": "no",
+        "score": 0.0
+      },
+      "collision-117": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-118": {
+        "gold": "no",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-12": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-13": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-15": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-16": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-18": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.5
+      },
+      "collision-2": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "collision-20": {
+        "gold": "no",
+        "pred": "yes",
+        "score": 0.5
+      },
+      "collision-22": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.5
+      },
+      "collision-24": {
+        "gold": "no",
+        "pred": "yes",
+        "score": 0.3333333333333333
+      },
+      "collision-3": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-34": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "collision-43": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.75
+      },
+      "collision-53": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.3333333333333333
+      },
+      "collision-54": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-58": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.3333333333333333
+      },
+      "collision-59": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-6": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-60": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-62": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-65": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.3333333333333333
+      },
+      "collision-66": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-7": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-80": {
+        "gold": "yes",
+        "pred": "no",
+        "score": 0.0
+      },
+      "collision-81": {
+        "gold": "no",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-83": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "collision-84": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.75
+      },
+      "collision-85": {
+        "gold": "no",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-89": {
+        "gold": "yes",
+        "pred": "no",
+        "score": 0.0
+      },
+      "collision-90": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "collision-95": {
+        "gold": "no",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "collision-96": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.3333333333333333
+      },
+      "collision-97": {
+        "gold": "no",
+        "pred": "yes",
+        "score": 0.3333333333333333
+      },
+      "collision-99": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.3333333333333333
+      },
+      "research-1": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-10": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.6
+      },
+      "research-102": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-103": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-104": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-105": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-106": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-11": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.6
+      },
+      "research-13": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-14": {
+        "gold": "yes",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-15": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.6
+      },
+      "research-16": {
+        "gold": "no",
+        "pred": "yes",
+        "score": 0.6
+      },
+      "research-17": {
+        "gold": "no",
+        "pred": "yes",
+        "score": 0.6
+      },
+      "research-18": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-2": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-20": {
+        "gold": "yes",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-24": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.6
+      },
+      "research-25": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-3": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-30": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-35": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.6
+      },
+      "research-37": {
+        "gold": "yes",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-4": {
+        "gold": "yes",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-40": {
+        "gold": "yes",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-43": {
+        "gold": "yes",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-48": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-51": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-52": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-54": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-56": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-57": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-6": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-60": {
+        "gold": "yes",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-62": {
+        "gold": "yes",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-63": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-64": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-65": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-66": {
+        "gold": "yes",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-70": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-71": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-72": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-73": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-76": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-77": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-78": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-79": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-84": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 0.3333333333333333
+      },
+      "research-85": {
+        "gold": "yes",
+        "pred": "yes",
+        "score": 1.0
+      },
+      "research-86": {
+        "gold": "no",
+        "pred": "yes",
+        "score": 0.6666666666666666
+      },
+      "research-88": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-9": {
+        "gold": "yes",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-90": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-91": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-92": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-94": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-95": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      },
+      "research-97": {
+        "gold": "no",
+        "pred": "no",
+        "score": 0.0
+      }
+    },
+    "adaptation_note": "sidecar's entity_match() scores a web-search-result row (title/url/excerpt/host); the dataset passage was mapped to row={'title': passage, 'excerpt': '', 'url': ''} with target built from context.symbol/context.entity. This is an adaptation, not the production input shape -- see VERDICT.md.",
+    "n": 100,
+    "accuracy": 0.74
+  },
+  "holding_relevance": {
+    "note": "not run: BASELINE.json path_today = 'none (not implemented)', no heuristic function exists in sidecar source for this decision type"
+  }
+}

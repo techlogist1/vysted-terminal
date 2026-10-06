@@ -1,0 +1,24 @@
+== GET /fundamentals/DHANBANK/income?period=quarterly
+HTTP 200 provider yfinance gaps ['2025-09-30'] periods ['2026-06-30', '2026-03-31', '2025-12-31', '2025-09-30', '2025-06-30', '2025-03-31']
+ first row: None
+== GET /fundamentals/DHANBANK/balance?period=quarterly
+HTTP 200 provider yfinance gaps ['2025-09-30'] periods ['2026-06-30', '2026-03-31', '2025-12-31', '2025-09-30', '2025-06-30', '2025-03-31']
+ first row: None
+== GET /fundamentals/DHANBANK/cashflow?period=quarterly
+HTTP 200 provider yfinance gaps [] periods []
+ first row: None
+== GET /fundamentals/DHANBANK/income?period=annual
+HTTP 200 provider yfinance gaps [] periods ['2026-03-31', '2025-03-31', '2024-03-31', '2023-03-31']
+ first row: None
+== GET /fundamentals/AAPL/income?period=annual
+HTTP 200 provider yfinance gaps [] periods ['2025-09-30', '2024-09-30', '2023-09-30', '2022-09-30', '2021-09-30']
+ first row: None
+== GET /fundamentals/SIFY/income?period=quarterly
+HTTP 200 provider yfinance gaps [] periods ['2026-06-30', '2026-03-31', '2025-12-31', '2025-09-30', '2025-06-30', '2025-03-31']
+ first row: None
+== GET /fundamentals/TCS.NS/cashflow?period=annual
+HTTP 200 provider yfinance gaps [] periods ['2026-03-31', '2025-03-31', '2024-03-31', '2023-03-31', '2022-03-31']
+ first row: None
+
+# fresh synthetic (in-process _mark_gaps, HEAD 633f8440): quarterly with two consecutive missing quarters
+quarterly gaps ['2025-09-30', '2025-06-30'] (null values inserted); annual Apple-style fiscal year with missing FY2023 -> gaps ['2023-09-30']

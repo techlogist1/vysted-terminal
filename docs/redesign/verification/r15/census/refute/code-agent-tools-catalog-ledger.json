@@ -1,0 +1,137 @@
+[
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Mechanism is real: run_custom_backtest is catalogued read_only=True and the MCP projection maps that flag straight to readOnlyHint, while the handler calls backtest_store.put(result). But the 'write' is to a bounded 32-entry in-process LRU result cache (no persistence, no money, no order path), so the only side effect an auto-approving client can cause is evicting an older cached run id; that is a hint-accuracy polish issue, not a critical safety boundary.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:905, sidecar/services/agent_tools/run_custom_backtest.py:116, sidecar/services/mcp_server.py:153, sidecar/services/backtest_store.py:1, sidecar/services/backtest_store.py:26, sidecar/services/backtest_store.py:35",
+    "evidence_checked": "code-only: opened the catalog entry, handler, MCP FunctionTool registration and backtest_store (in-memory OrderedDict LRU, capacity 32); stack reachable but no MCP client driven.",
+    "repro_check": "sed -n 900,910p catalog.py -> read_only=True kind=read_handler; mcp_server.py:153 ToolAnnotations(readOnlyHint=capability.read_only); backtest_store.py is an in-memory LRU with eviction, no disk write."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: _headlines catches every exception (including the ProviderError fetch_news raises when all sources fail) and returns [], and _market_overview returns ok:true with headlines:[] and no failure marker, while news_tool returns ok:false for the same raise; since fetch_news never returns an empty list (it raises instead), [] here always means an outage yet is indistinguishable from 'no news'. Downgraded to medium: the index quotes, the core of the market read, are unaffected and per-index failures are still surfaced; only the headline add-on silently degrades.",
+    "evidence": "sidecar/services/agent_tools/market_overview.py:87, sidecar/services/agent_tools/market_overview.py:90, sidecar/services/agent_tools/market_overview.py:127, sidecar/services/news_provider.py:384, sidecar/services/agent_tools/news_tool.py:47",
+    "evidence_checked": "code-only: opened market_overview.py in full, news_provider.fetch_news tail, news_tool._news; did not force a feed outage on the stack.",
+    "repro_check": "Would monkeypatch news_provider.fetch_news to raise ProviderError and call _market_overview({'region':'US'}); code at :90-91 returns [] and :127-132 emits ok:True with no error key."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-3",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds as stated: _return_pct_window computes (last/first-1)*100 over whatever bars the provider returned with no length/start check, the per-symbol dict carries only a bare return_pct_window float, and best/worst are ranked across symbols by that value, so a symbol with a truncated history (recent listing or short provider history) is compared against full 6-month windows with no signal in the payload.",
+    "evidence": "sidecar/services/agent_tools/compare_symbols.py:28, sidecar/services/agent_tools/compare_symbols.py:33, sidecar/services/agent_tools/compare_symbols.py:109, sidecar/services/agent_tools/compare_symbols.py:156, sidecar/services/agent_tools/catalog.py:199",
+    "evidence_checked": "code-only: opened compare_symbols.py in full and the catalog entry; arithmetic is unambiguous from source, no live recent-IPO run.",
+    "repro_check": "Would call _compare_symbols with a <6-month-listed NSE symbol vs an established one; code path :33-40 + :156-160 ranks mismatched windows with no window_start/bar count in the output."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Mechanism verified: no catalog entry sets internal=False, default_grant=False or aliases; Capability.aliases has zero readers; the post-build dict comprehension overwrites every entry's mcp; _cap re-declares every dataclass default; and the three projections materialize to the same 50 ids. Downgraded high -> medium: this is dead configuration that misleads the next maintainer, not a broken or silently degraded user flow; the custom-agent exposure of mutating host actions is by documented design (catalog.py:1520-1528, mutations still pass the diff gate), and propose_order leaves with the trading removal.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:91, sidecar/services/agent_tools/catalog.py:96, sidecar/services/agent_tools/catalog.py:101, sidecar/services/agent_tools/catalog.py:109, sidecar/services/agent_tools/catalog.py:1471, sidecar/services/agent_tools/catalog.py:1491, sidecar/services/agent_tools/catalog.py:1520, sidecar/services/agent_tools/catalog.py:1531, sidecar/models/custom_agent.py:38",
+    "evidence_checked": "Opened the dataclass, _cap, the rewrite rule and all projections; grep for internal=False/default_grant=False/aliases=/.aliases (none); ran the projections in the sidecar venv.",
+    "repro_check": "sidecar/.venv/bin/python -c 'from services.agent_tools import catalog as c; ...' -> internal=50, agent_selectable=50, default_grant=50, all equal True."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Accurate: ToolKind documents mcp_endpoint as projected only to MCP, zero catalog entries use it, and the rewrite rule sets mcp=True only for kind=='read_handler', so a future mcp_endpoint entry would silently appear nowhere. Downgraded to low because it is a latent trap with no current caller and no present behaviour change.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:59, sidecar/services/agent_tools/catalog.py:61, sidecar/services/agent_tools/catalog.py:1471",
+    "evidence_checked": "Opened ToolKind docs and the projection rule; materialized the catalog in the sidecar venv to list kind=='mcp_endpoint' entries (empty).",
+    "repro_check": "venv python: [k for k,v in CAPABILITY_CATALOG.items() if v.kind=='mcp_endpoint'] -> []; rule at catalog.py:1472 keys on kind=='read_handler' only."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: _tool_timeout_seconds short-circuits on the literal name 'research' before consulting the catalog, and research is the only read_handler with timeout_seconds=None, so a catalog value set there would be ignored. But the contract is not a lone prose sentence: it is documented at the Capability.timeout_seconds field, in timeout_for's docstring and in _dispatch_tool's docstring, so it is a mild special-case smell rather than a medium hidden trap.",
+    "evidence": "sidecar/services/agent_runtime.py:612, sidecar/services/agent_runtime.py:615, sidecar/services/agent_tools/catalog.py:103, sidecar/services/agent_tools/catalog.py:1553",
+    "evidence_checked": "Opened _research_guard_seconds/_tool_timeout_seconds/_dispatch_tool and the catalog field + timeout_for; venv query confirmed research is the only read_handler without a timeout.",
+    "repro_check": "venv python: [k for k,v in CAPABILITY_CATALOG.items() if v.timeout_seconds is None and v.kind=='read_handler'] -> ['research']; agent_runtime.py:615 'if event.name == \"research\"'."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Duplication is real (11 handler files carry their own except ProviderError -> {ok:false,error} block while invoke_tool is a bare await). The 'four incompatible spellings of one failure class' is overstated: 'provider error:' (16 uses) and 'unexpected error:' (15 uses) are two distinct, consistently used classes, only news_tool's 'news fetch failed:' is an outlier, and the runtime's 'tool ... raised' is the catch-all for escaped exceptions; the model reads free text, so recovery is not prefix-matched. Maintenance smell, low.",
+    "evidence": "sidecar/services/agent_tools/__init__.py:62, sidecar/services/agent_tools/news_tool.py:50, sidecar/services/agent_tools/sec_tools.py:66, sidecar/services/agent_tools/earnings_tools.py:48, sidecar/services/agent_runtime.py:670",
+    "evidence_checked": "Opened invoke_tool and several handlers; grep-tallied the error-prefix strings across sidecar/services/agent_tools/*.py.",
+    "repro_check": "grep -rhoE '\"error\": f\"[a-z A-Z_]+:' services/agent_tools/*.py | sort | uniq -c -> provider error 16, unexpected error 15, news fetch failed 1, plus two request-validation prefixes."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: sec_filings_list and sec_insider_transactions int() the limit with no clamp and pass it through list_filings/list_insider_transactions to the upstream sec-edgar-mcp call unchanged, while news/macro clamp and analyst/earnings slice. Downgraded to low: the trigger needs the model to pick an absurd limit, the catalog schema carries a small default, the upstream cap behaviour could not be checked (package not installed in the sidecar venv), and SEC filings are a secondary US-only surface for an India-first product.",
+    "evidence": "sidecar/services/agent_tools/sec_tools.py:48, sidecar/services/agent_tools/sec_tools.py:126, sidecar/services/sec_filings_provider.py:492, sidecar/services/agent_tools/news_tool.py:37, sidecar/services/agent_tools/macro_tools.py:72",
+    "evidence_checked": "Opened both SEC handlers, the provider's list_filings (passes int(limit) upstream, no clamp) and the sibling clamps; upstream sec-edgar-mcp==1.0.8 source not available locally.",
+    "repro_check": "Would call _sec_filings_list({'symbol':'AAPL','limit':100000}) with a stubbed provider and assert the limit reaching list_filings; code at sec_tools.py:48-64 forwards it unchanged."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: earnings_tools.py:31 int() is unguarded, unlike its siblings. Scope is narrower than stated: the OpenAI-family adapter validates tool args against the catalog schema (days is type integer) and repairs or returns an invalid-args error before dispatch, so the escape only happens on the Anthropic/Gemini/Groq/Ollama lanes, and there the runtime catch-all still returns ok:false naming the bad literal, which the model can act on. Low.",
+    "evidence": "sidecar/services/agent_tools/earnings_tools.py:31, sidecar/services/agent_tools/catalog.py:510, sidecar/services/llm/openai.py:526, sidecar/services/agent_runtime.py:669",
+    "evidence_checked": "Opened the handler, the catalog schema, the OpenAI adapter's WS8 validation path, and the runtime catch-all; grep shows only services/llm/openai.py does schema validation.",
+    "repro_check": "python -c \"int('seven')\" -> ValueError; grep -rln _validate_tool_args services/llm -> openai.py only."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-10",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: GLOBAL (and any unknown region) falls back to the US index set and the payload carries region:'GLOBAL' with no proxy note. But the claim that 'the payload carries no trace of the substitution' is too strong: every index entry carries its human name ('S&P 500', 'Nasdaq Composite', 'Dow Jones...'), so the model can see these are US benchmarks. The missing piece is an explicit note, which makes this low.",
+    "evidence": "sidecar/services/agent_tools/market_overview.py:28, sidecar/services/agent_tools/market_overview.py:34, sidecar/services/agent_tools/market_overview.py:37, sidecar/services/agent_tools/market_overview.py:51, sidecar/services/agent_tools/market_overview.py:127",
+    "evidence_checked": "code-only: opened market_overview.py in full.",
+    "repro_check": "_indices_for_region('GLOBAL') -> _INDICES_BY_REGION.get('GLOBAL', US set); _quote_one attaches name=_INDEX_LABELS[symbol] to every entry."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-11",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The failure scenario is unreachable: provider_registry.get_fundamentals is typed to return models.fundamentals.Fundamentals, both backing providers (openbb_mcp_provider, yfinance_provider) return that pydantic model, it passes correctness_gate.validate_fundamentals, and the model declares all eight attributes read at :97-104 with default None, so an AttributeError cannot escape. The redundant except (ProviderError, Exception) tuple is cosmetic only.",
+    "evidence": "sidecar/services/agent_tools/compare_symbols.py:67, sidecar/services/agent_tools/compare_symbols.py:97, sidecar/services/provider_registry.py:473, sidecar/models/fundamentals.py:46, sidecar/models/fundamentals.py:65, sidecar/services/openbb_mcp_provider.py:359, sidecar/services/yfinance_provider.py:297, sidecar/services/correctness_gate.py:146",
+    "evidence_checked": "code-only: opened compare_symbols.py, provider_registry.get_fundamentals/_resolve_async, the Fundamentals model, both provider signatures and the validator.",
+    "repro_check": "grep of models/fundamentals.py shows market_cap, pe_ratio, forward_pe, peg_ratio, price_to_book, dividend_yield, eps, beta all declared 'float | None = None' on Fundamentals."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-12",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The design observation holds: MCP projection is derived from kind alone plus one hand-listed exclusion, and the materialized MCP surface includes broker_portfolio, web_search, research and run_custom_backtest. The stated consequence is wrong: web_search is keyless/SearXNG (no BYOK spend), and research only spends a key the caller passes or a request-scoped ContextVar (config.get_llm_creds / get_openrouter_search_key), which an external MCP call does not carry because the sidecar cannot read the keychain. broker_portfolio's exposure leaves with the trading/broker removal. What remains is an implicit-by-kind design smell, low.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:1469, sidecar/services/agent_tools/catalog.py:1471, sidecar/services/agent_tools/web_search.py:78, sidecar/services/agent_tools/research.py:186, sidecar/services/agent_tools/deep_research.py:136, sidecar/services/agent_tools/deep_research.py:168, sidecar/config.py:158",
+    "evidence_checked": "Opened the projection rule, web_search key sourcing, research tier routing, deep_research key resolution and config ContextVars; ran mcp_tool_ids() in the sidecar venv.",
+    "repro_check": "venv python: sorted(k for k in mcp_tool_ids() if k in {...}) -> ['broker_portfolio','research','run_custom_backtest','web_search']; config.get_llm_creds returns _llm_creds_ctx.get() (request-scoped)."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-13",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The claimed hazard does not exist: None is falsy, so both idioms the finding names read an unknown id the same way. 'if not is_read_only(t)' treats it as mutating, and 'if is_read_only(t)' treats it as not read-only; both fail closed (the tool is stripped from a read-intent belt). Only an unnatural 'is not False' check would fail open. The sole mutation-gate caller uses 'is True', and timeout_for is only called for registered ids, where SC-006 parity guarantees a catalog entry.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:1548, sidecar/services/agent_tools/catalog.py:1553, sidecar/services/agent_runtime.py:1303, sidecar/services/agent_runtime.py:651",
+    "evidence_checked": "Opened the three helpers and grepped every caller in services/routers/models/app.py/main.py (agent_runtime.py:616, :1303 and catalog.py:1589 only).",
+    "repro_check": "grep -rn 'is_read_only(\\|domain_of(\\|timeout_for(' sidecar/services -> 3 call sites, all fail-closed or guarded by is_registered."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-14",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds: register_v0_6_5_tools only logs a debug line and is wired into two boot paths (main.py, app.py), and register_v0_6_0_tools is a pure pass-through. One small correction: the docstring gives the per-phase aggregator convention as the reason the file exists and notes the §6.5 grep stays clean, rather than saying it is kept alive for the grep. Low as stated.",
+    "evidence": "sidecar/services/agent_tools/registry_v0_6_5.py:1, sidecar/services/agent_tools/registry_v0_6_5.py:18, sidecar/main.py:68, sidecar/app.py:214, sidecar/services/agent_tools/__init__.py:121",
+    "evidence_checked": "Opened registry_v0_6_5.py in full, both boot call sites, and the v0_6_0 pass-through in __init__.py.",
+    "repro_check": "grep -n v0_6_5 sidecar/app.py sidecar/main.py -> 2 call sites of a function whose body is one logger.debug."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-15",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds: reset_for_tests hardcodes backtest_summary as the only import-time registration (true today: backtest_summary.py:71 is the only module-level register_tool), so it would break silently on a second one; KNOWN_STATUSES has no reader anywhere in the sidecar or src, and record() stores any status as-is. Its docstring does say unknown spellings are stored as-is, so the constant is documentation rather than failed validation. Latent, low as stated.",
+    "evidence": "sidecar/services/agent_tools/__init__.py:70, sidecar/services/agent_tools/__init__.py:87, sidecar/services/agent_tools/backtest_summary.py:71, sidecar/services/action_ledger.py:28, sidecar/services/action_ledger.py:55",
+    "evidence_checked": "Opened reset_for_tests, backtest_summary's import-time registration, action_ledger.record; grep for module-level register_tool calls and for KNOWN_STATUSES across sidecar and src.",
+    "repro_check": "grep -rn KNOWN_STATUSES sidecar src -> only its definition, docstring and __all__ in action_ledger.py."
+  }
+]

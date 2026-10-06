@@ -1,0 +1,144 @@
+{
+  "pass": true,
+  "candidate": "01d6920a300b016ab1ad8aa436ee4e4586f8e336",
+  "sidecar_port": 52310,
+  "routes": {
+    "total": 111,
+    "hits": [
+      "GET /disclosures/shareholding",
+      "GET /portfolio/positions"
+    ],
+    "trading_routes": [],
+    "verdict": "pass",
+    "evidence": "gate8/openapi-paths.txt"
+  },
+  "tools": {
+    "CAPABILITY_CATALOG": 56,
+    "TOOL_SCHEMAS": 56,
+    "KNOWN_TOOL_IDS": 56,
+    "registered_tools": 33,
+    "hits": [
+      "get_portfolio",
+      "portfolio_add_position",
+      "portfolio_update_position",
+      "portfolio_delete_position",
+      "shareholding_pattern"
+    ],
+    "trading_ids": [],
+    "verdict": "pass"
+  },
+  "mcp": {
+    "in_process_list_tools": 40,
+    "live_52310_tools_list": 40,
+    "identical": true,
+    "trading_ids": [],
+    "verdict": "pass"
+  },
+  "pytest_no_trading_surface": {
+    "passed": 8,
+    "failed": 0
+  },
+  "grep": {
+    "src": {
+      "total": 111,
+      "product": 0,
+      "historical": 24,
+      "false_positive": 87
+    },
+    "sidecar": {
+      "total": 255,
+      "product": 0,
+      "historical": 71,
+      "false_positive": 184
+    },
+    "src-tauri": {
+      "total": 3,
+      "product": 0,
+      "historical": 2,
+      "false_positive": 1
+    },
+    "plugins": {
+      "total": 0,
+      "product": 0,
+      "historical": 0,
+      "false_positive": 0
+    },
+    "docs": {
+      "total": 70985,
+      "product": 0,
+      "historical": 50212,
+      "false_positive": 20773
+    }
+  },
+  "settings_trading_mentions": [
+    "SettingsPanel.tsx:1423 'trading calendar' (exchange holidays) — false positive"
+  ],
+  "first_launch_terms": "Vysted has no brokerage connection. It cannot place, route or simulate orders.",
+  "portfolio": {
+    "steps": [
+      {
+        "step": "add 3 holdings (RELIANCE.NS/AAPL/MSFT+note) via panel form, read back",
+        "pass": true,
+        "evidence": "gate8/portfolio-01-after-add.json"
+      },
+      {
+        "step": "P&L panel vs curl /quotes recompute",
+        "pass": true,
+        "evidence": "gate8/portfolio-02c-pnl-recompute.txt"
+      },
+      {
+        "step": "CSV export via panel handler: 11 columns, 3 rows = holdings",
+        "pass": true,
+        "evidence": "gate8/portfolio-03-export.csv"
+      },
+      {
+        "step": "update AAPL 5@300 -> 8@310, read back",
+        "pass": true,
+        "evidence": "gate8/portfolio-04-after-update.json"
+      },
+      {
+        "step": "delete MSFT, read back",
+        "pass": true,
+        "evidence": "gate8/portfolio-05-after-delete.json"
+      },
+      {
+        "step": "notes CRUD",
+        "pass": true,
+        "evidence": "gate8/notes-crud.json"
+      },
+      {
+        "step": "watchlist CRUD",
+        "pass": true,
+        "evidence": "gate8/watchlist-crud.json"
+      },
+      {
+        "step": "agent get_portfolio (llama3.1:8b) matches ledger",
+        "pass": true,
+        "evidence": "gate8/agent-01-vs-ledger.txt"
+      },
+      {
+        "step": "gated portfolio_add_position under ask: staged, ledger unchanged, accept -> applied, read back",
+        "pass": true,
+        "evidence": "gate8/portfolio-07-gated-add.json"
+      },
+      {
+        "step": "order attempt under auto: no order tool; side-effect write staged not applied; rejected",
+        "pass": true,
+        "evidence": "gate8/portfolio-09-order-attempt-under-auto.json"
+      },
+      {
+        "step": "accept fails closed (propose_order, no-price add) and reject leaves ledger unchanged",
+        "pass": true,
+        "evidence": "gate8/portfolio-08-accept-fails-closed.json"
+      }
+    ]
+  },
+  "audit_orders": "no audit_log.db in the isolated data dir; no sidecar code references audit_orders/audit_log.db (D81 removed it)",
+  "failures": [],
+  "findings": [
+    "rc1-gate8:1 new_defect low — review card prices a US lot in the region currency (@ ₹480 for $480)"
+  ],
+  "known_limitation_notes": [
+    "R15-LEAD-035 concurrence: llama3.1:8b staged an unrequested portfolio_add_position with cost_basis 0 when asked to place an order; gate held it"
+  ]
+}

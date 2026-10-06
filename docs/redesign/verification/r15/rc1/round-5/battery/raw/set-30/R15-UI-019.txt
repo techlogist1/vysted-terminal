@@ -1,0 +1,47 @@
+CMD: live re-run of the underlying probe this banner reads (POST /llm/keys/validate on :52356, reused from R15-AGENT-028) + source read of OnboardingBanner.tsx and OnboardingBanner.test.tsx:28-70
+OUTPUT: unpulled gemma3:4b -> {ok:false, reason:model_not_pulled}; pulled llama3.1:8b -> {ok:true}. OnboardingBanner.tsx:39-48 derives defaultLaneNotReady = keyless && !readiness.ok, showBanner = probed && !dismissed && !hasAnyKey && defaultLaneNotReady -- so a working local model (ok:true) never shows the banner.
+describe("OnboardingBanner (R15-UI-019)", () => {
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+    __resetProviderProbeCacheForTests();
+    resetModelSelectionStoreForTests();
+    useLLMProvidersStore.setState({ providers: DEFAULT_PROVIDERS, defaultProviderId: "ollama" });
+    // The mount-time refreshes read the keychain; keep the seeded state instead.
+    useProviderKeysStore.setState({ status: {}, probed: true, refresh: async () => {} });
+    useOnboardingStore.setState({ bannerDismissed: false, refreshBanner: async () => {} });
+  });
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  it("no banner for a working local model with no cloud key", async () => {
+    answerValidate({ ok: true, reason: null, detail: null });
+    render(<OnboardingBanner />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("shows when no key is set and the local model is not reachable", async () => {
+    answerValidate(NOT_RUNNING);
+    render(<OnboardingBanner />);
+    expect(await screen.findByRole("status")).toHaveTextContent(/Add a cloud provider key/);
+  });
+
+  it("does not claim nothing leaves the machine (R15-UI-052) — only keys do not", async () => {
+    answerValidate(NOT_RUNNING);
+    render(<OnboardingBanner />);
+    const status = await screen.findByRole("status");
+    expect(status).toHaveTextContent(/market data and web searches still go to public providers/i);
+    expect(status).not.toHaveTextContent(/nothing leaves this machine/i);
+  });
+
+  it("a dismissal survives a remount", async () => {
+    answerValidate(NOT_RUNNING);
+    const first = render(<OnboardingBanner />);
+    fireEvent.click(await screen.findByRole("button", { name: "Dismiss" }));
+    first.unmount();
+
+
+VERDICT: ci_pinned -- OnboardingBanner.test.tsx describe 'OnboardingBanner (R15-UI-019)': 'no banner for a working local model with no cloud key' / 'shows when no key is set and the local model is not reachable' both pinned. Live re-probe of the same readiness endpoint (validate) reproduces the two states the component branches on; component render itself needs vitest/jsdom (heavy lane).

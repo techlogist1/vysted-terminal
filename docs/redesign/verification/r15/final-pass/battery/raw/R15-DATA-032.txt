@@ -1,0 +1,11 @@
+# R15-DATA-032 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:44+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+echo "\$ GET /earnings/INFY.NS/estimates"; curl -s -m 60 "$H/earnings/INFY.NS/estimates" | python3 -c "
+import sys,json;d=json.load(sys.stdin);e=d.get('estimate',d)
+print({k:e.get(k) for k in ('eps_estimate_mean','eps_estimate_median','eps_estimate_stddev','eps_estimate_high','eps_estimate_low','revenue_estimate_median')} if isinstance(e,dict) else str(d)[:600]); print('count fields:',{k:v for k,v in (e.items() if isinstance(e,dict) else []) if 'count' in k})"
+--- output ---
+$ GET /earnings/INFY.NS/estimates
+{'eps_estimate_mean': 19.63622, 'eps_estimate_median': None, 'eps_estimate_stddev': None, 'eps_estimate_high': 20.37, 'eps_estimate_low': 19.0, 'revenue_estimate_median': None}
+count fields: {'estimate_analyst_count': 11, 'revenue_analyst_count': 24}
+
+EXIT=0 (0.0s)

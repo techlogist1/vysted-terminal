@@ -1,0 +1,17 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p021.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+from services.research.relevance import entity_match,row_relevant
+from services.research.target import ResearchTarget
+t=ResearchTarget(symbol='BAJFINANCE',name='Bajaj Finance Limited',exchange='NSE',asset_class='equity',confidence=1.0,region='IN')
+for title in ['BAJFINANCE 200 DMA breakout as stock nears record','BAJFINANCE 52-week high','BAJFINANCE breakout as stock nears record']:
+    r={'title':title}
+    print(repr(title),entity_match(r,target=t),row_relevant(r,target=t))
+t2=ResearchTarget(symbol='KPITTECH',name='KPIT Technologies Limited',exchange='NSE',asset_class='equity',confidence=1.0,region='IN')
+r={'title':'KPITTECH 200 DMA test'}; print('KPITTECH',entity_match(r,target=t2),row_relevant(r,target=t2))
+--- output ---
+'BAJFINANCE 200 DMA breakout as stock nears record' 1.0 True
+'BAJFINANCE 52-week high' 1.0 True
+'BAJFINANCE breakout as stock nears record' 1.0 True
+KPITTECH 1.0 True
+EXIT=0

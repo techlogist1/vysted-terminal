@@ -1,0 +1,17 @@
+# R15-UI-025 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; echo '(GUI-certified entry; headless source probe only)'; grep -rn 'window.prompt\|window.alert\|window.confirm' src --include=*.ts --include=*.tsx | grep -v '\.test\.'; echo "prompt grep exit (1=none) ${PIPESTATUS[0]}"; grep -n -i 'popover\|url' src/modules/notes/NotesToolbar.tsx | head -8; grep -n 'no-restricted-globals\|prompt' eslint.config.* | head -5
+--- output ---
+(GUI-certified entry; headless source probe only)
+src/modules/notes/NotesToolbar.tsx:123:// R15-UI-025: `window.prompt` is a browser-only primitive WKWebView does not
+prompt grep exit (1=none) 0
+122:// ── Link popover ────────────────────────────────────────────────────────────
+124:// implement (it silently no-ops in the desktop app) — an inline popover
+127:function LinkPopover({
+181:        aria-label="Link URL"
+220:  // though the popover only matters once `editor` is non-null.
+367:            <LinkPopover
+43:          property: "prompt",
+44:          message: "window.prompt is a no-op in the Tauri desktop webview — use an inline popover.",
+
+EXIT=0 (0.1s)

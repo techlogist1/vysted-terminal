@@ -1,0 +1,2 @@
+{"detail":[{"type":"greater_than_equal","loc":["body","trigger","interval","everyMinutes"],"msg":"Input should be greater than or equal to 5","input":1,"ctx":{"ge":5}}]}
+HTTP:422

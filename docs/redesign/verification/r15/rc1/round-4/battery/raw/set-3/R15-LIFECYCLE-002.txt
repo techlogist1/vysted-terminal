@@ -1,0 +1,8 @@
+NOT RUN LIVE: same frontend-only constraint as FRONTEND-001 (see that file).
+SOURCE CHECK (candidate HEAD 1006c6da):
+  src/lib/workspace.ts:798 loadWorkspace calls applyLayoutSlice(workspace) directly (no unknown-component abandon-whole-blob path); restoreLastSessionOrDefault also routes through the same slice restore. PERSISTED_SLICES (line 300) restores every non-layout slice (portfolios/notes/watchlist/etc.) independent of whether the dockview layout partially failed.
+PINNED TEST (ci_pinned):
+  src/lib/workspace.test.ts:1001 it("restores holdings, notes and watchlist even when the saved layout has an unregistered panel (R15-LIFECYCLE-002)")
+  src/lib/workspace.test.ts:1084 it("strips an unregistered panel from the saved layout and restores the rest, with every data slice and no autosave (R15-LIFECYCLE-002)")
+NOTE: register entry itself records the original broker-connect-panel trigger is moot post-D81 trading removal, but the general defect class (unregistered panel abandoning non-layout slices) is what these tests pin.
+VERDICT BASIS: source matches fix_shape; pinned tests named above.

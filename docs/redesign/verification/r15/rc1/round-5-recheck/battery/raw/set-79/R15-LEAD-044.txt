@@ -1,0 +1,27 @@
+=== R15-LEAD-044 live repro: in-process _fetch_pair(HAL) under session IN, with/without universe-intrinsic region override (screener.py) ===
+import sys, asyncio
+sys.path.insert(0, ".")
+import config
+from services import screener
+
+async def main():
+    # Simulate an IN session (session region = IN, as R15-LEAD-044 describes)
+    token = config.set_request_region("IN")
+    try:
+        # Session-region resolution (no universe override) — this is what a bare
+        # HAL lookup gets under an IN session with NO fix.
+        pair_session, reason1 = await screener._fetch_pair("HAL", "equity", None)
+        name_session = pair_session[0].name if pair_session else None
+        print("HAL under session region (IN), no universe override:", name_session, "| skip:", reason1)
+
+        # Universe-intrinsic region (sp500 -> US), the FIX: overrides session.
+        pair_universe, reason2 = await screener._fetch_pair("HAL", "equity", screener._UNIVERSE_REGION.get("sp500"))
+        name_universe = pair_universe[0].name if pair_universe else None
+        print("HAL under universe-intrinsic region (sp500->US):", name_universe, "| skip:", reason2)
+    finally:
+        config.reset_request_region(token)
+
+asyncio.run(main())
+--- output ---
+HAL under session region (IN), no universe override: Hindustan Aeronautics Limited | skip: None
+HAL under universe-intrinsic region (sp500->US): Halliburton Company | skip: None

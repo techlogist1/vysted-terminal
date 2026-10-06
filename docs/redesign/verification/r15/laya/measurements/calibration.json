@@ -1,0 +1,600 @@
+{
+  "entity_match": {
+    "n_a": 99,
+    "n_b": 100,
+    "temperature_fit_on_A": 4.06,
+    "nll_on_A_at_fitted_T": 0.647039704676199,
+    "ece_before_on_B": 0.06602800000000002,
+    "ece_after_on_B": 0.16680338444759024,
+    "reliability_table_before": [
+      {
+        "bin": [
+          0.0,
+          0.1
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.1,
+          0.2
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.2,
+          0.3
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.3,
+          0.4
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.4,
+          0.5
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.5,
+          0.6
+        ],
+        "n": 2,
+        "avg_confidence": 0.5541499999999999,
+        "accuracy": 0.5
+      },
+      {
+        "bin": [
+          0.6,
+          0.7
+        ],
+        "n": 7,
+        "avg_confidence": 0.6612285714285715,
+        "accuracy": 0.5714285714285714
+      },
+      {
+        "bin": [
+          0.7,
+          0.8
+        ],
+        "n": 12,
+        "avg_confidence": 0.7576666666666667,
+        "accuracy": 0.75
+      },
+      {
+        "bin": [
+          0.8,
+          0.9
+        ],
+        "n": 49,
+        "avg_confidence": 0.8543428571428572,
+        "accuracy": 0.8163265306122449
+      },
+      {
+        "bin": [
+          0.9,
+          1.0
+        ],
+        "n": 30,
+        "avg_confidence": 0.93037,
+        "accuracy": 0.8
+      }
+    ],
+    "reliability_table_after": [
+      {
+        "bin": [
+          0.0,
+          0.1
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.1,
+          0.2
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.2,
+          0.3
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.3,
+          0.4
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.4,
+          0.5
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.5,
+          0.6
+        ],
+        "n": 39,
+        "avg_confidence": 0.5724954269113249,
+        "accuracy": 0.7435897435897436
+      },
+      {
+        "bin": [
+          0.6,
+          0.7
+        ],
+        "n": 58,
+        "avg_confidence": 0.6331780113954113,
+        "accuracy": 0.7931034482758621
+      },
+      {
+        "bin": [
+          0.7,
+          0.8
+        ],
+        "n": 2,
+        "avg_confidence": 0.7141429920550051,
+        "accuracy": 1.0
+      },
+      {
+        "bin": [
+          0.8,
+          0.9
+        ],
+        "n": 1,
+        "avg_confidence": 0.83972926065544,
+        "accuracy": 1.0
+      },
+      {
+        "bin": [
+          0.9,
+          1.0
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      }
+    ],
+    "method": "z=log(p) from laya-mlx output probabilities, rescale z/T, re-softmax; T fit by grid search 0.05..5.0 step 0.01 minimising mean NLL on A against hard gold label",
+    "critic_nll_on_B_before": 0.5363,
+    "critic_nll_on_B_after": 0.5812,
+    "critic_ece_on_A_before": 0.11,
+    "critic_ece_on_A_after": 0.1724,
+    "critic_nll_on_A_before": 0.8535,
+    "critic_nll_on_A_after": 0.647
+  },
+  "holding_relevance": {
+    "n_a": 43,
+    "n_b": 44,
+    "temperature_fit_on_A": 1.09,
+    "nll_on_A_at_fitted_T": 0.40805200864830315,
+    "ece_before_on_B": 0.11344999999999997,
+    "ece_after_on_B": 0.14228746627255692,
+    "reliability_table_before": [
+      {
+        "bin": [
+          0.0,
+          0.1
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.1,
+          0.2
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.2,
+          0.3
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.3,
+          0.4
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.4,
+          0.5
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.5,
+          0.6
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.6,
+          0.7
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.7,
+          0.8
+        ],
+        "n": 5,
+        "avg_confidence": 0.78016,
+        "accuracy": 1.0
+      },
+      {
+        "bin": [
+          0.8,
+          0.9
+        ],
+        "n": 27,
+        "avg_confidence": 0.8600111111111112,
+        "accuracy": 0.9259259259259259
+      },
+      {
+        "bin": [
+          0.9,
+          1.0
+        ],
+        "n": 12,
+        "avg_confidence": 0.926075,
+        "accuracy": 0.75
+      }
+    ],
+    "reliability_table_after": [
+      {
+        "bin": [
+          0.0,
+          0.1
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.1,
+          0.2
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.2,
+          0.3
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.3,
+          0.4
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.4,
+          0.5
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.5,
+          0.6
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.6,
+          0.7
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.7,
+          0.8
+        ],
+        "n": 9,
+        "avg_confidence": 0.7745971122947891,
+        "accuracy": 1.0
+      },
+      {
+        "bin": [
+          0.8,
+          0.9
+        ],
+        "n": 27,
+        "avg_confidence": 0.8564403170390179,
+        "accuracy": 0.9259259259259259
+      },
+      {
+        "bin": [
+          0.9,
+          1.0
+        ],
+        "n": 8,
+        "avg_confidence": 0.9194888858373862,
+        "accuracy": 0.625
+      }
+    ],
+    "method": "z=log(p) from laya-mlx output probabilities, rescale z/T, re-softmax; T fit by grid search 0.05..5.0 step 0.01 minimising mean NLL on A against hard gold label",
+    "critic_nll_on_B_before": 0.4077,
+    "critic_nll_on_B_after": 0.4066,
+    "critic_ece_on_A_before": 0.0719,
+    "critic_ece_on_A_after": 0.1015,
+    "critic_nll_on_A_before": 0.4093,
+    "critic_nll_on_A_after": 0.4081
+  },
+  "composer_intent": {
+    "n_a": 26,
+    "n_b": 27,
+    "temperature_fit_on_A": 0.79,
+    "nll_on_A_at_fitted_T": 0.8897729303639553,
+    "ece_before_on_B": 0.19100482406249264,
+    "ece_after_on_B": 0.1768048207909811,
+    "reliability_table_before": [
+      {
+        "bin": [
+          0.0,
+          0.1
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.1,
+          0.2
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.2,
+          0.3
+        ],
+        "n": 2,
+        "avg_confidence": 0.27849999999999997,
+        "accuracy": 0.0
+      },
+      {
+        "bin": [
+          0.3,
+          0.4
+        ],
+        "n": 11,
+        "avg_confidence": 0.3431057990752398,
+        "accuracy": 0.45454545454545453
+      },
+      {
+        "bin": [
+          0.4,
+          0.5
+        ],
+        "n": 2,
+        "avg_confidence": 0.43709991437099915,
+        "accuracy": 1.0
+      },
+      {
+        "bin": [
+          0.5,
+          0.6
+        ],
+        "n": 2,
+        "avg_confidence": 0.53955,
+        "accuracy": 1.0
+      },
+      {
+        "bin": [
+          0.6,
+          0.7
+        ],
+        "n": 2,
+        "avg_confidence": 0.6266815631563156,
+        "accuracy": 0.5
+      },
+      {
+        "bin": [
+          0.7,
+          0.8
+        ],
+        "n": 1,
+        "avg_confidence": 0.7880788078807881,
+        "accuracy": 1.0
+      },
+      {
+        "bin": [
+          0.8,
+          0.9
+        ],
+        "n": 3,
+        "avg_confidence": 0.8666371562843715,
+        "accuracy": 0.6666666666666666
+      },
+      {
+        "bin": [
+          0.9,
+          1.0
+        ],
+        "n": 4,
+        "avg_confidence": 0.9344004797570048,
+        "accuracy": 1.0
+      }
+    ],
+    "reliability_table_after": [
+      {
+        "bin": [
+          0.0,
+          0.1
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.1,
+          0.2
+        ],
+        "n": 0,
+        "avg_confidence": null,
+        "accuracy": null
+      },
+      {
+        "bin": [
+          0.2,
+          0.3
+        ],
+        "n": 2,
+        "avg_confidence": 0.28621937740159203,
+        "accuracy": 0.0
+      },
+      {
+        "bin": [
+          0.3,
+          0.4
+        ],
+        "n": 9,
+        "avg_confidence": 0.3516955734043126,
+        "accuracy": 0.5555555555555556
+      },
+      {
+        "bin": [
+          0.4,
+          0.5
+        ],
+        "n": 4,
+        "avg_confidence": 0.459288865699363,
+        "accuracy": 0.5
+      },
+      {
+        "bin": [
+          0.5,
+          0.6
+        ],
+        "n": 1,
+        "avg_confidence": 0.5871698061541909,
+        "accuracy": 1.0
+      },
+      {
+        "bin": [
+          0.6,
+          0.7
+        ],
+        "n": 1,
+        "avg_confidence": 0.6374626032570273,
+        "accuracy": 1.0
+      },
+      {
+        "bin": [
+          0.7,
+          0.8
+        ],
+        "n": 2,
+        "avg_confidence": 0.7191298049152808,
+        "accuracy": 0.5
+      },
+      {
+        "bin": [
+          0.8,
+          0.9
+        ],
+        "n": 2,
+        "avg_confidence": 0.8853002402512813,
+        "accuracy": 0.5
+      },
+      {
+        "bin": [
+          0.9,
+          1.0
+        ],
+        "n": 6,
+        "avg_confidence": 0.9634201084887225,
+        "accuracy": 1.0
+      }
+    ],
+    "method": "z=log(p) from laya-mlx output probabilities, rescale z/T, re-softmax; T fit by grid search 0.05..5.0 step 0.01 minimising mean NLL on A against hard gold label",
+    "critic_nll_on_B_before": 0.9038,
+    "critic_nll_on_B_after": 0.8827,
+    "critic_ece_on_A_before": 0.0623,
+    "critic_ece_on_A_after": 0.1232,
+    "critic_nll_on_A_before": 0.9001,
+    "critic_nll_on_A_after": 0.8898
+  },
+  "critic_note": "critic fields recomputed by <scratch>/laya-critic/check.py from predictions.json; ECE also worsens on the fit set A itself, so the ECE rise is the NLL-optimal T trading off ECE, not A->B overfitting"
+}

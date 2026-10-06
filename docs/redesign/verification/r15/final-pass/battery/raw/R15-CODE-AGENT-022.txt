@@ -1,0 +1,10 @@
+# R15-CODE-AGENT-022 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:37+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+curl -s -m 10 "$H/mcp/status"; echo; curl -s -m 20 -X POST "$H/mcp/" -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"x","version":"0"}}}' | head -c 300; echo; "$IP" -c 'import mcp.types as t; print("LATEST_PROTOCOL_VERSION", t.LATEST_PROTOCOL_VERSION)'
+--- output ---
+{"ready":true,"toolCount":39,"endpoint":"/mcp","protocolVersion":"2025-11-25"}
+event: message
+data: {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-11-25","capabilities":{"experimental":{},"logging":{},"prompts":{"listChanged":true},"resources":{"subscribe":false,"listChanged":true},"tools":{"listChanged":true},"extensions":{"io.modelcontextprotocol/ui":{}}},"server
+LATEST_PROTOCOL_VERSION 2025-11-25
+
+EXIT=0 (0.4s)

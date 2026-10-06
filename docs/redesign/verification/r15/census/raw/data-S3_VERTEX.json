@@ -1,0 +1,72 @@
+[
+  {
+    "raw_id": "DAT-S3-1",
+    "title": "fundamentals.held_percent_insiders shows promoter holding at 77.68%, more than double the true 36.43-36.44%",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "S3_VERTEX",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/VERTEX -> body.held_percent_insiders = 0.77676004 (77.68%). Compare to the SAME app's GET /disclosures/shareholding?symbol=VERTEX -> patterns[0] (quarter_end 2026-06-30) promoter_percent = 36.43, and outside truth (Screener.in, corroborated by Groww/INDmoney) = 36.44%.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S3_VERTEX.json calls.fundamentals.body.held_percent_insiders vs calls.shareholding.body.patterns[0].promoter_percent; docs/redesign/verification/r15/battery/packs/S3_VERTEX.json shareholding.promoter_pct (value 36.44, source Screener.in)",
+    "notes": "Promoter holding is explicitly the single most gameable Indian small-cap number per the pack collector's own framing, and this app shows two contradictory values for it from two different endpoints in the same collection run, with no gap/caveat flag on the wrong one (held_percent_insiders reads as a clean, confident 77.68%). Likely mechanism: held_percent_insiders is yfinance's own field, independently (and here wrongly) sourced/stale, never cross-checked or reconciled against the BSE-XBRL-sourced shareholding data the app already has. Smallest fix: derive insider/promoter holding shown anywhere in fundamentals from the authoritative BSE shareholding-pattern data (or at minimum flag disagreement / suppress the yfinance field for Indian equities) rather than trusting the yfinance figure as-is."
+  },
+  {
+    "raw_id": "DAT-S3-2",
+    "title": "fundamentals book_value / price_to_book are computed from a stale pre-rights share count while market_cap in the same response uses the correct post-rights count",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "S3_VERTEX",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/VERTEX -> shares_outstanding=74012189 (pre-rights count) and book_value=1.369, price_to_book=2.3886049; but market_cap=484039744 in the SAME response implies ~148,024,915 shares at price 3.27 (the post-rights count). 10.13cr (post-rights consolidated net worth) / 74,012,189 = 1.369 exactly, proving book_value divides the correct numerator by the wrong (stale) denominator.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S3_VERTEX.json calls.fundamentals.body (shares_outstanding, book_value, price_to_book, market_cap fields); docs/redesign/verification/r15/battery/packs/S3_VERTEX.json shares_outstanding (best value 148024378, source INDmoney), book_value_per_share.mechanism, market_cap.best_supported",
+    "notes": "A 1:1 rights issue at face value doubled the share count in FY2026 (pack trap T1/T3); this app's own /fundamentals response mixes the old and new share counts internally, producing a book value and P/B roughly half of what the post-rights, negative-reserves-corrected figures should be (best pack analysis: net worth 10.13cr / 148.02M shares = INR 0.68/share, P/B ~4.78x consolidated -- vs app's 1.369/2.39x). Wrong money-relevant valuation ratios shown as true with no flag. Smallest fix: source shares_outstanding for the per-share/ratio calculations from the same (current, post-corporate-action) figure market_cap already uses, rather than a separately-cached/stale provider field."
+  },
+  {
+    "raw_id": "DAT-S3-3",
+    "title": "dividend_yield and dividend_per_share_ttm render null instead of the well-established real zero",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "S3_VERTEX",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/VERTEX -> dividend_yield=null, dividend_per_share_ttm=null. Outside truth (Screener/Groww/Investing.com, unanimous): trailing-12m dividend paid = 0.0, yield = 0.00%.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S3_VERTEX.json calls.fundamentals.body.dividend_yield, .dividend_per_share_ttm; docs/redesign/verification/r15/battery/packs/S3_VERTEX.json dividend.paid_trailing_12m_per_share, dividend.yield, world_gaps[dividend_yield_is_genuinely_zero]",
+    "notes": "The pack's own collector explicitly pre-flagged this exact trap in world_gaps: 'Zero here is a real value, not a missing one... so a differ does not treat 0.00% as a null.' The app does exactly that -- a UI or downstream screen reading null for 'no dividend data available' rather than 'confirmed zero dividend' is a real, silent information loss for a user checking yield. Smallest fix: when the provider has no dividend-history rows at all for the trailing window, that is itself evidence of a real zero for an Indian equity with a known listing history, not an unknown -- return 0.0 with a provenance note, not null."
+  },
+  {
+    "raw_id": "DAT-S3-4",
+    "title": "disclosures/results 502s for a BSE-only stock instead of serving BSE data or degrading gracefully",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "S3_VERTEX",
+    "repro": "GET http://127.0.0.1:52152/disclosures/results?symbol=VERTEX -> HTTP 502, body {\"detail\": \"nse_direct: 'VERTEX' is not a known NSE instrument\"}. VERTEX is confirmed BSE-only (no NSE listing; pack world_gaps[no_nse_listing_exists], and the app's own /resolve response for VERTEX carries no nse_symbol/NSE candidate).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S3_VERTEX.json calls.results_calendar (status 502, body.detail); calls.resolve_bare_symbol.body.resolved (exchange=\"BSE\", no NSE fields); docs/redesign/verification/r15/battery/packs/S3_VERTEX.json world_gaps[no_nse_listing_exists], latest_results (Q1 FY27 consolidated sales 1.88cr / net profit -0.40cr, sourced from Screener)",
+    "notes": "The results-calendar route appears hard-wired to an NSE-only lookup path (nse_direct) with no BSE fallback, so it fails outright (502, a server-error-class response, not a clean 'no data' state) for any BSE-only scrip -- and thousands of BSE-listed small/micro caps are BSE-only. This breaks a core flow (viewing the results calendar / latest results) for a large class of instruments the product claims to cover with screener.in-grade completeness. Smallest fix: route BSE-listed, non-NSE-listed symbols to a BSE-sourced results path, or at minimum return a typed empty/degrade response instead of a 502."
+  },
+  {
+    "raw_id": "DAT-S3-5",
+    "title": "ROCE is entirely absent from the /fundamentals response schema",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "S3_VERTEX",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/VERTEX -> response body has roe and roa keys but no roce key at all (not present as null, simply absent). Outside truth: ROCE -13.4% (standalone, Screener) / -12.04% (consolidated FY2026, Screener), well corroborated.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S3_VERTEX.json calls.fundamentals.body (full key list has roe, roa but no roce); docs/redesign/verification/r15/battery/packs/S3_VERTEX.json roce.value, roce.history_consolidated",
+    "notes": "ROCE is one of the headline ratios the pack spec itself mandates diffing and a standard quality-screen metric investors expect alongside ROE; its total absence (not a null value, a missing key) suggests the fundamentals contract simply never added it. A demanding user comparing this app to screener.in-grade coverage would notice the gap immediately on any stock, not just this one. Smallest fix: add a computed or provider-sourced roce field to the fundamentals contract."
+  },
+  {
+    "raw_id": "DAT-S3-6",
+    "title": "shareholding.dii_percent renders null even though the same record's institutions_percent confirms a known, computable zero",
+    "severity": "low",
+    "area": "data",
+    "subsystem": "S3_VERTEX",
+    "repro": "GET http://127.0.0.1:52152/disclosures/shareholding?symbol=VERTEX -> patterns[0] (quarter_end 2026-06-30): dii_percent=null, fii_percent=null, but institutions_percent=0.0 in the same object. Outside truth (Screener.in, explicit): DII = 0.00%.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S3_VERTEX.json calls.shareholding.body.patterns[0] (dii_percent, institutions_percent); docs/redesign/verification/r15/battery/packs/S3_VERTEX.json shareholding.dii_pct (value 0.0, source 'Screener.in (explicit 0.00%)')",
+    "notes": "The app already computes an aggregate institutions_percent=0.0 for this record, which is only possible if it knows both the FII and DII components are zero (or treats an absent BSE row as zero the same way Screener does) -- yet the granular dii_percent field is left null rather than populated with the same zero. Low severity because the number itself (0%) barely moves a decision either way for this name, but it is a real, narrow inconsistency between two fields on the same record. Smallest fix: derive fii_percent/dii_percent consistently with however institutions_percent is derived, or drop institutions_percent if the granular split is genuinely unavailable."
+  },
+  {
+    "raw_id": "DAT-S3-7",
+    "title": "fundamentals.eps (-0.25) does not reconcile with any of 5 independently-sourced outside EPS figures under any traced share-count/net-income combination",
+    "severity": "low",
+    "area": "data",
+    "subsystem": "S3_VERTEX",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/VERTEX -> eps=-0.25. Outside candidates: -0.17 (Screener standalone TTM), -0.16 (Screener consolidated FY26), -0.18 (Groww TTM), -0.0676 (INDmoney TTM), -0.32 (StockAnalysis/Investing.com TTM). None equals -0.25, and none of the known net-income figures (-2.37cr/-2.54cr) divided by any of the known share counts (74.01M/92.5M/148.02M) traced in the pack reproduces -0.25 either.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S3_VERTEX.json calls.fundamentals.body.eps; docs/redesign/verification/r15/battery/packs/S3_VERTEX.json eps_ttm.candidates, eps_ttm.mechanism",
+    "notes": "Lower confidence than DAT-S3-2 (the book-value/PB cluster) because the mechanism producing -0.25 could not be traced to any combination the pack's evidence covers -- it may be yet another provider-internal basis (e.g. yfinance's own trailingEps using a diluted or weighted-average share count not captured anywhere in this pack). Filed because the value is verifiably outside the full observed range of legitimate outside answers (-0.0676 to -0.32), which is itself informative, not because the correct value is known."
+  }
+]

@@ -1,0 +1,4 @@
+ENTRY: R15-AGENT-043 -- ci_pinned
+Malformed criterion is dropped client-side in parseScreenerCriterion (host-actions.ts); never reaches sidecar API, so no live curl repro. Pinned test still present with certified string:
+350:      "Wrote 2 of 3 screener criteria; dropped roe: value must be a number — review and Run",
+440:function parseScreenerCriterion(raw: unknown): ScreenerCriterion | string {

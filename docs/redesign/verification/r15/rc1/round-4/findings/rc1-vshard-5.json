@@ -1,0 +1,141 @@
+[
+ {
+  "key": "rc1-vshard-5:1",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-053",
+  "title": "NSE-direct quotes return null OHLC/prev_close; BSE volume ignores TTQin Lakh unit (100000x low)",
+  "repro": "GET /quotes/ELCIDIN?asset_class=equity -> open/high/low/prev_close null; GET /quotes/500325.BO -> volume 5.28 while BSE StockTrading TTQ=5.28 TTQin='(Lakh)'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/services/nse_provider.py",
+   "sidecar/services/bse_provider.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:2",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-061",
+  "title": "Macro unknown-series / invalid-provider errors surface as 502 'Retry' (3rd certification failure)",
+  "repro": "GET /macro/ZZNOTREAL?provider=ecb -> 502 provider_error Retry; GET /macro/GDP?provider=worldbank -> 502 Retry (unvalidated provider passed to openbb economy_fred_series 422)",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/routers/macro.py",
+   "sidecar/services/errors.py",
+   "sidecar/services/macro/ecb_provider.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:3",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-CODE-PLATFORM-017",
+  "title": "Code-node inspector mathjs value preview still disagrees with server evaluate_code",
+  "repro": "mathjs 15.2.0 vs code_node.evaluate_code: round(1.005,2) 1.01 vs 1.0; log(100,10) 2 vs disallowed Call; nested ternary 2 vs parse error; 1/0 Infinity vs error",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-5.md",
+  "suspected_files": [
+   "src/modules/node-editor/code-node-inspector.tsx",
+   "sidecar/services/workflow_nodes/code_node.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:4",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-UI-018",
+  "title": "Workflow schedule Delete is a one-click unconfirmed sidecar DELETE",
+  "repro": "src/modules/node-editor/schedule-control.tsx:171 Delete -> deleteSchedule (store/workflow.ts:440) DELETE /workflow/schedules/{id}, no ConfirmButton/undo",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-5.md",
+  "suspected_files": [
+   "src/modules/node-editor/schedule-control.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:5",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-AGENT-084",
+  "title": "HAND_ACTION_INVENTORY omits portfolio create/rename/delete, workspace load/delete, saved-screen delete, chart compare/timeframe",
+  "repro": "grep src/lib/host-actions.ts HAND_ACTION_INVENTORY: no row or exclusion for these hand actions; SC-022 lists compare and set timeframe",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-5.md",
+  "suspected_files": [
+   "src/lib/host-actions.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:6",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-DOCS-016",
+  "title": "CURRENT_STATE hand count '18 surviving host actions' vs 19 in code",
+  "repro": "docs/CURRENT_STATE.md:753-754 vs HOST_ACTION_NAMES (19) and same doc lines 78/448/582/682/717/869",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-5.md",
+  "suspected_files": [
+   "docs/CURRENT_STATE.md"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:7",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-CODE-PLATFORM-021",
+  "title": "Portfolio model docstrings still make stale authority claims (SQLite record, phantom portfolio service)",
+  "repro": "sidecar/models/portfolio.py:3-6 and types/data.ts:644 vs 'Holdings are owned by the workspace blob' in routers/portfolio.py, portfolio_db.py, api.ts",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/models/portfolio.py",
+   "types/data.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:8",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-UI-028",
+  "title": "Agent/MCP compute_greeks returns unlabelled raw QuantLib units (vega 404 vs panel 4.04)",
+  "repro": "compute_greeks put S1450 K1500 -> vega 404.0027 theta -45.37 rho -392.73 with no unit fields",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/services/agent_tools/quant_tools.py",
+   "sidecar/services/agent_tools/catalog.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:9",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DOCS-016",
+  "title": "CURRENT_STATE '14 tool ids' and '18 modules' stale",
+  "repro": "docs/CURRENT_STATE.md:693 vs copilot.json 55 tools; :121/:507 vs src/modules/index.ts 20",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-5.md",
+  "suspected_files": [
+   "docs/CURRENT_STATE.md"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:10",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DATA-061",
+  "title": "FRED keyless error says 'needs a free API key' but action 'Retry' (overlaps CODE-PLATFORM-038)",
+  "repro": "GET /macro/<series>?provider=fred with no key -> 502 action Retry",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/services/errors.py",
+   "sidecar/routers/macro.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:11",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-LEAD-018",
+  "title": "ReasoningSplitter leaks a stray closing </think> with no opener as visible text",
+  "repro": "ReasoningSplitter().content(['Let me reason ','</think>','Answer: sell.']) -> visible 'Let me reason </think>Answer: sell.'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/services/llm/reasoning_split.py"
+  ]
+ }
+]

@@ -1,0 +1,129 @@
+{"kind": "delta", "text": "H"}
+{"kind": "delta", "text": "DF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " currently"}
+{"kind": "delta", "text": " trades"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "434"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "80"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "52"}
+{"kind": "delta", "text": "-week"}
+{"kind": "delta", "text": " high"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "low"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "517"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "45"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "244"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "40"}
+{"kind": "delta", "text": " respectively"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " fetched"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " prices"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " updated"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " real"}
+{"kind": "delta", "text": "-time"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Terminal"}
+{"kind": "delta", "text": " context"}
+{"kind": "delta", "text": ":\n"}
+{"kind": "delta", "text": "Watch"}
+{"kind": "delta", "text": "list"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " HDF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "Portfolio"}
+{"kind": "delta", "text": " summary"}
+{"kind": "delta", "text": ":\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " Holdings"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " HDF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": " units"}
+{"kind": "delta", "text": ")\n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " Value"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "14"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "348"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " Unreal"}
+{"kind": "delta", "text": "ized"}
+{"kind": "delta", "text": " gain"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "loss"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "192"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " layout"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " equity"}
+{"kind": "delta", "text": "-over"}
+{"kind": "delta", "text": "view"}
+{"kind": "delta", "text": " panel"}
+{"kind": "delta", "text": " focused"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " HDF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2736, "output_tokens": 127, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

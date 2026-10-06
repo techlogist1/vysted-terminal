@@ -1,0 +1,95 @@
+[
+ {
+  "key": "rc1-vshard-1:1",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-DATA-024",
+  "title": "Dual-listed names never read the BSE bulk/block lane; BSE-venue deals silently absent",
+  "repro": "GET /disclosures/deals?symbol=KOPRAN vs in-process corporate_disclosures._bse_deals('KOPRAN','524280','bulk'): BSE bulk sell 700000 by UNITED SHIPPERS LTD 2026-09-07 missing",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-1/data024-bse-dual-listed-inproc.txt",
+  "suspected_files": [
+   "sidecar/services/corporate_disclosures.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-1:2",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-DATA-030",
+  "title": "News alias over-matches different listed companies (Reliance Power/Infra -> RELIANCE.NS, LT Foods -> LT.NS, ITC Hotels -> ITC.NS)",
+  "repro": "run the news symbol matcher on headlines naming Reliance Power, LT Foods, ITC Hotels",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-1/data030-matcher.txt",
+  "suspected_files": [
+   "sidecar/services/news_provider.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-1:3",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DATA-020",
+  "title": "Cross-exchange announcement copies still unpaired live (INFY ESOP allotment 2026-09-18; LT 3 pairs)",
+  "repro": "GET /disclosures/announcements?symbol=INFY and LT",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-1/data020-LT.json",
+  "suspected_files": [
+   "sidecar/services/corporate_disclosures.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-1:4",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DATA-016",
+  "title": "Untraded scrip serves fifty_two_week_change 0.0 as ok; DAL.BO 1y history empty with provider none and null reason",
+  "repro": "GET fundamentals DAL; GET /history?symbol=DAL.BO&period=1y",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-1/data016-hist-DAL.BO.json",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-vshard-1:5",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-AGENT-015",
+  "title": "Workflow _render_template silently blanks non-context braces in a typed prompt",
+  "repro": "ai.agent_invoke prompt 'Compare {sym} vs peers' renders 'Compare  vs peers'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-1/agent015-graph.json",
+  "suspected_files": [
+   "sidecar/services/workflow_nodes/builtin.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-1:6",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-RESEARCH-009",
+  "title": "ULTRA budget breach leaves brief note None (DEEP sets BUDGET_STOP_NOTE)",
+  "repro": "in-process ULTRA run with 5000-token ceiling",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-1/../../logs/rc1-vshard-1.md",
+  "suspected_files": [
+   "sidecar/services/research/deep.py",
+   "sidecar/services/research/iter.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-1:7",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DATA-023",
+  "title": "Shareholding serves duplicate rows with quarter_end equal to a submission date (CSL 2026-08-20 x2)",
+  "repro": "GET /disclosures/shareholding?symbol=CSL",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-1/data023-CSL.json",
+  "suspected_files": [
+   "sidecar/services/corporate_disclosures.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-1:8",
+  "kind": "environment",
+  "severity": "low",
+  "register_id": null,
+  "title": "Yahoo returning 429 throughout the shard; screener rows skip as rate_limited",
+  "repro": "any screener run / Yahoo quote",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-1/agent009-bse-all-roe.json",
+  "suspected_files": []
+ }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "raw_id": "WLD-harness-context-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Core holds: the loop sends the whole allow-list every round, _dispatch_tool json.dumps the full payload with no size cap, nothing counts tokens, and the Ollama window is a fixed 16,384 floor that the team already outgrew once at 4096. Two details corrected: an inferred-READ turn strips mutating tools (37 tools / 25,691 chars, ~6.4k tok, not 50 / ~8.8k), and the corporate_announcements TOOL defaults to limit=20 (8,127 bytes, ~2k tok); the cited 21,558-byte figure is the route's larger default, not what the agent receives. The window is still tight (~7k tok of room after schemas + prompt on a read turn, ~4.8k on a research/edit turn) and research payloads are uncapped, so the severity stands.",
+    "evidence": "sidecar/services/llm/ollama.py:35-47,137-143; sidecar/services/agent_runtime.py:1272-1305 (read gate),1434-1440,1570-1582,619-676; sidecar/services/agent_tools/disclosure_tools.py:27-28,45-48; sidecar/services/agent_tools/web_search.py:219-235; sidecar/agents/copilot.json:58-59",
+    "evidence_checked": "Opened every cited file and line. Measured the schemas in-process at HEAD f763a44, and ran GETs against :52152.",
+    "repro_check": "Ran sidecar/.venv python with get_agent('copilot') and openai_tools: all tools = 50 / 35,227 chars, read-gated = 37 / 25,691 chars, system prompt = 10,964 chars. curl :52152/disclosures/announcements?symbol=RELIANCE returned 21,558 B, and with &limit=20 (the tool default) it returned 8,127 B."
+  },
+  {
+    "raw_id": "WLD-harness-context-2",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. The frontend sends only user/assistant prose, capped at the last 10 messages (5 exchanges). _coerce_history drops every other role and caps at 10 again, and _compose_messages splices the history in with no summary or elision marker. Tool results and tool failures never cross a turn, and the store is in-memory only. So the 6th question drops the 1st exchange silently, as the finding claims.",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:749-753; sidecar/services/agent_runtime.py:469-482,506-521; src/store/chat-history.ts:1-13",
+    "evidence_checked": "Opened all cited code at HEAD, and grepped the chat module and agent_runtime for any compaction or summary path (none found).",
+    "repro_check": "Code-only. The slice(-10) filter plus _coerce_history out[-10:] are enough to prove it. A live repro would ask 6 questions through vy.py with history and check the provider messages. Not run, since the code is unambiguous."
+  },
+  {
+    "raw_id": "WLD-harness-context-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The notes half holds. write_note is a host_action writing into the per-symbol notes store (src/store/notes.ts, part of the workspace blob). No catalog capability, snapshot field or preamble line reads notes back: context-provider's snapshot has no notes and agent_runtime only advertises write_note. Corrected: research-space memory is more than the last 3 user questions. The snapshot also carries memory.claims (the R13 stated-value ledger), and _render_prior_stated_values puts those into the preamble. Prior figures therefore do cross sessions, but the user's thesis and notes do not. The 'memory is questions only' clause is overstated, and the write-only-notes gap is real and central to the thesis-vs-filing Jarvis flow.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:1373-1395; sidecar/services/agent_runtime.py:167,385-404; src/modules/chat/context-provider.ts:300-324; src/store/research-spaces.ts:33-45,82-93,143-145; src/store/notes.ts:1-25",
+    "evidence_checked": "Opened every cited file. Grepped catalog.py, agent_runtime.py and context-provider.ts for any notes read path (none found), and read the researchSpace preamble rendering.",
+    "repro_check": "Code-only. Running grep -n 'note' over context-provider.ts and catalog.py finds only write_note and no read capability. A live repro (write_note via vy.py, then a new chat asking about the thesis) was not run."
+  },
+  {
+    "raw_id": "WLD-harness-context-4",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed, and the exposure is wider than the finding implies. The read gate strips mutating tools only when classify_intent returns 'read', and a plain 'research Reliance Industries' classifies as intent='research' (not read). A research turn therefore keeps portfolio_delete_position, write_note and the rest alongside web_search. Tool payloads are json.dumps'd into role=tool with no wrap_untrusted: the fence is used only in deep_research/scrub, never in agent_runtime. Under AUTO, runtime returns 'dispatched' and proposed-changes.ts auto-accepts every kind !== 'order', which contradicts agent-autonomy.ts's documented UI/layout/chart/watchlist scope. host-actions.ts then sends a sidecar DELETE for the holding. Orders stay gated, so this is portfolio data loss, not order safety. Mechanism verified; not live-driven.",
+    "evidence": "sidecar/services/agent_runtime.py:76-85,1280-1305,1195-1212,1570-1582,619-676; src/store/proposed-changes.ts:113-119; src/store/agent-autonomy.ts:1-17; src/lib/host-actions.ts:1376-1388; sidecar/services/agent_tools/web_search.py:219-235; sidecar/services/search/scrub.py:92",
+    "evidence_checked": "Opened all cited code. Ran services.planner.classify_intent on sample prompts in-process, and grepped for wrap_untrusted/untrusted in agent_runtime and agent_tools.",
+    "repro_check": "Ran classify_intent in sidecar/.venv: 'research Reliance Industries' -> research (not read, so the full mutating set is granted), and 'what is the latest news on Infosys' -> read. The hostile-page end-to-end run was not done (it needs a controlled injected SERP)."
+  },
+  {
+    "raw_id": "WLD-harness-context-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. There is no cache_control anywhere under services/llm, and _split_system_and_messages joins every system message (persona, date, terminal preamble) into one string that changes per turn. 11 of the 13 first-party agents default to anthropic. The copilot itself defaults to ollama, so the cost falls on persona and Anthropic-selected turns. Whether the API now caches implicitly could not be checked without web research; the adapter as written requests no caching.",
+    "evidence": "sidecar/services/llm/anthropic.py:39-60,113-135; sidecar/services/agent_runtime.py:513-517; sidecar/agents/*.json defaultProvider (11 anthropic / 1 ollama / 1 openai)",
+    "evidence_checked": "Grepped services/llm for cache_control (0 hits), opened the anthropic adapter split and stream kwargs, and counted defaultProvider across agents/*.json.",
+    "repro_check": "Ran grep -rn cache_control sidecar/services/llm: no output. Ran grep -h defaultProvider agents/*.json | uniq -c: 11 anthropic. No paid Anthropic call was made (not needed to establish the absence)."
+  },
+  {
+    "raw_id": "WLD-harness-context-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The served-model gap holds. openrouter/auto is in all three curated lists, openai.py's stream loop reads only choices and usage (never chunk.model), and LLMDoneEvent has no model field, so the UI cannot show what actually answered. Corrected: pricing is not the $5/M default. price_per_million('openrouter','openrouter/auto') returns $2.0/M from the provider-wide ('openrouter','') PRICE_TABLE key, so the cost is a mis-estimate either way, not a 2.5x inflation. Lowered to low: this is a disclosure/estimate gap on one opt-in curated slug, not a data defect.",
+    "evidence": "sidecar/config/model_registry.json:71; src/store/model-selection.ts:59; src/store/llm-providers.ts:110; sidecar/services/llm/openai.py:755-830; sidecar/models/llm.py:213-218; sidecar/services/budget_guard.py:55-80",
+    "evidence_checked": "Opened the cited files and evaluated budget_guard.price_per_million and PRICE_TABLE in-process.",
+    "repro_check": "In sidecar/.venv, `b.price_per_million('openrouter','openrouter/auto')` returned 2.0 (DEFAULT_RATE_PER_M = 5.0 is not reached). Grepping openai.py for chunk.model found nothing."
+  }
+]

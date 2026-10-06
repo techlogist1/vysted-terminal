@@ -1,0 +1,10 @@
+# R15-LIFECYCLE-029 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'saved layout with a plugin panel restores intact' src/components/PanelHost.test.tsx; grep -n 'pluginsReady' src/components/PanelHost.tsx | head -4
+--- output ---
+248:  it("saved layout with a plugin panel restores intact when the plugin registers after bootstrap", async () => {
+124:  const pluginsReady = usePluginsStore((state) => state.pluginsReady);
+194:    if (pluginsReady) {
+229:  }, [api, pluginsReady]);
+
+EXIT=0 (0.0s)

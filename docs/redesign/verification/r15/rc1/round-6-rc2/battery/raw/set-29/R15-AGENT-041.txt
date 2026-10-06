@@ -1,0 +1,5 @@
+candidate ace7dd76; command: grep -n -E 'R15-AGENT-041' src/lib/host-actions.test.ts; heavy lane runs the vitest
+1884:  it("an applied holding delete can be undone: the holding is back with its id (R15-AGENT-041)", async () => {
+1910:  it("an applied note replace can be undone: the prior text is restored (R15-AGENT-041)", async () => {
+exit=0
+18:  it("keeps an applied data write listed with Undo, which restores it (R15-AGENT-041)", () => {

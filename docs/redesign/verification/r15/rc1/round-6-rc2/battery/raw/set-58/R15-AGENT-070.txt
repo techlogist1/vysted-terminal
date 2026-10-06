@@ -1,0 +1,8 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: in-process: replace research Capability with timeout_seconds=60 (repro), _tool_timeout_seconds on research and on a non-research capability flagged timeout_from_args
+research timeout_from_args True timeout_seconds None
+replace(research, timeout_seconds=60) -> ValueError: research: timeout_from_args derives the budget from the call's args; a fixed timeout_seconds would be ignored
+research timeout (args-derived): 390.0
+price_data flagged timeout_from_args -> 210.0 (guard used, not name match)
+pinned test: 2106:def test_timeout_from_args_flag_not_name_selects_guard(monkeypatch: pytest.MonkeyPatch) -> None:
+EXIT=0

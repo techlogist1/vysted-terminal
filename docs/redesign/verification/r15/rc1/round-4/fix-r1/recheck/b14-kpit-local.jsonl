@@ -1,0 +1,83 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_598f3bff97084e6daba0feaba06c2334", "name": "research", "input": {"query": "KPIT Technologies", "depth": "quick"}}
+{"kind": "research_step", "tool_call_id": "call_598f3bff97084e6daba0feaba06c2334", "tool": "research", "step_kind": "engine", "detail": "research:begin 71358c6a569f48959a5ac08886d67c53 depth=normal query=KPIT Technologies", "latency_ms": null, "status": "ok", "index": 1}
+{"kind": "research_step", "tool_call_id": "call_598f3bff97084e6daba0feaba06c2334", "tool": "research", "step_kind": "plan", "detail": "resolving \"KPIT Technologies\"", "latency_ms": null, "status": "ok", "index": 2}
+{"kind": "research_step", "tool_call_id": "call_598f3bff97084e6daba0feaba06c2334", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 KPITTECH", "latency_ms": 1, "status": "ok", "index": 3}
+{"kind": "research_step", "tool_call_id": "call_598f3bff97084e6daba0feaba06c2334", "tool": "research", "step_kind": "tool", "detail": "pulling market data for KPITTECH", "latency_ms": null, "status": "ok", "index": 4}
+{"kind": "research_step", "tool_call_id": "call_598f3bff97084e6daba0feaba06c2334", "tool": "research", "step_kind": "search", "detail": "searching the web for KPIT Technologies Limited", "latency_ms": null, "status": "ok", "index": 5}
+{"kind": "research_step", "tool_call_id": "call_598f3bff97084e6daba0feaba06c2334", "tool": "research", "step_kind": "search", "detail": "0 web source(s)", "latency_ms": 1764, "status": "ok", "index": 6}
+{"kind": "research_step", "tool_call_id": "call_598f3bff97084e6daba0feaba06c2334", "tool": "research", "step_kind": "tool", "detail": "price timed out after 6s \u2014 dropped", "latency_ms": 6001, "status": "error", "index": 7}
+{"kind": "research_step", "tool_call_id": "call_598f3bff97084e6daba0feaba06c2334", "tool": "research", "step_kind": "tool", "detail": "fundamentals timed out after 6s \u2014 dropped", "latency_ms": 6002, "status": "error", "index": 8}
+{"kind": "research_step", "tool_call_id": "call_598f3bff97084e6daba0feaba06c2334", "tool": "research", "step_kind": "tool", "detail": "pulled 2/4 data sources", "latency_ms": 6017, "status": "ok", "index": 9}
+{"kind": "research_step", "tool_call_id": "call_598f3bff97084e6daba0feaba06c2334", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 10}
+{"kind": "tool_result", "tool_call_id": "call_598f3bff97084e6daba0feaba06c2334", "name": "research", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_598f3bff97084e6daba0feaba06c2334__autobrief", "name": "publish_brief", "input": {"query": "KPIT Technologies", "symbol": "KPITTECH", "mode": "fast", "depth": "quick", "execution": {"run_id": "71358c6a569f48959a5ac08886d67c53", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1790465847.8135638, "finished_at": 1790465853.8333938, "degraded_reason": null}, "markdown": "", "sources": [], "structured": {"price": {"ok": false, "provider": null, "error": "price timed out after 6s \u2014 dropped", "reason": "provider_error"}, "fundamentals": {"ok": false, "provider": null, "error": "fundamentals timed out after 6s \u2014 dropped", "reason": "provider_error"}, "derived": {"ok": true, "provider": "derived", "data": {"drawdown_from_high": {"value": null, "label": "Below 52-week high", "basis": "vs 52w high", "formula": "(52w high - price) / 52w high", "unit": "fraction"}, "fifty_two_week_change": {"value": null, "label": "52-week price change (Yahoo)", "basis": "trailing 52 weeks", "unit": "fraction"}, "dividend_yield": {"value": null, "label": "Dividend yield", "basis": "fraction of price", "unit": "fraction"}, "dividend_per_share": {"value": null, "label": "Dividend per share", "basis": "per share, listing currency", "unit": "currency"}, "revenue_growth": {"value": null, "label": "Revenue growth", "basis": "quarterly YoY (MRQ)", "unit": "fraction"}, "earnings_growth": {"value": null, "label": "Earnings growth", "basis": "quarterly YoY (MRQ)", "unit": "fraction"}, "market_cap": {"value": null, "label": "Market cap", "basis": "provider market cap", "unit": "currency"}, "conflicts": []}}, "news": {"ok": true, "provider": null, "data": []}, "filings": {"ok": true, "provider": "nse+bse", "data": {"symbol": "KPITTECH", "exchange": null, "coverage": "covered", "sources": ["NSE", "BSE"], "errors": {}, "count": 20, "announcements": [{"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Outcome", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_22092026200646_KPIT_JPM_Conference_outcome_signed.pdf", "ts": "2026-09-22T20:07:29+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Outcome", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_21092026214925_KPIT_Anand_Rathi_outcome_signed.pdf", "ts": "2026-09-21T21:51:30+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Schedule of Investors/Analyst Conference to be held on Monday, September 21, 2026.", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_11092026161950_KPIT_Investor_Conference_Anand_Rathi_and_JP_Morgan_2026_signed.pdf", "ts": "2026-09-11T16:21:40+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Schedule of meet", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_11092026162026_KPIT_Investor_Conference_Anand_Rathi_and_JP_Morgan_2026_signed.pdf", "ts": "2026-09-11T16:21:40+05:30"}, {"symbol": "KPITTECH", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3e5ba36d-4a99-49f0-8142-4e93063049a8.pdf", "ts": "2026-09-11T16:14:57.893000+05:30"}, {"symbol": "KPITTECH", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/506d7c28-15a0-4211-a292-a5fc929df242.pdf", "ts": "2026-09-11T16:11:07.870000+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "Please find attached Scrutinizers report and voting results of 9th Annual General Meeting held on August 31, 2026.", "category": "Shareholders meeting", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_01092026114850_Voting_Results_Covering_signed.pdf", "ts": "2026-09-01T11:49:49+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange regarding Proceedings of the 9th Annual General Meeting held on August 31, 2026", "category": "Shareholders meeting", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_31082026152943_CovLet9AGMproceedings_signed.pdf", "ts": "2026-08-31T15:30:46+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "Disclosure under Regulation 30 of SEBI LODR - adjudication order from the Office of the Collector of Stamps", "category": "Action(s) taken or orders passed", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_27082026163341_KPIT_SE_intimation_Notice_26_August_2026_signed.pdf", "ts": "2026-08-27T16:34:10+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Reconstitution of Nomination and Remuneration (HR) Committee of the Board.", "category": "General Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/MeghanaPhadnis_26082026134637_Reconstitution_of_NRC_SE_Outcome_signed.pdf", "ts": "2026-08-26T13:47:03+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited 9th Annual General Meeting to be held on August 31, 2026 - Response to Stakeholders Empowerment Services (SES) Voting Recommendations", "category": "General Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_25082026160235_KPIT_SES_clarification_Signed.pdf", "ts": "2026-08-25T16:02:46+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited 9th AGM to be held on August 31, 2026 - Response to Institutional Investor Advisory Services India (IiAS) Voting Recommendation", "category": "General Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_21082026174836_KPIT_iias_clarification_Final.pdf", "ts": "2026-08-21T17:48:57+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Outcome of Investor Conference held on Thursday, August 13, 2026.", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_13082026184555_KPIT_Equirus_Confluence_outcome_signed.pdf", "ts": "2026-08-13T18:48:24+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Outcome of Investor Conference held on Wednesday, August 12, 2026.", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_12082026184357_KPIT_Emkay_Confluence_outcome_signed.pdf", "ts": "2026-08-12T18:45:19+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Outcome of the investor conference. held on Monday, August 10, 2026.", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_10082026215114_KPIT_Nirmal_Bang_outcome_signed.pdf", "ts": "2026-08-10T21:52:30+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about the Company will be sending a letter providing a web link of the Annual Report 2025-26 to those Members who have not registered their e-mail addresses with the Registrar & Share Transfer Agent /Depository Participant", "category": "General Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_07082026181443_CovLet_Weblink_letter_signed.pdf", "ts": "2026-08-07T18:15:02+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Copy of Newspaper Publication published in today's newspaper regarding details of 9th Annual General Meeting, cut-off date, e-voting information.", "category": "Copy of Newspaper Publication", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_06082026192247_Post_dispatch_Newspaper_signed.pdf", "ts": "2026-08-06T19:23:10+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange about Business Responsibility and Sustainability Report for FY 2025-26.", "category": "General Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_05082026201656_Cov_BRSR_2025-26.pdf", "ts": "2026-08-05T20:17:29+05:30"}, {"symbol": "KPITTECH", "exchange": "BSE", "headline": "Reg. 34 (1) Annual Report.", "category": "Others", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/4d2467e3-e28a-472b-8492-7fd9e46e63c4.pdf", "ts": "2026-08-05T20:13:23.523000+05:30"}, {"symbol": "KPITTECH", "exchange": "NSE", "headline": "KPIT Technologies Limited has informed the Exchange regarding Notice of 9th Annual General Meeting to be held on August 31, 2026, at 10.30 A.M. IST through VC/OAVM", "category": "Shareholders meeting", "attachment_url": "https://nsearchives.nseindia.com/corporate/KPITTECH_05082026195025_AGM_Notice_Intimation_2026_signed.pdf", "ts": "2026-08-05T19:50:52+05:30"}]}}}, "cost": null, "web_available": true, "note": null, "web_reason": null, "backend": "keyless-fallback"}}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "Built"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " brief"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " KP"}
+{"kind": "delta", "text": "IT"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": " \u2014"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " top"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " cockpit"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " click"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " ticker"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " dig"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "We"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": "/f"}
+{"kind": "delta", "text": "und"}
+{"kind": "delta", "text": "amentals"}
+{"kind": "delta", "text": "/m"}
+{"kind": "delta", "text": "arket"}
+{"kind": "delta", "text": " cap"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": " yet"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " they"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " appear"}
+{"kind": "delta", "text": " once"}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " them"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Do"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " want"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " accept"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " brief"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " proceed"}
+{"kind": "delta", "text": "?"}
+{"kind": "research_step", "tool_call_id": "call_598f3bff97084e6daba0feaba06c2334__autobrief", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: publish_brief KPITTECH. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+{"kind": "done", "usage": {"input_tokens": 5542, "output_tokens": 63, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

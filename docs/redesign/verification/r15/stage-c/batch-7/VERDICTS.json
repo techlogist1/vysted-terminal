@@ -1,0 +1,78 @@
+{
+  "certified": [
+    "R15-DATA-014",
+    "R15-DATA-027",
+    "R15-DATA-076",
+    "R15-LEAD-004",
+    "R15-LEAD-015",
+    "R15-DATA-050",
+    "R15-CODE-AGENT-010",
+    "R15-AGENT-034",
+    "R15-AGENT-037",
+    "R15-AGENT-038",
+    "R15-AGENT-074",
+    "R15-AGENT-036",
+    "R15-AGENT-035",
+    "R15-LIFECYCLE-013",
+    "R15-UI-040",
+    "R15-CODE-AGENT-011",
+    "R15-AGENT-039",
+    "R15-AGENT-023",
+    "R15-UI-020",
+    "R15-UI-023",
+    "R15-UI-031",
+    "R15-CODE-FRONTEND-017",
+    "R15-UI-026",
+    "R15-CODE-FRONTEND-019",
+    "R15-DATA-090",
+    "R15-UI-046",
+    "R15-RESEARCH-019",
+    "R15-DATA-075",
+    "R15-RESEARCH-033",
+    "R15-RESEARCH-020",
+    "R15-RESEARCH-021",
+    "R15-RESEARCH-022",
+    "R15-RESEARCH-023",
+    "R15-RESEARCH-038",
+    "R15-RESEARCH-024",
+    "R15-UI-038",
+    "R15-UI-092",
+    "R15-RESEARCH-026",
+    "R15-AGENT-043",
+    "R15-AGENT-041",
+    "R15-AGENT-032",
+    "R15-UI-017",
+    "R15-AGENT-044",
+    "R15-UI-034",
+    "R15-UI-035",
+    "R15-UI-036",
+    "R15-UI-037",
+    "R15-DATA-060",
+    "R15-LIFECYCLE-012",
+    "R15-CODE-PLATFORM-018"
+  ],
+  "needs_gui": [
+    "R15-UI-022"
+  ],
+  "not_certified": [
+    {
+      "id": "R15-AGENT-045",
+      "reason": "The exact repro still reads as a quote failure: MCP compare_symbols {symbols:[COCHINSHIP, MAZAGONDOCK]} on the running sidecar returns {ok:false, message:\"fewer than two symbols resolved \u2014 1 of 2 returned a quote\"}. _compare_one builds the right per-symbol error (\"unresolved name: MAZAGONDOCK is not a known ticker\u2026\"; it shows with 3 symbols, and \"Mazagon Dock\" binds MAZDOCK.NS), but _compare_symbols drops every per-symbol error when fewer than two resolve, which is exactly the entry's two-symbol case, so the model still reports a missing quote. The writer's test calls _compare_one only. Fix: carry the per-symbol error/candidates into the ok:false payload (or message); pin with the two-symbol call."
+    },
+    {
+      "id": "R15-LEAD-005",
+      "reason": "Not claimed: not delivered in batch 7 (stays open)."
+    },
+    {
+      "id": "R15-AGENT-046",
+      "reason": "Not claimed: not delivered in batch 7 (D-B7-8; stays open)."
+    },
+    {
+      "id": "R15-CODE-PLATFORM-021",
+      "reason": "Not claimed: not delivered in batch 7 (D-B7-13; stays open)."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-7-int@b7f7023f7d31d9110ad631d70a2a03dc7e33d02d"
+}

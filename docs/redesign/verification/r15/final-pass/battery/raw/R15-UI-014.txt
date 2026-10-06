@@ -1,0 +1,12 @@
+# R15-UI-014 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:38+0530
+
+$ git merge-base --is-ancestor 68bb7aa4 HEAD && echo 'closure 68bb7aa4 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 68bb7aa4 NOT an ancestor'
+[exit 0] [0.02s]
+closure 68bb7aa4 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-UI-014\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+src/lib/sidecar-client.test.ts:214:/** R15-UI-014 / R15-CODE-PLATFORM-011: every verb shares one error layer. */
+src/modules/chat/streaming.test.ts:463:// ── Non-2xx and transport failures read as sentences (R15-UI-012 / R15-UI-014) ──
+

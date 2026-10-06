@@ -1,0 +1,13 @@
+CMD: _shouldProbeExchanges(argv) with and without --require-network; grep probe gating
+default: false
+--require-network: true
+EXIT=0
+99: * only run when explicitly requested (`--require-network`, wired to
+103:function _shouldProbeExchanges(argv = process.argv) {
+104:  return argv.includes("--require-network");
+958:  // No-SLA external probes — advisory only, gated behind --require-network
+960:  if (_shouldProbeExchanges()) {
+965:      "[smoke] skipping live-exchange probes (pass --require-network, or run " +
+999:export { _httpGetOk, _STATE_DIR, _scopedOrphanPreflight, _shouldProbeExchanges };
+.github/workflows/test.yml:69:        run: node scripts/smoke-test-sidecars.mjs
+.github/workflows/build.yml:74:        run: node scripts/smoke-test-sidecars.mjs

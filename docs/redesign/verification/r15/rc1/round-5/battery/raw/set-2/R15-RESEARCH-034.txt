@@ -1,0 +1,6 @@
+R15-RESEARCH-034: in-process probe (see probe_set2.py, probe_set2_output.json), key 'RESEARCH-034'
+{
+  "not_covered_yet": false,
+  "COMPLETE": true,
+  "no_gaps": true
+}

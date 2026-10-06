@@ -1,0 +1,14 @@
+[
+ {
+  "key": "drive-screener:kl-1",
+  "kind": "known_limitation",
+  "severity": "low",
+  "register_id": "R15-LEAD-030",
+  "scenario": "drive:screener agent-authored screen (llama3.1:8b, ask)",
+  "title": "Local model narrates fabricated screener results (15 matched, market caps) after only staging write_screener_filters",
+  "area": "agent-chat",
+  "repro": "python3 <scratch>/fds/vy.py invoke copilot 'Set up a screener on the NSE full market: P/E below 20, ROE above 15% and debt to equity under 0.5, then run it.' --port 52842 --provider ollama --model llama3.1:8b --autonomy ask",
+  "evidence_file": "docs/redesign/verification/r15/surface/screener/final/40-agent-screen-llama.stdout.txt",
+  "suspected_files": []
+ }
+]

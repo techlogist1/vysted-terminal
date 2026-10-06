@@ -1,0 +1,8 @@
+[   0.0s] error: {"kind": "error", "message": "Ollama returned an unreadable response.", "action": "Try again; if the problem persists, check the provider's status page.", "detail": "Expecting value: line 1 column 1 (char 0)", "code": "parse_error"}
+[   0.0s] done: {"kind": "done", "usage": null, "finish_reason": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 0.0s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · junk-html
+exit=0

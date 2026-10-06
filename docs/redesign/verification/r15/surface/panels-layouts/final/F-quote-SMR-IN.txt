@@ -1,0 +1,4 @@
+GET /quotes/SMR
+status=200
+---
+{"symbol":"SMR","price":93.05,"change":3.049999999999997,"change_percent":3.3888888888888857,"volume":9000.0,"open":92.65,"high":98.1,"low":92.65,"prev_close":90.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"bse","freshness":"eod"}

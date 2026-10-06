@@ -28,9 +28,38 @@
 
 import { create } from "zustand";
 
-import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import {
+  extractSidecarDetail,
+  getSidecarBaseUrl,
+  SIDECAR_REQUEST_TIMEOUT_MS,
+  SidecarError,
+  sidecarFetch,
+  sidecarRequest,
+  sidecarRequestInit,
+  type SidecarMethod,
+  type SidecarRequestOptions,
+} from "@/lib/sidecar-client";
 
-import type { WorkflowRunEvent, WorkflowSpec } from "../../types/workflow";
+import type {
+  SavedWorkflows,
+  ScheduleCreate,
+  WebhookRefs,
+  WorkflowRunEvent,
+  WorkflowRunRequest,
+  WorkflowSchedule,
+  WorkflowSpec,
+} from "../../types/workflow";
+
+/** Per-run options for {@link WorkflowState.runWorkflow}. */
+export interface RunWorkflowOptions extends Pick<
+  WorkflowRunRequest,
+  "provider" | "model" | "apiKey"
+> {
+  /** Aborts the request and the stream (panel Stop / unmount). */
+  signal?: AbortSignal;
+  /** Called with every server event after it lands in the store. */
+  onEvent?: (event: WorkflowRunEvent) => void;
+}
 
 // ---------------------------------------------------------------------------
 // Desktop notification intent — the node-output sentinel
@@ -74,21 +103,26 @@ interface WorkflowState {
   clearRun: (runId: string) => void;
   /** Drop every accumulated run. */
   clearAll: () => void;
-  /** Remove pending-notification intents the dispatcher has consumed. */
-  drainNotifications: () => DesktopNotificationIntent[];
+  /** Atomically return and clear the pending intents (take before send). */
+  takeNotifications: () => DesktopNotificationIntent[];
 
   /**
-   * POST the spec to ``/workflow/run`` and consume the SSE stream.
+   * POST the spec to ``/workflow/run`` and consume the SSE stream — the one
+   * client for this wire (the node editor runs through it).
    *
-   * Returns a promise that resolves with the run id once the ``run-start``
-   * event arrives (so callers can await knowing-they-can-render-now). The
-   * SSE stream continues to flow into the store after the promise resolves;
-   * the consumer rejects with a structured error if the request itself
-   * fails (network error / non-2xx). Per-node errors land as ``node-error``
-   * events in the run log and DO NOT reject the outer promise — the run
-   * still ran, the engine just reported some failed nodes.
+   * Every event is appended to the store (so notification intents reach the
+   * desktop bridge) and handed to ``options.onEvent``. Resolves with the run
+   * id once the stream ends on a terminal frame. Per-node errors land as
+   * ``node-error`` events and DO NOT reject — the engine reported them.
+   * Rejects when the request fails (network / non-2xx / abort) or the stream
+   * ends or breaks without a terminal frame; after ``run-start`` it first
+   * appends a terminal ``run-error`` row so the run log never reads as live.
    */
-  runWorkflow: (spec: WorkflowSpec, inputs?: Record<string, unknown>) => Promise<string>;
+  runWorkflow: (
+    spec: WorkflowSpec,
+    inputs?: Record<string, unknown>,
+    options?: RunWorkflowOptions,
+  ) => Promise<string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -147,6 +181,13 @@ function _normalizeEvent(raw: RawEvent): WorkflowRunEvent | null {
         nodeId: String(raw.nodeId ?? raw.node_id ?? ""),
         message: String(raw.message ?? "node error"),
         durationMs: Number(raw.durationMs ?? raw.duration_ms ?? 0),
+      };
+    case "node-skipped":
+      return {
+        kind: "node-skipped",
+        runId,
+        nodeId: String(raw.nodeId ?? raw.node_id ?? ""),
+        nodeType: String(raw.nodeType ?? raw.node_type ?? ""),
       };
     case "run-complete":
       return {
@@ -231,82 +272,86 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
 
   clearAll: () => set({ runs: {}, activeRun: null, pendingNotifications: [] }),
 
-  drainNotifications: () => {
-    const drained = get().pendingNotifications;
+  takeNotifications: () => {
+    const taken = get().pendingNotifications;
     set({ pendingNotifications: [] });
-    return drained;
+    return taken;
   },
 
-  runWorkflow: async (spec, inputs) => {
+  runWorkflow: async (spec, inputs, options = {}) => {
+    const { signal, onEvent, provider, model, apiKey } = options;
     const base = await getSidecarBaseUrl();
     const url = new URL("/workflow/run", base);
-    const body = JSON.stringify({ spec, inputs: inputs ?? {} });
-
-    const response = await fetch(url.toString(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "text/event-stream",
-      },
-      body,
-    });
+    // The shared transport: the session region + search headers ride the run
+    // so its data/research nodes route like a chat turn does. No deadline —
+    // the stream lives as long as the run.
+    const response = await sidecarFetch(
+      url.toString(),
+      await sidecarRequestInit("POST", {
+        body: { spec, inputs: inputs ?? {}, provider, model, apiKey },
+        headers: { Accept: "text/event-stream" },
+        signal,
+      }),
+    );
 
     if (!response.ok || !response.body) {
-      const detail = await _safeText(response);
-      throw new Error(detail ?? `sidecar returned ${response.status}`);
+      const fallback = `sidecar returned ${response.status}`;
+      const parsed: unknown = await response.json().catch(() => null);
+      throw new SidecarError(response.status, extractSidecarDetail(parsed, fallback));
     }
 
-    // Consume the stream until we see ``run-start`` (resolve the outer
-    // promise) and continue draining the rest into the store in the
-    // background. The first event the engine emits is always ``run-start``;
-    // we resolve the moment it lands so the UI can render the run shell.
     const reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
     let buffer = "";
-    let resolvedRunId: string | null = null;
+    // Written from the frame callback, so widen past the initialiser narrowing.
+    let runId = null as string | null;
+    let terminal = false as boolean;
+    const handleEvent = (event: WorkflowRunEvent) => {
+      get().appendEvent(event);
+      if (event.kind === "run-start") runId = event.runId;
+      if (_isTerminal(event)) terminal = true;
+      onEvent?.(event);
+    };
 
-    return await new Promise<string>((resolve, reject) => {
-      const handleEvent = (event: WorkflowRunEvent) => {
-        get().appendEvent(event);
-        if (!resolvedRunId && event.kind === "run-start") {
-          resolvedRunId = event.runId;
-          resolve(event.runId);
+    let failure = null as string | null;
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
         }
-      };
-
-      const consume = async () => {
-        try {
-          for (;;) {
-            const { done, value } = await reader.read();
-            if (done) {
-              break;
-            }
-            buffer += decoder.decode(value, { stream: true });
-            let sep = buffer.indexOf("\n\n");
-            while (sep !== -1) {
-              const frame = buffer.slice(0, sep);
-              buffer = buffer.slice(sep + 2);
-              _dispatchFrame(frame, handleEvent);
-              sep = buffer.indexOf("\n\n");
-            }
-          }
-          if (buffer.trim()) {
-            _dispatchFrame(buffer, handleEvent);
-          }
-          if (!resolvedRunId) {
-            reject(new Error("workflow stream closed before run-start event"));
-          }
-        } catch (err) {
-          if (!resolvedRunId) {
-            reject(err instanceof Error ? err : new Error(String(err)));
-          }
-        } finally {
-          reader.releaseLock();
+        buffer += decoder.decode(value, { stream: true });
+        let sep = buffer.indexOf("\n\n");
+        while (sep !== -1) {
+          const frame = buffer.slice(0, sep);
+          buffer = buffer.slice(sep + 2);
+          _dispatchFrame(frame, handleEvent);
+          sep = buffer.indexOf("\n\n");
         }
-      };
-
-      void consume();
-    });
+      }
+      if (buffer.trim()) {
+        _dispatchFrame(buffer, handleEvent);
+      }
+    } catch (err) {
+      failure = `workflow stream failed: ${err instanceof Error ? err.message : String(err)}`;
+    } finally {
+      reader.releaseLock();
+    }
+    if (runId === null) {
+      throw new Error(
+        failure ??
+          "workflow stream ended without a terminal frame (no run-start event) — the " +
+            "sidecar rejected the spec before starting (e.g. a node type with no " +
+            "server-side handler)",
+      );
+    }
+    if (!terminal) {
+      const message =
+        failure ?? "workflow stream ended without a terminal frame — the sidecar crashed mid-run";
+      get().appendEvent({ kind: "run-error", runId, message, durationMs: 0 });
+      throw new Error(message);
+    }
+    return runId;
   },
 }));
 
@@ -336,15 +381,6 @@ function _dispatchFrame(frame: string, onEvent: (event: WorkflowRunEvent) => voi
   }
 }
 
-async function _safeText(response: Response): Promise<string | null> {
-  try {
-    const text = await response.text();
-    return text.slice(0, 500);
-  } catch {
-    return null;
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Selectors — referentially-stable per the useSyncExternalStore Gotcha
 // ---------------------------------------------------------------------------
@@ -366,6 +402,69 @@ export function selectRunLog(
 /** Select the active run's log, or the stable empty list when no run is in flight. */
 export function selectActiveRunLog(state: WorkflowState): readonly WorkflowRunEvent[] {
   return selectRunLog(state, state.activeRun);
+}
+
+// ---------------------------------------------------------------------------
+// Schedules + webhook URLs (R15-AGENT-023)
+// ---------------------------------------------------------------------------
+
+/** Local CRUD through the shared verb, under the list/CRUD deadline. */
+function _sidecarJson<T>(
+  method: SidecarMethod,
+  path: string,
+  opts: Pick<SidecarRequestOptions, "body" | "headers"> = {},
+): Promise<T> {
+  return sidecarRequest<T>(method, path, { ...opts, timeoutMs: SIDECAR_REQUEST_TIMEOUT_MS });
+}
+
+export function listSchedules(): Promise<WorkflowSchedule[]> {
+  return _sidecarJson<WorkflowSchedule[]>("GET", "/workflow/schedules");
+}
+
+export function createSchedule(body: ScheduleCreate): Promise<WorkflowSchedule> {
+  return _sidecarJson<WorkflowSchedule>("POST", "/workflow/schedules", { body });
+}
+
+export function setScheduleEnabled(id: string, enabled: boolean): Promise<WorkflowSchedule> {
+  return _sidecarJson<WorkflowSchedule>("PATCH", `/workflow/schedules/${encodeURIComponent(id)}`, {
+    body: { enabled },
+  });
+}
+
+export async function deleteSchedule(id: string): Promise<void> {
+  await _sidecarJson("DELETE", `/workflow/schedules/${encodeURIComponent(id)}`);
+}
+
+/**
+ * Hold a webhook URL for `ref` in sidecar process memory. The URL rides a
+ * header (the BYOK transport), never the body or path, and is never returned.
+ */
+export async function registerWebhookUrl(ref: string, url: string): Promise<void> {
+  await _sidecarJson<WebhookRefs>("PUT", `/workflow/webhooks/${encodeURIComponent(ref)}`, {
+    headers: { "X-Vysted-Webhook-Url": url },
+  });
+}
+
+/**
+ * Boot: register the keychain-held URL of every saved workflow's
+ * `action.webhook` node, so a scheduled fire can deliver without the editor
+ * open. A ref with no stored URL is skipped (its node errors honestly).
+ */
+export async function registerSavedWebhooks(
+  readSecret: (ref: string) => Promise<string | null>,
+): Promise<void> {
+  const saved = await _sidecarJson<SavedWorkflows>("GET", "/workflow/saved");
+  const refs = new Set<string>();
+  for (const spec of saved.workflows) {
+    for (const node of spec.nodes) {
+      const ref = node.config.secret_ref;
+      if (node.type === "action.webhook" && typeof ref === "string" && ref !== "") refs.add(ref);
+    }
+  }
+  for (const ref of refs) {
+    const url = await readSecret(ref);
+    if (url) await registerWebhookUrl(ref, url);
+  }
 }
 
 /** Select every captured desktop-notification intent (for the Tauri dispatcher). */

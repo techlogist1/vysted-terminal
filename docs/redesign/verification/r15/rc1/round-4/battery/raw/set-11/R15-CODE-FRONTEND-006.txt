@@ -1,0 +1,5 @@
+=== R15-CODE-FRONTEND-006: source wiring + pinned test ===
+20: * The run goes through `useWorkflowStore.runWorkflow` (the one client for
+413:      await useWorkflowStore.getState().runWorkflow(spec, undefined, {
+
+319:  it("a notify_desktop intent in the run stream reaches the desktop-notification queue", async () => {

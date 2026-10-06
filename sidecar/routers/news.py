@@ -16,15 +16,25 @@ vetted inside the PyInstaller ``--onefile`` bundle, whereas VADER is a pure
 
 from __future__ import annotations
 
-import re
+from typing import Annotated
 
 import httpx
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Header, Query, Request, Response
 
 from models.news import NewsItem
-from services import news_provider, sentiment
+from services import news_provider
 
 router = APIRouter(prefix="/news", tags=["news"])
+
+# FR-036: the BYOK NewsAPI key rides the request from the OS keychain as a
+# HEADER (never the body/query, mirroring the read-only-plugin credential
+# pattern). It is passed straight to the provider and never logged, echoed, or
+# persisted. Absent the header, the provider falls back to the NEWSAPI_KEY env
+# var (dev only) or RSS-only.
+NewsApiKeyHeader = Annotated[
+    str | None,
+    Header(alias="X-Vysted-Newsapi-Key", description="BYOK NewsAPI key from the OS keychain."),
+]
 
 # Default Phase 1 watchlist used when the caller passes no ``symbols``. The real
 # watchlist store is owned by another module and is not crossed here.
@@ -48,21 +58,6 @@ def _parse_symbols(symbols: str | None) -> list[str]:
     return parsed
 
 
-def _tag_symbols(item: NewsItem, symbols: list[str]) -> list[str]:
-    """Return the subset of ``symbols`` whose ticker appears in the item's text.
-
-    Matching is word-boundary-anchored against the title and summary so ``A``
-    does not match every word starting with ``a`` and ``ETH`` does not match
-    ``ethics``.
-    """
-    haystack = f"{item.title} {item.summary or ''}"
-    matched: list[str] = []
-    for symbol in symbols:
-        if re.search(rf"\b{re.escape(symbol)}\b", haystack, flags=re.IGNORECASE):
-            matched.append(symbol)
-    return matched
-
-
 def _httpx_client(request: Request) -> httpx.AsyncClient:
     """Return the shared pooled ``httpx.AsyncClient`` created in the lifespan."""
     return request.app.state.httpx_client
@@ -71,6 +66,7 @@ def _httpx_client(request: Request) -> httpx.AsyncClient:
 @router.get("")
 async def get_news(
     request: Request,
+    response: Response,
     symbols: str | None = Query(
         default=None,
         description="Comma-separated watchlist symbols to tag/filter by",
@@ -81,6 +77,7 @@ async def get_news(
         le=_MAX_LIMIT,
         description="Maximum number of news items to return",
     ),
+    newsapi_key: NewsApiKeyHeader = None,
 ) -> list[NewsItem]:
     """Return scored, symbol-tagged news, newest first.
 
@@ -92,27 +89,46 @@ async def get_news(
     The shared pooled ``httpx.AsyncClient`` (created in the app lifespan) is
     handed to the provider so sources are fetched concurrently over reused
     connections — fixing the cold-first-fetch 502 cascade (#38).
+
+    R15-DATA-094: the response carries ``X-News-Sources: rss=ok;newsapi=<state>``
+    (``ok``/``unauthorized``/``error``/``absent``) — RSS is keyless and always
+    attempted, so it is reported ``ok`` whenever this handler returns at all;
+    NewsAPI's state is whatever :func:`news_provider.fetch_news` observed on
+    this request, so a rejected BYOK key is visible without a separate probe.
     """
     requested = _parse_symbols(symbols)
-    tag_symbols = requested or list(_DEFAULT_SYMBOLS)
+    aliases = news_provider.build_aliases(requested or list(_DEFAULT_SYMBOLS))
 
-    raw_items = await news_provider.fetch_news(_httpx_client(request), requested, limit)
+    source_status: dict[str, str] = {}
+    raw_items = await news_provider.fetch_news(
+        _httpx_client(request),
+        requested,
+        limit,
+        newsapi_key=newsapi_key,
+        source_status=source_status,
+    )
 
-    scored: list[NewsItem] = []
-    for item in raw_items:
-        result = sentiment.score_text(f"{item.title}. {item.summary or ''}")
-        tagged = _tag_symbols(item, tag_symbols)
-        # Drop general items when the caller explicitly asked for symbols.
-        if requested and not tagged:
-            continue
-        scored.append(
-            item.model_copy(
-                update={
-                    "symbols": tagged,
-                    "sentiment": round(result.score, 4),
-                    "sentiment_label": result.label,
-                }
-            )
-        )
-
+    scored = news_provider.enrich(raw_items, requested, aliases)
+    response.headers["X-News-Sources"] = f"rss=ok;newsapi={source_status.get('newsapi', 'absent')}"
     return scored[:limit]
+
+
+@router.get("/sources/status")
+async def get_news_sources_status(
+    request: Request,
+    newsapi_key: NewsApiKeyHeader = None,
+) -> dict[str, str]:
+    """Probe a BYOK NewsAPI key's validity without fetching a full feed.
+
+    R15-DATA-094: used by the marketplace ``configure()`` flow to reject a bad
+    NewsAPI key at save time ("NewsAPI rejected this key") instead of only
+    discovering the 401 on the next ``/news`` fetch, and by NewsFeedPanel to
+    badge an already-saved key that has gone bad. RSS needs no key and is not
+    probed here. The key is read from the same header as ``/news`` and is never
+    echoed in the response.
+    """
+    key = (newsapi_key or "").strip()
+    if not key:
+        return {"newsapi": "absent"}
+    status = await news_provider.probe_newsapi_key(_httpx_client(request), key)
+    return {"newsapi": status}

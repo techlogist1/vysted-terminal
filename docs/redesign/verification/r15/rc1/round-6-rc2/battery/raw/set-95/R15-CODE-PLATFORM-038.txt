@@ -1,0 +1,61 @@
+# R15-CODE-PLATFORM-038 at ace7dd7
+$ grep for branches on error code values in src/ (repro)
+src/modules/chat/streaming.ts:54:  "provider_402",
+src/modules/chat/streaming.ts:55:  "insufficient_credit",
+src/modules/chat/streaming.ts:57:  "ollama_not_running",
+src/modules/chat/ChatSidebar.tsx:1638:const SETTINGS_FIX_CODES = new Set(["auth", "provider_402", "model_not_found"]);
+$ run_manager failure detail
+52:from services.errors import humanize
+377:            reason = "run failed: operation timed out"
+391:            detail=humanize(provider, exc).message,
+$ message-notices retry gating
+3: *   - the STRUCTURED part of an error frame (D43 — `action`/`detail`/`code`
+22:  code?: string;
+$ tests
+14:  it("keeps error frames and notices keyed by message id", () => {
+30:  it("recognises a runtime notice by its step kind, never its copy", () => {
+25:from services.errors import humanize
+922:async def test_crashed_run_detail_is_humanized(monkeypatch: pytest.MonkeyPatch) -> None:
+923:    """R15-CODE-PLATFORM-038: a run that crashes records the humanizer's plain
+937:    assert row.detail == humanize("deepseek", crash).message
+$ sed -n 44,62p src/modules/chat/streaming.ts
+/**
+ * Error-frame codes that say the PROVIDER could not serve the turn at all — a
+ * rejected key, no credit/quota, or an unreachable/down endpoint (the sidecar's
+ * `humanize` taxonomy, `sidecar/services/errors.py`). Only these let the chat
+ * fall back to the next provider in the preference order (FR-038, D-B11-7); a
+ * content error (bad model id, context overflow, content filter, truncation)
+ * would fail the same way anywhere, and a rate limit clears on its own.
+ */
+const PROVIDER_FAILURE_CODES = new Set([
+  "auth",
+  "provider_402",
+  "insufficient_credit",
+  "network",
+  "ollama_not_running",
+  "provider_5xx",
+]);
+
+/** True when an error frame's `code` is a provider failure (see above). */
+export function isProviderFailure(code: string | undefined): boolean {
+$ grep retryable users
+$ grep -n SETTINGS_FIX_CODES src/modules/chat/ChatSidebar.tsx
+1636- */
+1637-/** Error codes a resend cannot clear: the fix is in Settings. */
+1638:const SETTINGS_FIX_CODES = new Set(["auth", "provider_402", "model_not_found"]);
+1639-
+1640-function ErrorRow({
+1641-  messageId,
+1642-  message,
+1643-  onRetry,
+1644-}: {
+--
+1649-  const frame = useMessageNoticesStore((s) => s.errorFrames[messageId]);
+1650-  const [detailsOpen, setDetailsOpen] = useState(false);
+1651:  const fixInSettings = frame?.code !== undefined && SETTINGS_FIX_CODES.has(frame.code);
+1652-  return (
+1653-    <div className="text-caption mt-1 flex flex-col gap-1">
+1654-      <div className="flex items-center gap-2">
+1655-        <span className="text-negative">
+1656-          {frame ? message : `Something went wrong — ${message}`}
+1657-        </span>

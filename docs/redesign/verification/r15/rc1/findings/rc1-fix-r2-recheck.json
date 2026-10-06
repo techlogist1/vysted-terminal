@@ -1,0 +1,16 @@
+[
+ {
+  "key": "rc1-fix-r2-recheck:1",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "title": "rc1-drive-research-briefs:2 not certified at 81fbfe91: bracketed pseudo-citations outside the hard-coded prompt-label family, and groups that mix a label with a real [n], still ship as literal unresolved text in the published brief",
+  "repro": "Own sidecar :52337 from rc1-4c6dfe8-fix-int at 81fbfe91, fresh keyless seed copy, harness/turn.py. (1) Kaynes ULTRA (heavy), gpt-4o-mini: publish_brief #1 (13 sources) has '... ₹746.12 million [NSE filing, August 2026].', 'Gross Margin: ~33.4% [NSE filing, August 2026].' and '... ₹371.36 million [NSE filing, August 2026; 2][3].' The [2] inside the group never chips. (2) Cochin Shipyard DEEP, llama3.1:8b: publish_brief (7 sources) has '... yielded no results [Structured: {'ok': True, 'count': 0, 'news': []}]'. That is the leaked deep.py:987-994 'Structured (tool): {result}' prompt-block label, the mechanism PLAN.md names, but it is missing from the enumerated family. In-process, both candidate nets (citecheck.strip_invalid_markers after expand_marker_groups, and brief-ingest.sanitizeCitationMarkers/countBrokenCitations) leave all of them byte-identical: removed=0, broken=0. The same holds for the variants '[Structured]', '[Web evidence; 2]', '[Source 2]', '[Sources 2, 3]' and '[exchange disclosures]'. The literal repro tokens ('[New findings]', '[2, 3]', '[2, 4]') and the triage cases are fixed.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/fix-r2/recheck/gr2/live-published-scan.txt",
+  "suspected_files": [
+   "sidecar/services/research/citecheck.py",
+   "src/lib/brief-ingest.ts",
+   "sidecar/services/research/deep.py"
+  ]
+ }
+]

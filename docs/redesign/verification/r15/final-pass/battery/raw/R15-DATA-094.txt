@@ -1,0 +1,12 @@
+# R15-DATA-094 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:48+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+K=fb2fake$(date +%s)xx; echo '$ GET /news/sources/status (fake newsapi key header)'; curl -s -m 30 -H "X-Vysted-Newsapi-Key: $K" "$H/news/sources/status"; echo; echo '$ GET /news?symbols=AAPL (fake key) headers+body key count'; curl -s -m 60 -D /tmp/fb2h.txt -H "X-Vysted-Newsapi-Key: $K" "$H/news?symbols=AAPL" -o /tmp/fb2b.txt; grep -i 'x-news-sources' /tmp/fb2h.txt; echo "key in body: $(grep -c "$K" /tmp/fb2b.txt)"; echo "key in sidecar log: $(grep -c "$K" /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/final-pass/logs/final-battery-2-sidecar.log)"; rm -f /tmp/fb2h.txt /tmp/fb2b.txt
+--- output ---
+$ GET /news/sources/status (fake newsapi key header)
+{"newsapi":"unauthorized"}
+$ GET /news?symbols=AAPL (fake key) headers+body key count
+x-news-sources: rss=ok;newsapi=unauthorized
+key in body: 0
+key in sidecar log: 0
+
+EXIT=0 (1.4s)

@@ -1,0 +1,2000 @@
+[
+  {
+    "pid": "INT-BP-1",
+    "promise": "Vysted Terminal is an open-source AI-native finance terminal.",
+    "source": "TL;DR (L14)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-2",
+    "promise": "Vysted Terminal offers Bloomberg-level data coverage.",
+    "source": "TL;DR (L14)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-3",
+    "promise": "Vysted Terminal offers TradingView-killer charting.",
+    "source": "TL;DR (L14)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-4",
+    "promise": "Vysted Terminal offers JARVIS-style AI sandboxability.",
+    "source": "TL;DR (L14)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-5",
+    "promise": "Vysted Terminal is a desktop app that runs locally.",
+    "source": "TL;DR (L14)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-6",
+    "promise": "Vysted Terminal is bring-your-own-keys (BYOK) for AI providers.",
+    "source": "TL;DR (L14)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-7",
+    "promise": "Tradesa V2 is the first plugin, proving the platform architecture.",
+    "source": "TL;DR (L14)",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-BP-8",
+    "promise": "Product identity is a 'finance sandbox' \u2014 modular, plug-and-play, infinitely extensible by users and plugins.",
+    "source": "TL;DR (L16)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-9",
+    "promise": "Positioning: an open, extensible alternative to closed financial terminals, combining Bloomberg-level coverage and AI-native research with a plugin architecture as the core differentiator.",
+    "source": "TL;DR (L18)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-10",
+    "promise": "v1.0 scope includes ~38 modules.",
+    "source": "TL;DR (L20)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-11",
+    "promise": "v1.0 scope includes 12 AI agents.",
+    "source": "TL;DR (L20)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-12",
+    "promise": "v1.0 scope includes a full plugin architecture.",
+    "source": "TL;DR (L20)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-13",
+    "promise": "v1.0 scope includes an MCP server.",
+    "source": "TL;DR (L20)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-14",
+    "promise": "v1.0 scope includes a node editor for workflow automation.",
+    "source": "TL;DR (L20)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-15",
+    "promise": "v1.0 scope includes a backtest engine.",
+    "source": "TL;DR (L20)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-16",
+    "promise": "v1.0 scope includes the Tradesa V2 plugin shipped.",
+    "source": "TL;DR (L20)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-17",
+    "promise": "Launch budget is $0.",
+    "source": "TL;DR (L22)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-18",
+    "promise": "An upgrade path is defined for when revenue/business interest justifies it.",
+    "source": "TL;DR (L22)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-19",
+    "promise": "Org name is Vysted.",
+    "source": "\u00a71 (L28)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-20",
+    "promise": "Product name is Vysted Terminal (the flagship; future products plug under the org).",
+    "source": "\u00a71 (L29)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-21",
+    "promise": "vysted.com is the org/lab landing page.",
+    "source": "\u00a71 (L31)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-22",
+    "promise": "terminal.vysted.com is the Vysted Terminal product page + download.",
+    "source": "\u00a71 (L32)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-23",
+    "promise": "Voice is research-lab style (Tauric Research, OpenBB, Anthropic) \u2014 serious, technical credibility.",
+    "source": "\u00a71 (L34)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-24",
+    "promise": "Voice is explicitly not startup-pitch energy and not retail-app energy.",
+    "source": "\u00a71 (L34)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-25",
+    "promise": "Positioning: professional-grade market tooling has long been gated behind closed terminals and five-figure subscriptions; Vysted Terminal opens that ground with Bloomberg-level data coverage, AI-native research and workflow automation, and a plugin architecture that lets users and third parties extend the platform, for everyone who doesn't need exclusive institutional feeds.",
+    "source": "\u00a71 (L41)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-26",
+    "promise": "Locked stack (UI): Tauri 2.x + Next.js 16 + TypeScript + Tailwind 4 + shadcn/ui.",
+    "source": "\u00a72 (L52)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-27",
+    "promise": "Locked stack (charts): lightweight-charts + react-flow + Framer Motion + Zustand.",
+    "source": "\u00a72 (L53)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-28",
+    "promise": "Locked backend: local Python sidecar (FastAPI on localhost).",
+    "source": "\u00a72 (L54)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-29",
+    "promise": "Locked data layer: OpenBB ODP wrapped as a runtime sidecar (~100 providers).",
+    "source": "\u00a72 (L55)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-30",
+    "promise": "Locked AI: BYOK for all major LLM providers + local Ollama + 12 pre-built agents + Custom Agent Builder.",
+    "source": "\u00a72 (L56)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-31",
+    "promise": "Locked plugin architecture: full VystedPlugin contract; Tradesa V2 is plugin #1.",
+    "source": "\u00a72 (L57)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-32",
+    "promise": "Locked license: AGPL-3.0 + Commercial Dual License.",
+    "source": "\u00a72 (L58)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-33",
+    "promise": "Locked OS targets: Windows + macOS + Linux at v1.0.",
+    "source": "\u00a72 (L59)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-34",
+    "promise": "Locked distribution: GitHub Releases + Tauri auto-updater + SignPath.io (Win, free OSS) + ad-hoc + bypass docs (Mac at $0 launch) + AppImage (Linux) + Homebrew cask.",
+    "source": "\u00a72 (L60)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-35",
+    "promise": "Locked customization: sandbox model \u2014 default layout + drag-drop + module toggles + workspace export/share, with NO role-based presets.",
+    "source": "\u00a72 (L61)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-36",
+    "promise": "Locked: MCP server is in v1.0.",
+    "source": "\u00a72 (L62)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-37",
+    "promise": "Locked: backtest engine is in v1.0 (Python sidecar).",
+    "source": "\u00a72 (L63)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-38",
+    "promise": "Locked: node editor is in v1.0 (react-flow).",
+    "source": "\u00a72 (L64)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-39",
+    "promise": "Locked broker execution: global broker support + execution in v1.0 \u2014 six brokers + ccxt crypto wrap, paper-mode default, shared safety layer (\u00a76.5).",
+    "source": "\u00a72 (L65)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-40",
+    "promise": "Web companion is deferred to v2.0+.",
+    "source": "\u00a72 (L66)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-41",
+    "promise": "Hosted backend: none \u2014 fully local, BYOK.",
+    "source": "\u00a72 (L67)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-42",
+    "promise": "Rust layer provides the desktop shell (windowing, system tray, OS integration).",
+    "source": "\u00a73.1 (L77)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-43",
+    "promise": "Rust layer provides file system access.",
+    "source": "\u00a73.1 (L78)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-44",
+    "promise": "Rust layer provides secure key storage via OS keychain integration on each platform.",
+    "source": "\u00a73.1 (L79)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-45",
+    "promise": "Rust layer provides an auto-updater built into Tauri 2.x.",
+    "source": "\u00a73.1 (L80)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-46",
+    "promise": "Rust layer provides code signing pipeline integration (SignPath for Windows, ad-hoc for Mac).",
+    "source": "\u00a73.1 (L81)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-47",
+    "promise": "Python sidecar wraps OpenBB ODP, giving 100+ data providers (Polygon, FMP, FRED, Intrinio, Tiingo, ECB, FINRA, SEC, etc.).",
+    "source": "\u00a73.1 (L84)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-48",
+    "promise": "Python sidecar provides QuantLib via Python bindings (Black-Scholes, Binomial, Monte Carlo, VaR, Greeks, yield curves, duration/convexity, bond optimization).",
+    "source": "\u00a73.1 (L85)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-49",
+    "promise": "Python sidecar provides a backtest engine (vectorbt + backtrader patterns).",
+    "source": "\u00a73.1 (L86)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-50",
+    "promise": "Python sidecar provides AI agent orchestration (LangGraph).",
+    "source": "\u00a73.1 (L87)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-51",
+    "promise": "Python sidecar provides ccxt for unified crypto WebSockets (Bybit, Binance, Kraken, Coinbase).",
+    "source": "\u00a73.1 (L88)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-52",
+    "promise": "Python sidecar provides an MCP server for external AI tool access.",
+    "source": "\u00a73.1 (L89) / \u00a74 Infrastructure (L311)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-53",
+    "promise": "TypeScript/React layer handles all UI rendering.",
+    "source": "\u00a73.1 (L92)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-54",
+    "promise": "TypeScript/React layer uses lightweight-charts for financial charting.",
+    "source": "\u00a73.1 (L93)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-55",
+    "promise": "TypeScript/React layer uses react-flow for the node editor.",
+    "source": "\u00a73.1 (L94)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-56",
+    "promise": "TypeScript/React layer uses Framer Motion for animations.",
+    "source": "\u00a73.1 (L95)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-57",
+    "promise": "TypeScript/React layer uses Zustand for state.",
+    "source": "\u00a73.1 (L96)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-58",
+    "promise": "TypeScript/React layer uses Tailwind + shadcn/ui for the design system.",
+    "source": "\u00a73.1 (L97)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-59",
+    "promise": "Tauri commands handle Rust <-> JS communication (system access).",
+    "source": "\u00a73.1 (L100)",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-BP-60",
+    "promise": "HTTP localhost calls handle JS <-> Python sidecar communication (data + AI requests).",
+    "source": "\u00a73.1 (L101)",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-BP-61",
+    "promise": "WebSocket handles real-time JS <-> Python streaming.",
+    "source": "\u00a73.1 (L102)",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-BP-62",
+    "promise": "MCP server (Python) handles external AI tool integration.",
+    "source": "\u00a73.1 (L103)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-63",
+    "promise": "Each plugin is a self-contained module implementing the VystedPlugin interface and declaring which capabilities it contributes.",
+    "source": "\u00a73.3 (L136)",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-BP-64",
+    "promise": "Capability negotiation means panels/commands/agents that a plugin doesn't provide are gracefully omitted.",
+    "source": "\u00a73.3 (L136)",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-BP-65",
+    "promise": "VystedPlugin interface declares identity: pluginId, pluginName, pluginType, version.",
+    "source": "\u00a73.3 (L141-144)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-66",
+    "promise": "VystedPlugin interface declares lifecycle methods: initialize, shutdown, healthCheck.",
+    "source": "\u00a73.3 (L146-149)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-67",
+    "promise": "VystedPlugin interface declares capabilities: contributesData, contributesPanels, contributesCommands, contributesAgents, contributesNodes, supportsControlPlane.",
+    "source": "\u00a73.3 (L152-159)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-68",
+    "promise": "VystedPlugin interface supports data contribution via getDataSources().",
+    "source": "\u00a73.3 (L162)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-69",
+    "promise": "VystedPlugin interface supports panel contribution via getPanels().",
+    "source": "\u00a73.3 (L165)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-70",
+    "promise": "VystedPlugin interface supports command-bar (slash command) contribution via getCommands().",
+    "source": "\u00a73.3 (L168)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-71",
+    "promise": "VystedPlugin interface supports AI agent contribution via getAgents().",
+    "source": "\u00a73.3 (L171)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-72",
+    "promise": "VystedPlugin interface supports node-editor contribution via getNodes().",
+    "source": "\u00a73.3 (L174)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-73",
+    "promise": "VystedPlugin interface supports real-time subscriptions via subscribe(channel, callback), if supported.",
+    "source": "\u00a73.3 (L177)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-74",
+    "promise": "VystedPlugin interface supports a control plane via executeCommand(commandId, args), if supported.",
+    "source": "\u00a73.3 (L180)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-75",
+    "promise": "Tradesa V2 plugin implements all six VystedPlugin capabilities.",
+    "source": "\u00a73.3 (L184)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-76",
+    "promise": "OpenBB ODP wrap plugin implements only contributesData.",
+    "source": "\u00a73.3 (L184)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-77",
+    "promise": "Future plugins pick whichever capabilities fit.",
+    "source": "\u00a73.3 (L184)",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-BP-78",
+    "promise": "AI sandboxability has three layers: per-panel context, specialized workflow agents, and multi-agent orchestration via node editor.",
+    "source": "\u00a73.4 (L188)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-79",
+    "promise": "Every panel that benefits from AI has an inline AI sidebar/chat (Layer 1).",
+    "source": "\u00a73.4 (L190)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-80",
+    "promise": "The Layer-1 AI agent knows the panel's context (current ticker, current chart timeframe, current portfolio).",
+    "source": "\u00a73.4 (L190)",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-BP-81",
+    "promise": "Example behaviour: user opens an AAPL chart and the AI knows AAPL is the context.",
+    "source": "\u00a73.4 (L190)",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-BP-82",
+    "promise": "12 pre-built agents ship at v1.0 (Layer 2).",
+    "source": "\u00a73.4 (L192)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-83",
+    "promise": "Agent: Warren Buffett \u2014 value investing, business quality, margin of safety.",
+    "source": "\u00a73.4 (L196)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-84",
+    "promise": "Agent: Benjamin Graham \u2014 deep value, Buffett's mentor framework.",
+    "source": "\u00a73.4 (L197)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-85",
+    "promise": "Agent: Peter Lynch \u2014 growth at reasonable price (PEG).",
+    "source": "\u00a73.4 (L198)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-86",
+    "promise": "Agent: Charlie Munger \u2014 mental models, lattice thinking.",
+    "source": "\u00a73.4 (L199)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-87",
+    "promise": "Agent: Howard Marks \u2014 cycles, risk-first.",
+    "source": "\u00a73.4 (L200)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-88",
+    "promise": "Agent: Seth Klarman \u2014 contrarian value, distressed.",
+    "source": "\u00a73.4 (L201)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-89",
+    "promise": "Agent: Ray Dalio \u2014 macro principles, all-weather.",
+    "source": "\u00a73.4 (L202)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-90",
+    "promise": "Agent: Stanley Druckenmiller \u2014 macro + concentrated bets.",
+    "source": "\u00a73.4 (L203)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-91",
+    "promise": "Agent: George Soros \u2014 reflexivity, macro speculation.",
+    "source": "\u00a73.4 (L204)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-92",
+    "promise": "Agent: AI Researcher \u2014 general research workflow (the equity-researcher pattern).",
+    "source": "\u00a73.4 (L205)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-93",
+    "promise": "Agent: AI Portfolio Advisor \u2014 portfolio analysis + rebalancing suggestions.",
+    "source": "\u00a73.4 (L206)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-94",
+    "promise": "Agent: Custom Agent Builder \u2014 user-defined agents (UI for creating new ones).",
+    "source": "\u00a73.4 (L207)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-95",
+    "promise": "Layer 3: users chain agents in visual workflows via multi-agent orchestration in the node editor.",
+    "source": "\u00a73.4 (L209)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-96",
+    "promise": "Example workflow: AI Researcher pulls a thesis, AI Strategy Critic critiques it, and if score > 7 it alerts via Telegram, otherwise logs to a journal.",
+    "source": "\u00a73.4 (L209)",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-BP-97",
+    "promise": "Each agent is defined by a config (JSON) with id, name, philosophy, systemPrompt, tools, defaultProvider, icon.",
+    "source": "\u00a73.4 (L212-221)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-98",
+    "promise": "Adding agents equals adding JSON configs.",
+    "source": "\u00a73.4 (L224)",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-BP-99",
+    "promise": "Plugins can contribute agents.",
+    "source": "\u00a73.4 (L224)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-100",
+    "promise": "Custom Agent Builder UI lets users define their own agents without code.",
+    "source": "\u00a73.4 (L224)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-101",
+    "promise": "Module: Tauri 2.x desktop shell (Win/Mac/Linux).",
+    "source": "\u00a74 Foundation (L231)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-102",
+    "promise": "Module: Next.js 16 frontend skeleton.",
+    "source": "\u00a74 Foundation (L232)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-103",
+    "promise": "Module: Tailwind + shadcn/ui design system with a Vysted aesthetic (charcoal + warm amber + sage + serif-meets-monospace typography).",
+    "source": "\u00a74 Foundation (L233)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-104",
+    "promise": "Module: command bar with slash commands (cmd+K).",
+    "source": "\u00a74 Foundation (L234)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-105",
+    "promise": "Module: multi-window / multi-tab layout.",
+    "source": "\u00a74 Foundation (L235)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-106",
+    "promise": "Module: Zustand state management.",
+    "source": "\u00a74 Foundation (L236)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-107",
+    "promise": "Module: theming engine (dark default + light option + future custom themes).",
+    "source": "\u00a74 Foundation (L237)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-108",
+    "promise": "Module: Python sidecar bootstrap (FastAPI on localhost, auto-managed by Tauri).",
+    "source": "\u00a74 Foundation (L238)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-109",
+    "promise": "Module: VystedPlugin TypeScript interface.",
+    "source": "\u00a74 Plugin Architecture (L241)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-110",
+    "promise": "Module: plugin registry + manifest format.",
+    "source": "\u00a74 Plugin Architecture (L242)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-111",
+    "promise": "Module: plugin lifecycle management (init / shutdown / health).",
+    "source": "\u00a74 Plugin Architecture (L243)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-112",
+    "promise": "Module: panel-slot contribution system.",
+    "source": "\u00a74 Plugin Architecture (L244)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-113",
+    "promise": "Module: command-bar contribution system.",
+    "source": "\u00a74 Plugin Architecture (L245)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-114",
+    "promise": "Module: agent-capability contribution system.",
+    "source": "\u00a74 Plugin Architecture (L246)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-115",
+    "promise": "Module: node-spec contribution system.",
+    "source": "\u00a74 Plugin Architecture (L247)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-116",
+    "promise": "Module: OpenBB ODP wrap (bundled Python sidecar) \u2014 100+ providers.",
+    "source": "\u00a74 Data Layer (L250)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-117",
+    "promise": "Module: ccxt unified crypto WebSocket (Bybit, Binance, Kraken, Coinbase).",
+    "source": "\u00a74 Data Layer (L251)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-118",
+    "promise": "Module: yfinance + alpha_vantage fallbacks (no API key needed for basic use).",
+    "source": "\u00a74 Data Layer (L252)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-119",
+    "promise": "Module: news intelligence (RSS + NewsAPI + AI sentiment scoring).",
+    "source": "\u00a74 Data Layer (L253)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-120",
+    "promise": "Module: macro / economic data (FRED + ECB + IMF + World Bank via ODP).",
+    "source": "\u00a74 Data Layer (L254)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-121",
+    "promise": "Module: lightweight-charts integration (multi-pane sync).",
+    "source": "\u00a74 Charting & Analysis (L257)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-122",
+    "promise": "Module: 50+ technical indicators (RSI, MACD, MA/EMA/SMA, Bollinger, Volume Profile, ADX, Stochastic, ATR, OBV, MFI, Ichimoku, Keltner, etc.).",
+    "source": "\u00a74 Charting & Analysis (L258)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-123",
+    "promise": "Module: 10+ drawing tools (trendlines, channels, Fib retracements, harmonic patterns, support/resistance).",
+    "source": "\u00a74 Charting & Analysis (L259)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-124",
+    "promise": "Module: multi-chart sync (linked timeframes across symbols).",
+    "source": "\u00a74 Charting & Analysis (L260)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-125",
+    "promise": "Module: comparison overlays (peer comparison on same chart).",
+    "source": "\u00a74 Charting & Analysis (L261)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-126",
+    "promise": "Module: volume profile + market profile.",
+    "source": "\u00a74 Charting & Analysis (L262)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-127",
+    "promise": "Module: position tracking + P&L attribution (local SQLite).",
+    "source": "\u00a74 Portfolio & Risk (L265)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-128",
+    "promise": "Module: risk analytics (Sharpe, Sortino, Calmar, VaR, Beta, max drawdown, correlation matrix).",
+    "source": "\u00a74 Portfolio & Risk (L266)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-129",
+    "promise": "Module: paper trading sandbox engine (event-driven simulation).",
+    "source": "\u00a74 Portfolio & Risk (L267)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-130",
+    "promise": "Module: equity overview panel (price + ratios + statements + analyst ratings in one view).",
+    "source": "\u00a74 Research (L270)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-131",
+    "promise": "Module: SEC filings reader (10-K, 10-Q, 8-K, Form 4, via OpenBB SEC provider).",
+    "source": "\u00a74 Research (L271)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-132",
+    "promise": "Module: earnings calendar.",
+    "source": "\u00a74 Research (L272)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-133",
+    "promise": "Module: analyst ratings aggregator.",
+    "source": "\u00a74 Research (L273)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-134",
+    "promise": "Module: multi-LLM chat sidebar (OpenAI / Anthropic / DeepSeek / Groq / Gemini / xAI / Ollama).",
+    "source": "\u00a74 AI/Automation (L276)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-135",
+    "promise": "Module: 12 pre-built agents, config-driven.",
+    "source": "\u00a74 AI/Automation (L277)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-136",
+    "promise": "Module: Custom Agent Builder UI (define agent without code).",
+    "source": "\u00a74 AI/Automation (L278)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-137",
+    "promise": "Module: node editor for workflow automation (react-flow based).",
+    "source": "\u00a74 AI/Automation (L279)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-138",
+    "promise": "Module: backtest engine (Python sidecar, event-driven, walk-forward support, AI Strategy Critic integration).",
+    "source": "\u00a74 AI/Automation (L280)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-139",
+    "promise": "Module: license gate UI (AGPL/commercial choice on first launch).",
+    "source": "\u00a74 Customization Layer (L283)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-140",
+    "promise": "Module: module toggle UI in settings (every module enable/disable).",
+    "source": "\u00a74 Customization Layer (L284)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-141",
+    "promise": "Module: workspace save/load/export/import (.vysted-workspace JSON files).",
+    "source": "\u00a74 Customization Layer (L285)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-142",
+    "promise": "Execution is a v1.0 capability, not a deferral.",
+    "source": "\u00a74 Broker Plugins (L289)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-143",
+    "promise": "Each broker is a separate plugin implementing the existing VystedPlugin contract, with no contract changes (data via getDataSources, panels via getPanels, order actions via executeCommand).",
+    "source": "\u00a74 Broker Plugins (L289)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-144",
+    "promise": "Every broker plugin routes execution through the shared safety layer in \u00a76.5.",
+    "source": "\u00a74 Broker Plugins (L289)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-145",
+    "promise": "Tradesa V2 plugin has 9-12 panels (decisions feed, open positions, P&L chart, trade history, watcher activity, sentinel/health, alerts, LLM cost, settings drift, reflection stream).",
+    "source": "\u00a74 Broker Plugins (L293)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-146",
+    "promise": "Tradesa V2 plugin has a real-time WebSocket connection to the Tradesa bot.",
+    "source": "\u00a74 Broker Plugins (L294)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-147",
+    "promise": "Tradesa V2 plugin supports crypto execution via Bybit testnet, wrapped in the \u00a76.5 safety layer.",
+    "source": "\u00a74 Broker Plugins (L295)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-148",
+    "promise": "Tradesa V2 plugin has an optional control plane (kill switch trigger, manual position close).",
+    "source": "\u00a74 Broker Plugins (L295)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-149",
+    "promise": "Tradesa V2 plugin has Tradesa-specific agents (Decision Reviewer, Reflection Analyst) and node-editor nodes (e.g. 'Wait for Tradesa decision').",
+    "source": "\u00a74 Broker Plugins (L296)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-150",
+    "promise": "Broker execution plugins in v1.0: six brokers plus a ccxt crypto execution wrap \u2014 seven broker integrations total \u2014 each free or near-free for retail.",
+    "source": "\u00a74 Broker Plugins (L298)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-151",
+    "promise": "Dhan broker plugin (India, free): dhanhq (MIT, v2.1.0+); orders, holdings, 200-level market depth, WebSocket; built-in static-IP management.",
+    "source": "\u00a74 Broker Plugins (L302)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-152",
+    "promise": "Angel One SmartAPI broker plugin (India, free incl. historical data): smartapi-python; REST + WebSocket; no static-IP requirement.",
+    "source": "\u00a74 Broker Plugins (L303)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-153",
+    "promise": "Zerodha Kite Connect broker plugin (India): kiteconnect SDK; personal API free for execution + account data; Connect API ~$6/mo adds real-time + historical data; static IP required for order placement since 1 April 2025 (SEBI/NSE rule, up to 2 static IPs per account); data/holdings/positions endpoints unaffected.",
+    "source": "\u00a74 Broker Plugins (L304)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-154",
+    "promise": "Alpaca broker plugin (US/global): alpaca-py (not the deprecated alpaca-trade-api); free Basic trading (commission-free US equities/options/crypto); paid Algo Trader Plus for full market data; paper trading free.",
+    "source": "\u00a74 Broker Plugins (L305)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-155",
+    "promise": "Interactive Brokers plugin (global, multi-asset, free account-based): ib_async v2.1.0 (not the discontinued ib_insync); requires TWS or IB Gateway running locally.",
+    "source": "\u00a74 Broker Plugins (L306)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-156",
+    "promise": "OANDA v20 broker plugin (forex, free with fxTrade demo or live account): oandapyV20; no API cost beyond holding the brokerage account.",
+    "source": "\u00a74 Broker Plugins (L307)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-157",
+    "promise": "Crypto (ccxt) execution plugin (global, per-exchange cost): execution wrap over the Phase 1 ccxt data layer, same \u00a76.5 safety layer as every other broker plugin.",
+    "source": "\u00a74 Broker Plugins (L308)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-158",
+    "promise": "Infrastructure: GitHub Releases pipeline with Tauri auto-update.",
+    "source": "\u00a74 Infrastructure (L312)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-159",
+    "promise": "Infrastructure: code signing pipeline (SignPath integration for Win, ad-hoc for Mac).",
+    "source": "\u00a74 Infrastructure (L313)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-160",
+    "promise": "Infrastructure: CLA gate on PRs so the dual license stays clean.",
+    "source": "\u00a74 Infrastructure (L314)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-161",
+    "promise": "Infrastructure: opt-in anonymous telemetry (basic crash + usage; respects privacy posture).",
+    "source": "\u00a74 Infrastructure (L315)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-162",
+    "promise": "No role-based presets \u2014 users get one sensible default layout on first launch and customize from there.",
+    "source": "\u00a75 (L321)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-163",
+    "promise": "Default first-launch layout: main chart (default SPY) at 50% of screen.",
+    "source": "\u00a75.1 (L324)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-164",
+    "promise": "Default first-launch layout: watchlist pre-loaded with SPY, QQQ, BTC, ETH, NVDA, AAPL.",
+    "source": "\u00a75.1 (L325)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-165",
+    "promise": "Default first-launch layout: news feed filtered to watchlist tickers.",
+    "source": "\u00a75.1 (L326)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-166",
+    "promise": "Default first-launch layout: AI chat sidebar with welcome message + suggested first commands.",
+    "source": "\u00a75.1 (L327)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-167",
+    "promise": "Default first-launch layout: portfolio panel, empty until user adds positions.",
+    "source": "\u00a75.1 (L328)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-168",
+    "promise": "Default first-launch layout: optional Tradesa V2 plugin panel if connected.",
+    "source": "\u00a75.1 (L329)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-169",
+    "promise": "Customization primitive: drag-drop panel layout (resize, hide, pop-out to second window).",
+    "source": "\u00a75.2 (L332)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-170",
+    "promise": "Customization primitive: tab groups (multiple panel sets in one window).",
+    "source": "\u00a75.2 (L333)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-171",
+    "promise": "Customization primitive: named workspaces (save layout, switch between them).",
+    "source": "\u00a75.2 (L334)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-172",
+    "promise": "Customization primitive: workspace export/import as .vysted-workspace JSON files.",
+    "source": "\u00a75.2 (L335)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-173",
+    "promise": "Customization primitive: module enable/disable in settings \u2014 disabled modules don't load and don't appear in the command bar.",
+    "source": "\u00a75.2 (L336)",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-BP-174",
+    "promise": "Customization primitive: command bar (cmd+K) for discovery without UI clutter.",
+    "source": "\u00a75.2 (L337)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-175",
+    "promise": "Customization primitive: module-specific settings (e.g. chart timeframe defaults, color schemes per module).",
+    "source": "\u00a75.2 (L338)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-176",
+    "promise": "Future (v2.0): community workspace gallery.",
+    "source": "\u00a75.3 (L341)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-177",
+    "promise": "Future (v2.0): import workspace from a GitHub gist URL.",
+    "source": "\u00a75.3 (L342)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-178",
+    "promise": "Future (v2.0): share workspace via QR code / link.",
+    "source": "\u00a75.3 (L343)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-179",
+    "promise": "License is AGPL-3.0 (default) + Commercial Dual License (paid).",
+    "source": "\u00a76.1 (L351)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-180",
+    "promise": "LICENSE file in repo contains the full AGPL-3.0 text.",
+    "source": "\u00a76.1 (L353)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-181",
+    "promise": "COMMERCIAL_LICENSE.md contains commercial terms + pricing + contact.",
+    "source": "\u00a76.1 (L354)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-182",
+    "promise": "README.md states explicitly: 'Free for personal, academic, and open-source use under AGPL-3.0. Commercial use requires a paid license.'",
+    "source": "\u00a76.1 (L355)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-183",
+    "promise": "CLA is required on all contributions so the owner retains the right to dual-license contributed code.",
+    "source": "\u00a76.1 (L356)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-184",
+    "promise": "GitHub Actions builds Tauri bundles for Linux as .AppImage + .deb (unsigned, fine).",
+    "source": "\u00a76.2 (L370)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-185",
+    "promise": "GitHub Actions builds Tauri bundles for macOS as an ad-hoc signed .dmg (first-launch bypass at $0 launch).",
+    "source": "\u00a76.2 (L371)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-186",
+    "promise": "GitHub Actions builds Tauri bundles for Windows as a .msi signed by SignPath.io (free OSS tier).",
+    "source": "\u00a76.2 (L372)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-187",
+    "promise": "Built bundles are attached to the GitHub Release.",
+    "source": "\u00a76.2 (L374)",
+    "kind": "behaviour"
+  },
+  {
+    "pid": "INT-BP-188",
+    "promise": "The Tauri auto-updater pulls updates on existing installs.",
+    "source": "\u00a76.2 (L376)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-189",
+    "promise": "terminal.vysted.com/download serves 'Download for [your OS]' via the GitHub Releases API.",
+    "source": "\u00a76.2 (L378)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-190",
+    "promise": "Homebrew cask is updated separately (PR to homebrew-cask).",
+    "source": "\u00a76.2 (L380)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-191",
+    "promise": "When revenue/business interest arrives: $99/year Apple Developer Program funds fully notarized macOS builds with zero install friction.",
+    "source": "\u00a76.2 (L386)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-192",
+    "promise": "Eventually: Microsoft Store / Mac App Store submissions.",
+    "source": "\u00a76.2 (L387)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-193",
+    "promise": "terminal.vysted.com/install/mac shows a screenshot of the unsigned-app warning and bypass instructions (right-click Open, or System Settings > Privacy & Security > Open Anyway).",
+    "source": "\u00a76.3 (L391-394)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-194",
+    "promise": "The Mac unsigned-app bypass is a ~30 second one-time step per Mac.",
+    "source": "\u00a76.3 (L395)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-195",
+    "promise": "From v1.0, Vysted Terminal places live orders against real brokerage accounts.",
+    "source": "\u00a76.4 (L399)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-196",
+    "promise": "Vysted Terminal is a tool, not financial advice \u2014 nothing it displays, computes, or generates, including AI-agent output, is a recommendation to buy, sell, or hold any instrument.",
+    "source": "\u00a76.4 (L401)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-197",
+    "promise": "No warranty for trading losses \u2014 the AGPL-3.0 disclaimer (\u00a715-16) is explicitly extended to trading and financial losses, including losses from defects, data errors, latency, failed or duplicated orders, or AI-agent behaviour.",
+    "source": "\u00a76.4 (L402)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-198",
+    "promise": "The user owns the broker relationship \u2014 Vysted Terminal is not a broker, introducing broker, or investment adviser.",
+    "source": "\u00a76.4 (L403)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-199",
+    "promise": "COMMERCIAL_LICENSE.md mirrors the trading-loss disclaimer with an explicit no-warranty-for-trading-losses clause.",
+    "source": "\u00a76.4 (L405)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-200",
+    "promise": "Live order placement is gated behind a fixed set of safeguards that are non-negotiable design constraints for every broker plugin; no broker plugin ships without them.",
+    "source": "\u00a76.5 (L409)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-201",
+    "promise": "Paper mode is the default for every broker plugin.",
+    "source": "\u00a76.5 #1 (L411)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-202",
+    "promise": "Live trading is opt-in per broker, toggled by the user.",
+    "source": "\u00a76.5 #1 (L411)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-203",
+    "promise": "The first time a plugin is switched to live, a dedicated disclaimer dialog is shown and must be explicitly acknowledged.",
+    "source": "\u00a76.5 #1 (L411)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-204",
+    "promise": "There is no global 'enable everything' shortcut for live trading \u2014 the decision is made one broker at a time.",
+    "source": "\u00a76.5 #1 (L411)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-205",
+    "promise": "Every order, paper or live, requires a confirmation dialog showing symbol, quantity, side, order type, limit price, estimated value, broker, and account ID.",
+    "source": "\u00a76.5 #2 (L413)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-206",
+    "promise": "There are no one-click trades anywhere in the app, in any panel, for any broker.",
+    "source": "\u00a76.5 #2 (L413)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-207",
+    "promise": "Position-size limits are configurable per plugin, with soft default caps on maximum order value, maximum percentage of account, and maximum position size per symbol.",
+    "source": "\u00a76.5 #3 (L415)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-208",
+    "promise": "A user can raise a position-size limit only through an explicit confirmation step; the defaults are conservative on purpose.",
+    "source": "\u00a76.5 #3 (L415)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-209",
+    "promise": "Every order, manual or AI-initiated, is written to a local SQLite audit log with timestamp, broker, full request payload, broker response, and outcome.",
+    "source": "\u00a76.5 #4 (L417)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-210",
+    "promise": "The audit log is exportable and survives app restarts.",
+    "source": "\u00a76.5 #4 (L417)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-211",
+    "promise": "There is a global 'Halt All Trading' kill switch, always visible, that immediately disables order placement across every broker plugin at once.",
+    "source": "\u00a76.5 #5 (L419)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-212",
+    "promise": "The kill switch is designed to be found and used under stress, without hunting through settings.",
+    "source": "\u00a76.5 #5 (L419)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-213",
+    "promise": "When an AI agent or node-editor workflow attempts to place an order, the confirmation dialog opens defaulted to declined and names the agent (e.g. 'AI agent <name> is requesting this order').",
+    "source": "\u00a76.5 #6 (L421)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-214",
+    "promise": "An optional auto-approve mode for AI-initiated orders exists but is off by default and must be enabled explicitly, per agent.",
+    "source": "\u00a76.5 #6 (L421)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-215",
+    "promise": "The terminal never lets an AI place an order the user did not see.",
+    "source": "\u00a76.5 #6 (L421)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-216",
+    "promise": "Any individual broker plugin can be marked read-only even with live trading globally enabled, enforced at the plugin boundary, not just the UI.",
+    "source": "\u00a76.5 #7 (L423)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-217",
+    "promise": "Liability disclaimers are surfaced at four touchpoints: the AGPL-3.0 LICENSE, COMMERCIAL_LICENSE.md, the first-launch app TOS dialog, and a per-broker first-connect dialog.",
+    "source": "\u00a76.5 #8 (L425-429)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-218",
+    "promise": "The first-launch app TOS dialog is a one-time acknowledgment the user must accept before any broker plugin can be enabled at all.",
+    "source": "\u00a76.5 #8 (L428)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-219",
+    "promise": "A per-broker first-connect dialog shows a broker-specific terms-and-conditions reminder the first time the user connects each broker.",
+    "source": "\u00a76.5 #8 (L429)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-220",
+    "promise": "The execution path is conservative by construction: paper by default, confirmed every time, capped, logged, haltable, extra-gated for AI, and disclosed up front.",
+    "source": "\u00a76.5 (L431)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-221",
+    "promise": "All phases ship as part of v1.0 \u2014 no MVP, no Phase 2 deferrals.",
+    "source": "\u00a77 (L437)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-222",
+    "promise": "Phase 0: repo scaffold at github.com/techlogist1/vysted-terminal.",
+    "source": "\u00a77 Phase 0 (L440)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-223",
+    "promise": "Phase 0: Tauri 2.x + Next.js 14 + TypeScript bootstrap.",
+    "source": "\u00a77 Phase 0 (L441)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-224",
+    "promise": "Phase 0: Tailwind + shadcn/ui + Vysted design tokens.",
+    "source": "\u00a77 Phase 0 (L442)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-225",
+    "promise": "Phase 0: Python sidecar bootstrap (FastAPI on localhost, lifecycle managed by Tauri).",
+    "source": "\u00a77 Phase 0 (L443)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-226",
+    "promise": "Phase 0: plugin architecture types defined (full VystedPlugin TypeScript interface).",
+    "source": "\u00a77 Phase 0 (L444)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-227",
+    "promise": "Phase 0: ONE mock panel, 'Welcome to Vysted Terminal', with placeholder content.",
+    "source": "\u00a77 Phase 0 (L445)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-228",
+    "promise": "Phase 0: command bar skeleton (cmd+K opens, slash command list empty).",
+    "source": "\u00a77 Phase 0 (L446)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-229",
+    "promise": "Phase 0: CI via GitHub Actions for build (Win/Mac/Linux) + lint + test.",
+    "source": "\u00a77 Phase 0 (L447)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-230",
+    "promise": "Phase 0: LICENSE + COMMERCIAL_LICENSE.md + CLA bot setup.",
+    "source": "\u00a77 Phase 0 (L448)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-231",
+    "promise": "Phase 0: CLAUDE.md at repo root (project context, stack, standards, constraints).",
+    "source": "\u00a77 Phase 0 (L449)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-232",
+    "promise": "Phase 0: terminal.vysted.com landing page (Vercel deploy, 'Coming soon' + GitHub link).",
+    "source": "\u00a77 Phase 0 (L450)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-233",
+    "promise": "Phase 0 success criterion: pnpm tauri dev opens a window with the mock panel.",
+    "source": "\u00a77 Phase 0 (L453)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-234",
+    "promise": "Phase 0 success criterion: design tokens are visible (Vysted aesthetic).",
+    "source": "\u00a77 Phase 0 (L454)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-235",
+    "promise": "Phase 0 success criterion: plugin interface compiles without errors.",
+    "source": "\u00a77 Phase 0 (L455)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-236",
+    "promise": "Phase 0 success criterion: CI is green for all OS builds.",
+    "source": "\u00a77 Phase 0 (L456)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-237",
+    "promise": "Phase 0 success criterion: tag v0.1.0 pushed.",
+    "source": "\u00a77 Phase 0 (L457)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-238",
+    "promise": "Phase 1: OpenBB ODP integration in the Python sidecar.",
+    "source": "\u00a77 Phase 1 (L460)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-239",
+    "promise": "Phase 1: ccxt integration (crypto WebSockets).",
+    "source": "\u00a77 Phase 1 (L461)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-240",
+    "promise": "Phase 1: yfinance fallback.",
+    "source": "\u00a77 Phase 1 (L462)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-241",
+    "promise": "Phase 1: chart panel (lightweight-charts + 20 indicators).",
+    "source": "\u00a77 Phase 1 (L464)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-242",
+    "promise": "Phase 1: watchlist panel.",
+    "source": "\u00a77 Phase 1 (L465)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-243",
+    "promise": "Phase 1: news feed panel with sentiment scoring.",
+    "source": "\u00a77 Phase 1 (L466)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-244",
+    "promise": "Phase 1: portfolio panel reading positions from local SQLite.",
+    "source": "\u00a77 Phase 1 (L467)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-245",
+    "promise": "Phase 1: equity overview panel (fundamentals + ratios + statements).",
+    "source": "\u00a77 Phase 1 (L468)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-246",
+    "promise": "Phase 1: module toggle UI in settings.",
+    "source": "\u00a77 Phase 1 (L469)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-247",
+    "promise": "Phase 1: workspace save/load (local only at this phase).",
+    "source": "\u00a77 Phase 1 (L470)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-248",
+    "promise": "Phase 2: 30 more technical indicators, 50 total.",
+    "source": "\u00a77 Phase 2 (L476)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-249",
+    "promise": "Phase 2: 10 drawing tools, workspace-persisted.",
+    "source": "\u00a77 Phase 2 (L477)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-250",
+    "promise": "Phase 2: multi-chart sync with opt-in crosshair / visible-range / symbol toggles.",
+    "source": "\u00a77 Phase 2 (L478)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-251",
+    "promise": "Phase 2: comparison overlays with a normalize toggle.",
+    "source": "\u00a77 Phase 2 (L479)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-252",
+    "promise": "Phase 2: plugin registry + manifest loader live in the app (bundled-import loader; filesystem-installed/marketplace deferred to v1.0+).",
+    "source": "\u00a77 Phase 2 (L480-481)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-253",
+    "promise": "Phase 2: OpenBB ODP wrap plugin (data-only plugin, proves the data-plugin pattern).",
+    "source": "\u00a77 Phase 2 (L482)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-254",
+    "promise": "Phase 3: multi-LLM provider integration (OpenAI, Anthropic, DeepSeek, Groq, Gemini, xAI, Ollama).",
+    "source": "\u00a77 Phase 3 (L490)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-255",
+    "promise": "Phase 3: 12 pre-built agents shipped as configs.",
+    "source": "\u00a77 Phase 3 (L493)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-256",
+    "promise": "Phase 3: Custom Agent Builder UI (Module 36), separate from the 12-agent count.",
+    "source": "\u00a77 Phase 3 (L496)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-257",
+    "promise": "Phase 3: per-panel AI context wiring across all Phase-1 panels.",
+    "source": "\u00a77 Phase 3 (L498)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-258",
+    "promise": "Phase 3: Vysted MCP server mounted at /mcp over Streamable-HTTP transport, with tools spanning data, agent, and workspace access.",
+    "source": "\u00a77 Phase 3 (L501)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-259",
+    "promise": "Phase 3: external MCP clients can reach the Vysted MCP server via mcp-remote bridge for Claude Desktop or 'claude mcp add' for Claude Code.",
+    "source": "\u00a77 Phase 3 (L503-504)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-260",
+    "promise": "Phase 3: MCP client + openbb-mcp-server integration.",
+    "source": "\u00a77 Phase 3 (L505)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-261",
+    "promise": "Phase 4: node editor (canvas + drag-drop palette + edge connect + run overlay).",
+    "source": "\u00a77 Phase 4 (L515)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-262",
+    "promise": "Phase 4: workflow execution engine with cycle detection, parallel waves, and an SSE event stream.",
+    "source": "\u00a77 Phase 4 (L517-519)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-263",
+    "promise": "Phase 4: backtest engine \u2014 event-driven, walk-forward support, Sharpe / Sortino / Calmar / win-rate metrics.",
+    "source": "\u00a77 Phase 4 (L520-522)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-264",
+    "promise": "Phase 4: AI Strategy Critic agent using backtest_summary, price_data, fundamentals tools.",
+    "source": "\u00a77 Phase 4 (L524)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-265",
+    "promise": "Phase 4: workspace export/import.",
+    "source": "\u00a77 Phase 4 (L529)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-266",
+    "promise": "Phase 5: shared execution safety layer implementing the \u00a76.5 8-point model with a dedicated audit suite.",
+    "source": "\u00a77 Phase 5 (L535)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-267",
+    "promise": "Phase 5: append-only audit log \u2014 SQLite triggers raise on UPDATE/DELETE of audit_orders.",
+    "source": "\u00a77 Phase 5 (L537)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-268",
+    "promise": "Phase 5: AI-order gate strictly enforced.",
+    "source": "\u00a77 Phase 5 (L538)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-269",
+    "promise": "Phase 5: Tradesa V2 full plugin deferred to v0.5.1 or v0.6.0 (foundation contracts \u2014 kill switch, audit log, executeCommand control plane \u2014 in place first).",
+    "source": "\u00a77 Phase 5 (L540-543)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-270",
+    "promise": "Phase 5: global broker execution plugins for Dhan, Angel One SmartAPI, Zerodha Kite Connect, Alpaca, Interactive Brokers, OANDA v20, and ccxt unified crypto execution, each a separate plugin routed through the shared safety layer.",
+    "source": "\u00a77 Phase 5 (L544-552)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-271",
+    "promise": "Phase 6: macro/economic data panels for FRED, ECB, IMF, and World Bank.",
+    "source": "\u00a77 Phase 6 (L565-568)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-272",
+    "promise": "Phase 6: SEC filings reader covering 10-K / 10-Q / 8-K / DEF 14A, insider Forms 3/4/5, and XBRL-precise financials with string precision preservation.",
+    "source": "\u00a77 Phase 6 (L569-572)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-273",
+    "promise": "Phase 6: earnings calendar with upcoming + history + surprises + estimates and consensus mean/high/low/dispersion stddev approximation.",
+    "source": "\u00a77 Phase 6 (L573-574)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-274",
+    "promise": "Phase 6: analyst ratings aggregator with ratings history, price-target timeline, and per-firm individual analyst tracks (five-bucket AnalystAction normalisation).",
+    "source": "\u00a77 Phase 6 (L575-577)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-275",
+    "promise": "Phase 6: QuantLib pricing modules \u2014 Black-Scholes / Cox-Ross-Rubinstein binomial / Monte Carlo options + Greeks, fixed-rate bonds (duration, modified duration, convexity), and yield-curve bootstrapping.",
+    "source": "\u00a77 Phase 6 (L578-582)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-276",
+    "promise": "Phase 6: screener/scanner module (backend + frontend).",
+    "source": "\u00a77 Phase 6 (L583-585)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-277",
+    "promise": "Phase 6.5: first-party Tradesa V2 wrapper plugin for the existing multi-agent LLM crypto perp trading bot.",
+    "source": "\u00a77 Phase 6.5 (L596-597)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-278",
+    "promise": "Phase 6.5: the Tradesa V2 wrapper is READ-ONLY by operator decision \u2014 no commands flow from Vysted to the bot; write capability is later scope.",
+    "source": "\u00a77 Phase 6.5 (L602-604)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-279",
+    "promise": "Phase 6.5: read-only is enforced by three defense-in-depth layers \u2014 the provider has no write methods (audit-tested), the router has no non-GET routes (audit-tested), and the plugin's supportsControlPlane=false (contract-level gate).",
+    "source": "\u00a77 Phase 6.5 (L605-607)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-280",
+    "promise": "Phase 6.5: the wrapper reads the bot's existing Supabase remote-sync project via a service-role key stored in the OS keychain.",
+    "source": "\u00a77 Phase 6.5 (L608-610)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-281",
+    "promise": "Phase 6.5: the wrapper API surface stays unchanged when Tradesa-side RLS lands.",
+    "source": "\u00a77 Phase 6.5 (L612-613)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-282",
+    "promise": "Phase 6.5: 7 panels surface the bot's key state \u2014 Live Positions, Trade History & P&L, Brain Decisions, Sentinel, Health, Settings & Drift, Self-Tuning/Discovery/Reflection \u2014 with a shared status strip showing mode + kill-switch + heartbeat age.",
+    "source": "\u00a77 Phase 6.5 (L614-618)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-283",
+    "promise": "Phase 6.5: a generic wrapper pattern is documented so future trading-system plugins can mirror the same shape with zero contract change.",
+    "source": "\u00a77 Phase 6.5 (L619-624)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-284",
+    "promise": "Phase 6.5: per-panel polling cadences (10s positions / 30s decisions / 60s settings) deliver 'is the bot alive' UX; Realtime is deferred.",
+    "source": "\u00a77 Phase 6.5 (L625-628)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-285",
+    "promise": "Phase 7: CI parity fix \u2014 CI green on all 3 OSes via an orchestrator script and pnpm ci-local.",
+    "source": "\u00a77 Phase 7 (L639-641)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-286",
+    "promise": "Phase 7: desktop-notification bridge, unblocking the earnings-playbook and macro-watcher use cases (UC3, UC5).",
+    "source": "\u00a77 Phase 7 (L647-648)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-287",
+    "promise": "Phase 7: visual consistency convention codified \u2014 AAPL anchor + 5-panel + AI Assistant cockpit + dark theme + populated-state screenshots + both target resolutions + per-release subfolder + header always present.",
+    "source": "\u00a77 Phase 7 (L649-651)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-288",
+    "promise": "The VystedPlugin contract (types/plugin.ts) is meant to stay stable/unchanged across releases once locked.",
+    "source": "\u00a77 Phase 7 (L656-657)",
+    "kind": "guarantee"
+  },
+  {
+    "pid": "INT-BP-289",
+    "promise": "Phase 8: a Claude-Code-driven deep audit covering cross-cutting code review, a security pass, a dead-code scan, a BLUEPRINT cross-check, and dependency-freshness check.",
+    "source": "\u00a77 Phase 8 (L661-664)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-290",
+    "promise": "Phase 9: an operator-led manual visual/UX bug pass on Mac covering Tradesa V2 panels with real Supabase, full cockpit re-capture for Phase 6 modules, and populated Node Editor + Backtest re-captures.",
+    "source": "\u00a77 Phase 9 (L667-671)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-291",
+    "promise": "Phase 10: SignPath.io setup for Windows code signing (free OSS application).",
+    "source": "\u00a77 Phase 10 (L675)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-292",
+    "promise": "Phase 10: Apple Developer ID / ad-hoc Mac signing path + bypass docs.",
+    "source": "\u00a77 Phase 10 (L676)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-293",
+    "promise": "Phase 10: Tauri auto-updater wired to GitHub Releases (flip createUpdaterArtifacts to true).",
+    "source": "\u00a77 Phase 10 (L677-678)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-294",
+    "promise": "Phase 10: Homebrew cask submission + AppImage + .deb distribution.",
+    "source": "\u00a77 Phase 10 (L679)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-295",
+    "promise": "Phase 10: terminal.vysted.com full landing page (download button, screenshots, docs).",
+    "source": "\u00a77 Phase 10 (L680-681)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-296",
+    "promise": "Phase 10: LICENSE flip + COMMERCIAL_LICENSE.md promotion + CLA bot setup.",
+    "source": "\u00a77 Phase 10 (L682)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-297",
+    "promise": "Phase 10: first-launch TOS dialog (\u00a76.5 #8 + customization module #1).",
+    "source": "\u00a77 Phase 10 (L683)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-298",
+    "promise": "Phase 10: README polish + getting-started docs.",
+    "source": "\u00a77 Phase 10 (L684)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-299",
+    "promise": "Phase 10: tag v1.0.0.",
+    "source": "\u00a77 Phase 10 (L685)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-300",
+    "promise": "Phase 10: launch announcement.",
+    "source": "\u00a77 Phase 10 (L686)",
+    "kind": "capability"
+  },
+  {
+    "pid": "INT-BP-301",
+    "promise": "Success criterion: user downloads from terminal.vysted.com, installs on their OS, and opens the app in <30 seconds on Linux/Windows, <90 seconds on Mac with the bypass step.",
+    "source": "\u00a78 (L692)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-302",
+    "promise": "Success criterion: all 38 modules are functional and accessible.",
+    "source": "\u00a78 (L693)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-303",
+    "promise": "Success criterion: 12 AI agents work with at least 3 LLM providers tested end-to-end.",
+    "source": "\u00a78 (L694)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-304",
+    "promise": "Success criterion: backtest engine runs a 60-day strategy in <30 seconds on standard hardware.",
+    "source": "\u00a78 (L695)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-305",
+    "promise": "Success criterion: Tradesa V2 plugin connects to the user's Supabase via the read-only wrapper and shows decisions via per-panel polling (Realtime SSE proxy + write capability deferred).",
+    "source": "\u00a78 (L696)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-306",
+    "promise": "Success criterion: workspace export/import round-trips correctly across platforms.",
+    "source": "\u00a78 (L697)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-307",
+    "promise": "Success criterion: MCP server responds to external Claude/GPT queries.",
+    "source": "\u00a78 (L698)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-308",
+    "promise": "Success criterion: CI is green for all OS builds.",
+    "source": "\u00a78 (L699)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-309",
+    "promise": "Success criterion: LICENSE + COMMERCIAL_LICENSE.md + CLA are in place.",
+    "source": "\u00a78 (L700)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-310",
+    "promise": "Success criterion: terminal.vysted.com is live with download links.",
+    "source": "\u00a78 (L701)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-311",
+    "promise": "Success criterion: at least one external user successfully installs without help (validated via Discord or beta program).",
+    "source": "\u00a78 (L702)",
+    "kind": "quality-bar"
+  },
+  {
+    "pid": "INT-BP-312",
+    "promise": "Deferred to v1.1: additional indicators, 50 to 100.",
+    "source": "\u00a79 v1.1 (L709)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-313",
+    "promise": "Deferred to v1.1: more AI agents, 12 to 20+.",
+    "source": "\u00a79 v1.1 (L710)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-314",
+    "promise": "Deferred to v1.1: additional broker plugins \u2014 Upstox, Fyers, Samco, Shoonya, Tradier, DEGIRO, MT5 bridge \u2014 community-pluggable on the existing plugin contract.",
+    "source": "\u00a79 v1.1 (L711)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-315",
+    "promise": "Deferred to v1.1: plugin marketplace UI (locally browse, no online catalog yet).",
+    "source": "\u00a79 v1.1 (L712)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-316",
+    "promise": "Deferred to v1.5: more macro data (more countries, more series).",
+    "source": "\u00a79 v1.5 (L715)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-317",
+    "promise": "Deferred to v1.5: advanced backtest features (Monte Carlo, walk-forward optimization, parameter sweeps).",
+    "source": "\u00a79 v1.5 (L716)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-318",
+    "promise": "Deferred to v1.5: mobile companion app (read-only, view watchlists + alerts), a separate React Native codebase.",
+    "source": "\u00a79 v1.5 (L717)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-319",
+    "promise": "Deferred to v1.5: web companion (lightweight browser version for trial).",
+    "source": "\u00a79 v1.5 (L718)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-320",
+    "promise": "Deferred to v1.5: additional plugin contracts (more types of plugins).",
+    "source": "\u00a79 v1.5 (L719)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-321",
+    "promise": "Deferred to v2.0: online plugin marketplace + community workspace gallery.",
+    "source": "\u00a79 v2.0 (L722)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-322",
+    "promise": "Deferred to v2.0: workspace sharing community.",
+    "source": "\u00a79 v2.0 (L723)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-323",
+    "promise": "Deferred to v2.0: hosted version (subscription SaaS option), requiring a hosted backend, decided when revenue justifies it.",
+    "source": "\u00a79 v2.0 (L724)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-324",
+    "promise": "Deferred to v2.0: multi-bot plugins (Forge Bot, etc.).",
+    "source": "\u00a79 v2.0 (L725)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-325",
+    "promise": "Deferred to v2.0: alternative data (maritime tracking, satellite, geopolitical).",
+    "source": "\u00a79 v2.0 (L726)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-326",
+    "promise": "Deferred to v2.0: Mac App Store / Microsoft Store submissions.",
+    "source": "\u00a79 v2.0 (L727)",
+    "kind": "deferred-item"
+  },
+  {
+    "pid": "INT-BP-327",
+    "promise": "Use Case 1 (Solo Founder's Quant Day): morning open triggers a Tradesa V2 overnight check (read-only, 7 panels) -> AI Risk Analyst review -> backtest new strategy -> (v0.6.6+ target) push config to bot via the Tradesa plugin control plane.",
+    "source": "\u00a710 UC1 (L733)",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-BP-328",
+    "promise": "Use Case 2 (Research Workflow): Cmd+K 'Research XYZ' -> AI Researcher pulls everything -> chart + news in adjacent panels -> backtest dividend strategy -> save workspace.",
+    "source": "\u00a710 UC2 (L736)",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-BP-329",
+    "promise": "Use Case 3 (Earnings Playbook): build a node-editor workflow -> AI generates thesis per earnings name -> alert on entry trigger -> desktop notification -> review thesis -> trade externally.",
+    "source": "\u00a710 UC3 (L739)",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-BP-330",
+    "promise": "Use Case 4 (Academic Researcher): a custom AI agent fine-tuned to a research domain runs a workflow pulling SEC + sentiment data, outputs to chart, and the workspace becomes a reproducible dissertation methodology.",
+    "source": "\u00a710 UC4 (L742)",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-BP-331",
+    "promise": "Use Case 5 (Macro Thesis Watcher, Dalio-style): a workspace with yield curves + central bank tracker + commodity dashboard has an AI Macro Researcher monitor news and send notifications on thesis-confirming events.",
+    "source": "\u00a710 UC5 (L745)",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-BP-332",
+    "promise": "Use Case 6 (Plugin Ecosystem, year 2+): indie trading-bot developers implement Vysted's plugin contract, their users get Vysted Terminal as a free dashboard, and Vysted becomes the standard UX layer for open-source trading infrastructure.",
+    "source": "\u00a710 UC6 (L748)",
+    "kind": "use-case"
+  },
+  {
+    "pid": "INT-BP-333",
+    "promise": "Use Case 7 (Multi-Broker Portfolio Aggregation): a user holding positions across Zerodha Kite, Dhan, and Alpaca can pull all three broker plugins into one Vysted workspace with aggregate P&L, per-broker drilldown panels, and cross-broker risk metrics (concentration, correlation, total exposure) computed across the combined book; execution stays per-broker and behind every \u00a76.5 safeguard, with aggregation read-side only.",
+    "source": "\u00a710 UC7 (L751-752)",
+    "kind": "use-case"
+  }
+]

@@ -1,0 +1,23 @@
+$ python3 -c _compare_symbols(['COCHINSHIP','MAZAGONDOCK']) and the name-resolved fresh case
+provider nse_direct failed for quote, falling through: nse_direct: 'MAZAGONDOCK' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'MAZAGONDOCK' is not a known NSE instrument
+provider bse failed for quote, falling through: bse: 'MAZAGONDOCK' is not a known BSE instrument
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: MAZAGONDOCK.NS"}}}
+$MAZAGONDOCK.NS: possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")
+$MAZAGONDOCK.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+provider yfinance failed for quote, falling through: yfinance quote failed for 'MAZAGONDOCK': $MAZAGONDOCK.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+provider nse_direct failed for quote, falling through: nse_direct: 'Cochin Shipyard' is not a known NSE instrument
+provider nse_direct failed for quote, falling through: nse_direct: 'Mazagon Dock' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'Cochin Shipyard' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'Mazagon Dock' is not a known NSE instrument
+provider bse failed for quote, falling through: bse: 'Cochin Shipyard' is not a known BSE instrument
+provider bse failed for quote, falling through: bse: 'Mazagon Dock' is not a known BSE instrument
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: COCHIN SHIPYARD.NS"}}}
+$MAZAGON DOCK.NS: possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")
+$MAZAGON DOCK.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+$COCHIN SHIPYARD.NS: possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")
+provider yfinance failed for quote, falling through: yfinance quote failed for 'Mazagon Dock': $MAZAGON DOCK.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+$COCHIN SHIPYARD.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+provider yfinance failed for quote, falling through: yfinance quote failed for 'Cochin Shipyard': $COCHIN SHIPYARD.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+ok: False message: fewer than two symbols resolved — 1 of 2 returned a quote. MAZAGONDOCK: unresolved name: 'MAZAGONDOCK' is not a known ticker and matched no listing — retry with the company name or the exact exchange ticker
+fresh (names) ok: True ['COCHINSHIP', 'MAZDOCK']

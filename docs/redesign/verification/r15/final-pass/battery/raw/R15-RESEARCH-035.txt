@@ -1,0 +1,9 @@
+# R15-RESEARCH-035 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:48+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p035.py 2>&1 | grep -v Warning
+--- output ---
+len(body) 14048 cap 6000 len(rendered) 5977
+all facts kept whole: True
+Planned next kept: True | Dead ends text dropped: True
+
+EXIT=0 (1.3s)

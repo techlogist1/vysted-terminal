@@ -1,0 +1,56 @@
+[
+  {
+    "raw_id": "DAT-P16-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real divergence, wrong framing: /fundamentals never claims this is promoter holding (field is held_percent_insiders, Equity Overview labels it 'Insiders'), and the research path already discloses exactly this gap as a data_conflict carrying both values (7.4pp exceeds the app's own 3pp definitional band). What survives: the Equity Overview shows the yfinance insiders scalar with no exchange promoter figure or conflict flag beside it, and the screener labels the same field 'Insider/promoter holding' (plus a 'promoter' preset), so outside research the 77.2% can be read as promoter holding. Downgraded high->medium because the flow that answers questions already flags it and the raw field's name is honest.",
+    "evidence": "sidecar/models/fundamentals.py:103-105; sidecar/services/research/semantics.py:75-82, 470-505, 566-577; sidecar/services/ownership_check.py:1-35; src/modules/equity-overview/EquityOverviewPanel.tsx:138-143; src/modules/screener/CriterionGroupEditor.tsx:51; src/modules/screener/ScreenerCriteriaBuilder.tsx:57; src/modules/screener/ScreenerPresets.tsx:107-115",
+    "evidence_checked": "Opened the fundamentals model, ownership cross-check, semantics ownership leg, Equity Overview field table and screener labels/presets; re-ran both GETs against :52152 at 2026-09-23T01:20:49Z.",
+    "repro_check": "curl :52152/fundamentals/CREST -> held_percent_insiders=0.77203006; curl ':52152/disclosures/shareholding?symbol=CREST' -> 2026-06-30 promoter_percent=69.84 (reproduced; gap 7.36pp > semantics._OWNERSHIP_DEFINITIONAL_PP=3.0, so research would flag data_conflict)."
+  },
+  {
+    "raw_id": "DAT-P16-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Confirmed: the Fundamentals model has no consolidated/standalone basis field (only growth_basis), and nothing in the fundamentals/research code handles consolidation basis, so P/E 31.4, EPS 11.61 etc. (all consolidated-matching) ship with no basis label. But the values are correct on their basis. Per the diff spec, a basis difference is definitional, not a wrong value, so the defect is a missing disclosure label (medium), not wrong data shown as true (high).",
+    "evidence": "sidecar/models/fundamentals.py:46-133 (no basis/consolidation field; growth_basis at 96-101 is the only basis marker); grep -i consolidated over sidecar/services, models, routers -> only services/search/extract.py:73,92 (web-extract headers, unrelated)",
+    "evidence_checked": "Opened the Fundamentals Pydantic model; grepped the sidecar services, models and routers for any consolidated/standalone handling; re-ran GET /fundamentals/CREST on :52152.",
+    "repro_check": "curl :52152/fundamentals/CREST -> keys containing 'consol' or 'basis' = ['growth_basis'] only; pe_ratio=31.35 (consolidated band 29.4-31.4, standalone 46-49)."
+  },
+  {
+    "raw_id": "DAT-P16-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Mechanism correction: the app DOES compute trailing-12m PAID dividends (D56), separately from declared-unpaid dividends, but only on the research snapshot path (fast.py _apply_dividend_ttm + get_declared_unpaid_dividend). /fundamentals deliberately leaves it null as a derived field (yfinance_provider._DERIVED_FIELDS) and, unlike other nulls, gives it no field_meta reason. Also the Equity Overview does not render the field. The surviving gap is limited to the /fundamentals route and Equity Overview (a bare null there, with 'Dividend / share' showing the provider's declared-rate scalar). The outside value itself is boundary-ambiguous (1.00 or 2.00), hence low.",
+    "evidence": "sidecar/services/yfinance_provider.py:166-180; sidecar/services/research/fast.py:207-231, 380-396; sidecar/models/fundamentals.py:106-111; src/modules/equity-overview/EquityOverviewPanel.tsx:127-135",
+    "evidence_checked": "Opened the derived-field exclusion, the research snapshot's TTM/declared wiring and the Equity Overview field table; re-ran GET /fundamentals/CREST on :52152 (research path not driven, since that needs a POST/LLM run).",
+    "repro_check": "curl :52152/fundamentals/CREST -> dividend_per_share=1.0, dividend_per_share_ttm=null, field_meta.dividend_per_share_ttm absent (reproduced)."
+  },
+  {
+    "raw_id": "DAT-P16-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. roe is sourced only from yfinance info.returnOnEquity, with no fallback derivation; for CREST it is null with an honest 'provider did not publish' reason. ROCE does not exist anywhere in the model, services or UI. The app already fetches the balance-sheet and income lines needed to derive ROE (~2.5% = 32.98cr / 1,307cr equity), so a derivation is feasible.",
+    "evidence": "sidecar/services/yfinance_provider.py:381; sidecar/models/fundamentals.py:78-83 (roe/roa only, no roce); grep -i 'roce|return_on_capital|capital_employed' over sidecar/services, models, src/modules, types -> no matches; collected/P16_CREST.json calls.balance (Total Debt, Stockholders Equity lines present)",
+    "evidence_checked": "Opened the yfinance mapping and the model; grepped for any ROCE or ROE derivation; re-ran GET /fundamentals/CREST on :52152.",
+    "repro_check": "curl :52152/fundamentals/CREST -> roe=null, field_meta.roe.reason='provider did not publish this field', 'roce' in body = False (reproduced)."
+  },
+  {
+    "raw_id": "DAT-P16-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Holds, with a scope and mechanism correction. The BSE SHP parser only sets a DII/FII leg when the filing carries that member (bse_provider.py:778-783), so a nil category the filing omits comes back null, which is the documented contract, not a dropped value. The pattern is systemic, not CREST-specific: in the battery's collected set FII or DII is null next to a known institutions total for CREST, P2, P4, P5, P7, P9, P14, P19, S3 and S4, while filings that carry an explicit 0 return 0.0. No panel renders dii_percent; the consumer is the agent's shareholding_pattern tool, which reads null as 'unknown' where the truth is 0%.",
+    "evidence": "sidecar/services/bse_provider.py:597-604, 694-790; sidecar/services/corporate_disclosures.py:489-541; sidecar/models/announcements.py:86-97; sidecar/services/agent_tools/disclosure_tools.py:68-95; battery/collected/*.json shareholding.patterns[0] fii/dii/institutions scan",
+    "evidence_checked": "Opened the SHP XBRL parser, the category map and the NSE/BSE split merge; grepped src for any renderer of dii_percent (none); scanned all collected battery files; re-ran GET /disclosures/shareholding?symbol=CREST on :52152.",
+    "repro_check": "curl ':52152/disclosures/shareholding?symbol=CREST' -> 2026-06-30 fii=1.71, dii=null, institutions=1.71 (reproduced)."
+  },
+  {
+    "raw_id": "DAT-P16-6",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds: no face_value, par value or board/SME field exists in the fundamentals model, the resolver output or the quote output (grep hits are only the quant bond face_value). One fix-shape correction: the resolver does not call BSE ComHeadernew at runtime; ComHeadernew is used only by the offline regenerate_india_sectors.py script, so the fix would be a new runtime call or a master-data column.",
+    "evidence": "sidecar/models/fundamentals.py:46-133; sidecar/services/resolver_masters/regenerate_india_sectors.py:17,69,294; collected/P16_CREST.json calls.resolve_bse_code/quote bodies; sidecar/services/nse_bhavcopy.py:39-41 (SME series excluded, not labelled)",
+    "evidence_checked": "Grepped sidecar services, models and routers for face value and SME/board fields; opened the resolver and quote payloads in the collected file; re-ran GET /fundamentals/CREST on :52152.",
+    "repro_check": "curl :52152/fundamentals/CREST -> face_value absent (None via .get), no board key (reproduced)."
+  }
+]

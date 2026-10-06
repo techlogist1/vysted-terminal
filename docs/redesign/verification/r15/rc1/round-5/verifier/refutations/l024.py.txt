@@ -1,0 +1,7 @@
+import asyncio, sys, os
+from services import data_cache
+async def main():
+    cleared = await data_cache.ensure_build('0.8.0')
+    print('ensure_build cleared=', cleared)
+asyncio.run(main())
+d=os.environ['VYSTED_DATA_DIR']; print('backups exists:', os.path.isdir(os.path.join(d,'backups')), os.listdir(os.path.join(d,'backups')) if os.path.isdir(os.path.join(d,'backups')) else [])

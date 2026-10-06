@@ -1,0 +1,61 @@
+{
+ "tag": "intent-C",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly.",
+ "stages": [
+  {
+   "label": "verify",
+   "model": "opus",
+   "prompt": "Your task spec is the INTENT section of docs/redesign/verification/r15/tooling/PROMPT_census.md, with <source> = \"{{source}}\", <start> = {{start}}, <end> = {{end}}."
+  }
+ ],
+ "items": [
+  {
+   "id": "pdd-readme-0",
+   "source": "pdd-readme",
+   "start": 0,
+   "end": 45
+  },
+  {
+   "id": "pdd-readme-45",
+   "source": "pdd-readme",
+   "start": 45,
+   "end": 90
+  },
+  {
+   "id": "pdd-readme-90",
+   "source": "pdd-readme",
+   "start": 90,
+   "end": 135
+  },
+  {
+   "id": "pdd-readme-135",
+   "source": "pdd-readme",
+   "start": 135,
+   "end": 180
+  },
+  {
+   "id": "pdd-readme-180",
+   "source": "pdd-readme",
+   "start": 180,
+   "end": 225
+  },
+  {
+   "id": "pdd-readme-225",
+   "source": "pdd-readme",
+   "start": 225,
+   "end": 270
+  },
+  {
+   "id": "pdd-readme-270",
+   "source": "pdd-readme",
+   "start": 270,
+   "end": 315
+  },
+  {
+   "id": "pdd-readme-315",
+   "source": "pdd-readme",
+   "start": 315,
+   "end": 354
+  }
+ ]
+}

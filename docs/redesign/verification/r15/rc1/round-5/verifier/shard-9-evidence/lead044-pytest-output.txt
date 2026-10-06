@@ -1,0 +1,23 @@
+V9 L044 IN-session sp500 rows: [('HAL', 'Halliburton Company', 'USD'), ('CCL', 'Carnival Corporation', 'USD'), ('IEX', 'IDEX Corporation', 'USD'), ('ACGL', 'Arch Capital', 'USD'), ('PTC', 'PTC Inc.', 'USD')] regions: ['US'] coverage: screened 5 of 5 — 0 unavailable
+V9 L044 store: {'ACGL': ('Arch Capital', 'USD'), 'CCL': ('Carnival Corporation', 'USD'), 'HAL': ('Halliburton Company', 'USD'), 'IEX': ('IDEX Corporation', 'USD'), 'PTC': ('PTC Inc.', 'USD')}
+.V9 L044 custom canonical under IN: ['HAL.NS', 'CCL.NS', 'IEX.NS', 'PTC.NS', 'ACGL.NS']
+.V9 L044 guard: store row for key PTC after a PTC.NS pair: {'PTC': ('PTC India', 'INR')}
+F
+=================================== FAILURES ===================================
+____________________ test_store_guard_refuses_wrong_listing ____________________
+
+    @pytest.mark.asyncio
+    async def test_store_guard_refuses_wrong_listing():
+        await screener._store_pair("PTC", (Fundamentals(symbol="PTC.NS", name="PTC India", currency="INR", market_cap=1e10, provider="test"), None))
+        rows = await fundamentals_store.fetch_rows(["PTC"])
+        print("V9 L044 guard: store row for key PTC after a PTC.NS pair:", {k: (v.get("name"), v.get("currency")) for k, v in rows.items()})
+>       assert "PTC" not in rows or rows["PTC"].get("currency") != "INR", "store accepted a wrong-listing row under the bare key"
+E       AssertionError: store accepted a wrong-listing row under the bare key
+E       assert ('PTC' not in {'PTC': {'beta': None, 'book_value': None, 'bse_group': None, 'currency': 'INR', ...}} or 'INR' != 'INR')
+E        +  where 'INR' = <built-in method get of dict object at 0x11077c340>('currency')
+E        +    where <built-in method get of dict object at 0x11077c340> = {'beta': None, 'book_value': None, 'bse_group': None, 'currency': 'INR', ...}.get
+
+../../v9-l044/test_v9_l044.py:66: AssertionError
+=========================== short test summary info ============================
+FAILED ../../v9-l044/test_v9_l044.py::test_store_guard_refuses_wrong_listing
+1 failed, 2 passed in 1.70s

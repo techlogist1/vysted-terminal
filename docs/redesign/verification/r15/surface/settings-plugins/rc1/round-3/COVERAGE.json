@@ -1,0 +1,107 @@
+[
+ {
+  "id": "panel-settings",
+  "area": "settings",
+  "surface": "Settings panel shell",
+  "driven": "ok",
+  "evidence": "unchanged since rc1 round 2 (surface/settings-plugins/rc1/rc1-redrive.md); no scoped file changed 4c6dfe8c..01d6920a"
+ },
+ {
+  "id": "panel-plugin-manager",
+  "area": "plugins",
+  "surface": "Plugin Manager panel",
+  "driven": "ok",
+  "evidence": "R15-CODE-PLATFORM-012 confirmed live this round: r15/surface/settings-plugins/rc1/round-3/02-workspace-and-plugin-recheck.txt (disable -> {enabled:false} persisted, readback via GET /plugins; restore -> enabled:true). Census-broken -> round-2 fixed -> round-3 still ok. No regression."
+ },
+ {
+  "id": "panel-marketplace",
+  "area": "plugins",
+  "surface": "Marketplace panel",
+  "driven": "ok",
+  "evidence": "R15-DATA-094/R15-UI-033 confirmed live this round: 01-fixed-rows-recheck.txt (GET /news/sources/status -> {\"newsapi\":\"unauthorized\"} with a fake key, {\"newsapi\":\"absent\"} keyless). Census-partial(broken configure leg) -> round-2 fixed -> round-3 still ok."
+ },
+ {
+  "id": "settings-section-nav",
+  "area": "settings",
+  "surface": "Settings section nav / jump links",
+  "driven": "partial",
+  "evidence": "unchanged since census (scroll-to-section/collapse steps NEEDS-GUI); no scoped file changed"
+ },
+ {
+  "id": "settings-providers",
+  "area": "settings",
+  "surface": "AI Providers section (BYOK keys)",
+  "driven": "ok",
+  "evidence": "R15-RESEARCH-010 + R15-UI-057 confirmed live this round: 01-fixed-rows-recheck.txt. Fake OpenRouter key -> {\"ok\":false,\"reason\":\"invalid\",\"detail\":\"OpenRouter rejected this key.\"} (was ok:true at census); OpenAI key with a trailing space -> {\"ok\":false,\"detail\":\"OpenAI rejected this key.\"} (a real rejection, not 'transport error: Connection error.', proving the trim landed). Census-broken -> round-2 fixed -> round-3 still ok."
+ },
+ {
+  "id": "settings-research",
+  "area": "settings",
+  "surface": "Research section (depth/model tiers + SearXNG)",
+  "driven": "ok",
+  "evidence": "Depends on the same /llm/keys/validate fix (settings-providers row) — an invalid OpenRouter key can no longer certify as 'configured' so the Tier-B silent-401 chain (SURF-SETTINGS-PLUGINS-1) cannot recur through Settings. Not re-run live via ollama this round (no code changed in deep_research.py since round 2; register R15-RESEARCH-010 status fixed). Tier cards / hardware card unchanged (ok at census)."
+ },
+ {
+  "id": "settings-searxng",
+  "area": "settings",
+  "surface": "SearXNG managed-instance flow",
+  "driven": "partial",
+  "evidence": "unchanged since census (only running/ready state drivable without shared-Docker teardown, forbidden by scope)"
+ },
+ {
+  "id": "settings-region",
+  "area": "settings",
+  "surface": "Region section",
+  "driven": "partial",
+  "evidence": "unchanged since round 2 (copy still says 'Defaults to United States.' while live default is IN — COD-frontend-panels-shell-chrome-4, not in this round's changed-file set); not re-run live"
+ },
+ {
+  "id": "settings-keybindings",
+  "area": "settings",
+  "surface": "Keybindings remap section",
+  "driven": "broken",
+  "evidence": "unchanged since census/round 2 (Ctrl+K conflict between palette.open and agent.toggle not detected — COD-frontend-panels-shell-chrome-3); no scoped file changed 4c6dfe8c..01d6920a"
+ },
+ {
+  "id": "settings-advanced-integrations",
+  "area": "settings",
+  "surface": "Advanced > Integrations subsection",
+  "driven": "broken",
+  "evidence": "unchanged since census (Open Marketplace CTA id mismatch, COD-frontend-panels-shell-chrome-2); no scoped file changed"
+ },
+ {
+  "id": "settings-advanced-layouts",
+  "area": "settings",
+  "surface": "Advanced > Layouts subsection (arrange templates management)",
+  "driven": "ok",
+  "evidence": "R15-UI-082 residual re-confirmed live this round: 02-workspace-and-plugin-recheck.txt. 234-char ASCII name -> 400 with a clear 'too long to save' reason (was a bare 500, fixed); a 33-char/36-glyph Devanagari name -> 400 'too long' (byte-expansion of the percent-encoded stem trips the length cap early — the residual R15-UI-082 already describes, register status open/low, not a new finding); a short 10-char Devanagari name -> 200 saved + cleaned up. Matches register triage note verbatim."
+ },
+ {
+  "id": "settings-advanced-modules",
+  "area": "settings",
+  "surface": "Advanced > Modules subsection (module enable/disable toggles)",
+  "driven": "partial",
+  "evidence": "R15-UI-081 re-confirmed still open this round (code-read, no regression): src/store/workspace.ts openPanel (L109-) still calls only useModulesStore.getState().findPanel(panelId), no read of the enabled map anywhere in the function — file byte-identical to round 2 in this range (4c6dfe8c..01d6920a diff does not touch workspace.ts). 'AI Assistant' switch remains wired to nothing (src/modules/chat/index.ts unchanged: panels:[], commands:[]). Separately, R15-CODE-PLATFORM-013's own fix (setEnabledMap preserving live plugin:* flags on workspace-load/import) is NEW since round 2 and confirmed via the repo's own regression tests: rc1-round-3-vitest-settings-plugins.log, 5 files / 157 tests pass (store/modules.test.ts, components/SettingsPanel.test.tsx, lib/plugin-runtime.test.ts, lib/workspace.test.ts, store/workspace.test.ts), including the 3 tests pinned specifically to R15-CODE-PLATFORM-013's setEnabledMap behaviour."
+ },
+ {
+  "id": "settings-advanced-export-import",
+  "area": "settings",
+  "surface": "Advanced > Export/Import settings",
+  "driven": "ok",
+  "evidence": "R15-UI-058 confirmed via the SettingsPanel.test.tsx suite this round (rc1-round-3-vitest-settings-plugins.log, 157/157 pass, no code changed in SettingsPanel.tsx buildSettingsExport/handleImportFile since round 2's live confirmation). Census-broken -> round-2 fixed -> round-3 still ok."
+ },
+ {
+  "id": "settings-advanced-about",
+  "area": "settings",
+  "surface": "Advanced > About subsection",
+  "driven": "ok",
+  "evidence": "re-confirmed this round: GET /health on :52325 -> version 0.8.0, matches package.json/Cargo.toml/tauri.conf.json/app.py (unchanged since census)"
+ },
+ {
+  "id": "provider-health-breaker",
+  "area": "settings",
+  "surface": "Provider health / circuit-breaker status",
+  "driven": "ok",
+  "evidence": "unchanged since census/round 2 (no frontend surface — sidecar-internal; GET-only, mutating trip/reset not called)"
+ }
+]

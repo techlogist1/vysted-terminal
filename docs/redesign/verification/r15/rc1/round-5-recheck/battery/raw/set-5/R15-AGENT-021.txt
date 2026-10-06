@@ -1,0 +1,41 @@
+=== R15-AGENT-021 repro: untrusted-source fence + AUTO auto-apply gate (code-level, mechanism-verified per original repro) ===
+candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+--- in-process: _model_facing_content fences web_search/news/corporate_announcements/research ---
+web_search: is_untrusted_text=True fenced_in_output=True
+news: is_untrusted_text=True fenced_in_output=True
+corporate_announcements: is_untrusted_text=True fenced_in_output=True
+research: is_untrusted_text=True fenced_in_output=True
+
+--- static: types/proposed-change.ts autoApplies() set ---
+8: * {@link autoApplies}); rejecting leaves state unchanged. This is the trust
+20:  "chart",
+21:  "panel",
+22:  "watchlist",
+34: * auto-applied set — {@link autoApplies} reads it (R15-DOCS-016/017/018;
+39:  "panel",
+40:  "chart",
+41:  "watchlist",
+44:export function autoApplies(kind: ProposedChangeKind): boolean {
+
+--- src/store/proposed-changes.ts AUTO gate call site ---
+      batchId,
+      agentId,
+      agentName,
+      createdAt: Date.now(),
+    };
+    set((state) => ({ changes: [...state.changes, change] }));
+    // Autonomy: in AUTO mode an auto-applicable kind applies without a
+    // per-action confirmation (still recorded in the transcript). Any other
+    // kind stays pending, and the ledger learns it is awaiting review, not failed.
+    if (useAgentAutonomyStore.getState().autonomy === "auto") {
+      if (autoApplies(change.kind)) {
+        return { id, outcome: get().accept(id) };
+      }
+      ackHostAction(toolCallId, "staged", hostActionAckDetail(name, input));
+    }
+    return { id, outcome: Promise.resolve("staged") };
+  },
+
+  accept: async (id) => {
+    const change = get().changes.find((c) => c.id === id);
+    if (!change || change.status !== "pending") {

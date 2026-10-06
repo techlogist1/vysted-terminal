@@ -1,0 +1,60 @@
+import { beforeEach, expect, it, vi } from "vitest";
+import { useProposedChangesStore } from "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-01d6920-fix-int/src/store/proposed-changes";
+import { useAgentAutonomyStore } from "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-01d6920-fix-int/src/store/agent-autonomy";
+import { usePortfoliosStore } from "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-01d6920-fix-int/src/store/portfolios";
+import { buildPortfolioSummary } from "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-01d6920-fix-int/src/modules/portfolio/metrics";
+import { buildCsv } from "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-01d6920-fix-int/src/lib/csv";
+
+const acks: unknown[] = [];
+beforeEach(() => {
+  acks.length = 0;
+  vi.stubGlobal("fetch", vi.fn(async (_u: string, init?: RequestInit) => { acks.push(init?.body ? JSON.parse(String(init.body)) : null); return { ok: true, json: async () => ({}) }; }));
+  useProposedChangesStore.getState().clear();
+});
+const holdings = () => JSON.stringify(usePortfoliosStore.getState().portfolios.map((p) => p.holdings));
+
+it("ASK: an order-shaped action staged and human-accepted fails closed, portfolio untouched", async () => {
+  useAgentAutonomyStore.setState({ autonomy: "ask" });
+  const before = holdings();
+  const { id, outcome } = useProposedChangesStore.getState().enqueue({ toolCallId: "t-order", name: "place_order", input: { symbol: "AAPL", side: "buy", quantity: 10 }, batchId: "b1" });
+  expect(await outcome).toBe("staged");
+  const r = await useProposedChangesStore.getState().accept(id);
+  const c = useProposedChangesStore.getState().changes.find((x) => x.id === id)!;
+  console.log("ASK place_order accept ->", r, "| status", c.status, "| detail", c.detail, "| acks", JSON.stringify(acks));
+  expect(r).toBe("failed");
+  expect(holdings()).toBe(before);
+});
+
+it("AUTO: an order-shaped action fails closed without applying anything", async () => {
+  useAgentAutonomyStore.setState({ autonomy: "auto" });
+  const before = holdings();
+  const { outcome } = useProposedChangesStore.getState().enqueue({ toolCallId: "t-order2", name: "submit_order", input: { symbol: "MSFT", side: "sell", quantity: 10 }, batchId: "b2" });
+  const r = await outcome;
+  console.log("AUTO submit_order ->", r, "| acks", JSON.stringify(acks));
+  expect(r).toBe("failed");
+  expect(holdings()).toBe(before);
+});
+
+it("tracked portfolio: gated add -> accept applies with cost basis; P&L vs quote; CSV; gated delete -> accept removes", async () => {
+  useAgentAutonomyStore.setState({ autonomy: "ask" });
+  const pid = usePortfoliosStore.getState().activeId;
+  const add = useProposedChangesStore.getState().enqueue({ toolCallId: "t-add", name: "portfolio_add_position", input: { symbol: "MSFT", quantity: 10, cost_basis: 400, asset_class: "equity" }, batchId: "b3" });
+  expect(await add.outcome).toBe("staged");
+  expect(holdings()).not.toContain("MSFT");
+  expect(await useProposedChangesStore.getState().accept(add.id)).toBe("applied");
+  const h = usePortfoliosStore.getState().portfolios.find((p) => p.id === pid)!.holdings.find((x) => x.symbol === "MSFT")!;
+  console.log("after accept holding", JSON.stringify(h));
+  expect(h.costBasis).toBe(400); expect(h.quantity).toBe(10);
+  const price = Number(process.env.MSFT_PRICE);
+  const s = buildPortfolioSummary([{ id: 1, symbol: "MSFT", quantity: 10, cost_basis: 400, asset_class: "equity" } as never], new Map([["MSFT", { symbol: "MSFT", price, currency: "USD" } as never]]));
+  console.log("summary row pnl", s.rows[0].pnl, "pnlPercent", s.rows[0].pnlPercent);
+  expect(s.rows[0].pnl).toBeCloseTo(price * 10 - 4000, 6);
+  console.log("CSV:\n" + buildCsv(["symbol", "quantity", "cost_basis", "pnl"], [["MSFT", 10, 400, s.rows[0].pnl]]));
+  const del = useProposedChangesStore.getState().enqueue({ toolCallId: "t-del", name: "portfolio_delete_position", input: { symbol: "MSFT" }, batchId: "b4" });
+  expect(await del.outcome).toBe("staged");
+  expect(holdings()).toContain("MSFT");
+  const dr = await useProposedChangesStore.getState().accept(del.id);
+  console.log("delete accept ->", dr, "holdings", holdings());
+  expect(dr).toBe("applied");
+  expect(holdings()).not.toContain("MSFT");
+});

@@ -1,0 +1,43 @@
+{
+ "broker": {
+  "docs": 134128,
+  "src-tauri": 2,
+  "sidecar": 71,
+  "src": 24
+ },
+ "buy_now": {
+  "docs": 106
+ },
+ "demat": {
+  "sidecar": 3,
+  "docs": 1266
+ },
+ "execute_trade": {
+  "docs": 146
+ },
+ "leverage": {
+  "sidecar": 5,
+  "docs": 890,
+  "src": 2
+ },
+ "live_mode": {
+  "sidecar": 7,
+  "src": 4,
+  "docs": 2377
+ },
+ "margin": {
+  "docs": 62500,
+  "src-tauri": 1,
+  "sidecar": 139,
+  "src": 68
+ },
+ "paper_trading": {
+  "docs": 459
+ },
+ "place_order": {
+  "docs": 214
+ },
+ "simulated_account": {
+  "docs": 769
+ }
+}

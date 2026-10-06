@@ -1,0 +1,2 @@
+$ grep -n 'R15-DATA-042' src/modules/portfolio/PortfolioPanel.test.tsx
+573:  it("R15-DATA-042: CSV export gets a Currency column and a blank Weight % when mixed", async () => {

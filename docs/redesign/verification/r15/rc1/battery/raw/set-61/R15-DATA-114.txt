@@ -1,0 +1,10 @@
+=== 3 consecutive option chain calls, timed ===
+HTTP 200
+call 1: .696666000s
+as_of 2026-09-25
+HTTP 200
+call 2: .041830000s
+as_of 2026-09-25
+HTTP 200
+call 3: .041634000s
+as_of 2026-09-25

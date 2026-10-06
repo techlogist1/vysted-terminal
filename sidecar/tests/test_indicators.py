@@ -272,6 +272,83 @@ def test_vwap_cumulative_for_daily(series: OHLCVSeries) -> None:
     assert last == pytest.approx(expected_last)
 
 
+def _daily_ten_day_series_from_monday() -> OHLCVSeries:
+    """A deterministic 10-daily-bar series starting Monday 2026-01-05, so bar
+    index 5 (Saturday) — actually the next Monday — pins a clean week reset.
+    Bars are calendar-DAILY (one per day, weekends included) so the boundary
+    lands on a known index regardless of trading-day gaps."""
+    base = datetime(2026, 1, 5, 0, 0, 0)  # a Monday (R15-UI-091 pin)
+    bars: list[OHLCVBar] = []
+    for index in range(10):
+        close = 100.0 + index
+        bars.append(
+            OHLCVBar(
+                timestamp=base + timedelta(days=index),
+                open=close - 0.5,
+                high=close + 0.5,
+                low=close - 1.0,
+                close=close,
+                volume=1_000.0 + index,
+            )
+        )
+    return OHLCVSeries(symbol="WEEKLY", timeframe="1d", bars=bars, provider="test")
+
+
+def test_vwap_week_anchor_resets_on_monday() -> None:
+    """R15-UI-091: anchor='week' restarts the cumulative sums at each ISO week
+    boundary (Monday), distinct from the default whole-series cumulative."""
+    weekly = _daily_ten_day_series_from_monday()
+    df = indicator_service._frame(weekly)
+    times = list(df.index)
+    result = indicator_service.compute_vwap(df, times, anchor="week")
+    assert result.lines[0].label == "VWAP (week)"
+    values = [p.value for p in result.lines[0].points]
+
+    # Index 7 is the second Monday (base + 7 days) — the first sample of week
+    # 2, so its VWAP equals its own typical price (no carry-over from week 1).
+    week2_first = weekly.bars[7]
+    typical = (week2_first.high + week2_first.low + week2_first.close) / 3.0
+    assert values[7] == pytest.approx(typical)
+
+    # The whole-series (non-week) cumulative VWAP at the same bar differs —
+    # it carries every prior day's volume, proving the reset actually fired.
+    whole_series = indicator_service.compute_vwap(df, times, anchor="auto")
+    assert values[7] != pytest.approx(whole_series.lines[0].points[7].value)
+
+
+def test_compute_ema_period_spec(series: OHLCVSeries) -> None:
+    """R15-UI-091: 'ema:9' computes a period-9 EMA, distinct from the
+    period-20 default, and 'ema:9' + 'ema:21' both compute (not deduped as
+    the same base key)."""
+    response = indicator_service.compute(series, ["ema:9", "ema:21"])
+    labels = [ind.lines[0].label for ind in response.indicators]
+    assert labels == ["EMA(9)", "EMA(21)"]
+
+
+def test_compute_vwap_week_spec(series: OHLCVSeries) -> None:
+    """R15-UI-091: 'vwap:week' dispatches through compute()'s spec parsing."""
+    response = indicator_service.compute(series, ["vwap:week"])
+    assert response.indicators[0].lines[0].label == "VWAP (week)"
+
+
+def test_compute_dedupes_identical_specs_not_distinct_params(series: OHLCVSeries) -> None:
+    """A duplicate (key, param) pair dedupes; distinct params on the same key
+    do not (the R15-UI-091 acceptance case)."""
+    response = indicator_service.compute(series, ["ema:9", "ema:9", "ema:21"])
+    labels = [ind.lines[0].label for ind in response.indicators]
+    assert labels == ["EMA(9)", "EMA(21)"]
+
+
+def test_parse_spec_splits_key_and_param() -> None:
+    assert indicator_service.parse_spec("ema:9") == ("ema", "9")
+    assert indicator_service.parse_spec("VWAP:Week") == ("vwap", "week")
+    assert indicator_service.parse_spec("rsi") == ("rsi", None)
+    assert indicator_service.parse_spec("not-real") is None
+    # A key that doesn't accept a param still normalizes — compute() just
+    # ignores a param it has no use for.
+    assert indicator_service.parse_spec("rsi:14") == ("rsi", "14")
+
+
 def test_parabolic_sar_defined_from_second_bar(series: OHLCVSeries) -> None:
     """Parabolic SAR seeds on bar two and stays finite thereafter."""
     result = indicator_service.compute_parabolic_sar(
@@ -428,6 +505,74 @@ def test_indicators_endpoint_returns_requested(
     assert len(rsi["lines"][0]["points"]) == len(mock_history.bars)
 
 
+def test_indicators_endpoint_carries_series_freshness(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, series: OHLCVSeries
+) -> None:
+    """R15-DATA-063: the real provider registry never labels freshness itself
+    (only /history's own downgrade path did) — stubbing an UNLABELLED series
+    (no ``freshness`` kwarg, the real provider shape) must still come back
+    non-null from /indicators, and match /history for that same stub. This is
+    a parity check, not a fixed value, so it does not depend on the clock."""
+    from services import provider_registry
+
+    def _fake_get_history(
+        symbol: str,
+        timeframe: str,
+        range_: str | None = None,  # noqa: ARG001
+        asset_class: str = "equity",  # noqa: ARG001
+    ) -> OHLCVSeries:
+        return OHLCVSeries(symbol=symbol, timeframe=timeframe, bars=series.bars, provider="test")
+
+    monkeypatch.setattr(provider_registry, "get_history", _fake_get_history)
+    history_freshness = client.get("/history/SPY", params={"timeframe": "1d"}).json()["freshness"]
+    response = client.get("/indicators/SPY", params={"indicators": "rsi"})
+    assert response.status_code == 200
+    indicators_freshness = response.json()["freshness"]
+    assert indicators_freshness is not None
+    assert indicators_freshness == history_freshness
+
+
+def test_indicators_endpoint_crypto_is_live(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, series: OHLCVSeries
+) -> None:
+    """Class case the fix was not written against: crypto is labelled 'live'
+    regardless of the last bar's date (R15-DATA-063's asset_class branch)."""
+    from services import provider_registry
+
+    def _fake_get_history(
+        symbol: str,
+        timeframe: str,
+        range_: str | None = None,  # noqa: ARG001
+        asset_class: str = "equity",  # noqa: ARG001
+    ) -> OHLCVSeries:
+        return OHLCVSeries(
+            symbol=symbol, timeframe=timeframe, bars=series.bars, provider="ccxt:binance"
+        )
+
+    monkeypatch.setattr(provider_registry, "get_history", _fake_get_history)
+    response = client.get(
+        "/indicators/BTC%2FUSDT", params={"indicators": "rsi", "asset_class": "crypto"}
+    )
+    assert response.status_code == 200
+    assert response.json()["freshness"] == "live"
+
+
+def test_indicators_endpoint_downgraded_empty_series_has_no_freshness(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Class case: the EmptySeriesError downgrade never fabricates a freshness."""
+    from services import provider_registry
+    from services.correctness_gate import EmptySeriesError
+
+    def _empty(symbol: str, timeframe: str, range_, asset_class: str):  # noqa: ANN001
+        raise EmptySeriesError(f"correctness gate: empty series for {symbol!r}")
+
+    monkeypatch.setattr(provider_registry, "get_history", _empty)
+    response = client.get("/indicators/DAL.BO", params={"indicators": "rsi"})
+    assert response.status_code == 200
+    assert response.json()["freshness"] is None
+
+
 def test_indicators_endpoint_panel_classification(
     client: TestClient, mock_history: OHLCVSeries
 ) -> None:
@@ -439,6 +584,21 @@ def test_indicators_endpoint_panel_classification(
     body = response.json()
     panels = {ind["name"]: ind["panel"] for ind in body["indicators"]}
     assert panels == {"sma": "price", "rsi": "separate"}
+
+
+def test_indicators_endpoint_accepts_parametrized_specs(
+    client: TestClient, mock_history: OHLCVSeries
+) -> None:
+    """R15-UI-091 acceptance: 'ema:9,ema:21,vwap:week' round-trips through the
+    router — both EMA periods compute, and the week-anchored VWAP."""
+    response = client.get(
+        "/indicators/SPY",
+        params={"indicators": "ema:9,ema:21,vwap:week"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    labels = [ind["lines"][0]["label"] for ind in body["indicators"]]
+    assert labels == ["EMA(9)", "EMA(21)", "VWAP (week)"]
 
 
 def test_indicators_endpoint_rejects_unknown(client: TestClient, mock_history: OHLCVSeries) -> None:
@@ -456,11 +616,61 @@ def test_indicators_endpoint_requires_indicators(
     assert response.status_code == 400
 
 
+def test_indicators_endpoint_downgrades_an_empty_series_to_200(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-DATA-063: the symbol /history serves as a 200 empty series is not a
+    502 here."""
+    from services import provider_registry
+    from services.correctness_gate import EmptySeriesError
+
+    def _empty(symbol: str, timeframe: str, range_, asset_class: str):  # noqa: ANN001
+        raise EmptySeriesError(f"correctness gate: empty series for {symbol!r}")
+
+    monkeypatch.setattr(provider_registry, "get_history", _empty)
+    response = client.get("/indicators/DAL.BO", params={"indicators": "rsi,sma"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["indicators"] == []
+    assert body["provider"] == "none"
+
+
 def test_indicators_list_endpoint(client: TestClient) -> None:
     """GET /indicators lists all 50 supported keys (Phase 1's 20 + Phase 2's 30)."""
     response = client.get("/indicators")
     assert response.status_code == 200
     assert len(response.json()["indicators"]) == 50
+
+
+def test_indicators_suggested_endpoint_equity_intraday(client: TestClient) -> None:
+    """R15-UI-091 FR-092 pin: 5m equity -> ema:9, ema:21 (the crossover combo)."""
+    response = client.get(
+        "/indicators/suggested", params={"timeframe": "5m", "asset_class": "equity"}
+    )
+    assert response.status_code == 200
+    indicators = response.json()["indicators"]
+    assert "ema:9" in indicators
+    assert "ema:21" in indicators
+
+
+def test_indicators_suggested_endpoint_crypto_daily(client: TestClient) -> None:
+    """R15-UI-091 FR-092 pin: crypto 1d -> ema:50, ema:200, vwap:week (crypto is
+    timeframe-agnostic — 24/7, no session boundary to anchor a plain VWAP to)."""
+    response = client.get(
+        "/indicators/suggested", params={"timeframe": "1d", "asset_class": "crypto"}
+    )
+    assert response.status_code == 200
+    indicators = response.json()["indicators"]
+    assert "ema:50" in indicators
+    assert "ema:200" in indicators
+    assert "vwap:week" in indicators
+
+
+def test_indicators_suggested_endpoint_defaults_to_daily_equity(client: TestClient) -> None:
+    """No query params -> the same daily-equity default the research cockpit uses."""
+    response = client.get("/indicators/suggested")
+    assert response.status_code == 200
+    assert response.json()["indicators"] == ["ma", "volume", "rsi", "macd"]
 
 
 # --------------------------------------------------------------------------

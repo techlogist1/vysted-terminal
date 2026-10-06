@@ -1,0 +1,27 @@
+--- fresh case (UI-046): sidecar's raw GET /workspace still lists __autosave__ (by design -- filtering moves to the client); the frontend userWorkspaceName() guard rejects any __-prefixed name on save/delete ---
+
+Live sidecar GET /workspace (this shard's sidecar, port 52348, reused from
+the DATA-090 probe above): ["__autosave__","b8v-corrupt","b8v-ws"]
+-- confirms the sidecar itself still exposes the raw name, matching the
+batch-7 certification ("the live listWorkspaces() returns [...] even though
+the sidecar lists __autosave__").
+
+Source-confirmed client guard (not vitest-executed; no live browser/JS
+runtime available in this shard to execute src/lib/workspace.ts directly --
+tsx/ts-node are not installed as devDependencies):
+  src/lib/workspace.ts:738-740 listWorkspaces() -- "return names.filter(
+    (name) => !isReservedLayoutName(name))" -- the reserved slot is
+    filtered out of the list the UI shows.
+  src/lib/workspace.ts:742-751 userWorkspaceName() -- throws
+    WorkspaceError('Names starting with "__" are reserved; choose another
+    name.') for any name where isReservedLayoutName(trimmed) is true.
+  src/lib/workspace.ts:759 saveWorkspace() calls userWorkspaceName(name)
+    before building the payload.
+  src/lib/workspace.ts:1229 deleteWorkspace() calls userWorkspaceName(name)
+    before the DELETE fetch.
+  src/store/workspace.ts:22-27 isReservedLayoutName = name.startsWith("__").
+
+VERDICT: holds. Server-side raw listing reproduced live (sidecar still
+returns __autosave__ in GET /workspace, unchanged/by design); client-side
+filter + save/delete guard confirmed present and wired at the exact
+call sites the batch-7 certification names.

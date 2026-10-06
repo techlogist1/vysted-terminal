@@ -1,0 +1,17 @@
+# R15-UI-073 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:55+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'color-warning\|color-caution' styles/tokens.css | head; grep -rn 'caution' src/modules/chat/AgentsRail.tsx | head -4; grep -n 'role="progressbar"\|role="img"' src/modules/chat/AgentsRail.tsx | head; ls src/lib/warning-token-scope.test.ts
+--- output ---
+83:  --color-warning: #e0a13a; /* DATA signal only -- stale/synthetic/paper/partial/
+86:    infra/lifecycle/config -- see --color-caution (R15-UI-073). */
+87:  --color-caution: #e0a13a; /* INFRA/LIFECYCLE signal -- Docker/engine health,
+90:    validation. Same value as --color-warning today (no visual change); the
+src/modules/chat/AgentsRail.tsx:134:                  ? "text-caution"
+src/modules/chat/AgentsRail.tsx:261:            className={cn("h-full", frac >= 1 ? "bg-caution" : "bg-amber-500")}
+src/modules/chat/AgentsRail.tsx:287:            <span className="text-caution min-w-0 truncate" title={run.question}>
+137:            role="img"
+254:          role="progressbar"
+src/lib/warning-token-scope.test.ts
+
+EXIT=0 (0.0s)

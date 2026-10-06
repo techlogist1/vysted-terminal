@@ -1,0 +1,70 @@
+{"kind": "delta", "text": "Let"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " update"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " new"}
+{"kind": "delta", "text": " holding"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " purchased"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "40"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "TC"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "415"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " calculate"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " amount"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " spent"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " multiply"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " number"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "40"}
+{"kind": "delta", "text": " *"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "415"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "16"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "600"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " holdings"}
+{"kind": "delta", "text": " now"}
+{"kind": "delta", "text": " include"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "40"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "TC"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2749, "output_tokens": 69, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

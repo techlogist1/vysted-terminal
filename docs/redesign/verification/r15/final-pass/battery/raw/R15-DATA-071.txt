@@ -1,0 +1,13 @@
+# R15-DATA-071 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:19:34+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/history/KARNAVATI.BO?range=1y' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');d=json.loads(t[:i]);b=d.get('bars',[]);print('provider',d.get('provider'),'bars',len(b),'partial',d.get('partial'),'first',b[0].get('timestamp') if b else None,'last',b[-1].get('timestamp') if b else None,t[i:])"
+[exit 0] [0.33s]
+provider bse bars 255 partial False first 2025-09-18T00:00:00Z last 2026-10-01T00:00:00Z 
+[http 200 0.314536s]
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/history/TRADEWELL.BO?range=1y' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');d=json.loads(t[:i]);b=d.get('bars',[]);print('provider',d.get('provider'),'bars',len(b),'partial',d.get('partial'),t[i:])"
+[exit 0] [0.37s]
+provider bse bars 143 partial False 
+[http 200 0.353823s]
+

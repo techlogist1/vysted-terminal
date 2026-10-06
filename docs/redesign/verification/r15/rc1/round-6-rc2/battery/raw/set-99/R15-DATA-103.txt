@@ -1,0 +1,6 @@
+ace7dd76 candidate venv, cwd sidecar
+COMMAND: row_to_pair({'symbol':'CCC.NS','quote_price':100.0,'quote_change':None,...}) (+ variant with row currency=INR)
+EXIT: 0
+OUTPUT:
+no currency col: {'change': None, 'change_percent': None, 'currency': 'USD'}
+row currency=INR: {'change': None, 'change_percent': None, 'currency': 'INR'}

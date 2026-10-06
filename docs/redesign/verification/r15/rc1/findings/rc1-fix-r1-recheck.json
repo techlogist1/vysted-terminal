@@ -1,0 +1,22 @@
+[
+  {
+    "key": "rc1-fix-r1-recheck:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "Citation grammar fix covers only ',' / ';' groups and a pseudo-label NOT followed by '[': range groups '[2-4]' / '[2–4]' and '[New findings][2]' still ship as literal, unresolved text (remainder of rc1-drive-research-briefs:2)",
+    "repro": "Candidate ca6ec990, candidate venv, in-process: expand_marker_groups + strip_model_bibliography + strip_invalid_markers(md, 5) on 'Revenue grew 18% [2-4].' -> unchanged; '[2–4]' -> unchanged; 'Order book ₹23,000 cr [7-9].' (out of range, 5 sources) -> unchanged, removed=0; 'Margin 10.98% [New findings][2].' -> unchanged; 'Margin 10.98% [Web evidence][9].' -> 'Margin 10.98% [Web evidence].'. Frontend (candidate src/lib/brief-ingest.ts via node type-strip): same inputs -> '[2-4]', '[2–4]', '[7-9]' verbatim with countBrokenCitations 0; '[New findings][2]' verbatim; '[Web evidence][?]'. ULTRA: iter._remap_markers('x [1-2] y.', angle_local, merged) -> 'x [1-2] y.' (keeps angle-local numbering) while 'x [1, 2] y.' -> 'x [3][1] y.'. Cause: MARKER_GROUP_RE only accepts [,;] separators; _PSEUDO_CITE_RE lookahead (?![(\\[:]) spares any label followed by '['.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/fix-r1/recheck/gr2-backend-citecheck-probe.txt",
+    "suspected_files": ["sidecar/services/research/citecheck.py", "src/lib/brief-ingest.ts", "sidecar/services/research/iter.py"]
+  },
+  {
+    "key": "rc1-fix-r1-recheck:2",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "Pseudo-citation rule deletes (backend) or flags as a broken citation (frontend) any letter-led bracket token, including the metric basis qualifiers the product feeds the model ('[basis: trailing 52 weeks]') and ordinary bracketed text ('[NSE: BDL]', '[Note: consolidated]')",
+    "repro": "Take the published markdown of the finding's own BDL brief (surface/research-briefs/rc1/r2/1-deep-bdl-4omini.jsonl, 32 sources) and run it through candidate ca6ec990: backend strip_invalid_markers removes 9 tokens, 2 of them the basis qualifiers -> '- **Dividend Yield**: 0.43%.' and '- **52-Week Price Change**: -22.89%.' (the '[basis: fraction of price]' / '[basis: trailing 52 weeks]' disclosure is gone); frontend sanitizeCitationMarkers renders both as '[?]' and countBrokenCitations reports 9 broken (2 false). The basis text originates in services/research/semantics.py:1290 ('(basis: …)' in the METRIC FACTS prompt block). Fresh: 'Bharat Dynamics [NSE: BDL] trades at ₹1155 [1].' -> backend drops '[NSE: BDL]'; 'Revenue [Note: consolidated] rose 12% [2].' -> backend drops the note, frontend shows '[?]'. Before the fix these rendered as text and were not counted broken.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/fix-r1/recheck/gr2-original-bdl-brief-through-candidate.txt",
+    "suspected_files": ["sidecar/services/research/citecheck.py", "src/lib/brief-ingest.ts"]
+  }
+]

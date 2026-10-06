@@ -1,0 +1,3 @@
+infosys first=285.0ms repeat=0.1ms
+cache_info: CacheInfo(hits=1, misses=1, maxsize=256, currsize=1)
+hdfc first=637.8ms repeat=0.1ms

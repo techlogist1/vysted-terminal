@@ -1,0 +1,16 @@
+{
+ "symbol": "MSFT",
+ "price": 516.1699829101562,
+ "change": 20.38628291015624,
+ "change_percent": 4.111930850117952,
+ "volume": 38154200.0,
+ "open": null,
+ "high": null,
+ "low": null,
+ "prev_close": null,
+ "currency": "USD",
+ "market_state": null,
+ "timestamp": "2026-09-25T20:00:01Z",
+ "provider": "yfinance",
+ "freshness": "eod"
+}

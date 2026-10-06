@@ -1,0 +1,20 @@
+=== DATA-071: cold cache 8-bar cap ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/models/announcements.py:34:#: ``not_applicable`` (not an NSE/BSE instrument). Out-of-coverage is answered
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/models/announcements.py:90:    coverage: Coverage = "covered"
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/models/announcements.py:91:    #: Why nothing is served when ``coverage`` is not ``covered``.
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/models/announcements.py:124:    coverage: Coverage = "covered"
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/models/announcements.py:226:    coverage: Coverage = "covered"
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/models/announcements.py:267:    coverage: Coverage = "covered"
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/models/announcements.py:307:    coverage: Coverage = "covered"
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/models/fundamentals.py:22:    """Per-field provenance / coverage metadata riding a :class:`Fundamentals`
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/models/fundamentals.py:182:    #: Per-field provenance / coverage metadata (R13). Keyed by the data-field
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/models/market.py:69:    # complete from ``coverage_start`` on (R15-DATA-071).
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/tests/test_bse_provider.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/bse_provider.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/nse_provider.py
+
+sidecar/models/market.py:66-71: OHLCVSeries now carries `partial: bool` +
+`coverage_start: date | None` ("True when day files are missing inside the
+requested range; the series is complete from coverage_start on
+(R15-DATA-071)"). A cold-cache range request no longer silently returns 8
+bars dressed as the full range - it is flagged partial with the boundary.

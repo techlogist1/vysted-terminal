@@ -1,0 +1,12 @@
+Repro: grep sidecar/services/agent_tools/screener_tools.py at candidate 1006c6da.
+
+$ grep -n "skip_details\|skip_examples\|_SKIP_EXAMPLES" sidecar/services/agent_tools/screener_tools.py
+49:    provider failure. The per-symbol ``skip_details`` ledger (up to ~5,000
+75:    skips = body.pop("skip_details")
+77:    body["skip_examples"] = skips[:_SKIP_EXAMPLES]
+
+Read lines 40-80: body.pop("skip_details") removes the unbounded ledger entirely from what the
+model sees; body["skip_examples"] = skips[:_SKIP_EXAMPLES] caps a small example slice instead.
+
+Verdict: holds. The unbounded per-symbol skip ledger (up to ~5000 rows) is popped out and
+replaced with a capped examples list before the tool result reaches the model.

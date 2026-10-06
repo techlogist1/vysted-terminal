@@ -1,0 +1,7 @@
+CMD: grep -n ROOT = scripts/audit-design-tokens.mjs
+23:// import.meta.dirname, not URL.pathname: the latter is "/C:/..." on Windows, which
+25:const ROOT = resolve(import.meta.dirname, "..");
+
+CMD: cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand && node scripts/audit-design-tokens.mjs (normal repo run, sanity)
+design-token audit clean (373 files)
+EXIT=0

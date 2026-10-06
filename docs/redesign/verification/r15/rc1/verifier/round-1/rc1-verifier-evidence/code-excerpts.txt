@@ -1,0 +1,139 @@
+## code excerpts at 1d6511c89bb27f1785f7af4d2290983b2852d70a
+### DATA-002 src/components/CommandPalette.tsx:380-395
+
+        {/* ── Group 5b: Live ticker matches from the resolver ───────────── */}
+        {showSymbols && liveSymbolRows.length > 0 && (
+          <Command.Group heading="Tickers" className="[&_[cmdk-group-heading]]:group-heading-style">
+            {liveSymbolRows.map((c) => (
+              <Command.Item
+                key={`live:${c.symbol}:${c.exchange}`}
+                value={`live-symbol:${c.symbol} ${c.name}`}
+                keywords={[c.symbol, c.name, c.exchange]}
+                forceMount
+                onSelect={() => {
+                  loadSymbolIntoChart(c.symbol);
+                  onClose();
+                }}
+                className="aria-selected:bg-charcoal-800 rounded-control flex min-h-8 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
+              >
+### src/lib/host-actions.ts loadSymbolIntoChart signature
+318:export function loadSymbolIntoChart(symbol: string, timeframe?: string): void {
+319-  if (!symbol) {
+320-    return;
+321-  }
+### CODE-PLATFORM-013 src/components/SettingsPanel.tsx:1936-1941 (Modules toggle writes the module map only)
+              checked={isEnabled}
+              disabled={isPlatform}
+              onChange={(next) => {
+                if (isPlatform) return;
+                setModuleEnabled(module.id, next);
+              }}
+### src/store/marketplace.ts enable/disable path (runtime + plugins.db)
+  },
+
+  enable: async (pluginId) => {
+    const row = CATALOG_BY_ID[pluginId];
+    const runtime = usePluginsStore.getState().runtime;
+    if (!row || !runtime) return;
+    set((s) => ({ busy: { ...s.busy, [pluginId]: true } }));
+    try {
+      await runtime.enablePlugin(row.discovered);
+      usePluginsStore.getState().refreshFromRuntime();
+      await get().refresh();
+    } finally {
+      set((s) => ({ busy: { ...s.busy, [pluginId]: false } }));
+    }
+  },
+
+  disable: async (pluginId) => {
+    const runtime = usePluginsStore.getState().runtime;
+    if (!runtime) return;
+    set((s) => ({ busy: { ...s.busy, [pluginId]: true } }));
+    try {
+      await runtime.disablePlugin(pluginId);
+      usePluginsStore.getState().refreshFromRuntime();
+      await get().refresh();
+    } finally {
+      set((s) => ({ busy: { ...s.busy, [pluginId]: false } }));
+### AGENT-003 sidecar/services/agent_runtime.py:2010-2046 (tool_use yielded before halt check)
+                and turn.last_research_execution is not None
+            ):
+                event.input["execution"] = turn.last_research_execution
+            if event.name == "publish_brief":
+                turn.publish_brief_calls.append(event.tool_call_id)
+            rnd.pending_tools.append(event)
+            yield event
+            continue
+        if isinstance(event, LLMDoneEvent):
+            if event.usage is not None:
+                turn.native_searches += event.usage.web_search_requests or 0
+            round_spend = budget_guard.spend_usd(run.provider_id, run.model, event.usage)
+            turn.turn_spend = (
+                None
+                if round_spend is None or turn.turn_spend is None
+                else turn.turn_spend + round_spend
+            )
+            event.spend_usd = None if turn.turn_spend is None else round(turn.turn_spend, 6)
+            # Per-round cost signal (FR-026): fire BEFORE we either swallow
+            # this terminator (mid-run) or yield it (final), so the budget
+            # guard sees every round's usage, not just the last one.
+            may_continue = (
+                on_round_usage(event.usage or LLMUsage(), run.model, run.provider_id)
+                if on_round_usage is not None
+                else True
+            )
+            if rnd.pending_tools and not may_continue:
+                yield LLMResearchStepEvent(
+                    tool_call_id="",
+                    tool=HALT_NOTICE_TOOL,
+                    step_kind=NOTICE_STEP_KIND,
+                    detail=f"Stopped before running {len(rnd.pending_tools)} tool call(s).",
+                    status="error",
+                )
+                rnd.ended = True
+                yield event
+                return
+### run_manager.py:279-301 (host_actions collected from every yielded tool_use)
+                elif kind == "tool_use":
+                    name = getattr(event, "name", "?")
+                    _flush_text()
+                    asked = (
+                        event.input.get("question") if name == agent_runtime.ASK_USER_TOOL else None
+                    )
+                    if isinstance(asked, str) and asked.strip() and question is None:
+                        question = asked.strip()
+                        turns.append({"role": "assistant", "content": f"[ask_user → {question}]"})
+                    # A tool round ends the model's paragraph; the next round's
+                    # text starts a new one instead of running on.
+                    if delta_buffer and delta_buffer[-1] != "\n\n":
+                        delta_buffer.append("\n\n")
+                    if name == "publish_brief":
+                        brief = dict(event.input)
+                    elif name in HOST_ACTION_TOOLS:
+                        host_actions.append(
+                            {
+                                "tool_call_id": event.tool_call_id,
+                                "name": name,
+                                "input": dict(event.input),
+                            }
+                        )
+### NEW screener.py:420-429 sort key uses fundamentals.currency; :820-826 re-stamps currency after sort
+                ),
+            )
+        )
+    sign = -1.0 if sort_dir == "desc" else 1.0
+    matched.sort(
+        key=lambda pair: (
+            _currency_sort_key(pair[1].currency),
+            pair[0] is None,
+            sign * (pair[0] or 0.0),
+        ),
+    # listing currency and the serving basis computed above.
+    basis_counts: dict[str, int] = {}
+    for result_row in rows:
+        key = result_row.symbol.upper()
+        store_row = rows_by_symbol.get(key) or {}
+        result_row.currency = store_row.get("currency") or store_row.get("quote_currency")
+        result_row.data_basis = row_basis.get(key)
+        result_row.data_as_of = row_as_of.get(key)
+        if result_row.data_basis:

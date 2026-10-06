@@ -1,0 +1,63 @@
+[
+  {
+    "key": "drive-portfolio-notes:1",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "",
+    "scenario": "OWNER-DRIVE portfolio-notes P8 (100-position portfolio) + P3 (cold 2-holding)",
+    "title": "Portfolio quote fan-out wedges the sidecar again: each per-symbol /quotes GET aborts at the 30 s client budget, the in-flight guard releases on the abort while the server keeps working, and every next tick re-requests all symbols, so the backlog grows without bound (0/100 resolved over 210 s; RELIANCE quote >40 s on the same sidecar)",
+    "area": "ui-panels",
+    "repro": "Own sidecar :52844 from final-cand source (d38b5d1a). jsdom harness mounts the real PortfolioPanel with 100 NSE holdings (harness/p8.fdpn.test.tsx, sym100.json): 77/100 GET /quotes/<sym> end 'TimeoutError: The operation was aborted due to timeout' at 30.0 s, 23 x 200 (12-p8-100-largecap-replay.json). Then 100 cold NSE EQ names (p8b, sym100b.json): 0/100 ever resolve across 5+ fan-outs, 'done' climbs 100,200,300,400,500 every ~40 s, unresolved stays 100, banner on (13-p8b-100-cold-replay.json). Meanwhile curl /quotes/RELIANCE.NS on :52844 -> no answer in 40 s and in 25 s repeatedly (14-recovery-watch.log: TimeoutError at 16:44:58/16:45:38/16:46:18/16:46:58, first 200 only at 16:47:17, about 4 min after the panel unmounted; it never recovers while the panel stays mounted), while the shared :52800 answers the same in 0.001 s; sidecar.log shows the last quote 200 at 16:38:49 then only slow backlog work. Cold 2-holding P3: first RELIANCE/TCS quotes also exceeded 30 s -> 'Couldn't refresh live quotes' on a fresh boot. Census P8: 100/100 x 200 (slowest 124 s); rc1 round 2 (4c6dfe8c) fixed the backlog with quoteFetchInFlightRef; the 30 s default budget (R15-LIFECYCLE-027, f1182138) landed after rc1 and defeats that guard.",
+    "evidence_file": "docs/redesign/verification/r15/surface/portfolio-notes/final/13-p8b-100-cold-replay.json",
+    "suspected_files": [
+      "src/lib/sidecar-client.ts:187,264,337 (SIDECAR_REQUEST_TIMEOUT_MS = 30_000 applied by default to provider-bound data GETs such as /quotes/{symbol}; its own comment scopes it to SQLite list/CRUD calls)",
+      "src/modules/portfolio/PortfolioPanel.tsx:213-257 (quoteFetchInFlightRef cleared when the client-side fan-out settles, i.e. at the abort, not when the server finishes)",
+      "src/modules/portfolio/api.ts:46-50 (Promise.all per-symbol fan-out; the watchlist uses the batch sidecarApi.quotes route)",
+      "sidecar quote route / nse_direct throttle (aborted requests keep running server-side)"
+    ]
+  },
+  {
+    "key": "drive-portfolio-notes:2",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-AGENT-091",
+    "scenario": "OWNER-DRIVE portfolio-notes P9 (agent context, panel closed) + A1 live agent turn",
+    "title": "Regression of R15-AGENT-091: with the Portfolio panel closed, get_portfolio stamps every non-crypto holding with the session region's currency, so a USD AAPL lot is served to the agent as currency 'INR' and the copilot states 'AAPL - 2 shares, cost basis Rs190' (the entry's own repro outcome, now asserted by the tool result)",
+    "area": "agent-chat",
+    "repro": "jsdom harness P9: holdings RELIANCE.NS, TCS.NS x2, AAPL 2 @ 190 (region IN); panel open -> AAPL currency 'USD' (from the quote); after unmount, captureTerminalState().portfolio (store fallback) -> AAPL {costBasis:190, currency:'INR'} (10-portfolio-panel-replay.json P9-agent.closedPanelSnapshot). That snapshot sent as the chat sends it (A0-context-panel-closed.snapshot.json): python3 scratch vy.py invoke copilot 'What is in my portfolio? List each holding with its cost basis.' --port 52844 --provider ollama --model llama3.1:8b --autonomy ask --region IN --context A0-context-panel-closed.snapshot.json -> get_portfolio ok -> '4. AAPL - 2 shares, cost basis ₹190' (A1-agent-portfolio-currency-llama.stdout.txt). Code: src/modules/chat/context-provider.ts:161-166 fallbackCurrency returns regionConfig(region).currency for any equity; :225 portfolioFromStore uses it for every holding; the pinning test (context-provider.test.ts:223-234) only checks an INR name in region IN. Not R4: the wrong currency is in the product's tool result, and the model repeats it faithfully.",
+    "evidence_file": "docs/redesign/verification/r15/surface/portfolio-notes/final/A1-agent-portfolio-currency-llama.stdout.txt",
+    "suspected_files": [
+      "src/modules/chat/context-provider.ts:158-166,225",
+      "src/modules/chat/context-provider.test.ts:210-238"
+    ]
+  },
+  {
+    "key": "drive-portfolio-notes:3",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "",
+    "scenario": "OWNER-DRIVE portfolio-notes P5/P6 (unresolved symbol)",
+    "title": "A holding whose symbol the sidecar answers 404 (typo or delisted name) raises the transport-failure banner 'Couldn't refresh live quotes - values shown without market data' with a Retry that can never succeed, even when every other row has a live quote, and the 404 is re-requested every 5 s forever",
+    "area": "ui-panels",
+    "repro": "jsdom harness P5: add ZZZZNOTREAL qty 10 cost 100 -> sidecar GET /quotes/ZZZZNOTREAL 404 -> panel shows '1 without a live quote' AND 'Couldn't refresh live quotes - values shown without market data. Retry' (10-portfolio-panel-replay.json P5-unresolved-crypto.unresolved.panel). P6 mixed portfolio with 4 resolved rows + ZZZZNOTREAL: same banner path (failed>0). Code: src/modules/portfolio/api.ts:30-36 fetchPositionQuote maps every error (404 not_found included) to {error}; :52-58 counts it in failed; PortfolioPanel.tsx:223 setQuotesError(failed > 0); :1171-1174 renders the banner. The converse of R15-UI-004 (fixed: transport failure used to look like not-found; now not-found looks like transport failure). Same at rc1 (rc1/portfolio-replay.json P5), so not a regression; not in the register.",
+    "evidence_file": "docs/redesign/verification/r15/surface/portfolio-notes/final/10-portfolio-panel-replay.json",
+    "suspected_files": [
+      "src/modules/portfolio/api.ts:30-58",
+      "src/modules/portfolio/PortfolioPanel.tsx:223,1171-1185"
+    ]
+  },
+  {
+    "key": "drive-portfolio-notes:4",
+    "kind": "regression",
+    "severity": "low",
+    "register_id": "R15-UI-078",
+    "scenario": "OWNER-DRIVE portfolio-notes P2 (form validation)",
+    "title": "Regression of R15-UI-078: a whitespace-only Avg cost ('   ') still saves the holding at cost basis 0, and a hex quantity '0x10' saves as 16, because validateHolding tests the raw string for === '' and then trusts Number()",
+    "area": "ui-panels",
+    "repro": "jsdom harness P2 through the real form: TCS.NS qty 5 cost '   ' -> no error, holding [TCS.NS, 5, 0]; TCS.NS qty '0x10' cost 100 -> no error, holding [TCS.NS, 16, 100]; control: cost '' -> 'Avg cost per share is required' (10-portfolio-panel-replay.json P2-validation cost-spaces / qty-hex / cost-blank). Code: src/store/portfolios.ts:113 checks raw.costBasis === '' without trim, then Number('   ') === 0 passes; Number('0x10') === 16 passes the plain-number check at :100. The agent path is unaffected (host-actions costBasisOf accepts only finite numbers).",
+    "evidence_file": "docs/redesign/verification/r15/surface/portfolio-notes/final/10-portfolio-panel-replay.json",
+    "suspected_files": [
+      "src/store/portfolios.ts:93-128"
+    ]
+  }
+]

@@ -1,0 +1,8 @@
+=== own :52847 base profile (network back) /earnings/AAPL/history after the netdown call at 17:03:54
+{"symbol":"AAPL","history":[],"as_of":"2026-10-03T11:33:54.858197Z"}
+HTTP:200
+=== shared :52800 same route
+{"symbol":"AAPL","history":[{"fiscal_period":null,"period_end":"2026-06-30","reported_date":"2026-07-30","eps_actual":2.02,"eps_estimate_mean":1.89243,"revenue_actual":null,"revenue_estimate_mean":null,"currency":"USD","revenue_currency":"USD"},{"fiscal_period":null,"period_end":"2026-03-31","report
+HTTP:200
+=== cache row in own data_cache.db
+cache  meta 

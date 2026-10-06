@@ -1,0 +1,64 @@
+{
+ "tag": "w2-F",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. THEN read the preamble of docs/redesign/verification/r15/tooling/PROMPT_wave2.md. A previous attempt at your task was killed by a usage wall: your output files and a sidecar on your port may already exist - verify and continue, never restart.",
+ "stages": [
+  {
+   "label": "task",
+   "model": "fable",
+   "prompt": "Your task spec is in docs/redesign/verification/r15/tooling/{{spec}}. <task-id> = <id> = \"{{id}}\", <port> = {{port}}. {{extra}}"
+  }
+ ],
+ "items": [
+  {
+   "id": "seat-us",
+   "spec": "PROMPT_wave2.md: the SEAT section",
+   "port": 52213
+  },
+  {
+   "id": "seat-breaker",
+   "spec": "PROMPT_wave2.md: the SEAT section",
+   "port": 52214
+  },
+  {
+   "id": "seat-stranger",
+   "spec": "PROMPT_wave2.md: the SEAT section",
+   "port": 52215
+  },
+  {
+   "id": "funnel-thematic",
+   "spec": "PROMPT_wave2.md: the FUNNEL section",
+   "port": 52223,
+   "extra": "<query-class> = thematic"
+  },
+  {
+   "id": "resolver-probe",
+   "spec": "PROMPT_wave2.md: the `resolver-probe` bullet of the PROBES section",
+   "port": 52225
+  },
+  {
+   "id": "test-quality",
+   "spec": "PROMPT_wave2.md: the `test-quality` bullet of the PROBES section",
+   "port": 0
+  },
+  {
+   "id": "L1-stranger",
+   "spec": "PROMPT_census.md: the LIFECYCLE section, question `L1-stranger`",
+   "port": 52231
+  },
+  {
+   "id": "L2-rot",
+   "spec": "PROMPT_census.md: the LIFECYCLE section, question `L2-rot`",
+   "port": 52232
+  },
+  {
+   "id": "L3-diagnostics",
+   "spec": "PROMPT_census.md: the LIFECYCLE section, question `L3-diagnostics`",
+   "port": 52233
+  },
+  {
+   "id": "L5-bounds",
+   "spec": "PROMPT_census.md: the LIFECYCLE section, question `L5-bounds`",
+   "port": 52235
+  }
+ ]
+}

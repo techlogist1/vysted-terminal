@@ -1,0 +1,2 @@
+rows[0]: TATASTEEL score 1.0 band 0
+decide().outcome: disambiguate

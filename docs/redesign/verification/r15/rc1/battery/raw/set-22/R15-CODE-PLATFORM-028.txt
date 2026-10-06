@@ -1,0 +1,6 @@
+=== R15-CODE-PLATFORM-028: vitest scripts/ coverage ===
+11:    include: ["src/**/*.test.{ts,tsx}", "plugins/**/*.test.{ts,tsx}", "scripts/**/*.test.mjs"],
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/scripts/audit-design-tokens.test.mjs
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/scripts/sidecar-freshness-gate.test.mjs
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/scripts/sidecar-specs.test.mjs
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/scripts/sidecar-staleness.test.mjs

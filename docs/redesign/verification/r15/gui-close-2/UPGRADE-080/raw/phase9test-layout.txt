@@ -1,0 +1,10 @@
+orientation HORIZONTAL w,h 1512 837
+branch size=837
+  group views=['chart', 'equity-overview', 'option-pricer', 'chart-mpgjz372-bqkx', 'settings'] active=settings size=725
+  branch size=787
+    branch size=279
+      group views=['watchlist'] active=watchlist size=409
+      group views=['chat'] active=chat size=378
+    group views=['news'] active=news size=279
+    group views=['portfolio'] active=portfolio size=279
+activeGroup 1

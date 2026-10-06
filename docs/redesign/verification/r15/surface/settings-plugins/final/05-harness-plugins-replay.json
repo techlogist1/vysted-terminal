@@ -1,0 +1,300 @@
+{
+ "P1": {
+  "panelText": "Plugins5 active of 5 loaded · 6 data sources · 1 agents · 0 nodesYahoo Finance (keyless equities)activev1.0.0 · Vysted · id vysted-yfinanceThe no-key equity + fundamentals data default — works out of the box, zero credentials. Pre-installed.just nowOpenBB (MCP)activev0.1.0 · Vysted Team · id openbb-mcpOpenBB Open Data Platform via the Model Context Protocol — replaces the Phase-2 in-process plugin with a Tauri-Rust-spawned openbb-mcp-server subprocess (architectural fix for the Windows subprocess.Popen deadlock).just nowVysted Lenses (agent pack)activev1.0.0 · Vysted · id vysted-lensesA first-party agent pack — adds the Quant Tutor lens. The reference agent-collection marketplace plugin. Pre-installed.just nowMarket News (RSS + optional NewsAPI)activev1.0.0 · Vysted · id vysted-newsSentiment-scored market news. Works keyless over RSS; supply a BYOK NewsAPI key to add NewsAPI breadth. Pre-installed.just nowVysted Example Pluginactivev0.1.0 · Vysted Team · id vysted-exampleMinimal example plugin proving the runtime end-to-end. Contributes one fake data source and one slash command.just now",
+  "states": [
+   "vysted-yfinance:active",
+   "openbb-mcp:active",
+   "vysted-lenses:active",
+   "vysted-news:active",
+   "vysted-example:active"
+  ],
+  "pluginModules": [
+   "plugin:vysted-example"
+  ],
+  "persisted": [
+   {
+    "plugin_id": "openbb-mcp",
+    "enabled": true,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": []
+   },
+   {
+    "plugin_id": "tradesa-v2",
+    "enabled": true,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": []
+   },
+   {
+    "plugin_id": "vysted-example",
+    "enabled": true,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": []
+   },
+   {
+    "plugin_id": "vysted-kite",
+    "enabled": false,
+    "installed": false,
+    "settings": {},
+    "granted_secret_ids": []
+   },
+   {
+    "plugin_id": "vysted-lenses",
+    "enabled": true,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": []
+   },
+   {
+    "plugin_id": "vysted-news",
+    "enabled": true,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": []
+   },
+   {
+    "plugin_id": "vysted-yfinance",
+    "enabled": true,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": []
+   }
+  ],
+  "fetches": [
+   "GET /health -> 200",
+   "GET /plugins/vysted-yfinance/config -> 200",
+   "GET /plugins/openbb-mcp/config -> 200",
+   "GET /openbb-mcp/status -> 200",
+   "GET /plugins/vysted-lenses/config -> 200",
+   "POST /custom-agents -> 201",
+   "GET /custom-agents -> 200",
+   "GET /agents -> 200",
+   "GET /plugins/vysted-news/config -> 200",
+   "GET /plugins/vysted-example/config -> 200",
+   "GET /health -> 200",
+   "GET /openbb-mcp/status -> 200",
+   "GET /health -> 200",
+   "GET /plugins -> 200"
+  ]
+ },
+ "P2": {
+  "switchFound": true,
+  "switchLabel": "Vysted Example Plugin enabled",
+  "statesAfter": [
+   "vysted-yfinance:active",
+   "openbb-mcp:active",
+   "vysted-lenses:active",
+   "vysted-news:active",
+   "vysted-example:stopped"
+  ],
+  "pluginModulesBefore": [
+   "plugin:vysted-example"
+  ],
+  "pluginModulesAfter": [
+   "plugin:vysted-example"
+  ],
+  "requestsDuringToggle": [
+   "GET /plugins/vysted-example/config -> 200 ",
+   "POST /plugins/vysted-example/config -> 200 {\"installed\":true,\"enabled\":false,\"settings\":{},\"granted_secret_ids\":[]}",
+   "GET /plugins/vysted-yfinance/config -> 200 ",
+   "GET /plugins/openbb-mcp/config -> 200 ",
+   "GET /plugins/vysted-lenses/config -> 200 ",
+   "GET /plugins/vysted-news/config -> 200 ",
+   "GET /plugins/vysted-example/config -> 200 "
+  ],
+  "persistedAfter": {
+   "plugin_id": "vysted-example",
+   "enabled": false,
+   "installed": true,
+   "settings": {},
+   "granted_secret_ids": []
+  },
+  "rowText": "Vysted Example Pluginstoppedv0.1.0 · Vysted Team · id vysted-exampleMinimal example plugin proving the runtime end-to-end. Contributes one fake data source and one slash command.5s ago"
+ },
+ "P2_afterRelaunch": {
+  "example": [
+   "vysted-example:discovered"
+  ]
+ },
+ "P3": {
+  "sections": [
+   "Data providers: 4",
+   "Agents: 1",
+   "India data lanes: 3"
+  ],
+  "cards": [
+   "Yahoo Finance (keyless equities)Pre-installedThe no-key equity + fundamentals default. Works out of the box, zero credentials.Serves: analyst_rating, balance_sh",
+   "OpenBB (fundamentals + macro)Pre-installedRicher fundamentals + macro series via the bundled OpenBB MCP subprocess.Serves: analyst_rating, balance_sheet, cash_f",
+   "Market News (RSS + optional NewsAPI)Pre-installedSentiment-scored, symbol-tagged market news. Keyless over RSS out of the box; add a BYOK NewsAPI key for NewsAP",
+   "Example data sourceDisabledA pedagogical data-source plugin that proves the contract end-to-end.Enable",
+   "Vysted Lenses (agent pack)Pre-installedA first-party agent pack — the Quant Tutor lens. The reference agent plugin.Disable",
+   "NSE (direct)AvailableExchange-direct NSE equity quotes + EOD history. Keyless, region: IN.Serves: ohlcv, quote · region: IN",
+   "NSE (jugaad-data)AvailableThe keyless NSE/BSE equity + ETF EOD default when the direct lane is blocked.Serves: ohlcv, quote · region: IN",
+   "BSE (micro-cap EOD)AvailableKeyless BSE-only micro-cap EOD coverage NSE never listed.Serves: ohlcv, quote · region: IN"
+  ],
+  "ops": {
+   "disable:vysted-example": {
+    "stateFor": {
+     "pluginId": "vysted-example",
+     "installed": true,
+     "enabled": false,
+     "runtimeState": "discovered",
+     "configured": true
+    },
+    "runtime": [
+     "vysted-example:discovered"
+    ],
+    "persisted": {
+     "plugin_id": "vysted-example",
+     "enabled": false,
+     "installed": true,
+     "settings": {},
+     "granted_secret_ids": []
+    },
+    "pluginModules": [
+     "plugin:vysted-example"
+    ],
+    "requests": [
+     "GET /plugins/vysted-example/config -> 200",
+     "POST /plugins/vysted-example/config -> 200",
+     "GET /plugins/vysted-example/config -> 200",
+     "GET /plugins/openbb-mcp/config -> 200",
+     "GET /plugins/vysted-yfinance/config -> 200",
+     "GET /plugins/vysted-news/config -> 200",
+     "GET /plugins/vysted-lenses/config -> 200",
+     "GET /plugins -> 200"
+    ]
+   },
+   "enable:vysted-example": {
+    "stateFor": {
+     "pluginId": "vysted-example",
+     "installed": true,
+     "enabled": true,
+     "runtimeState": "active",
+     "configured": true
+    },
+    "runtime": [
+     "vysted-example:active"
+    ],
+    "persisted": {
+     "plugin_id": "vysted-example",
+     "enabled": true,
+     "installed": true,
+     "settings": {},
+     "granted_secret_ids": []
+    },
+    "pluginModules": [
+     "plugin:vysted-example"
+    ],
+    "requests": [
+     "GET /plugins/vysted-example/config -> 200",
+     "POST /plugins/vysted-example/config -> 200",
+     "GET /plugins/vysted-example/config -> 200",
+     "GET /plugins/vysted-lenses/config -> 200",
+     "GET /plugins/vysted-yfinance/config -> 200",
+     "GET /plugins/openbb-mcp/config -> 200",
+     "GET /plugins/vysted-news/config -> 200",
+     "GET /plugins/vysted-example/config -> 200",
+     "GET /plugins -> 200"
+    ]
+   },
+   "remove:vysted-example": {
+    "stateFor": {
+     "pluginId": "vysted-example",
+     "installed": false,
+     "enabled": false,
+     "runtimeState": "stopped",
+     "configured": true
+    },
+    "runtime": [
+     "vysted-example:stopped"
+    ],
+    "persisted": {
+     "plugin_id": "vysted-example",
+     "enabled": false,
+     "installed": false,
+     "settings": {},
+     "granted_secret_ids": []
+    },
+    "pluginModules": [
+     "plugin:vysted-example"
+    ],
+    "requests": [
+     "GET /plugins/vysted-example/config -> 200",
+     "GET /plugins/vysted-example/config -> 200",
+     "POST /plugins/vysted-example/config -> 200",
+     "GET /plugins/vysted-lenses/config -> 200",
+     "GET /plugins/vysted-yfinance/config -> 200",
+     "GET /plugins/vysted-example/config -> 200",
+     "GET /plugins/openbb-mcp/config -> 200",
+     "GET /plugins/vysted-news/config -> 200",
+     "GET /plugins -> 200"
+    ]
+   },
+   "install:vysted-example": {
+    "stateFor": {
+     "pluginId": "vysted-example",
+     "installed": true,
+     "enabled": true,
+     "runtimeState": "active",
+     "configured": true
+    },
+    "runtime": [
+     "vysted-example:active"
+    ],
+    "persisted": {
+     "plugin_id": "vysted-example",
+     "enabled": true,
+     "installed": true,
+     "settings": {},
+     "granted_secret_ids": []
+    },
+    "pluginModules": [
+     "plugin:vysted-example"
+    ],
+    "requests": [
+     "GET /plugins/vysted-example/config -> 200",
+     "POST /plugins/vysted-example/config -> 200",
+     "GET /plugins/vysted-example/config -> 200",
+     "GET /plugins/vysted-example/config -> 200",
+     "GET /plugins/vysted-yfinance/config -> 200",
+     "GET /plugins/openbb-mcp/config -> 200",
+     "GET /plugins/vysted-news/config -> 200",
+     "GET /plugins/vysted-lenses/config -> 200",
+     "GET /plugins -> 200"
+    ]
+   },
+   "configure:vysted-news": {
+    "stateFor": {
+     "pluginId": "vysted-news",
+     "installed": true,
+     "enabled": true,
+     "runtimeState": "active",
+     "configured": true
+    },
+    "keychainAccounts": [],
+    "persisted": {
+     "plugin_id": "vysted-news",
+     "enabled": true,
+     "installed": true,
+     "settings": {},
+     "granted_secret_ids": []
+    },
+    "requests": [
+     "GET /plugins/vysted-news/config -> 200",
+     "GET /news/sources/status -> 200",
+     "GET /plugins/vysted-news/config -> 200",
+     "POST /plugins/vysted-news/config -> 200",
+     "GET /plugins -> 200"
+    ]
+   }
+  },
+  "configureForm": {
+   "button": "Configure Market News (RSS + optional NewsAPI)",
+   "formText": "Market News (RSS + optional NewsAPI)Pre-installedSentiment-scored, symbol-tagged market news. Keyless over RSS out of the box; add a BYOK NewsAPI key for NewsAPI breadth.DisableNews works with no key over RSS. For NewsAPI breadth, register a free key at newsapi.org and paste it here.Where to get credentials →NewsAPI key (optional)CancelSave credentialsStored in your OS keychain — never written to disk or logs."
+  },
+  "openPanelSpyCalls": []
+ }
+}

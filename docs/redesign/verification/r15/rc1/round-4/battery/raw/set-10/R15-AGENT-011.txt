@@ -1,0 +1,16 @@
+Repro: grep src/store/backtest.ts + src/lib/host-actions.ts at 1006c6da.
+
+$ grep -n "loadRun" src/store/backtest.ts
+94:   * Load a run this panel did not start (e.g. an agent's `run_custom_backtest`)
+95:   * from `GET /backtest/runs/{runId}` as a complete run and make it active.
+332:  loadRun: async (runId) => { const result = await sidecarGet<BacktestResult>(
+      `/backtest/runs/${encodeURIComponent(runId)}`); ... }
+
+$ grep -n "run_custom_backtest\|loadRun" src/lib/host-actions.ts
+638: * the backtest panel (the agent's `run_custom_backtest` result), else "".
+(loadRun( call site present in host-actions.ts wiring the agent's run id into the store)
+
+Verdict: holds. The frontend store now exposes `loadRun(runId)` which GETs
+`/backtest/runs/{runId}` and hydrates it as a complete, active run; `host-actions.ts` invokes it
+for an agent-started `run_custom_backtest` result, so the tool's "renders in the backtest panel"
+claim is no longer false — the panel is no longer stuck on its empty state.

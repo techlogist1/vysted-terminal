@@ -1,0 +1,228 @@
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { type ChatMessage, historyForSend, useChatHistoryStore } from "./chat-history";
+
+describe("chat-history — agent plan (Track 6 #2)", () => {
+  beforeEach(() => {
+    useChatHistoryStore.getState().clear();
+  });
+
+  it("attaches a visible plan to the owning assistant message", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+    store.setPlan(id, {
+      goal: "open a chart and add to watchlist",
+      steps: [
+        {
+          action: "set_chart_symbol",
+          args: { symbol: "AAPL" },
+          rationale: "chart it",
+          staged: true,
+        },
+        { action: "research", args: { query: "bull case" }, rationale: "dig in", staged: false },
+      ],
+      note: undefined,
+    });
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.plan?.steps).toHaveLength(2);
+    expect(msg?.plan?.steps[0].staged).toBe(true);
+    expect(msg?.plan?.steps[1].action).toBe("research");
+  });
+});
+
+describe("chat-history — user-stopped streams (R7 Track C)", () => {
+  beforeEach(() => {
+    useChatHistoryStore.getState().clear();
+  });
+
+  it("stopAssistantMessage keeps the partial content and marks it stopped, not errored", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+    store.appendAssistantDelta(id, "Partial answer about SPY…");
+
+    useChatHistoryStore.getState().stopAssistantMessage(id);
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.content).toBe("Partial answer about SPY…");
+    expect(msg?.stopped).toBe(true);
+    expect(msg?.pending).toBe(false);
+    expect(msg?.error).toBeFalsy();
+    expect(useChatHistoryStore.getState().streamingMessageId).toBeNull();
+  });
+
+  it("stopAssistantMessage on a non-streaming id leaves streamingMessageId for the live one", () => {
+    const store = useChatHistoryStore.getState();
+    const finished = store.beginAssistantMessage({ agentId: "copilot" });
+    useChatHistoryStore.getState().finalizeAssistantMessage(finished, null);
+    const live = useChatHistoryStore.getState().beginAssistantMessage({ agentId: "copilot" });
+
+    useChatHistoryStore.getState().stopAssistantMessage(finished);
+
+    expect(useChatHistoryStore.getState().streamingMessageId).toBe(live);
+  });
+});
+
+describe("chat-history — joined-rounds paragraph break (R7 Track C)", () => {
+  beforeEach(() => {
+    useChatHistoryStore.getState().clear();
+  });
+
+  it("inserts a paragraph break when a new model round streams after a tool step", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+
+    store.appendAssistantDelta(id, "Here's how things look.");
+    store.appendToolStep(id, "Using set chart symbol");
+    store.appendAssistantDelta(id, "Set SPY on the chart.");
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.content).toBe("Here's how things look.\n\nSet SPY on the chart.");
+  });
+
+  it("inserts a paragraph break when a new round streams after research steps", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+
+    store.appendAssistantDelta(id, "Let me dig in.");
+    store.appendResearchStep(id, {
+      stepKind: "search",
+      detail: "searched",
+      status: "ok",
+      index: 1,
+    });
+    store.appendAssistantDelta(id, "The data says yes.");
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.content).toBe("Let me dig in.\n\nThe data says yes.");
+  });
+
+  it("does NOT break when the trace arrives before any prose", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+
+    store.appendToolStep(id, "Reading your portfolio");
+    store.appendAssistantDelta(id, "Your portfolio is concentrated.");
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.content).toBe("Your portfolio is concentrated.");
+  });
+
+  it("does NOT double-break when the prose already ends with whitespace", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+
+    store.appendAssistantDelta(id, "First round done.\n\n");
+    store.appendToolStep(id, "Using fundamentals");
+    store.appendAssistantDelta(id, "Second round.");
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.content).toBe("First round done.\n\nSecond round.");
+  });
+
+  it("consumes the boundary — deltas within the same round never break", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+
+    store.appendAssistantDelta(id, "…look.");
+    store.appendToolStep(id, "Using set chart symbol");
+    store.appendAssistantDelta(id, "Set SPY");
+    store.appendAssistantDelta(id, " to the chart.");
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.content).toBe("…look.\n\nSet SPY to the chart.");
+  });
+});
+
+describe("chat-history — research steps (Track A)", () => {
+  beforeEach(() => {
+    useChatHistoryStore.getState().clear();
+  });
+
+  it("accumulates research steps onto the owning message in order", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+
+    store.appendResearchStep(id, {
+      stepKind: "plan",
+      detail: "decomposed",
+      status: "ok",
+      index: 1,
+    });
+    store.appendResearchStep(id, {
+      stepKind: "search",
+      detail: "searched",
+      status: "ok",
+      index: 2,
+      latencyMs: 42,
+    });
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.researchSteps?.map((s) => s.stepKind)).toEqual(["plan", "search"]);
+    expect(msg?.researchSteps?.[1].latencyMs).toBe(42);
+  });
+
+  it("stamps researchStartedAt once (on the first step, not later ones)", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+
+    store.appendResearchStep(id, { stepKind: "plan", detail: "a", status: "ok", index: 1 });
+    const first = useChatHistoryStore
+      .getState()
+      .messages.find((m) => m.id === id)?.researchStartedAt;
+    expect(typeof first).toBe("number");
+
+    store.appendResearchStep(id, { stepKind: "search", detail: "b", status: "ok", index: 2 });
+    const second = useChatHistoryStore
+      .getState()
+      .messages.find((m) => m.id === id)?.researchStartedAt;
+    expect(second).toBe(first); // set-once — the elapsed timer anchors on the first step
+  });
+
+  it("keeps research steps independent of the plain tool-step list", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+
+    store.appendToolStep(id, "Using fundamentals");
+    store.appendResearchStep(id, { stepKind: "plan", detail: "a", status: "ok", index: 1 });
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.toolSteps).toEqual(["Using fundamentals"]);
+    expect(msg?.researchSteps).toHaveLength(1);
+  });
+});
+
+describe("historyForSend — the whole thread, not the last ten (R15-AGENT-040)", () => {
+  it("keeps turn one of a long thread and carries tool steps and failures as a trailer", () => {
+    const thread: ChatMessage[] = [
+      {
+        id: "u1",
+        createdAt: 1,
+        role: "user",
+        content: "I only care about FY26 guidance vs delivery for BDL",
+      },
+      {
+        id: "a1",
+        createdAt: 2,
+        role: "assistant",
+        content: "Pulling announcements.",
+        toolSteps: ["Reading BSE filings"],
+        error: "corporate_announcements:\n BSE lane failed",
+      },
+    ];
+    for (let n = 2; n <= 8; n += 1) {
+      thread.push({ id: `u${n}`, createdAt: n, role: "user", content: `Follow-up ${n}` });
+      thread.push({ id: `a${n}`, createdAt: n, role: "assistant", content: `Answer ${n}` });
+    }
+    thread.push({ id: "s1", createdAt: 99, role: "system", content: "not history" });
+    const history = historyForSend(thread);
+    expect(history).toHaveLength(16);
+    expect(history[0]).toEqual({
+      role: "user",
+      content: "I only care about FY26 guidance vs delivery for BDL",
+    });
+    expect(history[1]!.content).toBe(
+      "Pulling announcements.\n\n[tool steps: Reading BSE filings]\n\n" +
+        "[failed: corporate_announcements: BSE lane failed]",
+    );
+  });
+});

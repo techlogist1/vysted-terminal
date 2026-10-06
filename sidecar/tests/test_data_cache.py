@@ -3,17 +3,22 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import sqlite3
 import time
 from pathlib import Path
 
 import pytest
 
+from config import DATA_DIR_ENV
 from services import data_cache
 
 
 @pytest.fixture(autouse=True)
-def _isolated_cache(tmp_path: Path) -> None:
-    """Point the cache at a tmp file per test, and reset on teardown."""
+def _isolated_cache(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Point the cache and the data dir (pre-upgrade backups) at tmp_path, and
+    reset on teardown."""
+    monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
     data_cache.reset_for_tests(tmp_path / "test_cache.db")
     yield
     data_cache.reset_for_tests(None)
@@ -38,6 +43,22 @@ async def test_get_stale_returns_none() -> None:
     # ttl=0.0 — every row immediately considered stale.
     got = await data_cache.get("k", ttl_seconds=0)
     assert got is None
+
+
+@pytest.mark.asyncio
+async def test_stale_get_evicts_row() -> None:
+    """R15-CODE-DATA-010: a stale row is DELETED on the read that finds it
+    stale, not left sitting past its TTL forever."""
+    await data_cache.set("k", "v")
+    # Backdate updated_at so the row is stale under a real (>0) ttl, without
+    # racing the clock.
+    data_cache._get_conn().execute(  # type: ignore[attr-defined]
+        "UPDATE cache SET updated_at = updated_at - 3600 WHERE key = ?", ("k",)
+    )
+    assert await data_cache.size() == 1
+    got = await data_cache.get("k", ttl_seconds=60)
+    assert got is None
+    assert await data_cache.size() == 0
 
 
 @pytest.mark.asyncio
@@ -124,3 +145,153 @@ async def test_value_can_be_nested_json() -> None:
     await data_cache.set("complex", payload)
     got = await data_cache.get("complex", 60)
     assert got == payload
+
+
+@pytest.mark.asyncio
+async def test_ensure_build_keeps_rows_of_the_same_build() -> None:
+    await data_cache.ensure_build("0.8.0")
+    await data_cache.set("sec:filings:AAPL", {"rows": 1})
+    assert await data_cache.ensure_build("0.8.0") is False
+    assert await data_cache.get("sec:filings:AAPL", 60) == {"rows": 1}
+
+
+@pytest.mark.asyncio
+async def test_ensure_build_drops_rows_written_by_another_build() -> None:
+    # A cache from a build that predates the version stamp is stale too.
+    await data_cache.set("shareholding:SIL", {"split": "pre-fix"})
+    assert await data_cache.ensure_build("0.8.0") is True
+    await data_cache.set("sec:filings:AAPL", {"rows": "0.8.0"})
+    assert await data_cache.ensure_build("0.8.1") is True
+    assert await data_cache.get("sec:filings:AAPL", 60) is None
+    assert await data_cache.size() == 0
+
+
+@pytest.mark.asyncio
+async def test_ensure_build_keeps_rows_written_after_the_switch() -> None:
+    await data_cache.ensure_build("0.8.0")
+    assert await data_cache.ensure_build("0.8.1") is True
+    await data_cache.set("macro:fred:GDP", {"v": 1})
+    assert await data_cache.ensure_build("0.8.1") is False
+    assert await data_cache.get("macro:fred:GDP", 60) == {"v": 1}
+
+
+@pytest.mark.asyncio
+async def test_old_upgrade_backups_are_pruned_after_a_successful_backup(tmp_path: Path) -> None:
+    """R15-CODE-PLATFORM-077: once a new upgrade backup completes, the oldest
+    backups beyond MAX_BACKUPS are pruned so retention stays capped."""
+    import os
+
+    backups_dir = tmp_path / "backups"
+    backups_dir.mkdir()
+    for i in range(data_cache.MAX_BACKUPS):
+        old = backups_dir / f"0.{i}.0"
+        old.mkdir()
+        os.utime(old, (1000 + i, 1000 + i))
+    oldest = backups_dir / "0.0.0"
+
+    await data_cache.ensure_build("build-A")  # no prior build -> just records it
+    assert await data_cache.ensure_build("build-B") is True  # backs up build-A
+
+    remaining = {p.name for p in backups_dir.iterdir() if p.is_dir()}
+    assert len(remaining) == data_cache.MAX_BACKUPS
+    assert oldest.name not in remaining  # the oldest pre-seeded backup was pruned
+    assert "build-A" in remaining  # the just-completed backup survives
+
+
+@pytest.mark.asyncio
+async def test_a_separate_cache_dir_backs_up_the_data_dir_even_on_first_boot(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-CROSS-PLATFORM-012 x R15-LIFECYCLE-024: with the cache outside the data
+    dir (Windows LocalAppData), the backup still copies the data dir, and the
+    first boot onto this build reads the old build from the legacy cache file."""
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    monkeypatch.setenv(DATA_DIR_ENV, str(data_dir))
+    (data_dir / "portfolio.db").write_bytes(b"positions")
+    with contextlib.closing(sqlite3.connect(data_dir / data_cache.DB_FILENAME)) as legacy:
+        legacy.execute("CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+        legacy.execute("INSERT INTO meta VALUES ('build', '0.8.0')")
+        legacy.commit()
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+    data_cache.reset_for_tests(cache_dir / data_cache.DB_FILENAME)
+
+    assert await data_cache.ensure_build("0.9.0") is True
+
+    copy = data_dir / "backups" / "0.8.0"
+    assert (copy / "portfolio.db").read_bytes() == b"positions"
+    assert not (cache_dir / "backups").exists()
+    await data_cache.ensure_build("0.9.1")  # the new cache's own build row now drives it
+    assert sorted(p.name for p in (data_dir / "backups").iterdir()) == ["0.8.0", "0.9.0"]
+
+
+# ---------------------------------------------------------------------------
+# get_with_meta (R15-DATA-068) — as-of stamping
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_get_with_meta_hit_returns_value_and_fetch_time() -> None:
+    before = time.time()
+    await data_cache.set("earnings:AAPL:history", {"symbol": "AAPL"})
+    after = time.time()
+    got = await data_cache.get_with_meta("earnings:AAPL:history", ttl_seconds=60)
+    assert got is not None
+    value, fetched_at = got
+    assert value == {"symbol": "AAPL"}
+    assert before <= fetched_at <= after
+
+
+@pytest.mark.asyncio
+async def test_get_with_meta_miss_returns_none() -> None:
+    assert await data_cache.get_with_meta("not-there", ttl_seconds=60) is None
+
+
+@pytest.mark.asyncio
+async def test_get_with_meta_stale_returns_none() -> None:
+    await data_cache.set("k", "v")
+    assert await data_cache.get_with_meta("k", ttl_seconds=0) is None
+
+
+@pytest.mark.asyncio
+async def test_get_with_meta_fetch_time_is_the_original_set_not_the_read_time() -> None:
+    # A case not written against: reading twice must keep returning the
+    # SAME fetched_at, proving it is the row's write time, not read time.
+    await data_cache.set("k", "v")
+    first = await data_cache.get_with_meta("k", ttl_seconds=60)
+    await asyncio.sleep(0.05)
+    second = await data_cache.get_with_meta("k", ttl_seconds=60)
+    assert first is not None and second is not None
+    assert first[1] == second[1]
+
+
+@pytest.mark.asyncio
+async def test_a_set_past_the_ceiling_evicts_the_oldest_rows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-096: the cache had no ceiling. Past it, the least recently
+    written rows go; a re-written old key counts as recent."""
+    monkeypatch.setattr(data_cache, "MAX_ROWS", 3)
+    for key in ("a", "b", "c"):
+        await data_cache.set(key, key)
+        await asyncio.sleep(0.01)
+    await data_cache.set("a", "a2")  # refreshes a: b is now the oldest
+    await asyncio.sleep(0.01)
+    await data_cache.set("d", "d")
+    assert await data_cache.size() == 3
+    assert await data_cache.get("b", ttl_seconds=60) is None
+    assert [await data_cache.get(k, ttl_seconds=60) for k in ("a", "c", "d")] == ["a2", "c", "d"]
+
+
+@pytest.mark.asyncio
+async def test_sqlite_work_runs_off_the_event_loop_thread() -> None:
+    import threading
+
+    threads: set[int] = set()
+    data_cache._get_conn().set_trace_callback(lambda _sql: threads.add(threading.get_ident()))
+    await data_cache.set("k", "v")
+    await data_cache.get("k", ttl_seconds=60)
+    await data_cache.invalidate("k")
+    assert threads
+    assert threading.get_ident() not in threads

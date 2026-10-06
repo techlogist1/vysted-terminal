@@ -1,0 +1,6 @@
+CMD: curl DELETE /workspace/मेरा लेआउट राउंड5
+
+HTTP 204
+CMD: curl DELETE /workspace/..%2Fevil5
+{"detail":"Not Found"}
+HTTP 404

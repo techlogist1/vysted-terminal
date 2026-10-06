@@ -1,0 +1,8 @@
+# R15-CODE-PLATFORM-030 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:33+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p030.py 2>&1 | grep -v Warning
+--- output ---
+probe1 flat 100, buy10 then sell-100: totalReturn -2e-05 trades [('buy', 10.0, -1.9999999999998863)] final equity 99998.0 warnings None
+probe2 buy10@100(bar2) buy10@120(bar3)? sell20: trades [('buy', 20, 100.1, 109.89, 195.8)] totalReturn 0.001958000000000029
+
+EXIT=0 (0.2s)

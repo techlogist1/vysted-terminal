@@ -1,0 +1,13 @@
+# R15-RESEARCH-031 at ace7dd7
+$ extract RESEARCH_BEGIN_RE from src/modules/chat/streaming.ts and run on the newline query
+source: /^research:begin\s+(\S+)\s+depth=(\S+)(?:\s+query=([\s\S]*))?$/
+"research:begin r1 depth=deep query=Compa" -> true ["r1","deep","Compare TCS and Infosys:\n1) margins\n2) attrition"]
+"research:begin r2 depth=fast query=singl" -> true ["r2","fast","single line"]
+"research:begin r3 depth=fast" -> true ["r3","fast",null]
+EXIT=0
+  "insufficient_credit",
+  "network",
+  "ollama_not_running",
+  "provider_5xx",
+]);
+

@@ -1,0 +1,8 @@
+500209 {'Turnoverin': '(Cr.)', 'Turnover': '80.95', 'TTQin': '(Lakh)', 'TTQ': '8.12'}
+506597 {'Turnoverin': '(Lakh)', 'Turnover': '36.58', 'TTQin': '', 'TTQ': '5406'}
+500325 {'Turnoverin': '(Cr.)', 'Turnover': '64.43', 'TTQin': '(Lakh)', 'TTQ': '5.28'}
+532540 {'Turnoverin': '(Cr.)', 'Turnover': '26.12', 'TTQin': '(Lakh)', 'TTQ': '1.26'}
+INFY.BO {"symbol":"INFY","price":1000.95,"change":-8.149999999999977,"change_percent":-0.8076503815280921,"volume":8.12,"open":1000.0,"high":1003.6,"low":991.75,"prev_close":1009.1,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"bse","freshness":"eod"}
+INFY.NS {"symbol":"INFY","price":1000.2,"change":-14.299999999999955,"change_percent":-1.4095613602759935,"volume":10240700.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+RELIANCE.BO {"symbol":"RELIANCE","price":1226.0,"change":7.0,"change_percent":0.5742411812961444,"volume":5.28,"open":1215.0,"high":1227.2,"low":1214.0,"prev_close":1219.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"bse","freshness":"eod"}
+532540.BO {"symbol":"TCS","price":2083.95,"change":6.949999999999818,"change_percent":0.33461723639864316,"volume":1.26,"open":2059.95,"high":2090.5,"low":2040.0,"prev_close":2077.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"bse","freshness":"eod"}

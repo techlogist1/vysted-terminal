@@ -1,0 +1,62 @@
+[
+  {
+    "raw_id": "DAT-P17-1",
+    "title": "SIFY revenue_ttm and net_income_ttm are INR-denominated figures served under currency:\"USD\", overstating both by ~94x if rendered as USD",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "P17_SIFY",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/SIFY (collected 2026-09-19) -> revenue_ttm=46506049536.0, net_income_ttm=-912369984.0, under a top-level \"currency\":\"USD\". These raw numbers match Sify's own INR-million TTM figures (46,506M / -912M INR, computed from its Q1 FY27 and FY26 6-K press releases) almost exactly -- not the real USD TTM figures any aggregator reports for this ADR (491.86M / -9.65M USD).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P17_SIFY.json:180 (currency: USD), :204 (revenue_ttm), :205 (net_income_ttm); outside truth: https://www.sec.gov/Archives/edgar/data/1094324/000155485526001544/ex991_1.htm (Q1 FY27 6-K, INR) and https://stockanalysis.com/stocks/sify/ (USD TTM aggregator, fetched 2026-09-22)",
+    "notes": "Mechanism: the income-statement TTM figures are sourced in the issuer's native reporting currency (INR) and never FX-converted to the quote currency (USD) the fundamentals payload globally declares. A UI trusting the top-level currency field would render '$46.5B revenue' / '-$912M net loss' for a company whose real numbers are ~$492M revenue / -$9.65M net loss and whose entire market cap is ~$1B -- a ~94x overstatement of money-relevant data shown as true. Compounding risk: the app also exposes no ADR-ratio (1 ADS = 6 ordinary shares) or face_value field anywhere in the collected responses (docs/redesign/verification/r15/battery/diffs/P17_SIFY.json, field 'face_value / adr_ratio'), so any downstream per-share computation from these raw financials risks a further silent 6x error stacked on top of the FX mislabeling. Smallest fix: tag every financial-statement-derived field with its actual reporting currency in field_meta and convert to quote currency before display, or clearly badge INR-native figures as INR rather than folding them under the instrument's quote-currency label."
+  },
+  {
+    "raw_id": "DAT-P17-2",
+    "title": "Disclosures router (shareholding/announcements/results) 502s for SIFY with a misleading 'not a known instrument' message and surfaces zero ownership-concentration or corporate-action signal, though a real promoter-analog exists",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P17_SIFY",
+    "repro": "GET http://127.0.0.1:52152/disclosures/shareholding?symbol=SIFY, /disclosures/announcements?symbol=SIFY&limit=25, /disclosures/results?symbol=SIFY -> all three return HTTP 502 {\"detail\": \"disclosures: 'SIFY' is not a known NSE/BSE instrument\"} (or the nse_direct variant), even though GET /resolve?q=SIFY correctly and confidently resolves SIFY (exchange US, confidence 1.0) in the same collection run.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P17_SIFY.json:2667-2678 (shareholding 502), :2679-2690 (announcements 502), :2691-2702 (results 502), :19-31 (resolve succeeds for the same symbol); outside truth: https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm (20-F Item 6.E Major Shareholders: entities affiliated with CEO/Chairman/MD Raju Vegesna hold 83.78% beneficially -- near-total single-family control -- plus that filing's ASOP 2024 corporate-action status)",
+    "notes": "The strict Indian-format promoter/FII/DII/pledge split genuinely does not exist for a NASDAQ-only ADR (a legitimate world_gap, not a bug). But (a) the error message claims SIFY is 'not a known ... instrument' when the app's own /resolve confirms it IS known, just not NSE/BSE-listed -- the wording actively misleads about the actual cause; (b) the disclosures pipeline has no fallback to SEC-style beneficial-ownership data (20-F Item 6.E) for ADRs, so a user gets a flat error instead of the single most decision-relevant governance fact for this stock -- one family effectively controls 83.78% of it, versus the unrelated yfinance 'held_percent_insiders' metric the fundamentals endpoint does expose (7.9%), which measures a materially narrower thing (direct officer/director SEC-insider filings, not affiliated trusts/holding companies) and is not a safe substitute; (c) the same root cause silently drops corporate-actions (ASOP 2024 status) and the last-3-announcements feed for every non-NSE/BSE instrument. Smallest fix: return 200 with an explicit empty/not-applicable payload (never a 502) for out-of-scope symbols, correct the error message to name the actual cause (exchange-scoped, not identity-scoped), and route ADR-class symbols to a 20-F/6-K-based ownership source instead of dropping the data type entirely."
+  },
+  {
+    "raw_id": "DAT-P17-3",
+    "title": "Company-name search for \"Sify Technologies Ltd (ADR)\" returns six unrelated Indian small-caps (up to 80% confidence) and never surfaces SIFY, though the bare ticker resolves it correctly",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P17_SIFY",
+    "repro": "GET http://127.0.0.1:52152/resolve?q=Sify+Technologies+Ltd+%28ADR%29 -> needs_disambiguation:true, 6 candidates (ASMTEC 0.80, ODYSSEY 0.7755, IKOMA/EMIAC/RELICTEC/7TEC ~0.766), none of them Sify. GET /resolve?q=SIFY in the same collection run -> resolved.symbol=SIFY, confidence 1.0.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P17_SIFY.json:54-149 (name search, wrong candidates), :11-53 (bare-symbol resolve, correct)",
+    "notes": "The fuzzy-name matcher appears to score on token overlap with 'Technologies' against an NSE/BSE-only candidate pool and never considers the app's own US-equity symbol table, so a user typing the company's actual legal name from any outside source (an SEC filing, an aggregator, this pack) is steered toward six wrong Indian small-caps at plausible-looking confidence (up to 80%) instead of the real company the same resolver already knows how to find by ticker. Smallest fix: include the US/global symbol table in name-search candidate generation, not just NSE/BSE."
+  },
+  {
+    "raw_id": "DAT-P17-4",
+    "title": "SIFY identity resolution omits former-name history, board/listing-tier and listing-date though all three are publicly documented",
+    "severity": "low",
+    "area": "data",
+    "subsystem": "P17_SIFY",
+    "repro": "GET http://127.0.0.1:52152/resolve?q=SIFY -> resolved.former_name: null, and the resolved object carries no board or listing_date field at all.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P17_SIFY.json:19-31; outside truth: https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=sify&type=20-F&output=atom (rename history: SATYAM INFOWAY LTD -> SIFY LTD 2003-01-13 -> SIFY TECHNOLOGIES LTD 2007-10-15), https://stockanalysis.com/stocks/sify/company/ (NASDAQ Capital Market tier, 1999-10-19 IPO)",
+    "notes": "former_name is a real schema field (singular) that stays null for an entity with a well-documented multi-step rename; board and listing_date have no schema representation at all anywhere in the collected responses. Low money-relevance, but it is exactly the identity-history detail a research-grade terminal is expected to carry for an obscure/renamed name."
+  },
+  {
+    "raw_id": "DAT-P17-5",
+    "title": "SIFY's ISIN is null despite a public, well-sourced ADR ISIN existing",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P17_SIFY",
+    "repro": "GET http://127.0.0.1:52152/resolve?q=SIFY -> resolved.isin: null.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P17_SIFY.json:27; outside truth: https://stockanalysis.com/stocks/sify/company/ (ISIN US82655M2061, CUSIP 82655M206)",
+    "notes": "ISIN is a hard identity key used for cross-source instrument matching and dedup; leaving it null for a resolvable, high-confidence match undermines the exact identity-correctness guarantee this hostile-trait slot exists to test, even though in this direction the risk is a missing identifier rather than a fabricated one."
+  },
+  {
+    "raw_id": "DAT-P17-6",
+    "title": "SIFY dividend fields (declared, trailing-12m paid, yield) all return null/unavailable instead of a confident, sourced zero",
+    "severity": "low",
+    "area": "data",
+    "subsystem": "P17_SIFY",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/SIFY -> dividend_yield: null, dividend_per_share: null, dividend_per_share_ttm: null, each with field_meta status 'unavailable' / reason 'provider did not publish this field'.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P17_SIFY.json:189-190,213; outside truth: https://stockanalysis.com/stocks/sify/dividend/ (last declared/paid 2019-07-16, $0.08423/ADS; trailing-12m paid = $0, confidently zero -- not unknown)",
+    "notes": "'Provider did not publish this field' reads to a user as a data gap; the true fact is a confidently-known zero (no dividend paid in roughly 7 years). A demanding user checking dividend history sees an ambiguous blank instead of an explicit, sourced 'no dividend paid, last 2019-07-16.'"
+  }
+]

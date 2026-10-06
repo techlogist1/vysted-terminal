@@ -1,0 +1,4 @@
+GET /earnings/INFY/estimates
+status=200
+---
+{"symbol":"INFY.NS","fiscal_period":null,"eps_estimate_mean":19.63622,"eps_estimate_median":null,"eps_estimate_high":20.37,"eps_estimate_low":19.0,"eps_estimate_stddev":null,"estimate_analyst_count":11,"revenue_estimate_mean":493278155300.0,"revenue_estimate_median":null,"revenue_estimate_high":510007656000.0,"revenue_estimate_low":472000000000.0,"revenue_analyst_count":24,"currency":"INR","revenue_currency":"INR","provider":"yfinance","as_of":"2026-10-03T11:03:01.077673Z"}

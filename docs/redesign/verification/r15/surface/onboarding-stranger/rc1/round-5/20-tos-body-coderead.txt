@@ -1,0 +1,7 @@
+$ sed -n '28,33p' src/modules/safety/DisclaimerFlow.tsx
+const TOS_BODY = `Vysted Terminal is a data and analysis tool. It does not provide investment advice and is not a registered broker-dealer or investment adviser.
+
+By continuing you acknowledge:
+
+- Vysted has no brokerage connection. It cannot place, route or simulate orders.
+- Market data may be delayed, incomplete or wrong. Check anything you rely on against the source.

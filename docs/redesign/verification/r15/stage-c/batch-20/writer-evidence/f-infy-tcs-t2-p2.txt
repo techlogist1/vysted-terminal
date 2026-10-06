@@ -1,0 +1,17 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  51.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_81ee00363dbf4d20a408f2e7117574ca", "name": "price_data", "input": {"__vysted_invalid_args__": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}}
+[  53.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_81ee00363dbf4d20a408f2e7117574ca", "name": "price_data", "ok": false, "error": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+[  57.9s] done: {"kind": "done", "usage": {"input_tokens": 2940, "output_tokens": 63, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+You need to pass the symbol(s) you're interested in as an argument. Let's try that.
+
+The price_data tool returned no data for this in this turn.
+
+
+
+=== ok · 57.9s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 23, 'done': 1} · usage in=2940 out=63 · est $0.00000 · llama3.1:8b

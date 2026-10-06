@@ -1,0 +1,732 @@
+{
+  "collected_at": "2026-09-19",
+  "slot": "P4",
+  "symbol": "SAFE",
+  "status": "complete-with-recorded-gaps",
+  "collector_notes": "Outside-truth pack for BSE SME scrip 544257. IMPORTANT ON SOURCE TIER: every exchange-primary path failed to the fetcher - www.bseindia.com (quote page), api.bseindia.com, www.bsesme.com (offer-document PDF) and the BSE-hosted FY2026 annual-report PDF all returned HTTP 403, and the DRHP addendum that did download (8.1 MB) was an unextractable scanned/compressed PDF. WebSearch was unavailable (session budget exhausted) and DuckDuckGo/Mojeek/Bing were captcha/403/poisoned, so discovery was by constructed URL only. Everything below is therefore aggregator-tier except the ISIN (TradingView) and the five BSE announcement PDF URLs (enumerated by screener.in; not opened). Four independent aggregators were read and they DISAGREE on P/E, market cap, ROE, ROCE, EPS and dividend yield - those disagreements are recorded as first-class conflicts, not averaged. Derived values are labelled as derived and show their arithmetic.",
+
+  "identity": {
+    "legal_name": {
+      "value": "Sodhani Academy of Fintech Enablers Limited",
+      "as_of": "2026-09-19",
+      "source_url": "https://in.tradingview.com/symbols/BSE-SAFE/",
+      "corroboration": "screener.in/company/544257/ ('Sodhani Academy of Fintech Enablers Ltd'), groww.in ('Sodhani Academy Of Fintech Enablers Limited'), angelone.in ('Sodhani Academy of Fintech Enablers Limited')",
+      "note": "Public-facing brand is 'SAFE Fintech' (safefintech.in) - matches neither the legal name nor a plain-English search for 'SAFE'."
+    },
+    "former_names": {
+      "value": null,
+      "rename_date": null,
+      "gap": "No former name or rename found on any reachable source. Absence NOT confirmed against an exchange filing (bseindia 403)."
+    },
+    "isin": {
+      "value": "INE0Q3401017",
+      "as_of": "2026-09-19",
+      "source_url": "https://in.tradingview.com/symbols/BSE-SAFE/",
+      "confidence": "single outside source; bseindia.com and bsesme.com both 403'd, so no exchange corroboration was obtained"
+    },
+    "bse_code": {
+      "value": "544257",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/544257/",
+      "corroboration": "angelone.in and groww.in both render the same scrip; screener labels it 'BSE - SME 544257'"
+    },
+    "nse_symbol": {
+      "value": null,
+      "as_of": "2026-09-19",
+      "source_url": "https://api.tickertape.in/search?text=sodhani&types=stock",
+      "note": "NOT listed on NSE. Tickertape's stock search returns {\"total\":0,\"stocks\":[]} for 'sodhani' - an NSE-first aggregator has zero coverage of this name, which is itself evidence of BSE-SME-only listing."
+    },
+    "board": {
+      "value": "BSE SME",
+      "as_of": "2026-09-19",
+      "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/",
+      "corroboration": "screener.in renders the code as 'BSE - SME 544257'; the IPO was a fixed-price BSE SME issue with 0% QIB quota."
+    },
+    "sector": {
+      "value": "UNRESOLVABLE - four sources give four answers",
+      "as_of": "2026-09-19",
+      "readings": [
+        {
+          "value": "Consumer Discretionary / E-Learning",
+          "source_url": "https://www.screener.in/company/544257/"
+        },
+        { "value": "Education", "source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd" },
+        {
+          "value": "Technology Services / Internet Software/Services",
+          "source_url": "https://in.tradingview.com/symbols/BSE-SAFE/"
+        },
+        {
+          "value": "Fintech / Financial Services Training and Consultancy",
+          "source_url": "https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd"
+        }
+      ],
+      "note": "The legal name says 'Fintech', the business is financial-literacy training, the revenue is course fees. Any single sector label is a judgement call."
+    },
+    "industry": {
+      "value": "E-Learning",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/544257/",
+      "disagreement": "TradingView files it under Internet Software/Services; Angel One under Education."
+    },
+    "business_description": {
+      "value": "A technology-led, hybrid education firm specialising in financial literacy: online sessions, digital modules, offline seminars and certification courses in partnership with regulatory bodies.",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/544257/",
+      "corroboration": "ipowatch.in: 'Training, consultancy, and financial literacy services'"
+    },
+    "incorporated": {
+      "value": "CONFLICT",
+      "readings": [
+        { "value": "2019", "source_url": "https://www.screener.in/company/544257/", "quote": "Incorporated in 2019, Sodhani Academy of Fintech Enablers Ltd is in the business of training & learning." },
+        { "value": "2009", "source_url": "https://in.tradingview.com/symbols/BSE-SAFE/", "quote": "was established in 2009" }
+      ],
+      "as_of": "2026-09-19",
+      "not_reconciled": true
+    },
+    "registered_office": {
+      "value": "P No. C 373, First Floor, C Block, Vaishali Nagar, Jaipur - 302021 (Rajasthan)",
+      "as_of": "2024-09",
+      "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/"
+    },
+    "promoters": {
+      "value": ["Rajesh Kumar Sodhani", "Priya Sodhani", "Rajesh Kumar Sodhani HUF"],
+      "as_of": "2024-09",
+      "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/",
+      "note": "Angel One / Groww name Rajesh Kumar Sodhani as CEO/MD. A promoter-group entity 'Oasis Securities' appears in the Sep-2026 PIT disclosures."
+    },
+    "employees": {
+      "value": 13,
+      "unit": "people",
+      "as_of": "2026-09-19",
+      "source_url": "https://in.tradingview.com/symbols/BSE-SAFE/",
+      "note": "Single source. 13 employees against a Rs 66.6 cr market cap."
+    },
+    "listing_date": {
+      "value": "2024-09-20",
+      "unit": "date",
+      "as_of": "2024-09-20",
+      "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/",
+      "corroboration": "TradingView: 'completed its IPO on September 20, 2024'"
+    }
+  },
+
+  "ipo": {
+    "note": "Fixed-price BSE SME issue. Source: ipowatch.in review page, corroborated on listing date by TradingView.",
+    "open_date": { "value": "2024-09-12", "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "as_of": "2024-09-12" },
+    "close_date": { "value": "2024-09-17", "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "as_of": "2024-09-17" },
+    "allotment_date": { "value": "2024-09-18", "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "as_of": "2024-09-18" },
+    "listing_date": { "value": "2024-09-20", "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "as_of": "2024-09-20" },
+    "issue_price": { "value": 40, "unit": "INR per share", "basis": "fixed price (no band)", "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "as_of": "2024-09-12" },
+    "face_value": { "value": 10, "unit": "INR per share", "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "as_of": "2024-09-12" },
+    "issue_size": { "value": 6.12, "unit": "INR crore", "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "as_of": "2024-09-12" },
+    "fresh_issue": { "value": 3.88, "unit": "INR crore", "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "as_of": "2024-09-12" },
+    "offer_for_sale": { "value": 560000, "unit": "equity shares", "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "as_of": "2024-09-12" },
+    "lot_size": { "value": 3000, "unit": "shares", "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "as_of": "2024-09-12" },
+    "minimum_investment": { "value": 120000, "unit": "INR", "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "as_of": "2024-09-12" },
+    "quotas": { "value": { "retail_pct": 50, "hni_nii_pct": 50, "qib_pct": 0 }, "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "as_of": "2024-09-12" },
+    "registrar": { "value": "Cameo Corporate Services Limited", "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "as_of": "2024-09-12" },
+    "lead_manager": { "value": "Srujan Alpha Capital Advisors LLP", "source_url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "as_of": "2024-09-12" },
+    "listing_price": { "value": null, "gap": "Listing-day open/close not published on the reachable review page; bseindia 403." },
+    "offer_documents": {
+      "draft_prospectus_2023": "https://www.bseindia.com/corporates/download/372577/Draft%20Prospectus%20dated%20July%2012,%202023-%20SAFEL_20230714200255.pdf",
+      "drhp_addendum_2024": "https://www.bsesme.com/download/372577/AddendumwithDRHP_SAFE_20240712130112.pdf",
+      "fetch_result": "addendum downloaded (8.1 MB) but is a scanned/compressed PDF whose text layer could not be extracted; draft prospectus host 403"
+    }
+  },
+
+  "price": {
+    "last_close": {
+      "value": 117.0,
+      "unit": "INR",
+      "date": "2026-09-18",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/544257/",
+      "corroboration": "groww.in 117.00 (-8.75, -6.96%), angelone.in 117.00 (-8.75, -6.96%), tradingview 117.00 INR - four sources agree to the paisa",
+      "note": "No source showed a 2026-09-19 print; 117.00 is the 18-Sep close on all four."
+    },
+    "change_pct": { "value": -6.96, "unit": "percent", "date": "2026-09-18", "source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd" },
+    "previous_close": { "value": 125.75, "unit": "INR", "date": "2026-09-17", "source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd" },
+    "day_range": { "open": 115.0, "low": 115.0, "high": 117.0, "unit": "INR", "date": "2026-09-18", "source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd" },
+    "volume": { "value": null, "gap": "Not shown by any reachable source; BSE SME volumes are thin and no aggregator rendered a figure." }
+  },
+
+  "market_cap": {
+    "value": 66.63,
+    "unit": "INR crore",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+    "corroboration": "screener.in Rs 66.6 Cr",
+    "derivation_check": "5,700,000 shares (equity capital Rs 5.70 cr / FV Rs 10, Mar-2026 balance sheet) x Rs 117 = Rs 66.69 cr - the 66.6 reading is arithmetically consistent",
+    "disagreements": [
+      { "value": 72.0, "unit": "INR crore", "source_url": "https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd", "implies_shares": 6153846 },
+      { "value": 71.615, "unit": "INR crore", "quoted_as": "716.15 M INR", "source_url": "https://in.tradingview.com/symbols/BSE-SAFE/", "implies_shares": 6121795 }
+    ],
+    "not_reconciled": "Two sources say ~Rs 66.6 cr and two say ~Rs 71.6-72 cr - an 8% spread on the headline number. The ~72 cr cluster implies ~61.2 lakh shares against the 57.0 lakh implied by the Mar-2026 equity capital; no post-March issuance was found on any reachable source. Independent check FOR 57 lakh: the 18-Sep-2026 PIT disclosure calls 26,500 shares '0.47% equity' (26,500 / 0.0047 = 5.64 million).",
+    "derived_shares_outstanding": { "value": 5700000, "unit": "shares", "basis": "equity capital Rs 5.70 crore / face value Rs 10, screener.in balance sheet Mar 2025 and Mar 2026 (unchanged)" }
+  },
+
+  "pe_ttm": {
+    "value": 19.21,
+    "unit": "x",
+    "basis": "TTM = FY26 (year ended Mar 2026), standalone",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+    "derivation_check": "Rs 66.69 cr market cap / Rs 3.47 cr FY26 net profit = 19.22x - Angel One's figure is the arithmetically consistent one",
+    "disagreements": [
+      { "value": 20.65, "unit": "x", "source_url": "https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd", "note": "consistent with the ~Rs 72 cr market-cap cluster" },
+      { "value": 20.65, "unit": "x", "source_url": "https://in.tradingview.com/symbols/BSE-SAFE/" },
+      { "value": 69.4, "unit": "x", "source_url": "https://www.screener.in/company/544257/", "note": "OUTLIER by 3.6x. Irreconcilable with screener's OWN market cap (66.6 cr) and OWN FY26 net profit (3.47 cr), which give 19.2x. 69.4x would require either a Rs 241 cr market cap (price ~Rs 423, above the 52-week high) or a Rs 0.96 cr profit." }
+    ],
+    "battery_manifest_caveat": "manifest.json P4 carries pe = 69.4 from screener.in. That value is the outlier here; a differ scoring the app against 69.4 would be scoring it against a bad reference."
+  },
+
+  "pb": {
+    "value": 3.9,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+    "derivation_check": "Rs 117 / Rs 30.03 book value = 3.896x",
+    "disagreement": "groww.in reports 4.19x, which implies a book value of Rs 27.92 - inconsistent with the Rs 30.03 groww itself prints."
+  },
+
+  "roe": {
+    "value": 20.28,
+    "unit": "percent",
+    "basis": "FY26 net profit / FY26 closing net worth, standalone",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+    "corroboration": "groww.in also 20.28%",
+    "derivation_check": "Rs 3.47 cr / (equity 5.70 + reserves 11.41 = Rs 17.11 cr) = 20.28%",
+    "disagreements": [
+      { "value": 6.19, "unit": "percent", "period": "last year", "source_url": "https://www.screener.in/company/544257/", "note": "OUTLIER. Would require a Rs 56 cr net worth against the Rs 17.11 cr on screener's own balance sheet." },
+      { "value": 8, "unit": "percent", "period": "3 years", "source_url": "https://www.screener.in/company/544257/" },
+      { "value": 7.51, "unit": "percent", "period": "3 years", "source_url": "https://www.screener.in/company/544257/", "note": "screener's Cons bullet says 7.51% over 3 years while its ratio table says 8% - the same page disagrees with itself." },
+      { "value": 12, "unit": "percent", "period": "5 years", "source_url": "https://www.screener.in/company/544257/" }
+    ]
+  },
+
+  "roce": {
+    "value": null,
+    "unit": "percent",
+    "as_of": "2026-03-31",
+    "not_reconciled": "Two sources, ~2x apart, no third to break the tie.",
+    "readings": [
+      { "value": 12.8, "unit": "percent", "source_url": "https://www.screener.in/company/544257/" },
+      { "value": 24.12, "unit": "percent", "basis": "TTM", "source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd" }
+    ],
+    "note": "With zero borrowings, capital employed = net worth (Rs 17.11 cr), so ROCE should sit near the EBIT/net-worth ratio: PBT 4.13 / 17.11 = 24.1%, which favours the Angel One reading. Left unreconciled: screener may be averaging capital employed across the year."
+  },
+
+  "debt_to_equity": {
+    "value": 0.0,
+    "unit": "x",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+    "cross_check": "screener.in balance sheet shows Borrowings 0.00 for Mar 2025 and Mar 2026 and the Pros bullet says 'Company is almost debt free'; interest expense 0.00 in every year FY21-FY26."
+  },
+
+  "revenue_ttm": {
+    "value": 3.65,
+    "unit": "INR crore",
+    "basis": "Sales / revenue from operations, FY26 (year ended Mar 2026), STANDALONE - EXCLUDES other income",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/544257/",
+    "total_income_alternative": {
+      "value": 6.02,
+      "unit": "INR crore",
+      "basis": "sales 3.65 + other income 2.37 - the definition the IPO offer document uses for 'Revenue'",
+      "why_it_matters": "Other income is 65% of sales and 57% of PBT. Any margin, growth or per-rupee metric computed on the wrong base is off by about 65%."
+    },
+    "disagreement": "ipowatch.in's IPO financial table reports 'Revenue' of Rs 3.07 cr for FY2024; screener's FY24 sales are Rs 2.05 cr. They reconcile only as 2.05 + 1.02 other income = 3.07 - i.e. the two sources use different words for different things under the same label."
+  },
+
+  "net_profit_ttm": {
+    "value": 3.47,
+    "unit": "INR crore",
+    "basis": "FY26 (year ended Mar 2026), standalone, PAT",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/544257/",
+    "note": "DOWN from Rs 3.85 cr in FY25 (-9.9%) even though sales rose - the fall is entirely in other income (2.99 -> 2.37) and a lower tax rate partly offsets it.",
+    "screener_ttm_growth_caveat": "screener's 'Compounded Profit Growth TTM: 191%' is computed on half-year windows and does not describe FY26 vs FY25 (-9.9%)."
+  },
+
+  "revenue_growth_yoy": {
+    "value": 2.82,
+    "unit": "percent",
+    "basis": "FY26 sales 3.65 vs FY25 sales 3.55, standalone, revenue from operations only",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/544257/",
+    "alternative_basis": {
+      "value": -7.95,
+      "unit": "percent",
+      "basis": "total income (sales + other income) FY26 6.02 vs FY25 6.54",
+      "why_it_matters": "The same company grew +2.8% or shrank -8.0% depending on which line you call revenue."
+    },
+    "source_rounding": "screener's own header states 'Compounded Sales Growth TTM: 3%'"
+  },
+
+  "eps_ttm": {
+    "value": 6.09,
+    "unit": "INR per share",
+    "basis": "FY26, standalone, on 57,00,000 shares",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/544257/",
+    "corroboration": "groww.in 6.09; tradingview 6.10",
+    "derivation_check": "Rs 3.47 cr / 5,700,000 shares = Rs 6.09",
+    "disagreement": "angelone.in prints 'EPS (TTM) Rs 1.69' - 3.6x low and inconsistent with the 19.21 P/E it prints alongside (117 / 1.69 = 69.2x, which is coincidentally screener's outlier P/E of 69.4)."
+  },
+
+  "book_value_per_share": {
+    "value": 30.03,
+    "unit": "INR per share",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+    "corroboration": "groww.in 30.03; screener.in 30.0",
+    "derivation_check": "(equity capital 5.70 + reserves 11.41) = Rs 17.11 cr / 5,700,000 shares = Rs 30.02"
+  },
+
+  "face_value": {
+    "value": 10.0,
+    "unit": "INR per share",
+    "as_of": "2026-09-19",
+    "source_url": "https://www.screener.in/company/544257/",
+    "corroboration": "groww.in, angelone.in and the IPO offer terms all state Rs 10"
+  },
+
+  "dividend": {
+    "last_declared_per_share": {
+      "value": 0.75,
+      "unit": "INR per share",
+      "type": "final (FY2026)",
+      "announcement_date": "2026-05-13",
+      "ex_date": "2026-08-18",
+      "record_date": null,
+      "as_of": "2026-08-18",
+      "source_url": "https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "confidence": "best-supported reading: it is the only TYPED, DATED dividend record found, and its announcement date (13 May 2026) matches the FY26 annual-results date. See the 10x conflict below."
+    },
+    "prior_dividend": {
+      "value": 0.5,
+      "unit": "INR per share",
+      "type": "final (FY2025)",
+      "announcement_date": "2025-05-12",
+      "ex_date": "2025-09-16",
+      "source_url": "https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd"
+    },
+    "paid_trailing_12m_per_share": {
+      "value": 0.75,
+      "unit": "INR per share",
+      "basis": "only the 2026-08-18 ex-date falls inside 12 months of 2026-09-19; the Rs 0.50 FY25 dividend went ex on 2025-09-16, three days outside the window",
+      "as_of": "2026-09-19",
+      "source_url": "https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "knife_edge_warning": "A trailing-12m dividend computed on 2026-09-15 would be Rs 1.25, on 2026-09-19 it is Rs 0.75. A 40% swing from a three-day window shift."
+    },
+    "yield": {
+      "value": 0.64,
+      "unit": "percent",
+      "basis": "Rs 0.75 / Rs 117",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/544257/",
+      "corroboration": "tradingview 0.60%"
+    },
+    "TEN_X_CONFLICT_UNRESOLVED": {
+      "question": "Is the FY26 dividend Rs 0.75 or Rs 7.50 per share?",
+      "supports_0_75": [
+        "groww.in dividend table: 'Final, Rs 0.75 per share, ex-date 18 Aug 26, announced 13 May 26' (typed and dated)",
+        "screener.in dividend yield 0.64% x Rs 117 = Rs 0.749",
+        "tradingview dividend yield 0.60%"
+      ],
+      "supports_7_50": [
+        "screener.in FY26 Dividend Payout 123.20% x EPS Rs 6.09 = Rs 7.50",
+        "angelone.in dividend yield 6.42% x Rs 117 = Rs 7.51",
+        "groww.in's OWN yield 5.97% x its own previous close Rs 125.75 = Rs 7.51 - groww's yield field contradicts groww's dividend table"
+      ],
+      "arithmetic": "Under Rs 0.75 the FY26 payout is 12.32% and total outgo Rs 0.43 cr; under Rs 7.50 the payout is 123.2% and outgo Rs 4.28 cr against a Rs 3.47 cr profit. Both readings are exactly 10x apart in every field, consistent with a 'dividend of 75% of face value Rs 10' being rendered as Rs 0.75 in some pipelines and Rs 7.50 in others.",
+      "not_reconciled": true,
+      "resolvable_by": "the BSE corporate-action / dividend record for scrip 544257 or the FY2026 annual report (both 403 to this collector)"
+    }
+  },
+
+  "week52": {
+    "high": {
+      "value": 348.0,
+      "unit": "INR",
+      "date": "2025-10-27",
+      "as_of": "2026-09-18",
+      "source_url": "https://in.tradingview.com/symbols/BSE-SAFE/",
+      "corroboration": "screener.in, groww.in and angelone.in all print a 52-week high of Rs 348 (dateless)"
+    },
+    "low": {
+      "value": 112.8,
+      "unit": "INR",
+      "date": null,
+      "as_of": "2026-09-18",
+      "source_url": "https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "corroboration": "angelone.in 112.80; screener.in rounds to Rs 113",
+      "disagreement": "tradingview reports a 52-week low of Rs 53.00 dated 23 Sep 2024 - a date TWO YEARS before the as-of, i.e. outside any 52-week window. Treat TradingView's low as a mislabelled since-listing low, not a 52-week low."
+    },
+    "context": "Rs 117 is 1.04x the 52-week low and 0.34x the 52-week high; the stock is down ~66% from the Oct-2025 high and screener prints a 1-year price CAGR of -61%."
+  },
+
+  "shareholding": {
+    "quarter": {
+      "value": "Mar 2026",
+      "source_url": "https://www.screener.in/company/544257/",
+      "note": "LATEST FILED. This is an SME issuer that files shareholding HALF-YEARLY (Sep and Mar only) - screener's series runs Sep 2024, Mar 2025, Sep 2025, Mar 2026 with no Jun or Dec column. A pipeline expecting a Jun-2026 quarter will find nothing and may fall back to something stale.",
+      "staleness_warning": "Filed as of 31 Mar 2026, i.e. ~6 months stale at collection. Promoter-group entities traded in Sep 2026 (see corporate_actions_2026), so the filed table already does not describe the register."
+    },
+    "promoter_pct": { "value": 73.58, "unit": "percent", "as_of": "2026-03-31", "source_url": "https://www.screener.in/company/544257/", "corroboration": "groww.in and angelone.in both 73.58%" },
+    "fii_pct": { "value": 0.0, "unit": "percent", "as_of": "2026-03-31", "source_url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd", "note": "screener.in shows no FII row at all for this company - absence of a row, not a zero." },
+    "dii_pct": { "value": 0.0, "unit": "percent", "as_of": "2026-03-31", "source_url": "https://www.screener.in/company/544257/", "history": "0.79% (Sep 2024) -> 0.00% (Mar 2025) -> 0.01% (Sep 2025) -> 0.00% (Mar 2026)" },
+    "public_pct": { "value": 26.43, "unit": "percent", "as_of": "2026-03-31", "source_url": "https://www.screener.in/company/544257/", "disagreement": "groww.in and angelone.in both print 26.42%; screener 26.43%. Rounding, recorded because promoter+public must total 100.01% on screener's numbers." },
+    "pledged_pct_of_promoter": { "value": null, "gap": "Not published by any reachable source. Not on screener, groww, Angel One or TradingView; BSE 403." },
+    "no_of_shareholders": { "value": 323, "unit": "shareholders", "as_of": "2026-03-31", "source_url": "https://www.screener.in/company/544257/", "history": "245 (Sep 2024) -> 176 (Mar 2025) -> 250 (Sep 2025) -> 323 (Mar 2026)" },
+    "float_note": "26.4% public across 323 holders on 57 lakh shares. The 18-Sep-2026 PIT disclosure shows a single 26,500-share trade moving 0.47% of the equity."
+  },
+
+  "corporate_actions_2026": {
+    "dividend": {
+      "type": "Final dividend FY2026",
+      "per_share": "Rs 0.75 (contested - see dividend.TEN_X_CONFLICT_UNRESOLVED)",
+      "announced": "2026-05-13",
+      "ex_date": "2026-08-18",
+      "record_date": null,
+      "source_url": "https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd"
+    },
+    "acquisition": {
+      "type": "Regulation 30 (LODR) - Acquisition",
+      "detail": "Board approved (2026-09-09) and the company completed (2026-09-18) the acquisition of a 1% stake in CredArc Technologies Private Limited (ESG compliance solutions) for Rs 1 crore.",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=8fde3729-4cca-468f-9ed8-3c4d776226da.pdf",
+      "listed_by": "https://www.screener.in/company/544257/",
+      "materiality_note": "Rs 1 cr is 1.5% of market cap and 5.8% of net worth, paid for 1% of an unlisted company - i.e. a Rs 100 cr implied valuation for the target."
+    },
+    "promoter_group_trades": {
+      "detail": "Two Reg 7(2) PIT disclosures dated 2026-09-18 for trades on 2026-09-17: promoter group entity Oasis Securities BOUGHT 26,500 shares (~0.47% of equity); a promoter group entity SOLD 26,500 shares, taking its holding to 24.56%.",
+      "source_urls": [
+        "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=502a553b-813d-4ff1-b25f-6bcdc99af8cb.pdf",
+        "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=723b5133-2a37-426b-866d-4e4e4511df06.pdf"
+      ],
+      "listed_by": "https://www.screener.in/company/544257/",
+      "note": "An intra-promoter-group transfer of the same 26,500 shares, on the day before a -6.96% print."
+    },
+    "bonus_split_rights": {
+      "value": null,
+      "gap": "None found on any reachable source for 2026. Absence NOT confirmed against BSE (403). Equity capital was unchanged at Rs 5.70 cr across Mar 2025 and Mar 2026, which is consistent with no capital action in FY26."
+    }
+  },
+
+  "latest_results": {
+    "quarter": {
+      "value": "H2 FY2026 / year ended 31 Mar 2026 (this is a HALF-YEARLY reporting SME - there is no Jun-2026 quarter)",
+      "sales": { "value": 1.58, "unit": "INR crore", "period": "Oct 2025 - Mar 2026" },
+      "other_income": { "value": 0.56, "unit": "INR crore", "period": "Oct 2025 - Mar 2026" },
+      "net_profit": { "value": 1.43, "unit": "INR crore", "period": "Oct 2025 - Mar 2026" },
+      "eps": { "value": 2.51, "unit": "INR per share", "period": "Oct 2025 - Mar 2026" },
+      "as_of": "2026-03-31",
+      "source_url": "https://www.screener.in/company/544257/"
+    },
+    "filing_date": {
+      "value": "2026-05-13",
+      "basis": "groww.in labels 13 May as the 'Annual Result' release date, and the FY26 final dividend was announced the same day",
+      "source_url": "https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd"
+    },
+    "next_result_expected": {
+      "value": "13 Nov (H1 FY2027, i.e. the half ended 30 Sep 2026)",
+      "source_url": "https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd",
+      "note": "As of the collection date the most recent published results are SIX MONTHS old. Any 'latest quarter' panel for this name is showing a half-year that ended 2026-03-31."
+    },
+    "half_yearly_series": {
+      "unit": "INR crore except EPS",
+      "source_url": "https://www.screener.in/company/544257/",
+      "rows": [
+        { "period": "Sep 2023", "sales": 0.39, "expenses": 0.21, "operating_profit": 0.18, "opm_pct": 46.15, "other_income": 0.45, "pbt": 0.63, "tax_pct": 14.29, "net_profit": 0.54, "eps": 1.14 },
+        { "period": "Mar 2024", "sales": 1.66, "expenses": 0.44, "operating_profit": 1.22, "opm_pct": 73.49, "other_income": 0.57, "pbt": 1.78, "tax_pct": 27.53, "net_profit": 1.29, "eps": 2.73 },
+        { "period": "Sep 2024", "sales": 0.66, "expenses": 0.32, "operating_profit": 0.34, "opm_pct": 51.52, "other_income": 2.03, "pbt": 2.35, "tax_pct": 16.17, "net_profit": 1.97, "eps": 3.46 },
+        { "period": "Mar 2025", "sales": 2.89, "expenses": 1.27, "operating_profit": 1.62, "opm_pct": 56.06, "other_income": 0.96, "pbt": 2.51, "tax_pct": 25.1, "net_profit": 1.88, "eps": 3.3 },
+        { "period": "Sep 2025", "sales": 2.07, "expenses": 1.25, "operating_profit": 0.82, "opm_pct": 39.61, "other_income": 1.81, "pbt": 2.52, "tax_pct": 18.65, "net_profit": 2.04, "eps": 3.58 },
+        { "period": "Mar 2026", "sales": 1.58, "expenses": 0.39, "operating_profit": 1.19, "opm_pct": 75.32, "other_income": 0.56, "pbt": 1.61, "tax_pct": 11.18, "net_profit": 1.43, "eps": 2.51 }
+      ],
+      "seasonality_warning": "Sales are violently back-loaded in some years (Sep 2024: 0.66 vs Mar 2025: 2.89) and front-loaded in others (Sep 2025: 2.07 vs Mar 2026: 1.58). Annualising either half doubles into nonsense."
+    },
+    "annual_series": {
+      "unit": "INR crore except EPS and percentages",
+      "basis": "standalone",
+      "source_url": "https://www.screener.in/company/544257/",
+      "rows": [
+        { "year": "Mar 2021", "sales": 0.15, "expenses": 0.0, "operating_profit": 0.15, "opm_pct": 100.0, "other_income": 0.1, "interest": 0.0, "depreciation": 0.0, "pbt": 0.25, "tax_pct": 88.0, "net_profit": 0.03, "eps": 3.33, "dividend_payout_pct": 0.0 },
+        { "year": "Mar 2022", "sales": 1.86, "expenses": 0.12, "operating_profit": 1.74, "opm_pct": 93.55, "other_income": -0.01, "interest": 0.0, "depreciation": 0.0, "pbt": 1.73, "tax_pct": 28.32, "net_profit": 1.24, "eps": 45.93, "dividend_payout_pct": 0.0 },
+        { "year": "Mar 2023", "sales": 1.38, "expenses": 0.14, "operating_profit": 1.24, "opm_pct": 89.86, "other_income": 0.51, "interest": 0.0, "depreciation": 0.0, "pbt": 1.75, "tax_pct": 20.57, "net_profit": 1.39, "eps": 10.3, "dividend_payout_pct": 0.0 },
+        { "year": "Mar 2024", "sales": 2.05, "expenses": 0.65, "operating_profit": 1.4, "opm_pct": 68.29, "other_income": 1.02, "interest": 0.0, "depreciation": 0.01, "pbt": 2.41, "tax_pct": 24.07, "net_profit": 1.83, "eps": 3.87, "dividend_payout_pct": 0.0 },
+        { "year": "Mar 2025", "sales": 3.55, "expenses": 1.59, "operating_profit": 1.96, "opm_pct": 55.21, "other_income": 2.99, "interest": 0.0, "depreciation": 0.1, "pbt": 4.85, "tax_pct": 20.62, "net_profit": 3.85, "eps": 6.76, "dividend_payout_pct": 0.0 },
+        { "year": "Mar 2026", "sales": 3.65, "expenses": 1.64, "operating_profit": 2.01, "opm_pct": 55.07, "other_income": 2.37, "interest": 0.0, "depreciation": 0.25, "pbt": 4.13, "tax_pct": 15.98, "net_profit": 3.47, "eps": 6.09, "dividend_payout_pct": 123.2 }
+      ],
+      "growth_headline": "screener: compounded sales growth 5Y 89%, 3Y 38%, TTM 3%; compounded profit growth 5Y 92%, 3Y -3%, TTM 191%; stock price CAGR 1Y -61%.",
+      "eps_discontinuity": "EPS falls 45.93 -> 10.30 -> 3.87 (FY22 -> FY24) while net profit RISES 1.24 -> 1.39 -> 1.83. Implied share counts: ~2.70 lakh (FY22), ~13.5 lakh (FY23), ~47.3 lakh (FY24), 57.0 lakh (FY25 onward, post-IPO). The per-share series is NOT restated for the pre-IPO capital expansion."
+    },
+    "balance_sheet": {
+      "unit": "INR crore",
+      "source_url": "https://www.screener.in/company/544257/",
+      "rows": [
+        { "year": "Mar 2025", "equity_capital": 5.7, "reserves": 8.23, "borrowings": 0.0, "other_liabilities": 0.27, "total": 14.2, "fixed_assets": 1.11, "investments": 11.85, "other_assets": 1.24 },
+        { "year": "Mar 2026", "equity_capital": 5.7, "reserves": 11.41, "borrowings": 0.0, "other_liabilities": 0.03, "total": 17.14, "fixed_assets": 1.43, "investments": 13.7, "other_assets": 2.01 }
+      ],
+      "structure_note": "Rs 13.70 cr of the Rs 17.14 cr balance sheet (80%) is INVESTMENTS, which is where the Rs 2.37 cr of other income comes from. On assets this is closer to an investment vehicle than an education business - a fact no sector label on any source captures."
+    },
+    "cash_flow": {
+      "unit": "INR crore",
+      "source_url": "https://www.screener.in/company/544257/",
+      "rows": [
+        { "year": "Mar 2021", "operating": -0.09, "investing": 0.1, "financing": 0.0, "net": 0.01, "fcf": 0.09 },
+        { "year": "Mar 2022", "operating": 1.3, "investing": -1.3, "financing": 1.57, "net": 1.56, "fcf": 1.3 },
+        { "year": "Mar 2023", "operating": 0.56, "investing": -1.61, "financing": -0.01, "net": -1.06, "fcf": 0.36 },
+        { "year": "Mar 2024", "operating": 2.26, "investing": -2.54, "financing": -0.03, "net": -0.3, "fcf": 2.16 },
+        { "year": "Mar 2025", "operating": 0.82, "investing": -3.85, "financing": 3.51, "net": 0.48, "fcf": 0.36 },
+        { "year": "Mar 2026", "operating": 0.21, "investing": -0.21, "financing": -0.28, "net": -0.29, "fcf": -0.36 }
+      ],
+      "quality_flag": "FY26 reports Rs 3.47 cr of net profit on Rs 0.21 cr of operating cash flow and NEGATIVE free cash flow (-0.36). Working capital days rose from 58.8 to 131."
+    }
+  },
+
+  "last_3_announcements": [
+    {
+      "date": "2026-09-18",
+      "type": "Regulation 30 (LODR) - Acquisition",
+      "headline": "Completed acquisition of 1% stake in CredArc Technologies Private Limited for Rs 1 crore",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=8fde3729-4cca-468f-9ed8-3c4d776226da.pdf",
+      "listed_by": "https://www.screener.in/company/544257/",
+      "source_caveat": "URL enumerated by screener.in; the PDF itself was not opened (bseindia.com returns 403 to this collector)."
+    },
+    {
+      "date": "2026-09-18",
+      "type": "Disclosure under Regulation 7(2), SEBI (PIT) Regulations 2015",
+      "headline": "Promoter group entity Oasis Securities bought 26,500 shares (~0.47% of equity) on 17 Sep 2026",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=502a553b-813d-4ff1-b25f-6bcdc99af8cb.pdf",
+      "listed_by": "https://www.screener.in/company/544257/",
+      "source_caveat": "URL enumerated by screener.in; PDF not opened (403)."
+    },
+    {
+      "date": "2026-09-18",
+      "type": "Disclosure under Regulation 7(2), SEBI (PIT) Regulations 2015",
+      "headline": "Promoter group entity sold 26,500 shares on 17 Sep 2026, reducing its holding to 24.56%",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=723b5133-2a37-426b-866d-4e4e4511df06.pdf",
+      "listed_by": "https://www.screener.in/company/544257/",
+      "source_caveat": "URL enumerated by screener.in; PDF not opened (403)."
+    }
+  ],
+
+  "earlier_announcements_for_context": [
+    {
+      "date": "2026-09-09",
+      "type": "Regulation 30 (LODR) - Acquisition",
+      "headline": "Board approved Rs 1 crore investment for a 1% stake in CredArc Technologies Private Limited",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=2d835e2d-56d7-4aec-a219-e63030bbeb40.pdf",
+      "listed_by": "https://www.screener.in/company/544257/"
+    },
+    {
+      "date": "2026-09-09",
+      "type": "Board Meeting Outcome",
+      "headline": "Board approved Rs 1 crore investment for 1% stake in CredArc Technologies, an ESG compliance solutions firm",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=e8d46465-a71a-485b-a7c3-e9281cce449c.pdf",
+      "listed_by": "https://www.screener.in/company/544257/"
+    }
+  ],
+
+  "filings_index": {
+    "all_announcements": "https://www.bseindia.com/stock-share-price/sodhani-academy-of-fintech-enablers-ltd/SAFE/544257/corp-announcements/",
+    "annual_report_fy2026": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e38b57e8-5c8b-46c1-8065-9a9f3ac45e2d.pdf",
+    "annual_report_fy2025": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/09d3f5e9-6ca6-41b0-9a27-df1124488776.pdf",
+    "fetch_result": "all three 403 to this collector; URLs recorded so a later pass (or the app itself) can retrieve them",
+    "credit_ratings": "no credit-rating documents listed on screener.in for this company"
+  },
+
+  "consolidated_vs_standalone": {
+    "value": "Standalone only, as far as any reachable source shows.",
+    "as_of": "2026-09-19",
+    "source_url": "https://www.screener.in/company/544257/consolidated/",
+    "detail": "The consolidated URL resolves (it is not a 404) but every metric renders blank / 'Rs -' with no P&L, balance sheet or ratio populated. All figures in this pack are STANDALONE. The Sep-2026 CredArc purchase is 1% of an unlisted company, i.e. an investment, not a subsidiary, so it would not create a consolidation.",
+    "basis_asserted": "standalone",
+    "caveat": "Not confirmed from a filing - inferred from an empty consolidated page. A differ must not treat 'consolidated' as a legitimate alternative basis for this name."
+  },
+
+  "traps": [
+    {
+      "id": "T1",
+      "field": "symbol",
+      "detail": "SAFE is (a) a common English word, (b) NYSE:SAFE = Safehold Inc., which is present in the app's own us_instruments.json, and (c) the company's public brand is 'SAFE Fintech'. A bare 'SAFE' query is ambiguous across two continents and two currencies, and the USD answer is the one the open web returns first."
+    },
+    {
+      "id": "T2",
+      "field": "reporting cadence",
+      "detail": "BSE SME issuer: results and shareholding are HALF-YEARLY (Sep and Mar), never quarterly. There is no Jun-2026 or Dec-2025 column anywhere. screener.in still LABELS its half-year table 'Quarterly Results', so a scraper that trusts the label will treat a six-month figure as a quarter and mis-annualise by 2x."
+    },
+    {
+      "id": "T3",
+      "field": "revenue",
+      "detail": "Other income (Rs 2.37 cr FY26) is 65% of sales (Rs 3.65 cr) and 57% of PBT. The IPO offer document's 'Revenue' = operations + other income (FY24: 3.07 = 2.05 + 1.02), while screener's 'Sales' excludes it. Same word, two numbers, 50% apart. Growth flips sign on the choice: +2.8% on sales, -8.0% on total income."
+    },
+    {
+      "id": "T4",
+      "field": "headline ratios",
+      "detail": "Four aggregators, four answers: P/E 19.21 (Angel One) / 20.65 (Groww, TradingView) / 69.4 (screener - a 3.6x outlier irreconcilable with screener's own market cap and profit); ROE 20.28% (Groww, Angel One) vs 6.19% (screener); ROCE 12.8% (screener) vs 24.12% (Angel One); EPS 6.09-6.10 vs Angel One's 1.69. The battery manifest's own reference values for P4 were taken from screener, so they inherit the outliers."
+    },
+    {
+      "id": "T5",
+      "field": "market_cap",
+      "detail": "Rs 66.6 cr (screener, Angel One) vs Rs 72 cr (Groww) / Rs 716.15 M (TradingView) - an 8% spread. The ~72 cr cluster implies 61.2 lakh shares; the Mar-2026 equity capital (Rs 5.70 cr at FV 10) and the '26,500 shares = 0.47% of equity' PIT disclosure both imply 57 lakh. TradingView also quotes the cap in MILLIONS of INR (716.15 M) while every Indian source uses crore - a 10x-family unit trap on its own."
+    },
+    {
+      "id": "T6",
+      "field": "dividend",
+      "detail": "The FY26 dividend is either Rs 0.75 or Rs 7.50 per share - every field splits exactly 10x (payout 12.32% vs 123.20%, yield 0.60-0.64% vs 5.97-6.42%). Groww contradicts itself: its dividend table says Rs 0.75 while its own yield field implies Rs 7.51. The signature of a 'dividend of 75% on face value Rs 10' rendered two different ways."
+    },
+    {
+      "id": "T7",
+      "field": "eps / per-share history",
+      "detail": "EPS reads 45.93 (FY22) -> 10.30 (FY23) -> 3.87 (FY24) -> 6.09 (FY26) while net profit rises monotonically 1.24 -> 1.39 -> 1.83 -> 3.47. The per-share series is not restated for the pre-IPO capital expansion (approx 2.70 -> 13.5 -> 47.3 -> 57.0 lakh shares). Any CAGR, multi-year EPS chart or 'earnings collapsed' narrative built on the raw series is wrong."
+    },
+    {
+      "id": "T8",
+      "field": "week52.low",
+      "detail": "TradingView prints a '52-week low' of Rs 53.00 dated 23 Sep 2024 - two years before the as-of date. The real 52-week low is Rs 112.80. A pipeline that trusts the label without checking the date will show a stock 121% above its low when it is actually 4% above it."
+    },
+    {
+      "id": "T9",
+      "field": "returns window",
+      "detail": "Issue price Rs 40 (Sep 2024), high Rs 348 (Oct 2025), now Rs 117. Since-listing return +192%, 1-year return -61% (screener's own price CAGR), from-high -66%. Every one of those is true; which one a panel shows determines whether this reads as a multibagger or a wreck."
+    },
+    {
+      "id": "T10",
+      "field": "sector",
+      "detail": "Consumer Discretionary/E-Learning (screener), Education (Angel One), Technology Services/Internet Software (TradingView), Fintech training (Groww) - and 80% of the balance sheet is investments generating 65%-of-sales other income. No taxonomy answer is defensible; peer sets and sector screens built on any of them will be wrong."
+    },
+    {
+      "id": "T11",
+      "field": "incorporation",
+      "detail": "screener says incorporated 2019, TradingView says established 2009. A ten-year difference in the company's own age, from two sources a user would consider reputable."
+    },
+    {
+      "id": "T12",
+      "field": "tradeability",
+      "detail": "SME lot size 3,000 shares = Rs 3.51 lakh at Rs 117. Trading is only in lot multiples, so any 'buy 1 share', per-share order preview or position-sizing math is structurally wrong for this scrip. Free float is 26.4% across 323 shareholders; a single 26,500-share trade is 0.47% of the company."
+    },
+    {
+      "id": "T13",
+      "field": "cash quality",
+      "detail": "FY26: Rs 3.47 cr reported net profit, Rs 0.21 cr operating cash flow, NEGATIVE free cash flow (Rs -0.36 cr), working capital days up from 58.8 to 131. A panel that surfaces profit and hides cash flow tells the opposite story from the filings."
+    },
+    {
+      "id": "T14",
+      "field": "aggregator coverage",
+      "detail": "Tickertape's stock search returns zero results for this name, and stockanalysis.com 404s on /quote/bom/SAFE/. NSE-first and US-first data vendors do not carry BSE SME at all, so 'no data' from an upstream is a coverage hole, not a delisting - the app must distinguish the two."
+    },
+    {
+      "id": "T15",
+      "field": "staleness",
+      "detail": "The most recent published results are the half-year ended 31 Mar 2026 (filed 13 May 2026), and the latest shareholding filing is also Mar 2026. At collection both are ~6 months old, with the next disclosure due around 13 Nov 2026. Any 'latest quarter' or 'current shareholding' label on this name is six months behind reality, and promoter-group entities have already traded since."
+    }
+  ],
+
+  "world_gaps": [
+    {
+      "id": "G1",
+      "field": "all exchange-primary sources",
+      "kind": "could-not-reach",
+      "tried": "www.bseindia.com quote page, api.bseindia.com/BseIndiaAPI/api/ComHeadernew, www.bsesme.com offer-document PDF, the BSE-hosted FY2026 and FY2025 annual-report PDFs - all HTTP 403. The 8.1 MB DRHP addendum did download but has no extractable text layer.",
+      "not_guessed": true,
+      "consequence": "Dividend amount, record date, results filing date, pledge percentage, ISIN corroboration and any bonus/split history could not be settled at the authoritative tier. Every URL is recorded in filings_index and last_3_announcements for a later pass."
+    },
+    {
+      "id": "G2",
+      "field": "pledged_pct_of_promoter",
+      "kind": "not-published-anywhere-reachable",
+      "tried": "screener.in, groww.in, angelone.in, in.tradingview.com - none render a pledge row for this scrip",
+      "not_guessed": true
+    },
+    {
+      "id": "G3",
+      "field": "dividend per share (FY2026)",
+      "kind": "sources-conflict-10x",
+      "tried": "groww dividend table (0.75), screener payout (implies 7.50), Angel One yield (implies 7.51), TradingView yield (implies ~0.70); in.tradingview.com/symbols/BSE-SAFE/dividends/ is a 404",
+      "not_guessed": true,
+      "consequence": "Recorded as both readings with their arithmetic; NOT averaged and NOT picked silently."
+    },
+    {
+      "id": "G4",
+      "field": "shares outstanding",
+      "kind": "not-disclosed-directly",
+      "tried": "no source publishes a share count; TradingView explicitly omits it",
+      "not_guessed": true,
+      "consequence": "5,700,000 is DERIVED from equity capital / face value and corroborated by the 0.47%-of-equity PIT disclosure, but it conflicts with the share count implied by two sources' market caps."
+    },
+    {
+      "id": "G5",
+      "field": "52-week high and low dates",
+      "kind": "single-source-and-suspect",
+      "tried": "only TradingView dates them (high 2025-10-27, low 2024-09-23); the low date is outside the 52-week window so the pair cannot both be a 52-week range",
+      "not_guessed": true
+    },
+    {
+      "id": "G6",
+      "field": "listing-day price / listing gain",
+      "kind": "could-not-reach",
+      "tried": "ipowatch review page carries the listing date but no debut price; chittorgarh URL patterns 404 without the numeric IPO id and no search engine was available to find it",
+      "not_guessed": true
+    },
+    {
+      "id": "G7",
+      "field": "FY2023 total income",
+      "kind": "sources-conflict",
+      "tried": "ipowatch IPO table says FY2023 revenue Rs 2.03 cr; screener gives sales 1.38 + other income 0.51 = 1.89 cr. FY2022 (1.88 vs 1.85) and FY2024 (3.07 vs 3.07) reconcile, FY2023 does not.",
+      "not_guessed": true
+    },
+    {
+      "id": "G8",
+      "field": "volume / liquidity",
+      "kind": "not-published-anywhere-reachable",
+      "tried": "no reachable source rendered traded volume or delivery percentage for this scrip",
+      "not_guessed": true
+    },
+    {
+      "id": "G9",
+      "field": "capital history (pre-IPO bonus / split)",
+      "kind": "inferred-not-sourced",
+      "tried": "the implied share counts behind the EPS series (2.70 -> 13.5 -> 47.3 lakh) prove capital actions occurred in FY23 and FY24, but no reachable source states the ratios or dates; the offer document that would carry them is the unextractable PDF",
+      "not_guessed": true
+    },
+    {
+      "id": "G10",
+      "field": "discovery tooling",
+      "kind": "environment",
+      "tried": "WebSearch budget exhausted for the session (200/200); lite.duckduckgo.com served a CAPTCHA, www.mojeek.com 403, www.bing.com RSS returned an unrelated poisoned feed, ticker.finology.in 403, moneycontrol.com blocked by the fetcher, dhan.co 404, stockanalysis.com 404",
+      "not_guessed": true,
+      "consequence": "Source discovery was by constructed URL only, so the source set is narrower than the task's ideal (no Tijori, Trendlyne or Moneycontrol reading)."
+    }
+  ],
+
+  "sources_actually_read": [
+    { "url": "https://www.screener.in/company/544257/", "read_on": "2026-09-19", "tier": "aggregator (screener.in-grade)", "yield": "full financial history, balance sheet, cash flow, shareholding series, announcement URLs, pros/cons" },
+    { "url": "https://www.screener.in/company/544257/consolidated/", "read_on": "2026-09-19", "tier": "aggregator", "yield": "page exists but every metric blank - evidence of standalone-only reporting" },
+    { "url": "https://groww.in/stocks/sodhani-academy-of-fintech-enablers-ltd", "read_on": "2026-09-19", "tier": "aggregator", "yield": "dividend history with types and ex-dates, results calendar, market cap and ratios (conflicting)" },
+    { "url": "https://www.angelone.in/stocks/sodhani-academy-of-fintech-enablers-ltd", "read_on": "2026-09-19", "tier": "aggregator", "yield": "OHLC, previous close, market cap, P/E, P/B, ROE, ROCE, dividend yield, FII/DII split" },
+    { "url": "https://in.tradingview.com/symbols/BSE-SAFE/", "read_on": "2026-09-19", "tier": "aggregator", "yield": "ISIN INE0Q3401017, 52-week high date, employee count, market cap in INR millions" },
+    { "url": "https://ipowatch.in/sodhani-academy-of-fintech-enablers-ipo/", "read_on": "2026-09-19", "tier": "IPO-data site", "yield": "full IPO terms, listing date, registrar, lead manager, promoters, registered office, FY22-FY24 financials, offer-document URLs" },
+    { "url": "https://api.tickertape.in/search?text=sodhani&types=stock", "read_on": "2026-09-19", "tier": "aggregator API", "yield": "zero results - documented coverage hole for BSE SME" }
+  ],
+
+  "sources_attempted_and_failed": [
+    { "url": "https://www.bseindia.com/stock-share-price/sodhani-academy-of-fintech-enablers-ltd/safe/544257/", "result": "HTTP 403" },
+    { "url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544257&seriesid=", "result": "HTTP 403" },
+    { "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e38b57e8-5c8b-46c1-8065-9a9f3ac45e2d.pdf", "result": "HTTP 403 (FY2026 annual report)" },
+    { "url": "https://www.bsesme.com/download/372577/AddendumwithDRHP_SAFE_20240712130112.pdf", "result": "downloaded 8.1 MB but no extractable text layer" },
+    { "url": "https://in.tradingview.com/symbols/BSE-SAFE/dividends/", "result": "HTTP 404" },
+    { "url": "https://stockanalysis.com/quote/bom/SAFE/", "result": "HTTP 404 - no BSE SME coverage" },
+    { "url": "https://dhan.co/stocks/sodhani-academy-of-fintech-enablers-ltd-share-price/", "result": "HTTP 404" },
+    { "url": "https://ticker.finology.in/company/SAFE", "result": "HTTP 403" },
+    { "url": "https://www.moneycontrol.com/mccode/common/autosuggesion.php?query=sodhani", "result": "blocked by the fetcher" },
+    { "url": "https://www.chittorgarh.com/ipo/sodhani-academy-of-fintech-enablers-ipo/", "result": "HTTP 404 - needs a numeric IPO id, undiscoverable without search" },
+    { "url": "https://safefintech.in/", "result": "reachable but renders only the word 'safefintech' - no investor-relations content" },
+    { "url": "https://lite.duckduckgo.com/lite/?q=...", "result": "CAPTCHA challenge page" },
+    { "url": "https://www.mojeek.com/search?q=...", "result": "HTTP 403" },
+    { "url": "https://www.bing.com/search?...&format=rss", "result": "returned an unrelated poisoned feed (Thai MP3-converter spam)" }
+  ]
+}

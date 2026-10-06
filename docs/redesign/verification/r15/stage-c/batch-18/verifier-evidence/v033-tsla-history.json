@@ -1,0 +1,10 @@
+[
+ {
+  "role": "user",
+  "content": "What is TSLA's dividend yield and beta?"
+ },
+ {
+  "role": "assistant",
+  "content": "The dividend yield for TSLA is unavailable as the provider did not publish this field. The beta for TSLA is 1.845.\n\nAlso, note that the trailing EPS for TSLA is flagged due to disagreement with the payload's net income / shares outstanding. The P/E it implies at the ratio price 377.9 is 392.2 \u2014 the EPS may be from a stale fiscal period; kept, flagged.\n\n[tool steps: Using fundamentals]"
+ }
+]

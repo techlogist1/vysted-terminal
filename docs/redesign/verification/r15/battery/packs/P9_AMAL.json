@@ -1,0 +1,837 @@
+{
+  "collected_at": "2026-09-19",
+  "slot": "P9",
+  "symbol": "AMAL",
+  "exchange": "BSE (+ NSE since 2026-08-17 — see identity.nse_symbol)",
+  "currency": "INR",
+  "status": "complete",
+  "collector_note": "OUTSIDE-TRUTH pack for the INDIAN Amal Ltd (BSE 506597), NOT the US Amalgamated Financial Corp (slot P19, NASDAQ:AMAL) whose legacy pack sits at packs/AMAL.json. Built exchange-first: BSE's own public JSON APIs (api.bseindia.com, Referer-gated, GET only) and NSE's published equity master (nsearchives EQUITY_L.csv), then screener.in standalone AND consolidated, cross-checked against stockanalysis.com and the company's own site. WebSearch budget for the session was exhausted before this pack started; every retrieval was a direct HTTP GET against a named endpoint, so every value below carries the exact URL it came from. Where sources disagree BOTH values are recorded with their as_of — the disagreements are the point of this entity.",
+
+  "identity": {
+    "legal_name": {
+      "value": "Amal Ltd",
+      "variants": {
+        "bse": "Amal Ltd",
+        "nse": "Amal Limited",
+        "screener": "Amal Ltd"
+      },
+      "note": "The two exchanges publish DIFFERENT strings for the same legal entity: BSE 'Amal Ltd' (ComHeader SecurityId AMAL / sLongName 'Amal Ltd'), NSE 'Amal Limited'. Exact-name matching across the two masters fails on the Ltd/Limited suffix alone.",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=506597&seriesid="
+    },
+    "former_names": {
+      "value": null,
+      "status": "not_reached",
+      "note": "No rename is evidenced by any source reached. BSE's ComHeader and corporate-action feeds expose no former-name field, and the 2026 integrated annual report (4.36 MB, BSE AttachHis 9f893d4f-0fe7-4f71-8c3b-ffd7e1788671.pdf) did not finish text extraction inside this sweep's budget. The company's own About page describes an OWNERSHIP change, not a rename: 'The Company was promoted by Piramal Group in 1974-75 and the controlling stake was sold to Atul Ltd in 1985-86.' Recorded as not-reached, NOT as 'no former name'.",
+      "rename_date": null,
+      "as_of": "2026-09-19",
+      "source_url": "https://www.amal.co.in/"
+    },
+    "isin": {
+      "value": "INE841D01013",
+      "corroboration": "Published identically by BOTH exchanges: BSE ComHeader ISIN field, and NSE EQUITY_L.csv row 'AMAL,Amal Limited,EQ,17-AUG-2026,10,1,INE841D01013,10'.",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=506597&seriesid="
+    },
+    "bse_code": {
+      "value": "506597",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=506597&seriesid="
+    },
+    "nse_symbol": {
+      "value": "AMAL",
+      "series": "EQ",
+      "listing_date": "2026-08-17",
+      "market_lot": 1,
+      "note": "MANIFEST CORRECTION. The P9 manifest entry calls this name 'BSE-only' and records nse: 'absent'. That is true of the BUNDLED master (sidecar/services/resolver_masters/nse_instruments.json, generated 2026-06-05) but FALSE of the world: NSE's own published equity master carries AMAL on series EQ with a date of listing of 17-AUG-2026 — 33 days before curation and 73 days after the bundled master was built. Verbatim CSV row: 'AMAL,Amal Limited,EQ,17-AUG-2026,10,1,INE841D01013,10' under header 'SYMBOL,NAME OF COMPANY, SERIES, DATE OF LISTING, PAID UP VALUE, MARKET LOT, ISIN NUMBER, FACE VALUE'. The ISIN matches BSE 506597 exactly, so this is the same security, not a namesake. Single-sourced: NSE's quote API (www.nseindia.com/api/quote-equity?symbol=AMAL) returns Akamai 403 to non-browser clients, so no second NSE endpoint corroborates it; the source is however the exchange's own master file.",
+      "as_of": "2026-09-19",
+      "source_url": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv"
+    },
+    "board": {
+      "value": "mainboard",
+      "bse_group": "B",
+      "bse_index_membership": "BSE Commodities",
+      "settlement_type": "T+1",
+      "note": "Not SME on either exchange: BSE group B (not M/MT) and NSE series EQ (not SM/ST).",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=506597&seriesid="
+    },
+    "sector": {
+      "value": "Commodities",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=506597&seriesid="
+    },
+    "industry": {
+      "value": "Specialty Chemicals",
+      "bse_hierarchy": {
+        "Sector": "Commodities",
+        "IndustryNew": "Chemicals",
+        "IGroup": "Chemicals & Petrochemicals",
+        "ISubGroup": "Specialty Chemicals"
+      },
+      "screener_hierarchy": "Commodities > Chemicals > Chemicals & Petrochemicals > Specialty Chemicals",
+      "note": "CLASSIFICATION CONFLICTS WITH THE BUSINESS. Both the exchange and screener bucket this as SPECIALTY chemicals, while the company describes itself as a BULK commodity chemicals maker: 'We manufacture bulk chemicals such as Sulphuric acid and Oleum and their downstream products like Sulphur dioxide and Sulphur trioxide.' Any peer screen or sector-relative valuation inherits the wrong comparison set.",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.amal.co.in/"
+    },
+    "listing_date": {
+      "value": null,
+      "status": "not_reached",
+      "bse": "Not published by any BSE endpoint reached (ComHeader, getScripHeaderData, StockTrading, CorporateAction, HighLow carry no listing-date field). The company was incorporated in 1974 and the oldest corporate action BSE returns is a dividend book-closure of 07/09/1998-22/09/1998, so the BSE listing pre-dates the electronic record. NOT guessed.",
+      "nse": "2026-08-17 (see identity.nse_symbol)",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=506597"
+    },
+    "incorporated": {
+      "value": "1974",
+      "unit": "year",
+      "note": "'Incorporated in 1974, Amal Ltd manufactures bulk chemicals and their downstream products' (screener About). The company's own site says 'promoted by Piramal Group in 1974-75'.",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/506597/"
+    },
+    "promoter_parent": {
+      "value": "Atul Ltd",
+      "note": "'Established by the Piramal Group in 1974-75 and acquired by Atul Ltd. in 1985-86' (screener Key Points); the company's own About page states 'the controlling stake was sold to Atul Ltd in 1985-86'. Promoter holding 71.35% (Jun 2026).",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.amal.co.in/"
+    },
+    "subsidiary": {
+      "value": "Amal Speciality Chemicals",
+      "note": "'its subsidiary Amal Speciality Chemicals commissioned a 300 TPD plant in FY23' (screener Key Points). This subsidiary is the reason standalone and consolidated figures diverge by ~3x — see consolidated_vs_standalone.",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/506597/"
+    },
+    "plant_location": {
+      "value": "Ankleshwar, Gujarat, India",
+      "note": "'The plant is located in Ankleshwar, Gujarat, India.'",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.amal.co.in/"
+    }
+  },
+
+  "price": {
+    "last_close": {
+      "value": 720.8,
+      "unit": "INR",
+      "date": "2026-09-18",
+      "basis": "BSE last traded price, session stamped 'Ason': '18 Sep 26 | 16:00'",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=506597&seriesid="
+    },
+    "conflict": {
+      "screener_current_price": {
+        "value": 722,
+        "unit": "INR",
+        "change_pct": -0.08,
+        "as_of": "2026-09-18",
+        "source_url": "https://www.screener.in/company/506597/"
+      },
+      "bse_ltp": {
+        "value": 720.8,
+        "unit": "INR",
+        "change_abs": -7.65,
+        "change_pct": -1.05,
+        "as_of": "2026-09-18",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=506597&seriesid="
+      },
+      "note": "NOT RECONCILED. Same trading date, two different closes (720.80 vs 722) and two different day-changes (-1.05% vs -0.08%). stockanalysis.com independently reports 720.80 / -7.65 / -1.05%, matching BSE. Screener's 722 is the outlier. Recorded as a conflict because a terminal that shows 722 while the exchange says 720.80 is wrong by the exchange's own record."
+    },
+    "session_2026_09_18": {
+      "prev_close": { "value": 728.45, "unit": "INR" },
+      "open": { "value": 738.15, "unit": "INR" },
+      "high": { "value": 740.0, "unit": "INR" },
+      "low": { "value": 701.55, "unit": "INR" },
+      "vwap": { "value": 717.73, "unit": "INR" },
+      "volume_shares": 8991,
+      "turnover": { "value": 64.53, "unit": "INR lakh" },
+      "two_week_avg_qty_shares": 3575,
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=0&quotetype=EQ&scripcode=506597&seriesid="
+    }
+  },
+
+  "market_cap": {
+    "value": 891.1,
+    "unit": "INR crore",
+    "basis": "BSE full market capitalisation (MktCapFull)",
+    "as_of": "2026-09-18",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=0&quotetype=EQ&scripcode=506597&seriesid=",
+    "free_float_market_cap": {
+      "value": 254.61,
+      "unit": "INR crore",
+      "note": "MktCapFF. 28.6% of full cap, consistent with 71.35% promoter holding. A liquidity or index screen that uses full cap overstates the tradable float by 3.5x."
+    },
+    "conflict": [
+      { "value": 891.1, "unit": "INR crore", "source": "BSE MktCapFull", "as_of": "2026-09-18" },
+      {
+        "value": 891.0,
+        "unit": "INR crore",
+        "source": "stockanalysis.com ('8.91B INR')",
+        "as_of": "2026-09-18",
+        "source_url": "https://stockanalysis.com/quote/bom/506597/"
+      },
+      {
+        "value": 893,
+        "unit": "INR crore",
+        "source": "screener.in",
+        "as_of": "2026-09-18",
+        "source_url": "https://www.screener.in/company/506597/"
+      }
+    ],
+    "arithmetic_check": "12,360,000 shares x INR 720.80 = INR 891.0 crore, which reproduces BSE and stockanalysis. Screener's 893 is its 722 price x the same share count. The gap is the price feed, not the share count."
+  },
+
+  "pe_ttm": {
+    "value": null,
+    "status": "three_way_conflict",
+    "note": "THE CENTRAL TRAP OF THIS ENTITY. Three published P/E values for the same ticker on the same day, each internally consistent with its own EPS basis. A pipeline that picks one silently is off by up to 6.5x.",
+    "variants": [
+      {
+        "value": 132,
+        "basis": "standalone TTM (screener). TTM EPS 5.48 -> 722/5.48 = 131.8",
+        "as_of": "2026-09-18",
+        "source_url": "https://www.screener.in/company/506597/"
+      },
+      {
+        "value": 30.1,
+        "basis": "consolidated TTM (screener). TTM EPS 24.03 -> 722/24.03 = 30.0",
+        "as_of": "2026-09-18",
+        "source_url": "https://www.screener.in/company/506597/consolidated/"
+      },
+      {
+        "value": 29.99,
+        "basis": "consolidated TTM (stockanalysis.com), EPS 24.03 INR",
+        "as_of": "2026-09-18",
+        "source_url": "https://stockanalysis.com/quote/bom/506597/"
+      },
+      {
+        "value": 20.19,
+        "basis": "BSE's OWN published ratio, on a published EPS of 35.70 (720.80/35.70 = 20.19). Matches NEITHER the standalone TTM EPS (5.48) nor the consolidated TTM EPS (24.03). BSE does not state the period or the standalone/consolidated basis, and publishes '-' for OPM, NPM, PB and ROE on the same record, so the basis of 35.70 could not be reconstructed from any source reached.",
+        "as_of": "2026-09-18",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=506597&seriesid="
+      }
+    ]
+  },
+
+  "pb": {
+    "standalone": {
+      "value": 8.97,
+      "basis": "722 / book value 80.5 (screener states 'Price to Book 8.97 times')",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/"
+    },
+    "consolidated": {
+      "value": 7.41,
+      "basis": "722 / consolidated book value 97.4 (computed; screener publishes the 97.4 book value on the consolidated view)",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/consolidated/"
+    },
+    "exchange": {
+      "value": null,
+      "status": "not_published",
+      "note": "BSE ComHeader returns PB: '-'."
+    }
+  },
+
+  "roe": {
+    "standalone": {
+      "last_year": { "value": 4.64, "unit": "percent" },
+      "3_year": { "value": 5.05, "unit": "percent" },
+      "5_year": { "value": 5, "unit": "percent" },
+      "10_year": { "value": null, "note": "screener publishes a blank for the 10-year ROE (the FY15 loss period makes it undefined in their series)" },
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/"
+    },
+    "consolidated": {
+      "value": 20.4,
+      "unit": "percent",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/consolidated/"
+    },
+    "note": "4.4x apart. The manifest's reference block cites the STANDALONE 5.05% 3-year figure."
+  },
+
+  "roce": {
+    "standalone": {
+      "value": 7.11,
+      "unit": "percent",
+      "history": {
+        "Mar 2022": 11.23,
+        "Mar 2023": 3.56,
+        "Mar 2024": 4.54,
+        "Mar 2025": 11.11,
+        "Mar 2026": 7.11
+      },
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/"
+    },
+    "consolidated": {
+      "value": 26.0,
+      "unit": "percent",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/consolidated/"
+    }
+  },
+
+  "debt_to_equity": {
+    "standalone": {
+      "value": 0.0,
+      "basis": "FY26 (Mar 2026) borrowings INR 0.00 crore against equity capital 12.36 + reserves 87.16 = net worth INR 99.52 crore. Debt-free on a standalone basis; borrowings have been 0.00 since Mar 2024.",
+      "as_of": "2026-03-31",
+      "source_url": "https://www.screener.in/company/506597/"
+    },
+    "consolidated": {
+      "value": 0.0,
+      "basis": "FY26 consolidated borrowings INR 0 crore (screener rounds the consolidated balance sheet to whole crore) against equity capital 12 + reserves 108 = net worth ~INR 120 crore. Consolidated borrowings were INR 51 crore in Mar 2022 and INR 24 crore in Mar 2024, so the debt-free state is recent, not structural.",
+      "as_of": "2026-03-31",
+      "source_url": "https://www.screener.in/company/506597/consolidated/"
+    }
+  },
+
+  "revenue_ttm": {
+    "standalone": {
+      "value": 97.36,
+      "unit": "INR crore",
+      "basis": "screener TTM column (Jun 2026 quarter-end trailing twelve months)",
+      "fy26": { "value": 84.91, "unit": "INR crore", "period": "year ended 2026-03-31" },
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/"
+    },
+    "consolidated": {
+      "value": 289,
+      "unit": "INR crore",
+      "basis": "screener TTM column, consolidated view (rounded to whole crore by screener)",
+      "fy26": { "value": 240, "unit": "INR crore", "period": "year ended 2026-03-31" },
+      "corroboration": "stockanalysis.com reports Revenue (ttm) 2.89B INR = INR 289 crore, matching the consolidated basis exactly.",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/consolidated/"
+    },
+    "note": "3.0x apart. Consolidated revenue is the real business; the listed entity's standalone book is the smaller half."
+  },
+
+  "net_profit_ttm": {
+    "standalone": {
+      "value": 6.78,
+      "unit": "INR crore",
+      "fy26": { "value": 4.54, "unit": "INR crore" },
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/"
+    },
+    "consolidated": {
+      "value": 30,
+      "unit": "INR crore",
+      "fy26": { "value": 22, "unit": "INR crore" },
+      "corroboration": "stockanalysis.com reports Net Income 297.07M INR = INR 29.71 crore (screener rounds to 30).",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/consolidated/"
+    }
+  },
+
+  "revenue_growth_yoy": {
+    "standalone_fy26_vs_fy25": {
+      "value": 73.7,
+      "unit": "percent",
+      "basis": "FY26 sales 84.91 vs FY25 48.88 INR crore, standalone, year ended 31 March",
+      "source_url": "https://www.screener.in/company/506597/"
+    },
+    "consolidated_fy26_vs_fy25": {
+      "value": 77.8,
+      "unit": "percent",
+      "basis": "FY26 sales 240 vs FY25 135 INR crore, consolidated (screener's rounded figures)",
+      "source_url": "https://www.screener.in/company/506597/consolidated/"
+    },
+    "ttm": {
+      "standalone": { "value": 73, "unit": "percent", "basis": "screener 'Compounded Sales Growth TTM'" },
+      "consolidated": { "value": 78, "unit": "percent", "basis": "screener consolidated TTM" },
+      "corroboration": "stockanalysis.com: Revenue (ttm) +78.2%"
+    },
+    "latest_quarter_standalone": {
+      "value": 87.1,
+      "unit": "percent",
+      "basis": "Q1 FY27 (Jun 2026) sales 26.75 vs Q1 FY26 (Jun 2025) 14.30 INR crore, standalone",
+      "source_url": "https://www.screener.in/company/506597/"
+    },
+    "note": "STATE THE BASIS OR THE NUMBER IS MEANINGLESS. Four defensible 'YoY revenue growth' answers between +73% and +87% depending on standalone/consolidated and annual/TTM/quarterly."
+  },
+
+  "eps_ttm": {
+    "standalone": {
+      "value": 5.48,
+      "unit": "INR",
+      "fy26": 3.67,
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/"
+    },
+    "consolidated": {
+      "value": 24.03,
+      "unit": "INR",
+      "fy26": 18.1,
+      "corroboration": "stockanalysis.com EPS 24.03 INR",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/consolidated/"
+    },
+    "exchange_published": {
+      "value": 35.7,
+      "unit": "INR",
+      "basis": "unstated",
+      "note": "BSE's own ComHeader EPS. Matches neither screener basis. See pe_ttm.",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=506597&seriesid="
+    }
+  },
+
+  "book_value_per_share": {
+    "standalone": {
+      "value": 80.5,
+      "unit": "INR",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/"
+    },
+    "consolidated": {
+      "value": 97.4,
+      "unit": "INR",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/consolidated/"
+    }
+  },
+
+  "face_value": {
+    "value": 10.0,
+    "unit": "INR",
+    "corroboration": "BSE ComHeader FaceVal '10.00' and NSE EQUITY_L.csv face value column '10' agree.",
+    "as_of": "2026-09-18",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=506597&seriesid="
+  },
+
+  "shares_outstanding": {
+    "value": 12360000,
+    "unit": "shares",
+    "basis": "Equity capital INR 12.36 crore at INR 10 face value = 1.236 crore shares. Corroborated by stockanalysis.com 'Shares Outstanding 12.36M'.",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/506597/"
+  },
+
+  "dividend": {
+    "last_declared_per_share": {
+      "value": 1.5,
+      "unit": "INR per share",
+      "purpose": "Final Dividend",
+      "record_date": "2026-07-31",
+      "ex_date": "2026-07-31",
+      "payment_date": "2026-08-19",
+      "approved_at": "52nd AGM held 2026-08-14 ('Amal Ltd held its 52nd AGM on August 14, 2026; shareholders approved dividend and director reappointments')",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=506597"
+    },
+    "previous": {
+      "value": 1.0,
+      "unit": "INR per share",
+      "purpose": "Dividend",
+      "record_date": "2025-08-14",
+      "ex_date": "2025-08-14",
+      "payment_date": "2025-09-03",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=506597"
+    },
+    "paid_trailing_12m_per_share": {
+      "value": 1.5,
+      "unit": "INR per share",
+      "basis": "Payments landing in the 12 months to 2026-09-19. The INR 1.00 dividend was PAID 2025-09-03, 16 days outside the window; an implementation that keys the trailing window off the RECORD date (2025-08-14) also excludes it, but one that keys off the declaration or the financial year would return 2.50. Basis stated deliberately.",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=506597"
+    },
+    "yield": {
+      "value": 0.21,
+      "unit": "percent",
+      "basis": "1.50 / 722 = 0.208% (screener publishes 0.21). Against the BSE close of 720.80 it is 0.2081%.",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/506597/"
+    },
+    "payout_ratio": {
+      "fy26": { "value": 40.84, "unit": "percent", "basis": "standalone" },
+      "fy25": { "value": 17.97, "unit": "percent", "basis": "standalone" },
+      "note": "Zero dividend payout in every year from FY15 through FY24 inclusive; the dividend record is two years old. On a CONSOLIDATED basis the same payouts are 8% (FY26) and 4% (FY25).",
+      "source_url": "https://www.screener.in/company/506597/"
+    }
+  },
+
+  "week52": {
+    "high": {
+      "value": 1010.0,
+      "unit": "INR",
+      "date": "2025-10-15",
+      "note": "BSE publishes adjusted and unadjusted identically ('1010.00 (15/10/2025)'), i.e. no corporate action has split the series in the window."
+    },
+    "low": {
+      "value": 408.2,
+      "unit": "INR",
+      "date": "2026-03-30",
+      "note": "adjusted == unadjusted"
+    },
+    "drawdown_from_52w_high_pct": -28.6,
+    "month_high_low": "815.00 / 679.00",
+    "week_high_low": "746.30 / 679.00",
+    "as_of": "2026-09-18",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=506597"
+  },
+
+  "shareholding": {
+    "quarter": "Jun 2026",
+    "note": "Latest FILED quarter as of 2026-09-19 (the Sep 2026 quarter had not ended). Figures are screener's rendering of the XBRL filing.",
+    "promoter_pct": { "value": 71.35, "unit": "percent" },
+    "fii_pct": {
+      "value": null,
+      "status": "not_separately_disclosed",
+      "note": "Screener renders NO FII row for this company in any of the last 12 quarters. Whether that means a true 0.00% or 'not broken out' is unresolved from the sources reached — recorded as a gap, not as zero."
+    },
+    "dii_pct": { "value": 0.03, "unit": "percent" },
+    "government_pct": { "value": 0.0, "unit": "percent", "note": "0.00% in every year shown except Mar 2021 (0.21%)" },
+    "public_pct": { "value": 28.63, "unit": "percent" },
+    "pledged_pct_of_promoter": {
+      "value": null,
+      "status": "not_reached",
+      "note": "Screener renders no pledge row, and BSE's shareholding-pattern API (Shpquarterly / ShareHoldingPatternnew) returns a 302 redirect to error_Bse.html for non-browser clients. Absence of a rendered row is NOT evidence of zero pledge; recorded as not-reached."
+    },
+    "number_of_shareholders": 17632,
+    "trend_last_12_quarters": {
+      "promoters": {
+        "Sep 2023": 71.32,
+        "Dec 2023": 71.32,
+        "Mar 2024": 71.32,
+        "Jun 2024": 71.32,
+        "Sep 2024": 71.34,
+        "Dec 2024": 71.34,
+        "Mar 2025": 71.34,
+        "Jun 2025": 71.34,
+        "Sep 2025": 71.34,
+        "Dec 2025": 71.34,
+        "Mar 2026": 71.34,
+        "Jun 2026": 71.35
+      },
+      "public": {
+        "Sep 2023": 28.65,
+        "Dec 2023": 28.67,
+        "Mar 2024": 28.65,
+        "Jun 2024": 28.67,
+        "Sep 2024": 28.64,
+        "Dec 2024": 28.64,
+        "Mar 2025": 28.64,
+        "Jun 2025": 28.65,
+        "Sep 2025": 28.65,
+        "Dec 2025": 28.64,
+        "Mar 2026": 28.64,
+        "Jun 2026": 28.63
+      },
+      "shareholders": {
+        "Sep 2023": 13315,
+        "Dec 2023": 13324,
+        "Mar 2024": 13532,
+        "Jun 2024": 13821,
+        "Sep 2024": 13599,
+        "Dec 2024": 13783,
+        "Mar 2025": 14495,
+        "Jun 2025": 14995,
+        "Sep 2025": 18828,
+        "Dec 2025": 18572,
+        "Mar 2026": 18123,
+        "Jun 2026": 17632
+      }
+    },
+    "long_run_promoter_trend": {
+      "Mar 2017": 53.73,
+      "Mar 2018": 65.51,
+      "Mar 2021": 66.14,
+      "Mar 2022": 66.86,
+      "Mar 2023": 71.33,
+      "Mar 2026": 71.34,
+      "note": "Promoter stake rose 53.73% -> 71.35% over nine years, stepping up at the Feb-2023 rights issue. Screener's own footnote warns 'The classifications might have changed from Sep 2022 onwards' because of the new XBRL format, so pre-Sep-2022 FII/DII splits are not comparable."
+    },
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/506597/"
+  },
+
+  "corporate_actions_2026": [
+    {
+      "type": "Final Dividend",
+      "amount_per_share": 1.5,
+      "unit": "INR",
+      "ex_date": "2026-07-31",
+      "record_date": "2026-07-31",
+      "payment_date": "2026-08-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=506597"
+    },
+    {
+      "type": "Listing on a second exchange",
+      "detail": "Admitted to trading on NSE, series EQ, date of listing 2026-08-17. Not a capital action (no change to share count), but it changes which venue a quote comes from and creates a second price series for the same ISIN.",
+      "source_url": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv"
+    },
+    {
+      "type": "none_other",
+      "detail": "No split, bonus, buyback or rights in calendar 2026. The full BSE corporate-action history returned is: Final Dividend 1.50 (RD 31/07/2026), Dividend 1.00 (RD 14/08/2025), Rights Issue of Equity Shares (ex 21/02/2023), Dividend 0.00 (BC 07/09/1998-22/09/1998), EGM (RD 09/09/2004).",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=506597"
+    }
+  ],
+
+  "latest_results": {
+    "quarter": "Q1 FY27, quarter ended 2026-06-30",
+    "filing_date": "2026-07-17",
+    "filing_time": "13:43:31 IST",
+    "headline": "Result for the quarter ended June 30, 2026",
+    "attachment": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=f6a21eb9-8b78-4620-8213-11f4280bf629.pdf",
+    "standalone_numbers": {
+      "sales": { "value": 26.75, "unit": "INR crore" },
+      "operating_profit": { "value": 3.63, "unit": "INR crore" },
+      "opm_pct": 13.57,
+      "profit_before_tax": { "value": 3.26, "unit": "INR crore" },
+      "tax_pct": 25.46,
+      "net_profit": { "value": 2.43, "unit": "INR crore" },
+      "eps": { "value": 1.97, "unit": "INR" }
+    },
+    "previous_results_filing": {
+      "date": "2026-04-22",
+      "headline": "Amal Ltd Result Apr 26 (FY26 / Q4 FY26)",
+      "attachment": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=d28160d2-7516-4c89-a7eb-2b2db0dda3de.pdf"
+    },
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=Result&strPrevDate=20260401&strScrip=506597&strSearch=P&strToDate=20260919&strType=C&subcategory=-1"
+  },
+
+  "last_3_announcements": [
+    {
+      "date": "2026-08-20",
+      "time": "16:07:26 IST",
+      "category": "AGM/EGM",
+      "headline": "Speech of Chairman / Video recording / Presentation",
+      "detail": "Amal Ltd uploaded 52nd AGM speech, proceedings video and presentation for the August 14, 2026 meeting.",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=143b2177-5969-412c-9f50-eb7d2aea3554.pdf"
+    },
+    {
+      "date": "2026-08-14",
+      "time": "14:36:23 IST",
+      "category": "AGM/EGM",
+      "headline": "Outcome / Scrutinizer's report",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=f2eb83b8-561b-437b-be85-3b7ca2f9ee98.pdf"
+    },
+    {
+      "date": "2026-08-14",
+      "time": "14:34:25 IST",
+      "category": "AGM/EGM",
+      "headline": "Outcome of AGM",
+      "detail": "52nd AGM held August 14, 2026; shareholders approved dividend and director reappointments.",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=d5556caa-4228-4566-a382-2b0491ae7cd9.pdf"
+    }
+  ],
+
+  "other_announcements_2026": [
+    { "date": "2026-08-03", "headline": "Announcement under Regulation 30 (LODR) - Newspaper Publication" },
+    {
+      "date": "2026-07-22",
+      "headline": "Reg. 34 (1) Annual Report - integrated annual report submitted",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9f893d4f-0fe7-4f71-8c3b-ffd7e1788671.pdf"
+    },
+    { "date": "2026-07-17", "headline": "Board Meeting Outcome - Result for the quarter ended June 30, 2026" },
+    { "date": "2026-07-16", "headline": "Newspaper notice of 52nd AGM and book closure" },
+    { "date": "2026-07-05", "headline": "Compliances - Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018" },
+    {
+      "date": "2026-06-25",
+      "headline": "Closure of Trading Window - closed 2026-07-01 to 2026-07-19 for the 2026-07-17 board meeting"
+    },
+    { "date": "2026-06-25", "headline": "Board Meeting Intimation for the meeting scheduled 2026-07-17" }
+  ],
+
+  "credit_rating": {
+    "agency": "CARE Ratings",
+    "latest_update": "2025-09-12",
+    "rating_value": null,
+    "status": "not_reached",
+    "note": "The press-release PDF was not opened within this sweep's budget; only its existence and date are recorded.",
+    "source_url": "https://www.careratings.com/upload/CompanyFiles/PR/202509130941_Amal_Limited.pdf"
+  },
+
+  "consolidated_vs_standalone": {
+    "verdict": "THE DEFINING HAZARD OF THIS ENTITY. Amal Ltd's operating business largely sits in its subsidiary Amal Speciality Chemicals (300 TPD plant commissioned FY23), so the listed parent's standalone accounts describe roughly a third of the enterprise. Every headline ratio differs by a factor of 3 to 6.5 depending on basis, and both bases are published by reputable sources without either being wrong.",
+    "side_by_side_fy26_and_ttm": {
+      "revenue_fy26": { "standalone": 84.91, "consolidated": 240, "unit": "INR crore", "ratio": "2.8x" },
+      "revenue_ttm": { "standalone": 97.36, "consolidated": 289, "unit": "INR crore", "ratio": "3.0x" },
+      "net_profit_fy26": { "standalone": 4.54, "consolidated": 22, "unit": "INR crore", "ratio": "4.8x" },
+      "net_profit_ttm": { "standalone": 6.78, "consolidated": 30, "unit": "INR crore", "ratio": "4.4x" },
+      "eps_ttm": { "standalone": 5.48, "consolidated": 24.03, "unit": "INR", "ratio": "4.4x" },
+      "pe_ttm": { "standalone": 132, "consolidated": 30.1, "ratio": "4.4x" },
+      "book_value_per_share": { "standalone": 80.5, "consolidated": 97.4, "unit": "INR", "ratio": "1.21x" },
+      "roe": { "standalone": 4.64, "consolidated": 20.4, "unit": "percent", "ratio": "4.4x" },
+      "roce": { "standalone": 7.11, "consolidated": 26.0, "unit": "percent", "ratio": "3.7x" },
+      "dividend_payout_fy26": { "standalone": 40.84, "consolidated": 8, "unit": "percent" },
+      "total_assets_fy26": { "standalone": 116.97, "consolidated": 154, "unit": "INR crore" }
+    },
+    "which_the_manifest_used": "The P9 manifest reference block (price 722, mcap 893, pe 132, book_value 80.5, roe_3y 5.05, dividend_yield 0.21) is entirely the SCREENER STANDALONE view. A differ that compares in-app values against that block will flag a correct consolidated answer as wrong, and vice versa. Both bases are recorded here so the differ can decide rather than guess.",
+    "default_behaviour_of_sources": {
+      "screener.in": "defaults to STANDALONE for this company (the page opens on 'Standalone Figures in Rs. Crores' with a 'View Consolidated' toggle)",
+      "stockanalysis.com": "reports the CONSOLIDATED basis (EPS 24.03, revenue 2.89B) without labelling it as such",
+      "bseindia.com": "publishes EPS 35.70 / PE 20.19 on an unstated basis matching neither"
+    }
+  },
+
+  "traps": [
+    {
+      "id": "T1",
+      "name": "Cross-continent ticker collision, both halves inside the product",
+      "detail": "'AMAL' resolves to Amal Ltd (BSE 506597, INE841D01013, INR, bulk chemicals, Ankleshwar Gujarat) in sidecar/services/resolver_masters/bse_instruments.json AND to Amalgamated Financial Corp (NASDAQ, USD, a Delaware bank holding company) in us_instruments.json — battery slot P19. A bare 'AMAL' query is ambiguous by construction: two currencies, two continents, two industries. Numeric sanity checks do not separate them (Amal Ltd close INR 720.80, AMAL US close USD 49.17 — both plausible three- and two-figure quotes)."
+    },
+    {
+      "id": "T2",
+      "name": "Standalone vs consolidated: a 4.4x earnings fork",
+      "detail": "P/E 132 (standalone) vs 30.1 (consolidated) vs 20.19 (BSE's own). EPS 5.48 vs 24.03 vs 35.70. Presenting any one of these as THE P/E without a basis label is a money-relevant misstatement. See consolidated_vs_standalone."
+    },
+    {
+      "id": "T3",
+      "name": "The exchange itself is the outlier",
+      "detail": "BSE's ComHeader publishes EPS 35.70 and PE 20.19 with no stated period or basis, reconcilable with neither screener series. A pipeline that treats 'exchange data' as automatically authoritative inherits an unexplainable number; a pipeline that treats the aggregator as authoritative contradicts the exchange. Both should be shown with provenance."
+    },
+    {
+      "id": "T4",
+      "name": "Master staleness hides a second listing",
+      "detail": "The app's NSE master was generated 2026-06-05; AMAL listed on NSE on 2026-08-17. The app will therefore report 'BSE only' for a stock that has traded on both exchanges for a month, and will never quote the NSE line. The same ISIN (INE841D01013) now has two venues and two closing prices."
+    },
+    {
+      "id": "T5",
+      "name": "Legal-name spelling differs by exchange",
+      "detail": "BSE 'Amal Ltd' vs NSE 'Amal Limited'. Exact-string name matching across the two masters fails; fuzzy matching on 'Amal' pulls in Amalgamated Financial Corp from the US master."
+    },
+    {
+      "id": "T6",
+      "name": "Bulk chemicals classified as Specialty Chemicals",
+      "detail": "Exchange and aggregator both assign sub-industry 'Specialty Chemicals'; the company manufactures commodity sulphuric acid and oleum. Peer tables, sector multiples and 'compare with peers' features will use the wrong comparison set, and a margin comparison against real specialty names is meaningless (FY26 OPM 9.59% standalone)."
+    },
+    {
+      "id": "T7",
+      "name": "Lakh vs crore in the same payload",
+      "detail": "BSE's StockTrading response mixes scales in one object: Turnover '64.53' with Turnoverin '(Lakh)', alongside MktCapFull '891.10' in crore. Reading the turnover as crore overstates the day's traded value 100x (INR 64.53 lakh = INR 0.6453 crore)."
+    },
+    {
+      "id": "T8",
+      "name": "Full vs free-float market cap",
+      "detail": "MktCapFull 891.10 crore vs MktCapFF 254.61 crore against 71.35% promoter holding. A screen that filters on 'market cap > X' using full cap admits a stock whose tradable float is 3.5x smaller."
+    },
+    {
+      "id": "T9",
+      "name": "Liquidity too thin for volume heuristics",
+      "detail": "8,991 shares traded on 2026-09-18 against a two-week average of 3,575 shares — a 2.5x 'volume spike' on an absolute volume of under 9,000 shares (INR 64.53 lakh). Any unusual-volume alert fires constantly and means nothing at this size."
+    },
+    {
+      "id": "T10",
+      "name": "Rights issue breaks the per-share history",
+      "detail": "Rights issue ex-date 2023-02-21 lifted equity capital from INR 9.43 crore to INR 12.36 crore (9.43M to 12.36M shares). Pre-FY23 EPS and book value are on a smaller share base; a naive 10-year EPS CAGR across the break is wrong. Screener's own series shows FY22 EPS 1.96 and FY17 EPS 9.66 on the old base."
+    },
+    {
+      "id": "T11",
+      "name": "Parent-company news bleed",
+      "detail": "Atul Ltd is the 71.35% promoter and 'Amal' appears inside Atul Ltd's own filings, results and coverage. Headline matching on 'Amal' will attach Atul Ltd news — and conversely a related-party screen that ignores Atul misses the controlling relationship. The subsidiary 'Amal Speciality Chemicals' is a third 'Amal' string."
+    },
+    {
+      "id": "T12",
+      "name": "Stale-price archives from a very different price level",
+      "detail": "52-week range INR 408.20 (2026-03-30) to INR 1,010.00 (2025-10-15) against a INR 720.80 close: the stock has halved and doubled inside one year, and 1-year price CAGR is -17% while 3-year is +37%. Any cached or aggregator-stale price is plausible-looking and badly wrong."
+    },
+    {
+      "id": "T13",
+      "name": "Same-day price disagreement between good sources",
+      "detail": "For 2026-09-18 the exchange says 720.80 (-1.05%) and screener says 722 (-0.08%); stockanalysis.com agrees with the exchange. A terminal that silently prefers the aggregator shows a price the exchange does not recognise, and the day-change is off by 13x."
+    },
+    {
+      "id": "T14",
+      "name": "Dividend trailing-window boundary",
+      "detail": "Two dividends exist (INR 1.50 paid 2026-08-19; INR 1.00 paid 2025-09-03). Trailing-12-month dividend is INR 1.50 or INR 2.50 depending on whether the window keys off the payment date, the record date, or the financial year. Yield is 0.21% or 0.35% accordingly. Also: the company paid ZERO dividend in every year FY15-FY24, so a 'dividend history' chart is two bars."
+    }
+  ],
+
+  "world_gaps": {
+    "genuinely_do_not_exist": [
+      "NSE symbol did not exist before 2026-08-17 — any NSE price history for AMAL is at most 33 days long as of collection.",
+      "No promoter pledge is rendered by screener for any recent quarter and none is implied by the filings reached; the field may simply be nil rather than withheld (recorded under not_reached because absence of a row is not proof).",
+      "Standalone 10-year ROE is published blank by screener because the FY15 loss makes the series undefined — a legitimately absent value, not a fetch failure."
+    ],
+    "not_reached": [
+      {
+        "field": "identity.former_names",
+        "why": "BSE exposes no former-name field; the 2026 integrated annual report (4.36 MB) did not finish text extraction inside the sweep's budget; WebSearch budget for the session was exhausted (200/200) before this pack began, so no search-based corroboration was possible."
+      },
+      {
+        "field": "identity.listing_date (BSE)",
+        "why": "Not carried by ComHeader, getScripHeaderData, StockTrading, CorporateAction or HighLow. The oldest corporate action BSE returns is a 1998 book closure, so the listing pre-dates the electronic record."
+      },
+      {
+        "field": "shareholding.pledged_pct_of_promoter and shareholding.fii_pct",
+        "why": "BSE's shareholding-pattern endpoints (api/Shpquarterly/w, api/ShareHoldingPatternnew/w) return HTTP 302 to error_Bse.html for non-browser clients; screener renders no FII and no pledge row. Not inferred as zero."
+      },
+      {
+        "field": "price (NSE venue)",
+        "why": "www.nseindia.com returns Akamai HTTP 403 ('Access Denied') to non-browser clients for both the homepage and api/quote-equity. Only the BSE close was collected; the NSE close for 2026-09-18 is unknown, and the two venues need not agree to the paisa."
+      },
+      {
+        "field": "credit_rating.rating_value",
+        "why": "CARE press-release PDF (2025-09-12) not opened within budget; only its existence and date are recorded."
+      },
+      {
+        "field": "consolidated balance sheet precision",
+        "why": "Screener rounds the consolidated statements to whole crore, so consolidated net worth (~INR 120 crore) and the consolidated debt-to-equity of 0.0 are precise only to the rounding. The standalone figures are to two decimals."
+      }
+    ]
+  },
+
+  "sources": [
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=506597&seriesid=",
+      "authority": "exchange",
+      "used_for": "ISIN, face value, group, index, industry hierarchy, settlement type, exchange EPS/PE"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=506597&seriesid=",
+      "authority": "exchange",
+      "used_for": "LTP, prev close, OHLC, session timestamp, legal name"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=0&quotetype=EQ&scripcode=506597&seriesid=",
+      "authority": "exchange",
+      "used_for": "VWAP, turnover, volume, 2-week average qty, full and free-float market cap"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=506597",
+      "authority": "exchange",
+      "used_for": "52-week high/low with dates, adjusted and unadjusted"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=506597",
+      "authority": "exchange",
+      "used_for": "full dividend and corporate-action history"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260601&strScrip=506597&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+      "authority": "exchange",
+      "used_for": "announcement feed with timestamps and attachments"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv",
+      "authority": "exchange",
+      "used_for": "NSE listing existence, symbol, series, date of listing, ISIN, face value"
+    },
+    {
+      "url": "https://www.screener.in/company/506597/",
+      "authority": "aggregator",
+      "used_for": "standalone financials, ratios, shareholding series, documents"
+    },
+    {
+      "url": "https://www.screener.in/company/506597/consolidated/",
+      "authority": "aggregator",
+      "used_for": "consolidated financials and ratios"
+    },
+    {
+      "url": "https://stockanalysis.com/quote/bom/506597/",
+      "authority": "aggregator",
+      "used_for": "independent cross-check of price, market cap, EPS, revenue, dividend"
+    },
+    {
+      "url": "https://www.amal.co.in/",
+      "authority": "company",
+      "used_for": "business description, plant location, promoter history"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9f893d4f-0fe7-4f71-8c3b-ffd7e1788671.pdf",
+      "authority": "filing",
+      "used_for": "integrated annual report FY2026 (filed 2026-07-22); referenced, text extraction incomplete"
+    }
+  ]
+}

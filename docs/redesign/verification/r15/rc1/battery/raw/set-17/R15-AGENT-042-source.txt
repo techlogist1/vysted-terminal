@@ -1,0 +1,6 @@
+src/lib/host-actions.ts:681:function resolveHolding(
+src/lib/host-actions.ts:1028:      const { target, problem } = resolveHolding(portfolio, input);
+src/modules/portfolio/PortfolioPanel.tsx:438:  const publishedHoldings = useMemo(
+src/modules/portfolio/PortfolioPanel.tsx:454:  const holdingsKey = JSON.stringify(publishedHoldings);
+src/modules/portfolio/PortfolioPanel.tsx:465:        holdings: publishedHoldings,
+src/modules/portfolio/PortfolioPanel.tsx:469:    // `publishedHoldings` is captured fresh whenever `holdingsKey` changes; the

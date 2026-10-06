@@ -1,0 +1,48 @@
+{"kind": "tool_use", "tool_call_id": "call_f59422e07550449e904fa918286e2fb3", "name": "resolve_symbol", "input": {"query": "BGNE", "region": "GLOBAL"}}
+{"kind": "tool_use", "tool_call_id": "call_de33c35d7fd74f6aba2bb8e524da3725", "name": "news", "input": {"symbols": ["BGNE"]}}
+{"kind": "tool_result", "tool_call_id": "call_f59422e07550449e904fa918286e2fb3", "name": "resolve_symbol", "ok": false, "error": "Could not resolve 'BGNE' to a known instrument in the bundled US/NSE/BSE masters or a live lookup. Check the spelling, or add a data source that covers it."}
+{"kind": "tool_result", "tool_call_id": "call_de33c35d7fd74f6aba2bb8e524da3725", "name": "news", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " couldn't"}
+{"kind": "delta", "text": " find"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " trading"}
+{"kind": "delta", "text": " instrument"}
+{"kind": "delta", "text": " corresponding"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " ticker"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "BG"}
+{"kind": "delta", "text": "NE"}
+{"kind": "delta", "text": ",\""}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " there"}
+{"kind": "delta", "text": " isn't"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " recent"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " either"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " if"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " ticker"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " spelled"}
+{"kind": "delta", "text": " correctly"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " if"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " might"}
+{"kind": "delta", "text": " represent"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " different"}
+{"kind": "delta", "text": " listing"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 8923, "output_tokens": 43, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.010603}

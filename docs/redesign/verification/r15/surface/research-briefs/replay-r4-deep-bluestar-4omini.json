@@ -1,0 +1,153 @@
+{
+ "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/research-briefs/r4-deep-bluestar-4omini.jsonl": {
+  "phase": "published",
+  "applied": [
+   {
+    "name": "publish_brief",
+    "label": "Published the DEEP research brief",
+    "phaseAfter": "published"
+   }
+  ],
+  "errors": [],
+  "engineNotices": [
+   "Your active model — openai/gpt-4o-mini · IterResearch (evolving report)"
+  ],
+  "brief": {
+   "symbol": "BLUESTARCO",
+   "depth": "deep",
+   "mode": "DEEP",
+   "backend": "native",
+   "webAvailable": true,
+   "sourceCount": 13,
+   "sourcesStored": 13,
+   "sourcesRendered": 13,
+   "markdownLen": 2157,
+   "markersInBody": [
+    6,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7
+   ],
+   "maxMarker": 7,
+   "markersAfterSanitize": 15,
+   "execution": {
+    "runId": "ed713d51d82342998456c3852b19a651",
+    "requestedDepth": "deep",
+    "loop": "iter",
+    "backend": "native",
+    "startedAt": 1790129173.694519,
+    "finishedAt": 1790129340.0040672,
+    "degradedReason": null
+   },
+   "metrics": {
+    "symbol": "BLUESTARCO",
+    "provider": "nse_direct",
+    "price": 1525,
+    "change": -40,
+    "changePercent": -2.5559105431309903,
+    "currency": "INR",
+    "assetClass": "equity",
+    "items": [
+     {
+      "label": "Below 52-week high",
+      "value": "-24.98% · vs 52w high",
+      "title": "(52w high - price) / 52w high"
+     },
+     {
+      "label": "52-week price change (Yahoo)",
+      "value": "-20.32% · trailing 52 weeks",
+      "title": "trailing 52 weeks"
+     },
+     {
+      "label": "Dividend yield",
+      "value": "0.56% · fraction of price",
+      "title": "dividend per share / price"
+     },
+     {
+      "label": "Dividend per share",
+      "value": "INR 8.50 · per share, INR",
+      "title": "per share, INR"
+     },
+     {
+      "label": "Revenue growth",
+      "value": "+13.30% · quarterly YoY (MRQ)",
+      "title": "quarterly YoY (MRQ)"
+     },
+     {
+      "label": "Earnings growth",
+      "value": "-15.10% · quarterly YoY (MRQ)",
+      "title": "quarterly YoY (MRQ)"
+     },
+     {
+      "label": "Promoter group (exchange filing)",
+      "value": "36.50% · NSE shareholding filing, 2026-06-30",
+      "title": "NSE shareholding filing, 2026-06-30"
+     },
+     {
+      "label": "Institutional holding (exchange filing)",
+      "value": "41.00% · NSE shareholding filing, 2026-06-30",
+      "title": "NSE shareholding filing, 2026-06-30"
+     },
+     {
+      "label": "Market cap",
+      "value": "INR 313.53B"
+     },
+     {
+      "label": "P/E",
+      "value": "61.67"
+     },
+     {
+      "label": "Fwd P/E",
+      "value": "39.51"
+     },
+     {
+      "label": "Price/Book",
+      "value": "9.14"
+     },
+     {
+      "label": "EPS",
+      "value": "24.73"
+     },
+     {
+      "label": "Beta",
+      "value": "0.15"
+     },
+     {
+      "label": "Net margin",
+      "value": "3.98%"
+     },
+     {
+      "label": "Debt/Equity",
+      "value": "0.24"
+     },
+     {
+      "label": "Revenue",
+      "value": "INR 127.98B"
+     },
+     {
+      "label": "52w range",
+      "value": "1,432–2,033"
+     },
+     {
+      "label": "Volume",
+      "value": "739.4K"
+     }
+    ],
+    "conflicts": []
+   }
+  },
+  "anchors": [],
+  "renderedText": " Copy markdownDEEPBLUESTARCO13 sources DEEPweb + structured dataEOD as of 2026-09-23Blue Star (BLUESTARCO) — room-AC demand, margin trend, and valuation analysis against Voltas and LloydBLUESTARCOINR 1,525.00-40.00 (-2.56%)nse_directBelow 52-week high-24.98% · vs 52w high52-week price change (Yahoo)-20.32% · trailing 52 weeksDividend yield0.56% · fraction of priceDividend per shareINR 8.50 · per share, INRRevenue growth+13.30% · quarterly YoY (MRQ)Earnings growth-15.10% · quarterly YoY (MRQ)Promoter group (exchange filing)36.50% · NSE shareholding filing, 2026-06-30Institutional holding (exchange filing)41.00% · NSE shareholding filing, 2026-06-30Market capINR 313.53BP/E61.67Fwd P/E39.51Price/Book9.14EPS24.73Beta0.15Net margin3.98%Debt/Equity0.24RevenueINR 127.98B52w range1,432–2,033Volume739.4KBlue Star Limited (BLUESTARCO) Research BriefCurrent Financial PositionClosing Price: ₹1,525.0 on September 22, 2026, down ₹40.0 (2.56%) from the previous close 6.Market Capitalization: ₹313.53 billion as of September 23, 2026 7.P/E Ratio: 61.67 as of September 23, 2026 7.Forward P/E Ratio: 39.51 as of September 23, 2026 7.Revenue: ₹127.98 billion for the trailing twelve months as of September 23, 2026 7.Net Income: ₹5.09 billion as of September 23, 2026 7.Growth MetricsRevenue Growth: 13.3% year-over-year as of September 23, 2026 7.Earnings Decline: 15.1% year-over-year as of September 23, 2026 7.Profitability MarginsGross Margin: 21.93% as of September 23, 2026 7.Operating Margin: 3.50% as of September 23, 2026 7.Profit Margin: 3.98% as of September 23, 2026 7.Market TrendsA shift in consumer demand for room air conditioners towards energy-efficient and smart technology features is noted. 7.Impact of Market Conditions: Rising oil prices are expected to increase Blue Star's cost structure, particularly transportation and production costs 7.Comparison with CompetitorsSpecific comparative margin metrics for Voltas and Lloyd are not available; all companies are facing operational pressures from rising oil prices 7.Future OutlookStrategic initiatives are underway to combat earnings decline, including the divestment of the MedTech business to focus on core operations 7.Open questions remain regarding room-AC demand forecasts for the next fiscal year and the impacts of geopolitical tensions on operations.Planned Next StepsInvestigate quarterly reports for Voltas and Lloyd to analyze margin and valuation metrics relative to Blue Star.Research industry reports for forecasts on room-AC demand for fiscal year 2026-2027.Analyze sector-specific impacts from geopolitical events on Blue Star and its competitors.---All figures are sourced from the respective corporate filings and market reports as of September 23, 2026, unless otherwise specified.Sources(13)"
+ }
+}

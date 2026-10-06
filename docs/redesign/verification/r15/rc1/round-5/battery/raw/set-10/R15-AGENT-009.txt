@@ -1,0 +1,29 @@
+provider yfinance failed for fundamentals, falling through: Yahoo has no company record for 'SPECTRAA-SM.NS'
+provider yfinance failed for fundamentals, falling through: Yahoo has no company record for 'KHERIAAUTO-SM.NS'
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'SFML.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'IDENTICAL.NS': Too Many Requests. Rate limited. Try after a while.
+provider health: yahoo circuit OPEN for 59s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'PURPLEUTED.NS': Too Many Requests. Rate limited. Try after a while.
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'C2C.NS'
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'AGARWALTUF.NS'
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'APEXECO.NS'
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'RAJPUTANA.NS'
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'AGARWALTUF.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'C2C.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'GANESHIN.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'APEXECO.NS': Too Many Requests. Rate limited. Try after a while.
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'LAMOSAIC.NS'
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'ITTL.NS'
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'ABHAPOWER.NS'
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'RAJPUTANA.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'LAMOSAIC.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'ETML.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'ABHAPOWER.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'ITTL.NS': Too Many Requests. Rate limited. Try after a while.
+tool ok: True
+has skip_details key in tool body: False
+skip_summary: {'missing_field:roe': 1126, 'not_found': 172, 'rate_limited': 196}
+skip_examples len: 5
+tool payload bytes: 26269
+HTTP full skip_details rows: 1494
+HTTP full payload bytes: 109533

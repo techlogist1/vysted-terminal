@@ -1,0 +1,18 @@
+=== CMD: POST/GET/DELETE /workspace for Research: NVDA, Research: RELIANCE.NS, Research: M&M, My Layout (2), ../escape, a/bPOST 'Research: NVDA' -> 200
+GET 'Research: NVDA' -> 200
+DELETE 'Research: NVDA' -> 204
+POST 'Research: RELIANCE.NS' -> 200
+GET 'Research: RELIANCE.NS' -> 200
+DELETE 'Research: RELIANCE.NS' -> 204
+POST 'Research: M&M' -> 200
+GET 'Research: M&M' -> 200
+DELETE 'Research: M&M' -> 204
+POST 'My Layout (2)' -> 200
+GET 'My Layout (2)' -> 200
+DELETE 'My Layout (2)' -> 204
+POST '../escape' -> 200
+GET '../escape' -> 200
+DELETE '../escape' -> 204
+POST 'a/b\\c' -> 200
+GET 'a/b\\c' -> 200
+DELETE 'a/b\\c' -> 204

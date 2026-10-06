@@ -1,0 +1,11 @@
+R15-UI-002: frontend TS/store/component logic — cannot execute the exact original repro without vitest+jsdom or a live GUI (both out of scope for this role: 'never run vitest or pytest suites'; 'No GUI').
+
+Static source check performed instead:
+CMD: grep -n 'loadSymbolIntoChart\|chart-command' src/components/CommandPalette.tsx
+55:import { loadSymbolIntoChart } from "@/lib/host-actions";
+204:            // The always-consumed chart-command channel (opens a chart if none
+207:            loadSymbolIntoChart(item.symbolEntry.symbol, undefined, item.symbolEntry.region);
+394:                  loadSymbolIntoChart(c.symbol, undefined, c.region);
+
+Pinned test that exercises this behavior at runtime: src/components/CommandPalette.test.tsx:217
+VERDICT: ci_pinned

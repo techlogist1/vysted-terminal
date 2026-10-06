@@ -1,8 +1,9 @@
 "use client";
 
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ConfirmButton";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { deleteWorkspace, listWorkspaces, loadWorkspace, saveWorkspace } from "@/lib/workspace";
+import { saveTextArtifact } from "@/lib/export-artifact";
+import {
+  createResearchSpace,
+  deleteWorkspace,
+  exportWorkspace,
+  importWorkspace,
+  listWorkspaces,
+  loadWorkspace,
+  parseWorkspaceFile,
+  saveWorkspace,
+  type SerializedWorkspace,
+} from "@/lib/workspace";
+import { useChartCommandStore } from "@/store/chart-command";
 import { useWorkspaceStore } from "@/store/workspace";
 import { useWorkspaceDialog } from "./workspace-dialog-store";
 
@@ -22,7 +35,8 @@ import { useWorkspaceDialog } from "./workspace-dialog-store";
  * - Save mode: a name field (pre-filled with the active workspace name) →
  *   `saveWorkspace`.
  * - Load mode: the list of saved workspaces fetched from the sidecar; pick one
- *   to `loadWorkspace`, or delete one.
+ *   to `loadWorkspace`, export or delete one, or import a `.vysted-workspace`
+ *   file under a chosen name.
  */
 export function WorkspaceDialog() {
   const mode = useWorkspaceDialog((state) => state.mode);
@@ -36,6 +50,8 @@ export function WorkspaceDialog() {
           <SaveWorkspaceForm onDone={close} />
         ) : mode === "load" ? (
           <LoadWorkspaceList onDone={close} />
+        ) : mode === "research-space" ? (
+          <ResearchSpaceForm onDone={close} />
         ) : null}
       </DialogContent>
     </Dialog>
@@ -69,9 +85,10 @@ function SaveWorkspaceForm({ onDone }: ModeProps) {
   return (
     <form onSubmit={handleSubmit}>
       <DialogHeader>
-        <DialogTitle className="text-charcoal-100 font-serif">Save Workspace</DialogTitle>
-        <DialogDescription className="text-charcoal-400 font-mono text-xs">
-          Saves the current panel layout and the enabled modules.
+        <DialogTitle className="text-charcoal-100">Save Workspace</DialogTitle>
+        <DialogDescription className="text-charcoal-400 text-caption font-mono">
+          Saves the panel layout, the enabled modules and the chart drawings. Portfolios, watchlist,
+          notes and settings are shared by every workspace.
         </DialogDescription>
       </DialogHeader>
       <input
@@ -80,15 +97,66 @@ function SaveWorkspaceForm({ onDone }: ModeProps) {
         onChange={(event) => setName(event.target.value)}
         placeholder="Workspace name"
         aria-label="Workspace name"
-        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 mt-4 w-full rounded-md border px-3 py-2 font-mono text-sm outline-none focus:border-amber-400"
+        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body focus:border-charcoal-500 mt-4 h-8 w-full border px-3 font-mono outline-none"
       />
-      {error ? <p className="mt-2 font-mono text-xs text-red-400">{error}</p> : null}
+      {error ? <p className="text-negative text-caption mt-2 font-mono">{error}</p> : null}
       <div className="mt-4 flex justify-end gap-2">
-        <Button type="button" variant="ghost" size="sm" onClick={onDone} disabled={busy}>
+        <Button type="button" variant="ghost" onClick={onDone} disabled={busy}>
           Cancel
         </Button>
-        <Button type="submit" size="sm" disabled={busy || name.trim() === ""}>
+        <Button type="submit" disabled={busy || name.trim() === ""}>
           {busy ? "Saving…" : "Save"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function ResearchSpaceForm({ onDone }: ModeProps) {
+  // Prefill with the symbol currently loaded in the chart — the most likely
+  // ticker the user wants a dedicated research space for.
+  const activeSymbol = useChartCommandStore((state) => state.activeSymbol);
+  const [symbol, setSymbol] = useState(activeSymbol ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await createResearchSpace(symbol);
+      onDone();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not create the research space.");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <DialogHeader>
+        <DialogTitle className="text-charcoal-100">New Research Space</DialogTitle>
+        <DialogDescription className="text-charcoal-400 text-caption font-mono">
+          Spins up a dedicated cockpit for one ticker — chart, equity overview, the research brief,
+          and notes scoped to it — saved as a workspace you can return to.
+        </DialogDescription>
+      </DialogHeader>
+      <input
+        autoFocus
+        value={symbol}
+        onChange={(event) => setSymbol(event.target.value.toUpperCase())}
+        placeholder="Ticker, e.g. NVDA or RELIANCE"
+        aria-label="Research space ticker"
+        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body focus:border-charcoal-500 mt-4 h-8 w-full border px-3 font-mono outline-none"
+      />
+      {error ? <p className="text-negative text-caption mt-2 font-mono">{error}</p> : null}
+      <div className="mt-4 flex justify-end gap-2">
+        <Button type="button" variant="ghost" onClick={onDone} disabled={busy}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={busy || symbol.trim() === ""}>
+          {busy ? "Creating…" : "Create space"}
         </Button>
       </div>
     </form>
@@ -98,10 +166,23 @@ function SaveWorkspaceForm({ onDone }: ModeProps) {
 function LoadWorkspaceList({ onDone }: ModeProps) {
   const [names, setNames] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fetchFailed, setFetchFailed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [pendingImport, setPendingImport] = useState<{
+    workspace: SerializedWorkspace;
+    name: string;
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const openSave = useWorkspaceDialog((state) => state.openSave);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     let cancelled = false;
+    setNames(null);
+    setError(null);
+    setFetchFailed(false);
     listWorkspaces()
       .then((result) => {
         if (!cancelled) {
@@ -110,14 +191,20 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
       })
       .catch((caught: unknown) => {
         if (!cancelled) {
-          setError(caught instanceof Error ? caught.message : "Could not list workspaces.");
+          setError(
+            `Could not reach the sidecar — ${caught instanceof Error ? caught.message : "unknown error."}`,
+          );
+          setFetchFailed(true);
           setNames([]);
         }
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [retryCount]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  const retryFetch = useCallback(() => setRetryCount((c) => c + 1), []);
 
   async function handleLoad(name: string) {
     setBusy(true);
@@ -144,33 +231,147 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
     }
   }
 
+  async function handleExport(name: string) {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const text = await exportWorkspace(name);
+      const filename = `${name.replace(/[^A-Za-z0-9 _-]/g, "-")}.vysted-workspace`;
+      const result = await saveTextArtifact("workspaces", filename, text);
+      setNotice(result.path ? `Exported to ${result.path}` : `Downloaded ${filename}`);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not export the workspace.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleImportFile(file: File) {
+    setError(null);
+    setNotice(null);
+    try {
+      const workspace = parseWorkspaceFile(await file.text());
+      const name =
+        typeof workspace.name === "string" && workspace.name.trim()
+          ? workspace.name
+          : file.name.replace(/\.[^.]*$/, "");
+      setPendingImport({ workspace, name });
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not read the workspace file.");
+    }
+  }
+
+  async function handleImport(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!pendingImport) {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const saved = await importWorkspace(pendingImport.name, pendingImport.workspace);
+      setNames((current) =>
+        (current ?? []).includes(saved) ? current : [...(current ?? []), saved].sort(),
+      );
+      setPendingImport(null);
+      setNotice(`Imported "${saved}".`);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not import the workspace.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const importReplaces =
+    pendingImport !== null && (names ?? []).includes(pendingImport.name.trim());
+
   return (
     <div>
       <DialogHeader>
-        <DialogTitle className="text-charcoal-100 font-serif">Load Workspace</DialogTitle>
-        <DialogDescription className="text-charcoal-400 font-mono text-xs">
-          Restores a saved panel layout and its enabled modules.
+        <DialogTitle className="text-charcoal-100">Load Workspace</DialogTitle>
+        <DialogDescription className="text-charcoal-400 text-caption font-mono">
+          Restores a saved panel layout, its enabled modules and chart drawings. Your portfolios,
+          watchlist, notes and settings stay as they are.
         </DialogDescription>
       </DialogHeader>
-      {error ? <p className="mt-3 font-mono text-xs text-red-400">{error}</p> : null}
-      <div className="mt-4 flex max-h-72 flex-col gap-1.5 overflow-y-auto">
+      {error ? (
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <p className="text-negative text-caption font-mono">{error}</p>
+          {fetchFailed && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              onClick={retryFetch}
+              className="text-charcoal-400 hover:text-charcoal-200 shrink-0"
+            >
+              Retry
+            </Button>
+          )}
+        </div>
+      ) : null}
+      {notice ? <p className="text-charcoal-400 text-caption mt-3 font-mono">{notice}</p> : null}
+      {pendingImport ? (
+        <form onSubmit={handleImport} className="mt-4 flex items-center gap-2">
+          <input
+            autoFocus
+            value={pendingImport.name}
+            onChange={(event) => setPendingImport({ ...pendingImport, name: event.target.value })}
+            placeholder="Workspace name"
+            aria-label="Imported workspace name"
+            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body focus:border-charcoal-500 h-8 flex-1 border px-3 font-mono outline-none"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setPendingImport(null)}
+            disabled={busy}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" size="sm" disabled={busy || pendingImport.name.trim() === ""}>
+            {importReplaces ? "Replace" : "Import"}
+          </Button>
+        </form>
+      ) : null}
+      <div
+        className={
+          "mt-4 flex max-h-72 flex-col gap-2 overflow-y-auto" /* tokens-ok: workspace-list scroll cap — layout */
+        }
+      >
         {names === null ? (
-          <p className="text-charcoal-400 py-4 text-center font-mono text-xs">Loading…</p>
-        ) : names.length === 0 ? (
-          <p className="text-charcoal-400 py-4 text-center font-mono text-xs">
-            No saved workspaces yet.
-          </p>
+          <p className="text-charcoal-400 text-caption py-4 text-center font-mono">Loading…</p>
+        ) : names.length === 0 && !fetchFailed ? (
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <p className="text-charcoal-400 text-caption font-mono">
+              No saved workspaces yet. Save your current layout first.
+            </p>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                onDone();
+                openSave();
+              }}
+              className="text-charcoal-400 hover:text-charcoal-200 text-caption font-mono"
+            >
+              Save current workspace
+            </Button>
+          </div>
         ) : (
           names.map((name) => (
             <div
               key={name}
-              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between rounded-md border px-3 py-2"
+              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between rounded-none border px-3 py-2"
             >
               <button
                 type="button"
                 onClick={() => handleLoad(name)}
                 disabled={busy}
-                className="text-charcoal-100 flex-1 text-left font-mono text-sm disabled:opacity-50"
+                className="text-charcoal-100 text-body flex-1 text-left font-mono disabled:opacity-50"
               >
                 {name}
               </button>
@@ -178,18 +379,51 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
                 type="button"
                 variant="ghost"
                 size="xs"
-                onClick={() => handleDelete(name)}
+                aria-label={`Export workspace ${name}`}
+                onClick={() => handleExport(name)}
                 disabled={busy}
-                className="text-charcoal-400 hover:text-red-400"
+                className="text-charcoal-400 hover:text-charcoal-200"
+              >
+                Export
+              </Button>
+              <ConfirmButton
+                variant="ghost"
+                size="xs"
+                aria-label={`Delete workspace ${name}`}
+                onConfirm={() => handleDelete(name)}
+                disabled={busy}
+                className="text-charcoal-400 hover:text-negative"
               >
                 Delete
-              </Button>
+              </ConfirmButton>
             </div>
           ))
         )}
       </div>
-      <div className="mt-4 flex justify-end">
-        <Button type="button" variant="ghost" size="sm" onClick={onDone} disabled={busy}>
+      <div className="mt-4 flex justify-between">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={busy}
+        >
+          Import…
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".vysted-workspace,application/json,.json"
+          aria-label="Import workspace file"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) {
+              void handleImportFile(file);
+            }
+            event.target.value = ""; // allow re-importing the same file
+          }}
+        />
+        <Button type="button" variant="ghost" onClick={onDone} disabled={busy}>
           Cancel
         </Button>
       </div>

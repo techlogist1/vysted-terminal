@@ -1,0 +1,42 @@
+{"kind": "delta", "text": "SB"}
+{"kind": "delta", "text": "IN"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " currently"}
+{"kind": "delta", "text": " trading"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "934"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " State"}
+{"kind": "delta", "text": " Bank"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " India"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " set"}
+{"kind": "delta", "text": " up"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " brief"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " deeper"}
+{"kind": "delta", "text": " analysis"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2738, "output_tokens": 42, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,14 @@
+# R15-DATA-092 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:46:23+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'DEFAULT_REGION' src/lib/region.ts | head -3; grep -n 'Defaults to\|number formatting\|resolver' src/components/SettingsPanel.tsx | head -6; grep -n 'R15-DATA-092' src/components/SettingsPanel.test.tsx
+--- output ---
+37:// R10 (E1): India-first default, mirroring the sidecar's `config._DEFAULT_REGION`
+39:export const DEFAULT_REGION: Region = "IN";
+50:    REGIONS.find((r) => r.id === DEFAULT_REGION) ??
+1423:        hint="Number formatting, plus which market's symbol resolver, trading calendar, macro/news providers and screener universe the sidecar uses."
+1427:            sidecar request — not just number formatting. Defaults to
+1429:        <SettingRow label="Region" hint={`Defaults to ${regionConfig(DEFAULT_REGION).label}.`}>
+480:  it("Region & locale states the actual default and what region controls (R15-DATA-092)", () => {
+
+EXIT=0 (0.0s)

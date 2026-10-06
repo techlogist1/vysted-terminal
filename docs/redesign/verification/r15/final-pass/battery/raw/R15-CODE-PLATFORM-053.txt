@@ -1,0 +1,15 @@
+# R15-CODE-PLATFORM-053 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:04+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -rn 'PLATFORM-053' src --include=*.test.*; grep -n 'mixedCurrencies\|concentration' src/modules/portfolio/metrics.ts | head -6
+--- output ---
+src/modules/portfolio/metrics.test.ts:86:    // R15-CODE-PLATFORM-053 (case the fix was not written against): a
+src/modules/portfolio/metrics.test.ts:108:    // R15-DATA-042 / R15-CODE-PLATFORM-053: weight and concentration are a
+62:   * Sum of resolved market values. HONEST ONLY when {@link mixedCurrencies}
+78:   * Largest single-position weight (0–1) — a basic concentration metric.
+79:   * `null` when {@link mixedCurrencies} — it would be computed from
+83:  concentration: number | null;
+91:  mixedCurrencies: boolean;
+154:  const mixedCurrencies = byCurrency.length > 1;
+
+EXIT=0 (0.0s)

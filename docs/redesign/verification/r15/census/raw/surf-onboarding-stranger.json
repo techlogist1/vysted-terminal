@@ -1,0 +1,62 @@
+[
+ {
+  "raw_id": "SURF-ONBOARDING-STRANGER-1",
+  "title": "Onboarding's headline path certifies any string as an OpenRouter key, says 'OpenRouter is connected - the agent and deep research are live', switches the default provider to it and hides the key banner; the first message then 401s",
+  "severity": "high",
+  "area": "ui",
+  "subsystem": "onboarding-flow / llm-key-validation",
+  "repro": "Clean profile, keyless. Accept TOS -> 'Add a key' -> paste 'sk-or-v1-000...notarealkey' -> 'Save & continue'. POST /llm/keys/validate {provider:openrouter} -> {\"ok\":true}; key written to keychain; defaultProvider=openrouter, model=deepseek/deepseek-v4-flash; DoneStep 'You're set - OpenRouter is connected - the agent and deep research are live.'; banner hidden (openrouter: configured). First agent message -> error code=auth 'The OpenRouter API key was rejected - check it in Settings.'",
+  "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/20-onboarding-replay.json (T2, T2_after_close); docs/redesign/verification/r15/surface/onboarding-stranger/http-log.jsonl K02; docs/redesign/verification/r15/surface/onboarding-stranger/A3-fake-openrouter-key-first-message.stdout.txt; src/components/OnboardingFlow.tsx:343-359, :676-677; sidecar/services/llm/openai.py:842-849; curl with a fake bearer: https://openrouter.ai/api/v1/models = 200, https://openrouter.ai/api/v1/key = 401 'User not found.'",
+  "notes": "False success on the product's primary first-run path (tagged 'most power', primary button): validate_key probes client.models.list(), and OpenRouter's /models is unauthenticated, so the probe cannot fail on a bad key. Consequence: a typo'd/revoked key is certified, the working keyless local default is REPLACED by a dead lane, and the banner that would point the user back to Settings disappears - every message then fails until the user connects the 401 to onboarding's 'live' claim. Same root as COD-llm-adapters-2-4 (mechanism) and SURF-SETTINGS-PLUGINS-1 (Settings instance) - merge under one root in the register; this is the onboarding instance. Smallest fix: validate OpenRouter against an auth-required endpoint (GET /api/v1/key returns 401 for a bad key, verified) in openai.py validate_key for provider_id=='openrouter'."
+ },
+ {
+  "raw_id": "SURF-ONBOARDING-STRANGER-2",
+  "title": "First-run copy promises keyless 'web research runs right now' in three places, but no web-research surface exists without a model - the only path is the agent, which is exactly what is not set up",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "onboarding-flow / chat keyless gate",
+  "repro": "Welcome step reads 'It already works - no key, no account. Live quotes, charts, news, screeners and web research run right now.'; Skip-path DoneStep and the composer's no-model status line repeat 'web research already work without one'. Look for a keyless web-research surface: the sidecar exposes only GET /search/status and /search/searxng/{status,setup,teardown} (no query route); the brief panel is populated only by the agent's publish_brief host action; web_search is an agent tool. On a machine without a running Ollama model the composer send re-opens onboarding instead.",
+  "evidence": "src/components/OnboardingFlow.tsx:250-252, :680; src/modules/chat/ChatSidebar.tsx:797-805; sidecar/routers/search_status.py:20; sidecar/routers/search_tiers.py:27-42; src/lib/host-actions.ts:1123 (sole useBriefStore.publish caller); docs/redesign/verification/r15/surface/onboarding-stranger/A4-donestep-research-nvda-qwen3.jsonl (web research only happens inside an agent turn)",
+  "notes": "Honest-UX: the claim is true only when a local model is already installed and running (then it is the agent doing it, 7-8 min per run on the recommended model). For the stranger the welcome is written for - no key, no model - quotes/charts/news/screeners do work (http-log C01-C08, S02) but web research does not, and the composer's own fallback message ('opening setup... web research already work without one') sends them in a loop back to the flow that made the claim. COD-frontend-panels-agent-shell-11 notes the banner/flow contradiction; this is the claim itself being false. Smallest fix: drop 'web research' from the three keyless claims (or add a real keyless search surface)."
+ },
+ {
+  "raw_id": "SURF-ONBOARDING-STRANGER-3",
+  "title": "First-run privacy claims are false: 'Nothing leaves this computer except the model calls you authorize', banner 'nothing leaves this machine', local path 'fully private... it's yours and offline' - keyless data and research send tickers and search queries to third parties",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "onboarding-flow / onboarding-banner",
+  "repro": "Keyless clean profile, local model chosen in onboarding ('fully private... offline'). Ask the DoneStep's suggested 'research NVDA': the research tool pulls 4 data sources (price provider yfinance) and runs 'searching the web for NVIDIA CORP' -> 6 web sources (cnn.com, finance.yahoo.com, cnbc.com, tradingview.com, nasdaq.com, seekingalpha.com). Every quote/chart/news panel likewise fetches from Yahoo/NSE/BSE/news feeds with the user's tickers.",
+  "evidence": "src/components/OnboardingFlow.tsx:242-243, :270; src/components/OnboardingBanner.tsx:50-52; docs/redesign/verification/r15/surface/onboarding-stranger/A4-donestep-research-nvda-qwen3.jsonl (research_step 'searching the web', publish_brief.sources, structured.price.provider=yfinance); docs/redesign/verification/r15/surface/onboarding-stranger/http-log.jsonl B01 (/health providers: yfinance/nse/bse/openbb), C01-C08",
+  "notes": "For a local-first/BYOK product the privacy sentence is part of the promise, and it is shown on the first two screens every user sees. The watchlist, portfolio tickers and research questions a user types do leave the machine (to market-data providers and web search engines), with or without a model. Not a leak bug - the data flows are inherent - the defect is the absolute claim. Smallest fix: reword to what is true ('your keys, notes and portfolio stay on this machine; market data and web searches go to public providers')."
+ },
+ {
+  "raw_id": "SURF-ONBOARDING-STRANGER-4",
+  "title": "The first-launch TOS every user must accept still describes the removed trading product (live trading venues, broker orders, per-broker live mode, kill switch) and carries none of the disclosures the remaining product needs",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "safety-disclaimer-flow (first-launch TOS)",
+  "repro": "Clean profile first launch: the blocking dialog reads 'Please review the operating terms before connecting a broker. Vysted Terminal connects to live trading venues using credentials you supply... All orders sent to your broker are your own... Live trading mode requires per-broker disclaimer acknowledgment... A kill switch (Cmd/Ctrl+Shift+K) halts all order routing globally' -> 'I understand - continue'. No sentence says market data can be delayed/incomplete or that AI-generated research can be wrong.",
+  "evidence": "src/modules/safety/DisclaimerFlow.tsx:37-45 (TOS_BODY), :94 (description), :228-230 (mounted for every user via src/app/page.tsx:289); docs/redesign/verification/r15/surface/onboarding-stranger/20-onboarding-replay.json T1_before_ack.tosText; docs/redesign/verification/r15/surface/onboarding-stranger/A4-donestep-research-nvda-qwen3.stdout.txt (local model invents 'Goldman... Sansera Engineering (a supplier to NVIDIA)')",
+  "notes": "Not removed_with_feature: the TOS is the shared first-launch gate for every user (it also sequences the onboarding flow, OnboardingFlow.tsx:124), so the 23 Sep trading removal does not delete it - it must be REWRITTEN in that batch or the product ships with its only legal text describing a feature that does not exist. The kill-switch sentence alone is already filed (COD-rust-core-3 / INT-blueprint-192-1); this covers the whole body plus the missing data-accuracy and AI-output disclosures that a research/data product's only acknowledgement should carry (A4 shows why). Smallest fix: replace TOS_BODY with research/data-terminal terms (not advice; data may be delayed or wrong; AI output can be wrong; licence line) in the removal batch."
+ },
+ {
+  "raw_id": "SURF-ONBOARDING-STRANGER-5",
+  "title": "A renamed stock cannot be found by its old ticker or name: 'zomato'/'ZOMATO' -> 'No instrument matched' although the NSE rename lane holds ZOMATO->ETERNAL, because the lane only rewrites symbols the current master still lists; the keyless agent then tells the user the stock is not covered",
+  "severity": "high",
+  "area": "data",
+  "subsystem": "symbol-resolver (NSE symbol-change lane)",
+  "repro": "Clean profile (rename map fetched today: data_cache key nse_symbol_change:20260923 contains ZOMATO; NSE row 'ETERNAL LIMITED,ZOMATO,ETERNAL,09-APR-2025'). GET /resolve?q=zomato&region=IN -> ok:false 'No instrument matched'; q=ZOMATO -> same; /resolve/autocomplete?q=ZOMATO -> []; q='Zomato Ltd' -> disambiguation led by 'HMT Ltd'; q=eternal -> ETERNAL (works). /quotes/ZOMATO.NS -> 502 \"yfinance quote failed for 'ZOMATO.NS': 'PriceHistory' object has no attribute '_dividends'\". Keyless agent (default ollama qwen2.5:7b): 'how is Zomato stock doing today?' -> resolve_symbol('Zomato') -> 'I couldn't find Zomato in our database... listed on an exchange we don't have coverage for yet.'",
+  "evidence": "sidecar/services/symbol_resolver.py:673 (_annotate_renamed_symbols wraps _resolve_masters output only), :782-800 (_rename_instrument -> nse_symbol_change.lookup_current(inst.symbol) on master hits); sidecar/services/nse_symbol_change.py:323-336; sidecar/services/resolver_masters/nse_instruments.json (2,675 rows: ETERNAL present, ZOMATO absent); docs/redesign/verification/r15/surface/onboarding-stranger/http-log.jsonl C09, C10, R01-R05; docs/redesign/verification/r15/surface/onboarding-stranger/A1-keyless-default-qwen25.stdout.txt; SURFACE/seat-stranger/transcript.md ('zomato' no match, 19 Sep)",
+  "notes": "The R12 lane's stated purpose is 'answer the CURRENT symbol, never stale', but lookup_current is only consulted for instruments the master already matched - and a refreshed master by definition no longer carries the retired symbol - so the lane can only ever fire while the master is stale, and never for the common case of a user typing the old name/ticker. Zomato->Eternal is among the most-searched Indian renames; every rename in symbolchange.csv behaves the same. The wrong answer is confident ('not covered'), not an honest miss, and the 502 text leaks yfinance internals. Distinct from COD-resolver-1 (BSE collision when the lane DOES fire) and COD-resolver-3 (autocomplete skips the lane) and the per-company former_name gaps (DAT-P10-1, DAT-P12-4). Smallest fix: in resolve(), when the master finds nothing (or low confidence) and nse_symbol_change.lookup_current(query) returns a rename, re-resolve the renamed_to symbol and annotate; same for autocomplete."
+ },
+ {
+  "raw_id": "SURF-ONBOARDING-STRANGER-6",
+  "title": "First-launch cockpit ignores the India-first default region: region defaults to IN but the chart opens SPY and the watchlist is SPY/QQQ/BTC/ETH/NVDA/AAPL - a stranger's first data screen has no Indian instrument",
+  "severity": "low",
+  "area": "ui",
+  "subsystem": "default-layout / symbols store",
+  "repro": "Clean profile first launch: default layout places chart + watchlist; ChartPanel initial symbol 'SPY'; watchlist entries = DEFAULT_SYMBOLS [SPY, QQQ, BTC/USDT, ETH/USDT, NVDA, AAPL]; settings region = 'IN' (news and screener default to India).",
+  "evidence": "src/lib/region.ts:37-39 ('India-first default'); src/modules/chart/ChartPanel.tsx:80; src/store/symbols.ts:21-27, :43; src/config/default-layout.ts:31-57; docs/redesign/verification/r15/surface/onboarding-stranger/http-log.jsonl C01-C03 vs C05-C08",
+  "notes": "Internal inconsistency rather than taste: R10 made the product region-first (news, screener universe, formatting follow IN) but the two panels a stranger sees first were never switched, so the first screen contradicts the region the app itself chose. Smallest fix: derive the chart default + watchlist seed from the region (IN -> e.g. NIFTY 50 index/RELIANCE/TCS/HDFCBANK; US -> current set)."
+ }
+]

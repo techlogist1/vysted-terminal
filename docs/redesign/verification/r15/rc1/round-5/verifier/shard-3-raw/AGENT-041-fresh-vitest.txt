@@ -1,0 +1,48 @@
+# AGENT-041 fresh-case scratch vitest; src copied from worktree HEAD 633f844071d972b337f4c3526d86555c80df0568; cmd: vitest run --reporter=verbose src/store/vs3-fresh.test.ts
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs3-vitest
+ ✓ src/store/vs3-fresh.test.ts > vs3 fresh AGENT-041 > A: an accepted write_note REPLACE on a symbol note is undone to the original text 2ms
+ ✓ src/store/vs3-fresh.test.ts > vs3 fresh AGENT-041 > B: an accepted portfolio_update_position is undone to the prior lot 24ms
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  16:53:59
+   Duration  1.06s (transform 229ms, setup 79ms, import 260ms, tests 27ms, environment 590ms)
+
+## test source (appended part)
+describe("vs3 fresh AGENT-041", () => {
+  beforeEach(() => resetProposedChangesStoreForTests());
+
+  it("A: an accepted write_note REPLACE on a symbol note is undone to the original text", async () => {
+    useNotesStore.getState().setSymbolNote("INFY", "original thesis: margin recovery");
+    const { id } = useProposedChangesStore.getState().enqueue({
+      toolCallId: "t1", name: "write_note", input: { scope: "INFY", mode: "replace", text: "agent rewrite" }, batchId: "b1",
+    });
+    expect(await useProposedChangesStore.getState().accept(id)).toBe("applied");
+    expect(useNotesStore.getState().noteFor("INFY")).toBe("agent rewrite");
+    useProposedChangesStore.getState().undo(id);
+    expect(useNotesStore.getState().noteFor("INFY")).toBe("original thesis: margin recovery");
+    expect(useProposedChangesStore.getState().changes.find((c) => c.id === id)?.status).toBe("undone");
+  });
+
+  it("B: an accepted portfolio_update_position is undone to the prior lot", async () => {
+    const pid = "p1";
+    usePortfoliosStore.getState().setAll(
+      [{ id: pid, name: "Main", holdings: [
+        { id: "h1", symbol: "TCS", quantity: 10, costBasis: 3500, assetClass: "equity" },
+        { id: "h2", symbol: "HDFCBANK", quantity: 5, costBasis: 1600, assetClass: "equity" },
+      ] }],
+      pid,
+    );
+    const { id } = useProposedChangesStore.getState().enqueue({
+      toolCallId: "t2", name: "portfolio_update_position", input: { symbol: "TCS", quantity: 25 }, batchId: "b2",
+    });
+    expect(await useProposedChangesStore.getState().accept(id)).toBe("applied");
+    const after = usePortfoliosStore.getState().portfolios[0].holdings.find((h) => h.symbol === "TCS");
+    expect(after?.quantity).toBe(25);
+    useProposedChangesStore.getState().undo(id);
+    const holdings = usePortfoliosStore.getState().portfolios[0].holdings;
+    expect(holdings.map((h) => [h.id, h.symbol, h.quantity, h.costBasis])).toEqual([
+      ["h1", "TCS", 10, 3500],
+      ["h2", "HDFCBANK", 5, 1600],
+    ]);
+  });
+});

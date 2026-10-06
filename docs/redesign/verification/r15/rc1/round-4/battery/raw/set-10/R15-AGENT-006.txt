@@ -1,0 +1,16 @@
+Repro (design, per register — no funded Gemini key this shard either): grep sidecar/services/llm/gemini.py + models/llm.py at 1006c6da.
+
+$ grep -n "thought_signature" sidecar/services/llm/gemini.py sidecar/models/llm.py
+models/llm.py:157:    #: base64 ``thought_signature``). Runtime-internal: never on the SSE wire.
+gemini.py:86:  signature = (tc.get("provider_meta") or {}).get("thought_signature")
+gemini.py:88:      part["thought_signature"] = base64.b64decode(signature)
+gemini.py:177: signature = getattr(part, "thought_signature", None)
+gemini.py:183:    {"thought_signature": base64.b64encode(signature).decode()}
+
+Read: on receipt (line 177) the adapter now reads Part.thought_signature and stores it
+base64-encoded on the runtime's tool-call metadata (provider_meta); on replay (lines 86-88) the
+rebuilt function_call part restores it via base64.b64decode. LLMToolUseEvent's metadata slot
+(models/llm.py:157, "provider_meta") carries it, explicitly marked internal/never-SSE.
+
+Verdict: holds (code-verified; live Gemini-3 multi-round confirmation would need a funded key,
+not available this shard — matches how the register itself marked this "NOT TESTED live").

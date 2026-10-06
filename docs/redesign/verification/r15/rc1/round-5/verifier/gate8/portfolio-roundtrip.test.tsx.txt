@@ -1,0 +1,66 @@
+// SCRATCH rc1-verifier round 5: tracked-portfolio round trip against own sidecar :52312.
+import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { writeFileSync } from "fs";
+const captured: { filename: string; content: string }[] = [];
+vi.mock("@/lib/export-artifact", async (orig) => ({
+  ...(await orig<typeof import("@/lib/export-artifact")>()),
+  saveTextArtifact: vi.fn(async (sub: string, filename: string, content: string) => {
+    captured.push({ filename: `${sub}/${filename}`, content });
+    return { path: `/scratch/${filename}`, fellBack: false };
+  }),
+}));
+import { PortfolioPanel } from "@/modules/portfolio/PortfolioPanel";
+import { usePortfoliosStore } from "@/store/portfolios";
+import { serializeWorkspace } from "@/lib/workspace";
+import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
+const BASE = "http://127.0.0.1:52312";
+const OUT = process.env.V_OUT!;
+const log: Record<string, unknown> = {};
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const save = () => writeFileSync(OUT, JSON.stringify(log, null, 1));
+async function persist() {
+  const r = await fetch(`${BASE}/workspace`, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: AUTOSAVE_LAYOUT_NAME, workspace: serializeWorkspace(AUTOSAVE_LAYOUT_NAME) }) });
+  return r.status;
+}
+async function readBackHoldings() {
+  const ws = (await (await fetch(`${BASE}/workspace/${AUTOSAVE_LAYOUT_NAME}`)).json()) as any;
+  const w = ws.workspace ?? ws;
+  const pf = w.portfolios.list.find((p: any) => p.id === w.portfolios.activeId);
+  return pf.holdings.map((h: any) => ({ symbol: h.symbol, quantity: h.quantity, costBasis: h.costBasis }));
+}
+describe("verifier portfolio round trip", () => {
+  it("add -> P&L vs live quote -> CSV -> delete", async () => {
+    window.history.replaceState(null, "", "/?sidecar-port=52312");
+    usePortfoliosStore.setState({ portfolios: [{ id: "default", name: "Portfolio", holdings: [] }], activeId: "default" });
+    const hid = usePortfoliosStore.getState().addHolding("default", { symbol: "MSFT", quantity: 7, costBasis: 312.5, assetClass: "equity" });
+    log.added = { hid, holdings: usePortfoliosStore.getState().portfolios[0].holdings };
+    render(<PortfolioPanel />);
+    let csv = "";
+    for (let i = 0; i < 60 && !csv; i++) {
+      captured.length = 0;
+      await act(async () => { fireEvent.click(screen.getByLabelText("Export portfolio to CSV")); });
+      await act(async () => { await sleep(1500); });
+      const c = captured.at(-1);
+      if (c) { const row = c.content.split("\n")[1] ?? ""; if (row.split(",")[5]) { csv = c.content; log.exportFile = c.filename; } }
+    }
+    log.csv = csv; save();
+    const q = await (await fetch(`${BASE}/quotes/MSFT?asset_class=equity`)).json();
+    log.liveQuote = { price: q.price, currency: q.currency, ts: q.timestamp ?? q.as_of };
+    const cells = csv.split("\n")[1].split(",");
+    const price = Number(cells[5]); const pnl = Number(cells[7]);
+    log.check = { csvPrice: price, csvPnl: pnl, expectedPnlFromCsvPrice: (price - 312.5) * 7, livePriceDelta: Math.abs(price - q.price) };
+    // no dockview in jsdom: a stub layout (layout is not under test)
+    useWorkspaceStore.setState({ dockviewApi: { toJSON: () => ({ grid: {}, panels: {} }) } as never });
+    log.persistAfterAdd = await persist();
+    log.readBackAfterAdd = await readBackHoldings();
+    usePortfoliosStore.getState().removeHolding("default", hid!);
+    log.persistAfterDelete = await persist();
+    log.readBackAfterDelete = await readBackHoldings();
+    save();
+    expect(Math.abs(pnl - (price - 312.5) * 7)).toBeLessThan(0.01);
+    expect(log.readBackAfterAdd).toEqual([{ symbol: "MSFT", quantity: 7, costBasis: 312.5 }]);
+    expect(log.readBackAfterDelete).toEqual([]);
+  });
+});

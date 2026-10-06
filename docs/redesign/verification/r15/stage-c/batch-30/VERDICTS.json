@@ -1,0 +1,21 @@
+{
+  "batch": "batch-30",
+  "verifier": "claude-opus-5-5 (fresh context)",
+  "date": "2026-09-27",
+  "merge_target": "worktree-agent-batch-30-int@67c564300ad98722560f60bbee7eb5183c492383",
+  "chain": "pnpm ci-local CI_EXIT=0 (run 2, head 67c56430; 3792 passed, 1 skipped) + smoke SMOKE_EXIT=0; verifier re-ran the focused files: 114 passed",
+  "certified": ["R15-LEAD-050", "R15-LEAD-051"],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-DATA-030",
+      "reason": "The over-match half holds: the literal repros, the round-4 acceptance, all held-back cases, and live /news?symbols=AI|IT|ON (US) with 0 alias-tagged region items. The under-match half regressed on a fresh class case. COMMON_WORD_TICKERS makes the ticker alias count only in $/EXCH: forms, and it includes companies that the press routinely writes by ticker. Their on-entity headlines lose their tag. Real Google News titles through build_aliases+_tag_symbols, tagged at base 19a70e80 vs head 67c56430: KEY 61->9 ('KeyCorp (KEY) Stock Could Be 47% Undervalued'), LOW 82->15 (\"Lowe's (LOW) Stock Looks Reasonable\", 'LOW Stock In Focus As Lowe's Launches Drone Delivery', 'Lowe's begins testing drone delivery (LOW:NYSE)'), COIN 27->11 ('Why Coinbase (COIN) Stock Is Trading Up Today'), ICE 100->85 ('ICE Launches Private Credit Reference Data Service'), WELL 98->96, IT 98->97 ('IT Stock Rises As RBC Lifts Price Target'). This conflicts with the plan's own exclusion rule for tickers the company is written as (ICE, DOW, LOW, KEY). It also skips the audit fix_shape's case-sensitive upper-case ticker match for word tickers: '(KEY)' and 'LOW Stock' are unambiguous, and '(LOW:NYSE)' is not recognised as anchored. A fix needs a narrower stoplist (acronyms and ALL-CAPS-prone words only) or a case-sensitive '(TICKER)', upper-case-token and 'TICKER:EXCH' anchor for non-acronym word tickers. Pin it with KeyCorp (KEY) and 'LOW Stock In Focus' tagged."
+    },
+    {
+      "id": "R15-LEAD-052",
+      "reason": "The literal repro holds: 'ALL EYES ON THE FED AS RATE DECISION LOOMS' is irrelevant for ALL (base True). The fresh case 'ALL IN ON AI: WHY INVESTORS KEEP BUYING' is also dropped, and anchored 'NYSE: ALL' is kept. But the fix_shape asks that a common-word ticker still count when it sits in an otherwise-mixed-case headline, and the shipped rule drops every non-anchored mention. That regresses real on-entity web and news evidence. row_relevant on real Google News titles, base -> head: ICE 99->84 ('ICE Launches Private Credit Reference Data Service', 'ICE and Ornn to Launch GPU Compute Futures Contracts', 'ICE Invests in OKX at $25 Billion'), KEY 95->90 ('KEY Q2 Earnings Beat as NII & Fee Income Grow'), LOW 100->98 ('3 Reasons to Avoid LOW and 1 Stock to Buy Instead'). All of these are mixed-case headlines that write the ticker upper-case."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": []
+}

@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+Reliance Industries Limited has a P/E of 22.75.
+
+=== ok · 82.9s · events {'heartbeat': 6, 'tool_use': 2, 'tool_result': 2, 'delta': 14, 'done': 1} · usage in=5926 out=15 · est $0.00000 · llama3.1:8b

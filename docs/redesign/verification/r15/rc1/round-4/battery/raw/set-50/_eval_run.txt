@@ -1,0 +1,5 @@
+price-aapl #0 68.9s PASS
+ask-chart-indicator #0 53.6s PASS
+missing-param-portfolio #0 41.9s FAIL forbidden tool called: portfolio_add_position; answer does not match '(?i)\\?|\\bwhich\\b|please (provide|tell|share|specify|confirm|let me know)'
+sec-filings-aapl #0 106.9s FAIL sec_filings_list called with invalid args: invalid arguments for sec_filings_list: '10-K, 10-Q' is not one of ['10-K', '10-Q', '8-K', 'DEF 14A', '3', '4', '5']; call again with valid args
+{"lane": "ollama", "model": "llama3.1:8b", "k": 1, "scenarios": 4, "pass_hat_k": 0.5, "pass_hat_1": 0.5, "incomplete": []}

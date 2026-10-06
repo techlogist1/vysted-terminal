@@ -1,0 +1,26 @@
+=== R15-RESEARCH-024: Citation now carries domain + published_at end to end (base.py normalize_results_to_citations) ===
+cmd: sidecar/.venv/bin/python3 <script> -- normalize_results_to_citations([SearchResult(published_at=..., url=reuters.com/...)])
+domain: reuters.com published_at: 2026-07-17T10:05:00
+
+code (services/search/base.py:167-185):
+def normalize_results_to_citations(
+    results: list[SearchResult], *, limit: int = DEFAULT_CITATION_LIMIT
+) -> list[Citation]:
+    """Promote the top-N ``results`` to ``{url, title, excerpt}`` citations.
+
+    The excerpt is the result's snippet (the inline-quotable span); a
+    backend that supplies no snippet still yields a citation with an empty
+    excerpt so the source is never silently dropped.
+    """
+    return [
+        Citation(
+            url=result.url,
+            title=result.title,
+            excerpt=result.snippet or "",
+            domain=bare_host(result.url),
+            published_at=result.published_at,
+        )
+        for result in results[: max(limit, 0)]
+    ]
+
+VERDICT: holds (backend half only; frontend Sources-rail render needs GUI, out of battery scope). domain='reuters.com' published_at='2026-07-17T10:05:00' -- matches the register's fixed shape.

@@ -1,0 +1,14 @@
+[
+  {
+    "key": "rc1-drive-panels-layouts:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "title": "SEC Insider tab: filing-level rows render every economic field blank and colour the absent Direction as green (acquired)",
+    "repro": "GET /sec/insider/AAPL (own sidecar :52323 and shared :52152, identical) -> 9 transactions, every row has reporter_name:\"\", reporter_cik:\"\", direction:null, shares:null, price_per_share:null, transaction_value:null, transaction_code:\"\". src/modules/sec/InsiderTradingTable.tsx:62-70 renders the Direction cell as <span className={cn(\"capitalize\", t.direction===\"disposed\" ? \"text-negative\" : \"text-positive\")}>{t.direction}</span> — for direction=null this is an EMPTY span styled text-positive (green), i.e. a row with zero trade detail displays as if it were a 'buy' with no visible text explaining why. Reporter/Shares/Price/Value columns are also blank for every row with no 'not disclosed by this filing' label.",
+    "evidence_file": "docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/06-sec-insider-aapl.json",
+    "suspected_files": [
+      "src/modules/sec/InsiderTradingTable.tsx:62-70",
+      "sidecar/services/sec_filings_provider.py:433-524"
+    ]
+  }
+]

@@ -1,0 +1,15 @@
+# R15-DATA-099 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:06+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" -c "
+from services.macro import fred_provider as f
+for c in ['D','W','BW','M','Q','SA','A']: print(c,'->',f._coerce_freq(c))" 2>&1 | grep -v Warning
+--- output ---
+D -> daily
+W -> weekly
+BW -> other
+M -> monthly
+Q -> quarterly
+SA -> other
+A -> annual
+
+EXIT=0 (0.2s)

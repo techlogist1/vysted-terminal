@@ -1,0 +1,5 @@
+ci_pinned: repro is a frontend store/workspace.ts scenario (vitest only); battery never runs suites. Existence check at ace7dd76:
+COMMAND: grep -nE 'R15-LIFECYCLE-002' src/lib/workspace.test.ts
+1063:  it("restores holdings, notes and watchlist even when the saved layout has an unregistered panel (R15-LIFECYCLE-002)", async () => {
+1146:  it("strips an unregistered panel from the saved layout and restores the rest, with every data slice and no autosave (R15-LIFECYCLE-002)", async () => {
+EXIT: 0

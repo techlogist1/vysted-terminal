@@ -1,0 +1,10 @@
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+probe: pinned-test citation (no vitest/pytest suite execution per harness rule)
+
+=== sidecar/tests/test_search_redirect_ssrf.py ===
+1:"""R15-DATA-045: every redirect hop is re-checked by the SSRF guard, in every lane.
+65:def test_fetch_page_blocks_a_public_page_that_redirects_to_loopback(redirect_server) -> None:
+78:def test_pdf_lane_blocks_the_same_redirect(redirect_server) -> None:
+90:def test_impersonated_lane_blocks_the_same_redirect(redirect_server) -> None:
+98:def test_an_allowed_redirect_is_still_followed(redirect_server) -> None:
+

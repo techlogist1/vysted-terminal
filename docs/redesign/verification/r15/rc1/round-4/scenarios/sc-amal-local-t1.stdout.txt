@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+The current price of AMAL is ₹674.4.
+
+=== ok · 38.0s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 12, 'done': 1} · usage in=4613 out=13 · est $0.00000 · llama3.1:8b

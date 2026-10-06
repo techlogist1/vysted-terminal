@@ -1,0 +1,16 @@
+=== grep audit-design in package.json + workflows ===
+package.json:10:    "lint": "eslint . && node scripts/audit-design-tokens.mjs",
+=== run audit-design-tokens.mjs directly ===
+design-token audit clean (372 files)
+=== negative case: inject gap-1.5 px-[7px] text-[12px] ===
+src/modules/research/brief-blocks.tsx:1  off-grid step  gap-1.5
+src/modules/research/brief-blocks.tsx:1  arbitrary value  px-[7px]
+src/modules/research/brief-blocks.tsx:1  arbitrary value  text-[12px]
+
+— per-file —
+   3  src/modules/research/brief-blocks.tsx
+
+3 violation(s) of R9_DESIGN_SYSTEM.md
+exit code: 0
+1
+(exit code recorded above: 1)

@@ -17,14 +17,16 @@ import asyncio
 from collections.abc import AsyncIterator
 from typing import Any
 
+import config
 from models.agent import AgentContextSnapshot
 from models.llm import (
     LLMDeltaEvent,
     LLMDoneEvent,
     LLMMessage,
+    LLMResearchStepEvent,
     LLMToolUseEvent,
 )
-from services import agent_runtime
+from services import agent_runtime, agent_tools
 from services.agent_tools.schemas import anthropic_tools, gemini_tools, openai_tools
 from services.llm.base import LLMProvider, LLMStreamEvent
 
@@ -121,6 +123,133 @@ def test_copilot_tool_loop_runs_end_to_end(monkeypatch) -> None:
 
     # (5) the context preamble rendered the deixis line with the focused symbol.
     assert any(m.role == "system" and "AAPL" in m.content for m in second)
+
+
+class _ResearchProvider(LLMProvider):
+    """Round 1: call a long research tool. Round 2: answer from its result."""
+
+    def __init__(self) -> None:
+        self.n = 0
+
+    async def stream_chat(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        api_key: str | None = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[LLMStreamEvent]:
+        self.n += 1
+        if self.n == 1:
+            yield LLMToolUseEvent(tool_call_id="tc1", name="research", input={"query": "x"})
+            yield LLMDoneEvent()
+        else:
+            yield LLMDeltaEvent(text="here is the brief")
+            yield LLMDoneEvent()
+
+    async def validate_key(self, api_key: str | None = None) -> bool:
+        return True
+
+
+def test_research_steps_stream_live_during_a_tool_round(monkeypatch) -> None:
+    """Track A: a tool that emits ResearchSteps via the runtime step-sink
+    surfaces them as live ``research_step`` events INTERLEAVED into the stream —
+    before the terminal ``done`` — so a long research round is no longer silent.
+    """
+    from services.research.models import ResearchStep
+
+    agent_runtime.reload()
+
+    async def _emitting_tool(args: dict[str, Any]) -> dict[str, Any]:
+        # The runtime publishes a per-dispatch sink; the tool forwards its steps.
+        sink = config.get_step_sink()
+        assert sink is not None
+        sink(ResearchStep("plan", "decomposed into 2 questions"))
+        sink(ResearchStep("search", "searched the web", latency_ms=42))
+        sink(ResearchStep("synthesize", "wrote the brief"))
+        return {"ok": True, "summary": "fake brief"}
+
+    # Override the real research tool for this round; reset restores it.
+    agent_tools.register_tool("research", _emitting_tool)
+    fake = _ResearchProvider()
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda _pid, base_url=None: fake)
+
+    try:
+        events = asyncio.run(
+            _collect(agent_runtime.invoke_agent("copilot", "research x", api_key="x"))
+        )
+    finally:
+        agent_tools.reset_for_tests()
+
+    steps = [e for e in events if isinstance(e, LLMResearchStepEvent)]
+    # (1) all three steps streamed, in order, with the right kinds + indices.
+    assert [s.step_kind for s in steps] == ["plan", "search", "synthesize"]
+    assert [s.index for s in steps] == [1, 2, 3]
+    assert steps[1].latency_ms == 42
+    # (2) each carries the originating tool + the streamed (runtime-minted)
+    # tool_call_id (UI grouping).
+    call_id = next(e.tool_call_id for e in events if isinstance(e, LLMToolUseEvent))
+    assert all(s.tool == "research" and s.tool_call_id == call_id for s in steps)
+    # (3) they interleave BEFORE the terminal done (not after the run finishes).
+    kinds = [type(e).__name__ for e in events]
+    assert kinds.index("LLMResearchStepEvent") < kinds.index("LLMDoneEvent")
+    # (4) the tool result still fed back so the model could answer.
+    text = "".join(e.text for e in events if isinstance(e, LLMDeltaEvent))
+    assert "brief" in text
+
+
+class _CapturingProvider(LLMProvider):
+    """Answers immediately and records the kwargs (incl. the tool_ids) it was sent."""
+
+    def __init__(self) -> None:
+        self.kwargs: dict[str, Any] | None = None
+
+    async def stream_chat(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        api_key: str | None = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[LLMStreamEvent]:
+        self.kwargs = dict(kwargs)
+        yield LLMDeltaEvent(text="ok")
+        yield LLMDoneEvent()
+
+    async def validate_key(self, api_key: str | None = None) -> bool:
+        return True
+
+
+def _tool_ids_for(monkeypatch, prompt: str) -> list[str]:
+    agent_runtime.reload()
+    fake = _CapturingProvider()
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda _pid, base_url=None: fake)
+    asyncio.run(_collect(agent_runtime.invoke_agent("copilot", prompt, api_key="x", mode="agent")))
+    assert fake.kwargs is not None
+    return list(fake.kwargs.get("tool_ids") or [])
+
+
+def test_agent_mode_infers_read_intent_and_gates_to_read_only(monkeypatch) -> None:
+    """Track B + Decision 4: the collapsed 'agent' mode infers a READ intent and
+    strips data-write mutators server-side, but RETAINS a read-safe panel
+    allow-list so a read question can still ground itself by pulling up the
+    relevant chart/index. The tracked-portfolio writes STAY stripped on a read
+    intent; every retained panel action still rides the frontend diff/accept
+    gate."""
+    tids = _tool_ids_for(monkeypatch, "what is a P/E ratio?")
+    # §6.5: a tracked-portfolio write can never survive a read intent.
+    assert "portfolio_delete_position" not in tids
+    # Decision 4: the read-safe panel actions are retained so the agent can ground
+    # a read answer in the cockpit (e.g. "how's the market" -> set_chart_symbol SPY).
+    for panel_action in ("set_chart_symbol", "open_panel", "add_to_watchlist"):
+        assert panel_action in tids
+    assert "price_data" in tids  # read tools survive
+
+
+def test_agent_mode_infers_build_intent_and_keeps_host_actions(monkeypatch) -> None:
+    """A build-leaning prompt keeps the host actions so the agent can drive the
+    cockpit (every mutation still rides the diff/accept gate frontend-side)."""
+    tids = _tool_ids_for(monkeypatch, "set up a research cockpit for NVDA")
+    assert "set_chart_symbol" in tids
+    assert "open_panel" in tids
 
 
 def test_tool_schemas_serialize_for_every_provider_shape() -> None:

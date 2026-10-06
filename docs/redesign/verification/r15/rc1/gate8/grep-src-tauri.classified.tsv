@@ -1,0 +1,3 @@
+historical	rust test fixture: legacy keychain account name migrated once (renamed app-meta:first-launch-terms, D81)	src-tauri/src/keychain.rs:491:                "broker:_meta:first-launch-tos".to_string(),
+historical	rust test fixture: legacy keychain account name migrated once (renamed app-meta:first-launch-terms, D81)	src-tauri/src/keychain.rs:506:                    "broker:_meta:first-launch-tos" => Some("2026-06-11".to_string()),
+false_positive	margin = profit/operating margin, margin of safety, CSS margin, hardware "marginal" or ECB marginal lending rate	src-tauri/src/lib.rs:129:/// Phase-9 UC1 fix: the prior flat 15s budget was marginal for a COLD

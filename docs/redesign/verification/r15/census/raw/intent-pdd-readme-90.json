@@ -1,0 +1,22 @@
+[
+  {
+    "raw_id": "INT-pdd-readme-90-1",
+    "title": "README (and root CLAUDE.md) still describe the frontend as Next.js, but the app migrated to Vite 8 + React 19",
+    "severity": "medium",
+    "area": "docs",
+    "subsystem": "README.md / project docs",
+    "repro": "Read README.md#Overview or the Project Layout table, or CLAUDE.md's Stack section, to orient in the codebase -> both say 'Next.js static-export frontend' / 'Next.js 16 frontend (App Router, static export)'. Open package.json or src-tauri/tauri.conf.json -> there is no `next` dependency, `frontendDist` points at Vite's `out/`, `devUrl` is Vite's 127.0.0.1:5173, entry is src/main.tsx + index.html + vite.config.ts, and git log shows the migration commit itself (`8c2f9ab feat(shell): migrate Next.js -> Vite 8 + React 19 (WS1)`).",
+    "evidence": "README.md:27 ('Next.js static-export frontend'), README.md:156 ('Next.js 16 frontend (React 19, TypeScript, Tailwind 4, shadcn/ui)'); versus package.json:53,82 (react 19.2.6, vite ^8.0.16, no `next` entry), src-tauri/tauri.conf.json:7-9 (frontendDist=../out, devUrl=http://localhost:5173, beforeDevCommand runs `pnpm dev` = vite), src/main.tsx + index.html + vite.config.ts (Vite entry points), git log `8c2f9ab`. docs/redesign/CLAUDE_MD_PROPOSAL.md:3-7 already queues the correct replacement text for CLAUDE.md's Stack section but it has not been applied.",
+    "notes": "Two separate, load-bearing docs (README's primary architecture claim and its Project Layout table) both assert a framework that no longer exists in the tree, and the project's own CLAUDE.md repeats the same stale claim in its 'Locked' Tier-1 stack description. A contributor or an agent reading either doc to find frontend code (e.g. looking for a Next.js App Router `app/` directory or `next.config.js`) will be misdirected. Smallest fix: two find-and-replace edits in README.md (lines 27 and 156) plus applying the already-drafted CLAUDE_MD_PROPOSAL.md stack-section replacement to CLAUDE.md -- the correct text already exists, it just hasn't been copied over."
+  },
+  {
+    "raw_id": "INT-pdd-readme-90-2",
+    "title": "The design-token off-scale audit (PDD §16's 'gate for one system') is not wired into CI or ci-local -- it is a manual-only script",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "design system enforcement / scripts/audit-design-tokens.mjs",
+    "repro": "Add an off-scale utility to a changed file (e.g. `text-[17px]`, `p-2.5`, `rounded-[10px]`) and run `pnpm ci-local` or push to a branch that runs the GitHub workflows -> nothing fails, because neither references `audit-design-tokens.mjs`. The violation only surfaces if a human happens to run `node scripts/audit-design-tokens.mjs` by hand, as the R9 track reports did manually for their own verification.",
+    "evidence": "scripts/audit-design-tokens.mjs (implements exactly the checks PRODUCT_DESIGN_DECISIONS.md §16 calls 'the binary off-scale audit... the gate for one system': arbitrary text-[...], off-grid spacing, arbitrary rounded-[...], raw hex in components, shadow-md/lg/xl/2xl/drop-shadow/blur-). `grep -n \"audit-design-tokens\" package.json` -> no match; `grep -rln \"audit-design-tokens\" .github/workflows/` -> no match; package.json:20 `ci-local` chain (install, ensure-sidecars, lint, format:check, typecheck, cargo fmt, clippy, ruff, pnpm test, cargo test, pytest) does not include it either. Running it now (`node scripts/audit-design-tokens.mjs --report src plugins`) returns 'design-token audit clean' -- today's code happens to comply, but nothing stops a future regression from shipping.",
+    "notes": "PDD §16 explicitly frames this script as THE enforcement gate for the entire design system ('the scale is law'), and the same section's undefined-utility-class rule (§16, last bullet: a stale/undefined `@utility` reference like `.group-heading-style` is a defect) has no automated check at all -- both are policy-only today. Smallest fix: add `node scripts/audit-design-tokens.mjs src plugins` (non---report mode, which exits non-zero on violations per the script's own usage comment) as a step in `ci-local` and in the lint/typecheck GitHub workflow, and add a lightweight grep-based check (or a Tailwind build-warning capture) for `@utility` references with no matching definition."
+  }
+]

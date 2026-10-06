@@ -1,0 +1,5 @@
+aliases {'BTC/USDT': ['BTC/USDT', 'BTC', 'bitcoin'], 'ETH/USDT': ['ETH/USDT', 'ETH', 'ethereum'], 'SOL/USDT': ['SOL/USDT', 'SOL', 'solana']}
+Ethereum ETF inflows surge -> ['ETH/USDT']
+Solana outage -> ['SOL/USDT']
+Ethereal plans IPO -> []
+SOLID results for Solar firm -> []

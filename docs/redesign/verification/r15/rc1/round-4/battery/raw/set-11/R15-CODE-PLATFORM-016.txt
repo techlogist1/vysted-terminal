@@ -1,0 +1,9 @@
+=== R15-CODE-PLATFORM-016: pendingNotifications wiring + pinned tests ===
+88:  pendingNotifications: DesktopNotificationIntent[];
+232:  pendingNotifications: [],
+240:      const pendingNotifications = intent
+241:        ? [...state.pendingNotifications, intent]
+242:        : state.pendingNotifications;
+
+102:  it("captures desktop-notification intents from node-output events", () => {
+126:  it("non-notification node-outputs do not enqueue intents", () => {

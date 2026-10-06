@@ -1,0 +1,20 @@
+[
+ {
+  "t": 168.2,
+  "tool": "publish_brief",
+  "tool_call_id": "call_31dbfa192ea74ffdb5dbade81aac72df__autobrief",
+  "ack_http": "200 {\"ok\":true}"
+ },
+ {
+  "t": 171.6,
+  "tool": "arrange_layout",
+  "tool_call_id": "call_96dd3dca7d434965a30d5d370f4beb9e",
+  "ack_http": "200 {\"ok\":true}"
+ },
+ {
+  "t": 180.2,
+  "tool": "publish_brief",
+  "tool_call_id": "call_169628b08e9c47898d8da718a067358b",
+  "ack_http": "200 {\"ok\":true}"
+ }
+]

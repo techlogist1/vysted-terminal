@@ -1,0 +1,11 @@
+{"id": "R15-DOCS-007", "outcome": "fixed", "commit": "0215736c", "test": "n/a (docs-only)", "note": "back-ported dark-only zinc palette + UC2/UC4 MCP-degrade caveat to BLUEPRINT.md"}
+{"id": "R15-DOCS-009", "outcome": "fixed", "commit": "2a68e9f1", "test": "n/a (docs-only)", "note": "struck LangGraph from BLUEPRINT.md, named the hand-rolled agent loop; DECISIONS.md left to the lead"}
+{"id": "R15-CODE-PLATFORM-060", "outcome": "fixed", "commit": "f10855fc", "test": "n/a (docs-only)", "note": "dropped the unbuilt system-tray claim from BLUEPRINT.md §3.1"}
+{"id": "R15-RELEASE-010", "outcome": "fixed", "commit": "07b31a06", "test": "n/a (docs-only)", "note": "moved every domain line outside §2 Locked table to planned tense, named README.md as install surface"}
+{"id": "R15-DOCS-014", "outcome": "fixed", "commit": "a3f58c4a", "test": "n/a (docs-only)", "note": "TTFT stays honestly unmeasured; added sourced per-provider round-trip proxy from r15/spend-ledger.jsonl"}
+{"id": "R15-DOCS-019", "outcome": "fixed", "commit": "05c1b9ee", "test": "n/a (docs-only)", "note": "annotated §3.11/§4/§7/§8 stale claims as closed by 0e248f98, banner count 27->56 (verified live)"}
+{"id": "R15-DOCS-020", "outcome": "fixed", "commit": "006fd05b", "test": "n/a (docs-only)", "note": "named useDesktopNotificationBridge + its page.tsx:46 mount in §3.10"}
+{"id": "R15-DOCS-021", "outcome": "fixed", "commit": "f08ca119", "test": "n/a (docs-only)", "note": "listed all 7 DB_FILENAME SQLite stores in §6, named runs_store's real ALTER migration"}
+{"id": "R15-DOCS-022", "outcome": "fixed", "commit": "50f4dcb1", "test": "n/a (docs-only)", "note": "split PLUGIN_DEVELOPMENT.md Roadmap into shipped-since-v0.3.0 vs still-open, pointed agent picker at R15-AGENT-014"}
+{"id": "R15-DOCS-023", "outcome": "fixed", "commit": "9e2bf6f3", "test": "n/a (docs-only)", "note": "README Status now defers to CURRENT_STATE.md; dropped the dead P1_P3_BUILD_REPORT.md link"}
+{"id": "R15-AGENT-087", "outcome": "fixed", "commit": "dd10d2e0", "test": "src/store/agent-mode.test.ts (vitest) - 3/3 passed", "note": "amended FR-003/US3/SC-029 + agent-mode.ts docblock to two-mode+autonomy spine, closed S-15"}

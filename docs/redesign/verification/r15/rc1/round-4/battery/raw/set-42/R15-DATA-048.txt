@@ -1,0 +1,10 @@
+Repro (live, own sidecar :52346, isolated seed data, X-Vysted-Region: IN):
+
+$ curl -s "http://127.0.0.1:52346/fundamentals/ICON" -H "X-Vysted-Region: IN"
+... "roce":0.16732732348741555 ...
+field_meta.roce = {"status":"ok","provider":"derived","as_of":"2026-09-26T20:49:48Z",
+  "basis_note":"annual EBIT / (total assets - current liabilities)"}
+
+Verdict: holds. `roce` is present in the Fundamentals contract with a real computed value and a
+field_meta entry naming its derivation (EBIT / (assets - current liabilities)), for the exact
+symbol (ICON) the register's raw repro DAT-P6-5 used.

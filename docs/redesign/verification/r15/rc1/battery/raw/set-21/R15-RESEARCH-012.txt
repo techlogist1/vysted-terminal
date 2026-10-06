@@ -1,0 +1,12 @@
+== Kaynes Technology -> KAYNES ok=True anns=50 results-headline positions in feed=[15, 21, 22, 26, 32]
+   row: Kaynes Technology India Limited has informed the Exchange regarding 'Corrigendum to the consolidated financial | SE · Updates · 2026-08-07T20:58:07+05:30
+   row: Financial Results For The Quarter Ended 30 June 2026 | esult · 2026-08-07T19:12:27.283000+05:30
+   row: Kaynes Technology India Limited has submitted to the Exchange, the financial results for the period ended Jun  | oard Meeting · 2026-08-07T18:43:27+05:30
+== CG Power -> CGPOWER ok=True anns=50 results-headline positions in feed=[34, 38]
+   row: CG Power and Industrial Solutions Limited has submitted to the Exchange, the financial results for the period  | oard Meeting · 2026-07-24T14:27:06+05:30
+   row: Board Meeting Intimation for Consideration And Approval Of The Unaudited Financial Results For The First Quart | eting · 2026-07-14T12:37:00.887000+05:30
+   row: CG Power and Industrial Solutions Limited has informed the Exchange regarding a press release dated September  | ress Release · 2026-09-04T15:18:43+05:30
+== Jonjua Overseas -> JONJUA ok=True anns=45 results-headline positions in feed=[0, 9, 10, 12, 18]
+   row: Outcome Of Board Meeting Dated 18-09-2026. | pdate · 2026-09-18T18:20:17.160000+05:30
+   row: Unaudited Financial Results For Quarter Ended 30-06-2026. | esult · 2026-08-12T17:39:37.790000+05:30
+   row: Board Meeting Outcome for Unaudited Financial Results For Quarter Ended 30-06-2026 And General Matters. | esult · 2026-08-12T17:34:35.133000+05:30

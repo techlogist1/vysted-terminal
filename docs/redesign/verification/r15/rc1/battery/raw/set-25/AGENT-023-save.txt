@@ -1,0 +1,2 @@
+{"id":"b7v5-scheduled-aapl","name":"B7V5 AAPL Webhook","description":"battery shard 5 scheduler repro","version":1,"nodes":[{"id":"n1","type":"data.fetch_quote","position":{"x":0.0,"y":0.0},"config":{"symbol":"AAPL"}},{"id":"n2","type":"action.webhook","position":{"x":200.0,"y":0.0},"config":{"secret_ref":"b7v5-hook"}}],"edges":[{"id":"e1","sourceNode":"n1","sourcePort":"value","targetNode":"n2","targetPort":"value"}],"updatedAt":1790296290527}
+HTTP:200

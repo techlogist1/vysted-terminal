@@ -1,0 +1,21 @@
+# R15-CODE-PLATFORM-021 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:20:24+0530
+
+$ curl -s -m 20 -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:52861/portfolio/positions; echo
+[exit 0] [0.01s]
+405
+
+
+$ curl -s -m 20 -o /dev/null -w '%{http_code}' -X PUT -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:52861/portfolio/positions/AAPL; echo
+[exit 0] [0.01s]
+404
+
+
+$ curl -s -m 20 -o /dev/null -w '%{http_code}' -X DELETE http://127.0.0.1:52861/portfolio/positions/AAPL; echo
+[exit 0] [0.01s]
+404
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]'   'http://127.0.0.1:52861/portfolio/positions'
+[exit 0] [0.01s]
+[]
+[http 200 0.002439s]

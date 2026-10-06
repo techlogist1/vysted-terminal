@@ -1,0 +1,5 @@
+provider health: yahoo circuit OPEN for 49s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+breaker open after 3 throttles: True
+history bars: 35
+breaker open after one successful get_history: False
+PASS: a successful get_history call closes the open Yahoo breaker

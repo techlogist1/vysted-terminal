@@ -1,0 +1,3 @@
+# R15-CODE-AGENT-015 at ace7dd7: PYTHONPATH=. .venv/bin/python3 b14s76.py 015
+EXIT=0
+[('list_filings', 100), ('insider', 100), ('list_filings', 1), ('insider', 1), ('list_filings', 1), ('insider', 1), ('list_filings', 20), ('insider', 30), ('list_filings', 20), ('insider', 30), ('list_filings', 15), ('insider', 15)]

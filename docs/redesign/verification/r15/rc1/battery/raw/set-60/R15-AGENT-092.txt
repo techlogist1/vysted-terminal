@@ -1,0 +1,21 @@
+=== code read: run_manager budget-breach clears host_actions ===
+17:  status ``error``, ``detail`` set to the stated reason, the messages-so-far
+329:                status="error",
+363:            run_id, status="error", detail=reason, checkpoint=_checkpoint(), output=_output()
+374:            status="error",
+=== BudgetGuard breach path ===
+205:    def breach(self, _now: float | None = None) -> str | None:
+217:            return f"token ceiling {self.max_tokens} reached ({self._tokens} used)"
+220:                f"spend ceiling ${self.max_spend_usd:.4f} reached "
+225:            return f"wall-clock ceiling {self.max_wall_seconds:g}s reached ({wall:.1f}s elapsed)"
+227:            return f"step ceiling {self.max_steps} reached ({self._steps} taken)"
+
+=== confirmed mechanism (run_manager.py:180-206, 302-306) ===
+`undispatched` dict holds a staged host action keyed by tool_call_id; it only
+moves into `host_actions` inside `_on_tool_result` (i.e. once the tool
+actually got a result back). A budget breach sets `halted`/`breach_reason`
+BEFORE that tool result arrives, so the action never leaves `undispatched` and
+`_output()`'s `host_actions` list stays empty on the error path. Line 182-183
+comment explicitly cites "R15-AGENT-092" as the reason for this design.
+This reproduces the cert's live result (host_actions: [] on breach) by source,
+without needing a live budget-breach run through the Ollama lock.

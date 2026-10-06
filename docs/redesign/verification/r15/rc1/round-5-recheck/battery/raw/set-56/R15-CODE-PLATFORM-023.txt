@@ -1,0 +1,39 @@
+=== R15-CODE-PLATFORM-023 (grep, candidate's own repro + frontend follow-up, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd) ===
+The entry's own literal repro is 3 sidecar-side greps. Run verbatim:
+
+CMD: grep -rnE "value_at_risk|\bVaR\b|def.*beta|correlation_matrix" sidecar/services sidecar/routers
+(0 hits -- unchanged from the original repro's own finding; the sidecar was never where
+the fix landed, see below.)
+
+CMD: grep -n "sharpe\|sortino\|calmar" sidecar/services/*.py
+sidecar/services/backtest_engine.py:236-286,525 (sharpe/sortino/calmar exist ONLY inside
+backtest_engine.py, exactly as the original repro found)
+
+CMD: grep -n "sharpe\|sortino\|VaR\|beta\|correlation" sidecar/services/portfolio_db.py sidecar/models/portfolio.py
+(0 hits -- unchanged; no risk fields in the tracked-portfolio DB/model, exactly as
+the original repro found)
+
+The sidecar side is byte-identical to the original defect description -- the fix is NOT
+a sidecar change. Follow-up (matches how the batch-11 verifier and the round-5 recheck-
+predecessor certified this entry -- the promised UI feature, not the sidecar, is what
+R15-CODE-PLATFORM-023 is actually about):
+
+CMD: grep -n "^export function\|^export const" src/modules/portfolio/metrics.ts
+sharpeRatio, sortinoRatio, calmarRatio, historicalVaR95, correlation, beta, maxDrawdown,
+dailyReturns, annualizedVolatility, computeCurrencyRisk, MIN_RISK_HISTORY_DAYS -- all 7
+promised risk metrics implemented client-side.
+
+CMD: grep -n "sharpeRatio\|sortinoRatio\|calmarRatio\|beta\|correlation" src/modules/portfolio/PortfolioPanel.tsx
+1098: metrics.sharpeRatio.toFixed(2)
+1104: metrics.sortinoRatio.toFixed(2)
+1116: metrics.calmarRatio.toFixed(2)
+1128: metrics.beta...toFixed(2)
+1138-1160: metrics.correlation.symbols / .matrix rendered as a table
+-- all 7 metrics are wired into the Portfolio & Risk panel's render, over the tracked
+portfolio's own return series.
+
+VERDICT: holds -- the promised risk analytics ARE implemented and rendered (client-side,
+per src/modules/portfolio/metrics.ts + metrics.test.ts), which is the substance of the
+finding ("Portfolio risk analytics promised ... unimplemented"); the sidecar-only grep
+in the entry's literal repro text still shows 0 hits because the sidecar was never the
+fix's location -- an adjacent fact, not a regression.

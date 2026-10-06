@@ -1,0 +1,105 @@
+"""One-time gap-filler: complete the NSE universe's sector coverage in
+``india_sector_map.json`` via yfinance ``.info`` (R10 gate-4 data fix).
+
+The bundled map was built from BSE ``ListOfScripData`` whose ``INDUSTRY`` field
+went null live (2026-06), so only ~793/4,875 records carry a sector and the
+small-cap NSE IT names the operator's screen needs (SAKSOFT, DATAMATICS, …) had
+``sector=None`` — the ``sector eq Technology`` prefilter excluded them. This
+fills every NSE-master symbol that lacks a sector with yfinance's Yahoo-vocab
+sector, so the prefilter narrows the universe instantly and the screen returns
+correct rows fast. Throttle-tolerant + resumable (writes progress in place).
+
+Run:  PATH=.venv/bin python -m services.resolver_masters.enrich_nse_sectors
+"""
+
+from __future__ import annotations
+
+import json
+import sys
+import time
+from importlib import resources
+from pathlib import Path
+
+
+def _map_path() -> Path:
+    return Path(str(resources.files("services.resolver_masters") / "india_sector_map.json"))
+
+
+def _nse_symbols() -> list[str]:
+    # The NSE master is ``{"exchange": ..., "instruments": [[SYMBOL, NAME, TYPE], …]}``
+    # (mirror symbol_resolver._nse_master), NOT a flat row list.
+    raw = json.loads(
+        (resources.files("services.resolver_masters") / "nse_instruments.json").read_text()
+    )
+    out: list[str] = []
+    for row in raw.get("instruments", []):
+        if row and row[0]:
+            out.append(str(row[0]).strip().upper())
+    return out
+
+
+def main() -> int:
+    import yfinance as yf
+
+    path = _map_path()
+    doc = json.loads(path.read_text())
+    records = doc["records"] if isinstance(doc, dict) and "records" in doc else doc
+    by_symbol = {str(r.get("symbol", "")).upper(): r for r in records}
+
+    nse = _nse_symbols()
+    todo = [s for s in nse if not (by_symbol.get(s) or {}).get("sector")]
+    print(
+        f"NSE symbols={len(nse)} | already sectored={len(nse) - len(todo)} | to fetch={len(todo)}"
+    )
+
+    filled = 0
+    for i, sym in enumerate(todo):
+        try:
+            info = yf.Ticker(f"{sym}.NS").info
+            sector = (info.get("sector") or "").strip()
+            industry = (info.get("industry") or "").strip()
+        except Exception:  # noqa: BLE001 — one bad symbol never stops the crawl
+            sector, industry = "", ""
+        if sector:
+            rec = by_symbol.get(sym)
+            if rec is None:
+                # The shipped map's canonical 7-key shape (test_india_sector_map.py
+                # _CANONICAL_KEYS) — a symbol with no BSE row still needs every key.
+                rec = {
+                    "symbol": sym,
+                    "isin": None,
+                    "scrip_code": None,
+                    "industry_raw": None,
+                    "sector": None,
+                    "sector_source": None,
+                    "shares_outstanding": None,
+                }
+                records.append(rec)
+                by_symbol[sym] = rec
+            rec["sector"] = sector
+            # industry_raw is the one key readers consume (R15-DATA-106); an
+            # orphaned "industry" key is silently unread enrichment data.
+            rec["industry_raw"] = industry or rec.get("industry_raw")
+            rec["sector_source"] = "yfinance"
+            filled += 1
+        # Persist every 50 so a throttle-kill keeps progress (resumable).
+        if (i + 1) % 50 == 0:
+            path.write_text(json.dumps(doc, indent=1, ensure_ascii=False))
+            print(f"  {i + 1}/{len(todo)} processed, {filled} filled", flush=True)
+        time.sleep(0.4)  # gentle pacing for yfinance
+
+    # Refresh the coverage header if present.
+    if isinstance(doc, dict) and "coverage" in doc:
+        with_sector = sum(1 for r in records if r.get("sector"))
+        doc["coverage"]["with_sector"] = with_sector
+        doc["coverage"].setdefault("sector_sources", {})["yfinance"] = filled
+    path.write_text(json.dumps(doc, indent=1, ensure_ascii=False))
+    print(
+        f"DONE — filled {filled} sectors; total with_sector now "
+        f"{sum(1 for r in records if r.get('sector'))}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

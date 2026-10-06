@@ -1,0 +1,13 @@
+# R15-DATA-058 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:55+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for q in "Sify%20Technologies%20Ltd%20(ADR)" SIFY; do echo "\$ GET /resolve?q=$q"; curl -s -m 60 "$H/resolve?q=$q" | python3 -c "
+import sys,json;d=json.load(sys.stdin);print('resolved',(d.get('resolved') or {}).get('symbol'),(d.get('resolved') or {}).get('region'));print('candidates',[(c.get('symbol'),c.get('region'),c.get('score')) for c in d.get('candidates') or []])"; done
+--- output ---
+$ GET /resolve?q=Sify%20Technologies%20Ltd%20(ADR)
+resolved None None
+candidates [('ASMTEC', 'IN', None), ('IKOMA', 'IN', None), ('EMIAC', 'IN', None), ('RELICTEC', 'IN', None), ('7TEC', 'IN', None), ('SIFY', 'US', None)]
+$ GET /resolve?q=SIFY
+resolved SIFY US
+candidates [('SIFY', 'US', None)]
+
+EXIT=0 (2.8s)

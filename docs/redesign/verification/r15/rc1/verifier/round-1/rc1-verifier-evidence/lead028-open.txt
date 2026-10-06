@@ -1,0 +1,4 @@
+## LEAD-028 (open, medium) live at 1d6511c8 2026-09-25T04:15:49Z
+GET /quotes/506597.BO -> 404 {"detail": "The data provider has no data for this symbol or series — check the symbol.", "code": "not_found"}
+GET /history/544774.BO?range=1mo&timeframe=1d -> 200 {"symbol": "544774.BO", "provider": "none", "bars": 0}
+GET /fundamentals/506597.BO -> 404 {"detail": "The data provider has no data for this symbol or series — check the symbol.", "code": "not_found"}

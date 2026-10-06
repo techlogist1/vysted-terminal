@@ -1,0 +1,26 @@
+# R15-RESEARCH-006 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:33:49Z, sidecar :52348
+# kind=py
+# command:
+#   import asyncio, time
+#   from services.budget_guard import BudgetGuard
+#   from services.research.verify import cross_check
+#   import tests.test_research_verify as T
+#   class Slow:
+#       def __init__(s): s.n=0
+#       async def __call__(s, messages):
+#           if "numeric claims" in messages[0]["content"].lower(): return T._FIVE_CLAIMS
+#           s.n+=1; await asyncio.sleep(3.0); return "AGREE - ok"
+#   llm=Slow()
+#   async def main():
+#       t=time.monotonic()
+#       b=await cross_check(T._brief(), tool_call=T._web_tool(T.TWO_DOMAINS), llm_call=llm, budget=BudgetGuard(max_steps=10,max_wall_seconds=0.5))
+#       el=time.monotonic()-t
+#       cl=b.structured["cross_check"]["claims"]
+#       print("elapsed_s %.2f (wall 0.5; 5 sequential 3 s verdicts would be 15 s)"%el, "verdict calls started:", llm.n)
+#       print("verdicts:", [c["verdict"] for c in cl]); print("detail[0]:", cl[0]["detail"][:100])
+#   asyncio.run(main())
+# output:
+elapsed_s 0.50 (wall 0.5; 5 sequential 3 s verdicts would be 15 s) verdict calls started: 1
+verdicts: ['unverified', 'unverified', 'unverified', 'unverified', 'unverified']
+detail[0]: not checked: the cross-check ran out of its time budget
+# exit=0

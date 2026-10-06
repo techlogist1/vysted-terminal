@@ -1,0 +1,11 @@
+# onboarding-stranger spot replay on :52312, candidate 5ff9be041180c1c316ad48ceb120a23549a7575a
+## GET /resolve?q=eternal
+{"ok":true,"query":"eternal","region":"IN","resolved":{"symbol":"ETERNAL","name":"ETERNAL LIMITED","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"ETERNAL.NS","confidence":1.0,"isin":"INE758T01015","bse_code":"543320","industry":"Consumer Services / E-Retail/ E-Commerce","former_name":"ZOMATO","board":"mainboard","exchange_group":"A","face_value":1.0},"needs_disambiguation":false,"candidates":[{"symbol":"ETERNAL","name":"ETERNAL LIMITED","exchange":"NSE","region":"IN","asse
+## GET /resolve?q=zomato
+{"ok":true,"query":"zomato","region":"IN","resolved":{"symbol":"ETERNAL","name":"ETERNAL LIMITED","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"ETERNAL.NS","confidence":1.0,"isin":"INE758T01015","bse_code":"543320","industry":"Consumer Services / E-Retail/ E-Commerce","former_name":"ZOMATO","board":"mainboard","exchange_group":"A","face_value":1.0,"rename":{"renamed_from":"ZOMATO","renamed_to":"ETERNAL","effective_date":"2025-04-09","note":"ZOMATO was renamed to ETERNAL o
+## GET /quotes/ZOMATO.NS
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+## GET /quotes/ETERNAL.NS
+{"symbol":"ETERNAL","price":335.0,"change":-0.5,"change_percent":-0.14903129657228018,"volume":24508361.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+HTTP 200

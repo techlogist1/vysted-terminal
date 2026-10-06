@@ -1,0 +1,84 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ for f in openai groq gemini anthropic; do echo "== $f"; awk '/async def validate_key/{p=1} p{print NR": "$0} /^    (async )?def /&&!/validate_key/&&p{exit}' sidecar/services/llm/$f.py | head -30; done
+exit=0
+== openai
+812:     async def validate_key(self, api_key: str | None = None) -> bool:
+813:         """Probe an authenticated endpoint with ``api_key``.
+814: 
+815:         ``/v1/models`` for OpenAI, DeepSeek and xAI. OpenRouter serves
+816:         ``/models`` without auth (any string passes), so it probes ``/key``,
+817:         which answers 401 on a bad key. xAI answers a bad key with 400
+818:         "Incorrect API key", which is a bad key too, not a transport error.
+819:         """
+820:         if not api_key:
+821:             return False
+822:         try:
+823:             client = self._client(api_key)
+824:             if self._provider_id == "openrouter":
+825:                 await client.get("/key", cast_to=dict[str, Any])
+826:             else:
+827:                 await client.models.list()
+828:             return True
+829:         except openai.AuthenticationError:
+830:             return False
+831:         except openai.PermissionDeniedError:
+832:             return False
+833:         except openai.BadRequestError as exc:
+834:             if says_invalid_key(str(exc)):
+835:                 return False
+836:             raise
+837: 
+838:     async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+== groq
+202:     async def validate_key(self, api_key: str | None = None) -> bool:
+203:         """Probe ``/openai/v1/models`` — the cheapest authenticated call."""
+204:         if not api_key:
+205:             return False
+206:         try:
+207:             client = self._client(api_key)
+208:             await client.models.list()
+209:             return True
+210:         except groq.AuthenticationError:
+211:             return False
+212:         except groq.PermissionDeniedError:
+213:             return False
+214: 
+215:     async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+== gemini
+212:     async def validate_key(self, api_key: str | None = None) -> bool:
+213:         """Probe ``models.list`` — the cheapest authenticated call."""
+214:         if not api_key:
+215:             return False
+216:         try:
+217:             client = self._client(api_key)
+218:             # ``models.list`` returns a pager; resolving it triggers a network
+219:             # round-trip. The SDK does not surface a synchronous "1 page" knob,
+220:             # so we iterate at most one entry.
+221:             async for _ in await client.aio.models.list():
+222:                 break
+223:             return True
+224:         except genai_errors.ClientError as exc:
+225:             status = getattr(exc, "status_code", None) or getattr(exc, "code", None)
+226:             if status in {401, 403}:
+227:                 return False
+228:             # Gemini answers a bad key with 400 INVALID_ARGUMENT / API_KEY_INVALID.
+229:             if status == 400 and says_invalid_key(str(exc)):
+230:                 return False
+231:             raise
+232: 
+233:     async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+== anthropic
+195:     async def validate_key(self, api_key: str | None = None) -> bool:
+196:         """Probe ``/v1/models`` — the cheapest authenticated request."""
+197:         if not api_key:
+198:             return False
+199:         try:
+200:             client = self._client(api_key)
+201:             await client.models.list(limit=1)
+202:             return True
+203:         except anthropic.AuthenticationError:
+204:             return False
+205:         except anthropic.PermissionDeniedError:
+206:             return False
+207: 
+208:     async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:

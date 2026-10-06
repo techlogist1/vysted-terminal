@@ -1,0 +1,54 @@
+// R15 COD-frontend-panels-shell-chrome proof tests. Ran from a scratch dir with a scratch vitest config
+// (root = repo, include = this file): 1 file, 4 tests, 4 passed, 2026-09-23. Proves COD-...-1, -2, -3.
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
+
+import { SuggestionChips } from "@/modules/chat/SuggestionChips";
+import { usePanelContextBus } from "@/store/panel-context";
+import { useModulesStore } from "@/store/modules";
+import { vystedModules } from "@/modules";
+import { matchesEvent, useKeybindingsStore } from "@/store/keybindings";
+
+afterEach(() => cleanup());
+
+describe("F1 panel-context focus id vs publisher source id", () => {
+  it("real ids: dockview focus 'chart' / publisher 'chart-chart' -> no symbol chips", () => {
+    // PanelHost.tsx:198 sets focusedSource = dockview panel id; default-layout.ts:33 id "chart".
+    // ChartPanel.tsx:885 publishes source `chart-${panelId}`.
+    const panelId = "chart";
+    const source = `chart-${panelId}`;
+    usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
+    usePanelContextBus.getState().publish({ source, kind: "snapshot", payload: { symbol: "TSLA", timeframe: "1D" }, emittedAt: 1 });
+    usePanelContextBus.getState().setFocusedSource(panelId);
+    render(<SuggestionChips />);
+    expect(screen.queryByRole("button", { name: /Research \$TSLA/ })).toBeNull();
+  });
+  it("real ids: dockview focus 'equity-overview' / publisher 'equity' -> no symbol chips", () => {
+    usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
+    usePanelContextBus.getState().publish({ source: "equity", kind: "symbol", payload: { ticker: "RELIANCE" }, emittedAt: 1 });
+    usePanelContextBus.getState().setFocusedSource("equity-overview");
+    render(<SuggestionChips />);
+    expect(screen.queryByRole("button", { name: /Research \$RELIANCE/ })).toBeNull();
+  });
+});
+
+describe("F2 Settings 'Open Marketplace' uses a component id where a panel id is required", () => {
+  it("findPanel('marketplace-panel') is undefined; findPanel('marketplace') resolves", () => {
+    useModulesStore.getState().registerModules(vystedModules);
+    expect(useModulesStore.getState().findPanel("marketplace-panel")).toBeUndefined();
+    expect(useModulesStore.getState().findPanel("marketplace")).toBeDefined();
+  });
+});
+
+describe("F3 recorded ⌘K ('meta+k') is not flagged against 'mod+k' though both fire on macOS", () => {
+  it("conflicts() misses a physical collision", () => {
+    Object.defineProperty(navigator, "platform", { value: "MacIntel", configurable: true });
+    useKeybindingsStore.setState({ overrides: {} });
+    // SettingsPanel.tsx:1356-1359 comboFromEvent emits 'meta', never 'mod'.
+    useKeybindingsStore.getState().setBinding("agent.toggle", "meta+k");
+    expect(useKeybindingsStore.getState().conflicts()).toEqual([]);
+    const ev = { key: "k", metaKey: true, ctrlKey: false, altKey: false, shiftKey: false };
+    expect(matchesEvent("mod+k", ev)).toBe(true); // palette.open default
+    expect(matchesEvent("meta+k", ev)).toBe(true); // the recorded override
+  });
+});

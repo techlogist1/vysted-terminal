@@ -1,0 +1,64 @@
+[
+ {
+  "id": "panel-brief",
+  "area": "brief",
+  "surface": "Research Brief panel (lifecycle)",
+  "entry": "src/modules/research/index.ts:20; src/modules/research/BriefPanel.tsx:549",
+  "states": [
+   "empty(BriefPanel.tsx:527,630)",
+   "streaming/loading",
+   "populated",
+   "error(image load errored :181)",
+   "divergence-notice(honest 'kept previous, richer brief')",
+   "no-web-honest-banner(:701)"
+  ],
+  "drive": "browser",
+  "notes": "Auto-publishes via agent_runtime._auto_publish_event (CLAUDE.md) on research/deep_research ok-result. structured metrics grid via brief-blocks.tsx (deriveMetrics). STEP_STATUS_COLOR states pending/running/ok/error at BriefPanel.tsx:273-275. Vitest: BriefPanel.test.tsx, brief-blocks.test.ts, lib/brief-claims.test.ts, lib/brief-ingest.test.ts.",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/research-briefs/EVIDENCE.md; docs/redesign/verification/r15/surface/research-briefs/replay-r4-deep-bluestar-4omini.json; docs/redesign/verification/r15/surface/research-briefs/replay-r3-ultra-kaynes.json; docs/redesign/verification/r15/surface/research-briefs/replay-r2-deep-cgpower.json; docs/redesign/verification/r15/surface/research-briefs/replay-states-inflight-nopublish.json; docs/redesign/verification/r15/surface/research-briefs/harness/replay.probe.test.tsx (live SSE -> streamAgentInvocation -> brief store -> applyHostAction(publish_brief) -> render(<BriefPanel/>))",
+  "states_driven": {
+   "empty(BriefPanel.tsx:527,630)": {
+    "driven": "ok",
+    "evidence": "docs/redesign/verification/r15/surface/research-briefs/replay-states-inflight-nopublish.json (cut-nopublish: 'Ask JARVIS to research a company…'); also the done-without-publish settle of r5-tierb-nokey (replay-r5-tierb-nokey.json)"
+   },
+   "streaming/loading": {
+    "driven": "ok",
+    "evidence": "docs/redesign/verification/r15/surface/research-briefs/replay-states-inflight-nopublish.json (cut-inflight: 'Researching — DEEP · …' + live step trace)"
+   },
+   "populated": {
+    "driven": "broken",
+    "evidence": "docs/redesign/verification/r15/surface/research-briefs/replay-r4-deep-bluestar-4omini.json (15/15 [n] chips point at wrong documents — SURF-RESEARCH-BRIEFS-1); replay-r2-deep-cgpower.json (DEEP floor body misattributed to thin web — -2); replay-r3-ultra-kaynes.json (mangled cross-check + invented reference list — -3, -6); 12-deep-bdl-4omini.jsonl (DEEP brief states a rival company's order-book win as BDL's own, cited to a generic news source — -10, critical); replay-10-normal-kpit.json (FAST metrics grid ok, empty prose by design)"
+   },
+   "error(image load errored :181)": {
+    "driven": "NEEDS-GUI",
+    "reason": "favicon <img> onError needs a real image load; jsdom never fires it"
+   },
+   "divergence-notice": {
+    "driven": "partial",
+    "evidence": "docs/redesign/verification/r15/surface/research-briefs/r3-ultra-kaynes.stdout.txt last research_step (kept_previous ack -> runtime notice emitted); chat side does not recognise it — SURF-RESEARCH-BRIEFS-5. BriefPanel itself has no divergence UI (the notice rides the chat transcript)."
+   },
+   "no-web-honest-banner(:701)": {
+    "driven": "NOT TESTED",
+    "reason": "not driven: for a symbol-bound brief it is unreachable by design (deep.py:901 / iter.py:1152 set web_available=True whenever ANY source exists, and every symbol-bound run carries vysted:// structured sources); it can fire only for a non-symbol (thematic) query whose web retrieval returns zero rows, which I could not force at my own sidecar's edge without cutting the keyless floor's network. The KEYLESS nudge (BriefPanel.tsx:697) was driven instead (replay-10-normal-kpit.json) — SURF-RESEARCH-BRIEFS-4"
+   }
+  },
+  "depths_driven": {
+   "normal": "ok — 10-normal-kpit (agent B, llama3.1:8b): FAST bundle, 6 web sources, metrics grid; data spot-checked vs screener.in (price 529, 52w 524-1,285, mcap ₹14,504 cr all match)",
+   "deep": "broken — local lane 2/2 floor (r2-deep-cgpower, 11-deep-bdl-llama); paid gpt-4o-mini 2/2 broken (r4 BLUESTARCO: wrong citations, SURF-RESEARCH-BRIEFS-1; 12-deep-bdl-4omini, agent B: states a rival company's ₹985cr order-book win + renewable-energy projects as BDL's own, SURF-RESEARCH-BRIEFS-10, critical)",
+   "ultra": "broken — r3-ultra-kaynes (llama3.1:8b) + 13-ultra-hal-4omini (agent B, gpt-4o-mini): mangled cross-check both, stale citations on HAL, invented reference lists, 0 web sources on both",
+   "tier_b_without_key": "ok — r5-tierb-nokey-dixon: research returns the 'needs an OpenRouter key' message, the model relays it honestly; panel settles to empty (no reason shown in the panel itself)",
+   "depth_floor": "ok — r3: model passed depth 'deep', slider research_depth=ultra won (execution.requested_depth 'ultra', loop 'heavy') per agent_tools/research.py:160-166"
+  },
+  "merged_from_agent_B": [
+   {
+    "driven": "partial",
+    "evidence": "docs/redesign/verification/r15/surface/research-briefs/replay-10-normal-kpit.json, replay-r2-deep-cgpower.json, replay-r4-deep-bluestar-4omini.json (brief lifecycle states empty->streaming->populated exercised via harness/replay.probe.test.tsx rendering <BriefPanel/> against captured SSE for NORMAL/DEEP/ULTRA depths; the no-web-honest-banner and divergence-notice states were driven; image-load-error state (:181) was not exercised)"
+   }
+  ],
+  "agent_B_late_additions": {
+   "no-web-honest-banner(:701)": "broken — unreachable: zero-web DEEP/ULTRA briefs replay with webAvailable true / noWebBanner false because vysted:// and exchange rows count as sources (src/lib/host-actions.ts:228); SURF-RESEARCH-BRIEFS-11. Evidence docs/redesign/verification/r15/surface/research-briefs/12-deep-bdl-4omini.jsonl, 13-ultra-hal-4omini.jsonl, 36-staleack-run2-final.jsonl",
+   "divergence-notice (no-ack read-back)": "broken on Ollama — constant '__autobrief' id: an ack from 08:06:03 suppressed run 36's 'did not confirm' notice at 08:12:02 (control run 30 fires it); SURF-RESEARCH-BRIEFS-12. Evidence docs/redesign/verification/r15/surface/research-briefs/30-*, 33-staleack-prior-ack-rerun.txt, 36-*",
+   "streaming/loading (data child down)": "broken — openbb-mcp child down -> stream cut at 63.8 s with no done/error, brief stuck in_flight, status says available; SURF-RESEARCH-BRIEFS-13. Evidence docs/redesign/verification/r15/surface/research-briefs/34-staleack-run2-rerun.jsonl, 35-openbb-mcp-down-stream-dies.txt"
+  }
+ }
+]

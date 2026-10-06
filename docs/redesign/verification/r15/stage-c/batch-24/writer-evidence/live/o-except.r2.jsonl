@@ -1,0 +1,230 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_18f52c5015ad4f08902017c77804a04b", "name": "price_data", "input": {"symbol": "TCS.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_18f52c5015ad4f08902017c77804a04b", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "208"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Since"}
+{"kind": "delta", "text": " there"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " no"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " focus"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " recent"}
+{"kind": "delta", "text": " trading"}
+{"kind": "delta", "text": " activity"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "In"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "90"}
+{"kind": "delta", "text": " days"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " had"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " high"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "245"}
+{"kind": "delta", "text": "7"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " low"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "197"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " moving"}
+{"kind": "delta", "text": " averages"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " over"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "50"}
+{"kind": "delta", "text": " days"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": "-day"}
+{"kind": "delta", "text": " MA"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "211"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "20"}
+{"kind": "delta", "text": "-day"}
+{"kind": "delta", "text": " MA"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "213"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "50"}
+{"kind": "delta", "text": "-day"}
+{"kind": "delta", "text": " MA"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "217"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " Relative"}
+{"kind": "delta", "text": " Strength"}
+{"kind": "delta", "text": " Index"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "RS"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " currently"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "67"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "34"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " indicating"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " neutral"}
+{"kind": "delta", "text": " trend"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "As"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " volume"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " been"}
+{"kind": "delta", "text": " generally"}
+{"kind": "delta", "text": " increasing"}
+{"kind": "delta", "text": " over"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " few"}
+{"kind": "delta", "text": " days"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " peak"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "162"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "182"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " traded"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " July"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "14"}
+{"kind": "delta", "text": "th"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " figures"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " subject"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " change"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " might"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " reflect"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " situation"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'d"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " competitors"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " feel"}
+{"kind": "delta", "text": " free"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " ask"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 7011, "output_tokens": 221, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

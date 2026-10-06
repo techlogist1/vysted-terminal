@@ -1,0 +1,50 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_a1d852dbb4034fa48a5daf7e1175b843", "name": "get_terminal_state", "input": {}}
+{"kind": "tool_result", "tool_call_id": "call_a1d852dbb4034fa48a5daf7e1175b843", "name": "get_terminal_state", "ok": true, "error": null}
+{"kind": "delta", "text": "We"}
+{"kind": "delta", "text": " don"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " prior"}
+{"kind": "delta", "text": " state"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " draw"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " directly"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "tool_use", "tool_call_id": "call_05a22876b4a24fe298fa3207603eb545", "name": "price_data", "input": {"symbol": "INFY.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_05a22876b4a24fe298fa3207603eb545", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 7027, "output_tokens": 16, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

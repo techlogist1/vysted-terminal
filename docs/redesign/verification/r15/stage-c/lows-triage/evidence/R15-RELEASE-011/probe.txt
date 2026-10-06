@@ -1,0 +1,25 @@
+## vitest.config.ts
+     1	import { defineConfig } from "vitest/config";
+     2	import react from "@vitejs/plugin-react";
+     3	import path from "path";
+     4	
+     5	export default defineConfig({
+     6	  plugins: [react()],
+     7	  test: {
+     8	    environment: "jsdom",
+     9	    globals: true,
+    10	    setupFiles: ["./vitest.setup.ts"],
+    11	    include: ["src/**/*.test.{ts,tsx}", "plugins/**/*.test.{ts,tsx}"],
+    12	  },
+    13	  resolve: {
+    14	    alias: {
+    15	      "@": path.resolve(__dirname, "src"),
+    16	    },
+    17	  },
+    18	});
+## grep coverage
+package.json:69:    "@vitest/coverage-v8": "^4.1.6",
+rc=0
+## package.json test scripts
+14:    "test": "vitest run",
+20:    "ci-local": "pnpm install --frozen-lockfile && node scripts/ensure-all-sidecars.mjs && pnpm lint && pnpm format:check && pnpm typeche

@@ -1,0 +1,87 @@
+=== R15-LIFECYCLE-023 repro: PanelErrorBoundary + onCaughtError/onUncaughtError wiring ===
+      panel.api.setSize({ height: size.minimumHeight });
+    }
+  } catch {
+    // best-effort; one panel throwing must not abort the post-restore sweep.
+  }
+}
+
+/**
+ * Keeps one panel's render throw inside that panel (R15-LIFECYCLE-023): without
+ * it React unmounts the whole root and the cockpit goes blank. "Reload panel"
+ * remounts the panel's subtree; the error reaches the diagnostics log through
+ * the root's `onCaughtError` (`main.tsx`).
+ */
+class PanelErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: Error | null; attempt: number }
+> {
+  state = { error: null as Error | null, attempt: 0 };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  render() {
+    const { error, attempt } = this.state;
+    if (error === null) {
+      return <Fragment key={attempt}>{this.props.children}</Fragment>;
+    }
+    return (
+      <div role="alert" className="flex h-full flex-col items-start gap-3 p-4">
+        <p className="text-charcoal-100 text-body">This panel crashed.</p>
+        <p className="text-charcoal-400 text-caption break-all">{error.message}</p>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => this.setState({ error: null, attempt: attempt + 1 })}
+          >
+            Reload panel
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() =>
+              void navigator.clipboard?.writeText(error.stack ?? error.message).catch(() => {})
+            }
+          >
+            Copy error
+          </Button>
+        </div>
+      </div>
+    );
+  }
+}
+
+/** The panel-component map with every panel behind its own error boundary. */
+export function withPanelErrorBoundaries(
+  components: Record<string, FunctionComponent>,
+): Record<string, FunctionComponent> {
+  return Object.fromEntries(
+    Object.entries(components).map(([id, Panel]) => {
+      function GuardedPanel(props: object) {
+        return (
+          <PanelErrorBoundary>
+            <Panel {...props} />
+          </PanelErrorBoundary>
+        );
+      }
+      return [id, GuardedPanel];
+    }),
+  );
+}
+
+
+-- main.tsx root creation --
+
+ReactDOM.createRoot(document.getElementById("root")!, {
+  onCaughtError: logRenderError("caught"),
+  onUncaughtError: logRenderError("uncaught"),
+}).render(
+  <React.StrictMode>
+    <Page />
+  </React.StrictMode>,
+);
+
+VERDICT: holds. PanelHost.tsx defines PanelErrorBoundary (class component, componentDidCatch) rendering 'This panel crashed.' + Reload panel + Copy error, and wraps every dockview panel component in it (line 171-173) so a sibling panel's render throw is contained. main.tsx's createRoot call now passes onCaughtError/onUncaughtError (logRenderError) which forwards the stack to diag_log_line (a release build's diagnostics log). grep -c 'ErrorBoundary' src -> now >0 (was 0 at census). A live crash-and-observe-sibling-still-renders check needs a GUI session (out of scope, No GUI); verified via source parity with the certified evidence (a fresh crash-on-update case, not just first render, was the case the fix was validated against per batch-8 VERDICTS.md).

@@ -1,0 +1,247 @@
+{
+  "collapse": [
+    [
+      220,
+      "icons",
+      "{\"model\":\"icon\",\"depthExpands\":false}"
+    ],
+    [
+      300,
+      "icons",
+      "{\"model\":\"icon\",\"depthExpands\":false}"
+    ],
+    [
+      360,
+      "compact",
+      "{\"model\":\"short\",\"depthExpands\":true}"
+    ],
+    [
+      420,
+      "full",
+      "{\"model\":\"full\",\"depthExpands\":true}"
+    ],
+    [
+      520,
+      "full",
+      "{\"model\":\"full\",\"depthExpands\":true}"
+    ],
+    [
+      800,
+      "full",
+      "{\"model\":\"full\",\"depthExpands\":true}"
+    ]
+  ],
+  "depthDefault": "normal",
+  "mentions": {
+    "ana": {
+      "open": true,
+      "query": "ana"
+    },
+    "midword": {
+      "open": true,
+      "query": "wat"
+    },
+    "email": {
+      "open": false,
+      "query": ""
+    },
+    "analystPrefix": "[Act as a fundamental analyst] is BDL cheap vs peers?",
+    "quantPrefix": "[Act as a quantitative analyst] what is NVDA's 30d vol?",
+    "insert": {
+      "value": "look at @chart ",
+      "caret": 15
+    },
+    "staticCount": 8
+  },
+  "slash": {
+    "count": 10,
+    "all": [
+      "research",
+      "compare",
+      "chart",
+      "screener",
+      "watch",
+      "portfolio",
+      "layout",
+      "export",
+      "sources",
+      "clear"
+    ],
+    "sc": [
+      "screener"
+    ],
+    "screenerInv": {
+      "cmd": {
+        "trigger": "screener",
+        "title": "Screener",
+        "description": "Screen the universe with a natural-language filter.",
+        "argHint": "<nl>",
+        "dispatch": {
+          "kind": "prompt"
+        }
+      },
+      "args": "defence stocks P/E < 40"
+    },
+    "bareTicker": null,
+    "parsed": [
+      [
+        "/screener defence stocks P/E < 40",
+        "{\"kind\":\"error\",\"message\":\"unknown command: /screener\"}"
+      ],
+      [
+        "/chart RELIANCE.NS 1W",
+        "{\"kind\":\"error\",\"message\":\"unknown command: /chart\"}"
+      ],
+      [
+        "/watch MAZDOCK",
+        "{\"kind\":\"error\",\"message\":\"unknown command: /watch\"}"
+      ],
+      [
+        "/compare COCHINSHIP MAZDOCK",
+        "{\"kind\":\"error\",\"message\":\"unknown command: /compare\"}"
+      ],
+      [
+        "/clear",
+        "{\"kind\":\"clear\"}"
+      ],
+      [
+        "/research why did HAL fall",
+        "{\"kind\":\"error\",\"message\":\"unknown command: /research\"}"
+      ],
+      [
+        "/BDL",
+        "{\"kind\":\"error\",\"message\":\"unknown command: /BDL\"}"
+      ]
+    ]
+  },
+  "slashTemplates": [
+    [
+      "research",
+      "prompt",
+      "research defence stocks P/E < 40"
+    ],
+    [
+      "compare",
+      "prompt",
+      "compare defence stocks P/E < 40"
+    ],
+    [
+      "chart",
+      "action",
+      "{\"kind\":\"action\",\"action\":\"chart\"}"
+    ],
+    [
+      "screener",
+      "prompt",
+      "screen for defence stocks P/E < 40"
+    ],
+    [
+      "watch",
+      "action",
+      "{\"kind\":\"action\",\"action\":\"watch\"}"
+    ],
+    [
+      "portfolio",
+      "action",
+      "{\"kind\":\"action\",\"action\":\"portfolio\"}"
+    ],
+    [
+      "layout",
+      "action",
+      "{\"kind\":\"action\",\"action\":\"layout\"}"
+    ],
+    [
+      "export",
+      "action",
+      "{\"kind\":\"action\",\"action\":\"export\"}"
+    ],
+    [
+      "sources",
+      "action",
+      "{\"kind\":\"action\",\"action\":\"sources\"}"
+    ],
+    [
+      "clear",
+      "action",
+      "{\"kind\":\"action\",\"action\":\"clear\"}"
+    ]
+  ],
+  "plusMenu": [
+    [
+      "Context",
+      [
+        "@chart",
+        "@news",
+        "@filings",
+        "@terminal"
+      ]
+    ],
+    [
+      "Scope",
+      [
+        "@watchlist",
+        "@portfolio"
+      ]
+    ],
+    [
+      "Route to",
+      [
+        "@analyst",
+        "@quant"
+      ]
+    ]
+  ],
+  "autoApplyHint": "Chart, panel and watchlist changes apply instantly; data and settings changes wait for review",
+  "queue": {
+    "head": "first",
+    "rest": [
+      "third"
+    ]
+  },
+  "elapsed": [
+    "0.0s",
+    "65s",
+    "3725s"
+  ],
+  "runtimeNoticeKinds": [
+    [
+      "notice",
+      true
+    ],
+    [
+      "divergence",
+      false
+    ],
+    [
+      "staged_actions",
+      false
+    ],
+    [
+      "history",
+      false
+    ],
+    [
+      "engine",
+      false
+    ],
+    [
+      "phase",
+      false
+    ]
+  ],
+  "markdown": {
+    "frames": 106,
+    "openFenceFrames": 0,
+    "finalOpen": false,
+    "normalizedTablesChanged": false,
+    "sample": "Cochin Shipyard Limited is an Indian shipbuilding company that specializes in designing and building ships, submarines, and offshore platforms. The company was established in 1972 and is headquartered in Kochi, India.\n\nThe current share price of Cochin Shipyard is ₹1287.\nThe P/E ratio is 49.74874.\nThe market capitalization is ₹33,858 crore (approximately $4.3 billion USD).\n\nPlease note that these "
+  },
+  "cutTable": {
+    "completed": "Here:\n\n| a | b |\n|---|---|\n| 1 | 2",
+    "stripped": "Here:\n\n| 1 | 2"
+  },
+  "cutFence": {
+    "open": true,
+    "completed": "```py\nx=1\n```"
+  }
+}

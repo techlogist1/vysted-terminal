@@ -1,0 +1,17 @@
+{
+ "symbol": "SIFY",
+ "currency": "USD",
+ "financial_currency": "INR",
+ "revenue_ttm": 46506049536.0,
+ "net_income_ttm": -912369984.0,
+ "market_cap": 967002176.0,
+ "price_to_sales": null,
+ "field_meta.price_to_sales": {
+  "status": "withheld",
+  "provider": "yfinance",
+  "as_of": "2026-09-25T20:00:00+00:00",
+  "reason": "Yahoo's price/sales (market cap over trailing revenue) mixes bases: the listing trades in USD but reports its statements in INR, so the ratio is off by the exchange rate; withheld",
+  "label": null,
+  "basis_note": null
+ }
+}

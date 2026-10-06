@@ -1,0 +1,11 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52340
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar && VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-data-rc1-battery-0-inproc ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/t018.py 2>&1 | tail -10
+exit=0
+Kaynes Technology IN -> KAYNES
+    What do recent SEC filings and insider trades sh -> ['corporate_announcements', 'web_search']
+    What is the sector outlook? -> ['news', 'web_search']
+    Is there a second-quarter guidance change? -> ['corporate_announcements', 'news', 'web_search']
+Apple US -> ResearchDisambiguation(query='Apple', candidates=[{'symbol': 'AAPL', 'name': 'Apple Inc.', 'exchange': 'US', 'score': 0.97, 'yahoo_symbol': 'AAPL'}, {'symbol': 'APLE', 'name': 'Apple Hospitality REIT, Inc.', 'exchange': 'US', 'score': 0.97, 'yahoo_symbol': 'APLE'}, {'symbol': 'AAPI', 'name': 'Apple iSports Group, Inc.', 'exchange': 'US', 'score': 0.97, 'yahoo_symbol': 'AAPI'}], message="'Apple' matches more than one listed instrument — which did you mean? AAPL (Apple Inc.), APLE (Apple Hospitality REIT, Inc.), AAPI (Apple iSports Group, Inc.)", curated=False)
+    What do recent SEC filings and insider trades sh -> ['ERR AttributeError("\'ResearchDisambiguation\' object has no attribute \'symbol\'")']
+    What is the sector outlook? -> ['ERR AttributeError("\'ResearchDisambiguation\' object has no attribute \'symbol\'")']
+    Is there a second-quarter guidance change? -> ['ERR AttributeError("\'ResearchDisambiguation\' object has no attribute \'symbol\'")']

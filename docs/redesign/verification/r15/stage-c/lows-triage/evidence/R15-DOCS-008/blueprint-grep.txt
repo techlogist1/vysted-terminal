@@ -1,0 +1,22 @@
+cmd: grep -n 'OpenBB' docs/BLUEPRINT.md @e032be7
+34:**Voice:** Research lab style (Tauric Research, OpenBB, Anthropic). Serious, technical credibility. Not startup-pitch energy. Not retail-app energy.
+55:| Data layer | OpenBB ODP wrapped as runtime sidecar (~100 providers) |
+83:- OpenBB ODP wrapped — gives 100+ data providers (Polygon, FMP, FRED, Intrinio, Tiingo, ECB, FINRA, SEC, etc.)
+119:│  - OpenBB ODP (100+ providers)                  │
+129:│  - OpenBB ODP wrap plugin (data-only)           │
+184:**OpenBB ODP wrap plugin** implements only `contributesData`. Future plugins pick whichever capabilities fit.
+256:16. OpenBB ODP wrap (bundled Python sidecar) — 100+ providers
+276:30. SEC filings reader (10-K, 10-Q, 8-K, Form 4, via OpenBB SEC provider)
+431:- OpenBB ODP integration in Python sidecar
+453:- OpenBB ODP wrap plugin (data-only plugin, proves data-plugin pattern) ✓
+476:- MCP client + openbb-mcp-server ✓ (Phase-2 OpenBB Tier-2 plugin
+669:- **github.com/OpenBB-finance/OpenBB** — AGPL-3.0; reference for data layer architecture, provider abstraction patterns, MCP server design
+
+cmd: sed -n 30,36p sidecar/requirements.txt
+# /mcp over Streamable-HTTP; FastMCP bundles the `mcp` SDK that powers the
+# client wrapper consuming external MCP servers. The first real consumer is
+# openbb-mcp-server, packaged as a separate-process binary in
+# `sidecar/openbb_mcp_subprocess/` and spawned via Tauri Rust `Command::new`
+# — the architectural fix for the Phase-2 Windows `subprocess.Popen`
+# deadlock (CLAUDE.md Gotcha). The retired Phase-2 OpenBB Tier-2 plugin
+# is gone in v0.4.0; its data surface is preserved through openbb-mcp.

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { parseSlashCommand } from "./slash-commands";
+import {
+  matchSlash,
+  parseSlashCommand,
+  parseSlashInvocation,
+  SLASH_COMMANDS,
+} from "./slash-commands";
 
 describe("parseSlashCommand", () => {
   it("returns an error for empty input", () => {
@@ -12,6 +17,88 @@ describe("parseSlashCommand", () => {
     expect(parseSlashCommand("what is the moat")).toEqual({
       kind: "raw",
       prompt: "what is the moat",
+    });
+  });
+
+  // R15-AGENT-088 / FR-112: a lone resolved ticker is an LLM-free fast path.
+  describe("bare-ticker fast path", () => {
+    const knownSymbols = new Set(["AAPL", "RELIANCE"]);
+
+    it("a lone known ticker resolves to the chart action", () => {
+      expect(parseSlashCommand("AAPL", knownSymbols)).toEqual({
+        kind: "bare-ticker",
+        symbol: "AAPL",
+      });
+    });
+
+    it("an @-prefixed known ticker resolves the same way", () => {
+      expect(parseSlashCommand("@RELIANCE", knownSymbols)).toEqual({
+        kind: "bare-ticker",
+        symbol: "RELIANCE",
+      });
+    });
+
+    it("is case-insensitive against the known set", () => {
+      expect(parseSlashCommand("aapl", knownSymbols)).toEqual({
+        kind: "bare-ticker",
+        symbol: "AAPL",
+      });
+    });
+
+    it("a multi-word input stays a raw prompt even if it starts with a known ticker", () => {
+      expect(parseSlashCommand("AAPL earnings?", knownSymbols)).toEqual({
+        kind: "raw",
+        prompt: "AAPL earnings?",
+      });
+    });
+
+    it("an unresolved lone token stays a raw prompt", () => {
+      expect(parseSlashCommand("ZZZZ", knownSymbols)).toEqual({
+        kind: "raw",
+        prompt: "ZZZZ",
+      });
+    });
+
+    it("with no known-symbol set passed, every non-slash input stays raw (unchanged default)", () => {
+      expect(parseSlashCommand("AAPL")).toEqual({ kind: "raw", prompt: "AAPL" });
+    });
+
+    // R15-AGENT-088 residual: the 10-char cap dropped RELIANCE.NS/HDFCBANK.NS/
+    // BAJFINANCE.NS on the India-default watchlist, and a bare base
+    // ("RELIANCE") never resolved against a suffixed known symbol.
+    describe("India-suffixed symbols (residual)", () => {
+      const indiaSymbols = new Set(["RELIANCE.NS", "HDFCBANK.NS", "BAJFINANCE.NS"]);
+
+      it("a full suffixed symbol over the old 10-char cap resolves", () => {
+        expect(parseSlashCommand("RELIANCE.NS", indiaSymbols)).toEqual({
+          kind: "bare-ticker",
+          symbol: "RELIANCE.NS",
+        });
+      });
+
+      it("a bare base with one suffixed known match resolves to the suffixed symbol", () => {
+        expect(parseSlashCommand("RELIANCE", indiaSymbols)).toEqual({
+          kind: "bare-ticker",
+          symbol: "RELIANCE.NS",
+        });
+      });
+
+      it("class pin: M&M.NS and BAJAJ-AUTO.NS (ampersand/hyphen bases) resolve", () => {
+        const symbols = new Set(["M&M.NS", "BAJAJ-AUTO.NS"]);
+        expect(parseSlashCommand("M&M.NS", symbols)).toEqual({
+          kind: "bare-ticker",
+          symbol: "M&M.NS",
+        });
+        expect(parseSlashCommand("BAJAJ-AUTO.NS", symbols)).toEqual({
+          kind: "bare-ticker",
+          symbol: "BAJAJ-AUTO.NS",
+        });
+      });
+
+      it("an ambiguous bare base with two suffixed known matches stays raw", () => {
+        const symbols = new Set(["INFY.NS", "INFY.BO"]);
+        expect(parseSlashCommand("INFY", symbols)).toEqual({ kind: "raw", prompt: "INFY" });
+      });
     });
   });
 
@@ -83,5 +170,156 @@ describe("parseSlashCommand", () => {
       kind: "error",
       message: "unknown command: /sell-aapl",
     });
+  });
+});
+
+describe("matchSlash", () => {
+  it("opens the picker on a bare slash with the full list in stable order", () => {
+    const result = matchSlash("/");
+    expect(result.open).toBe(true);
+    expect(result.query).toBe("");
+    expect(result.matches).toEqual(SLASH_COMMANDS);
+  });
+
+  it("is closed when the input does not start with a slash", () => {
+    const result = matchSlash("research AAPL");
+    expect(result.open).toBe(false);
+    expect(result.matches).toEqual([]);
+  });
+
+  it("closes once a space is typed (arguments, not command name)", () => {
+    const result = matchSlash("/research AAPL");
+    expect(result.open).toBe(false);
+    expect(result.matches).toEqual([]);
+  });
+
+  it("ranks a prefix match first: /res -> /research", () => {
+    const result = matchSlash("/res");
+    expect(result.open).toBe(true);
+    expect(result.matches[0]?.trigger).toBe("research");
+  });
+
+  it("is case-insensitive", () => {
+    expect(matchSlash("/RES").matches[0]?.trigger).toBe("research");
+  });
+
+  it("ranks prefix matches above substring matches", () => {
+    // "art" is a substring of "chart" but a prefix of nothing — chart still
+    // surfaces, and any prefix match would outrank it.
+    const result = matchSlash("/art");
+    expect(result.open).toBe(true);
+    expect(result.matches.map((c) => c.trigger)).toContain("chart");
+  });
+
+  it("still lists commands for a ticker-shaped slash like /AAPL (no space yet)", () => {
+    // The picker stays open while typing a command name even if nothing matches
+    // a known trigger — the composer decides what to do on a non-match.
+    const result = matchSlash("/AAPL");
+    expect(result.open).toBe(true);
+    expect(result.matches).toEqual([]);
+  });
+});
+
+describe("parseSlashInvocation", () => {
+  it("parses a completed invocation into the def and its args", () => {
+    const parsed = parseSlashInvocation("/chart NVDA 1d");
+    expect(parsed?.cmd.trigger).toBe("chart");
+    expect(parsed?.args).toBe("NVDA 1d");
+  });
+
+  it("parses an argless command with an empty args string", () => {
+    const parsed = parseSlashInvocation("/portfolio");
+    expect(parsed?.cmd.trigger).toBe("portfolio");
+    expect(parsed?.args).toBe("");
+  });
+
+  it("is case-insensitive on the trigger", () => {
+    expect(parseSlashInvocation("/Compare AAPL MSFT")?.cmd.trigger).toBe("compare");
+  });
+
+  it("returns null for a ticker-shaped slash (not a known trigger)", () => {
+    expect(parseSlashInvocation("/AAPL")).toBeNull();
+  });
+
+  it("returns null when the input is not a slash command", () => {
+    expect(parseSlashInvocation("research AAPL")).toBeNull();
+  });
+});
+
+describe("SLASH_COMMANDS registry", () => {
+  it("contains all 10 curated commands", () => {
+    // FR-115 / SC-028: research collapsed to ONE entry — no `/deep`, no
+    // `/deep heavy` (depth is internal escalation, not a user-visible trigger).
+    expect(SLASH_COMMANDS).toHaveLength(10);
+    expect(SLASH_COMMANDS.map((c) => c.trigger).sort()).toEqual(
+      [
+        "chart",
+        "clear",
+        "compare",
+        "export",
+        "layout",
+        "portfolio",
+        "research",
+        "screener",
+        "sources",
+        "watch",
+      ].sort(),
+    );
+  });
+
+  it("exposes exactly ONE user-visible research trigger (SC-028)", () => {
+    // The collapsed research model: a single `/research` entry; the old `/deep`
+    // and `/deep heavy` triggers are gone (depth escalates in place from the
+    // brief, never via a slash). 0 redundant user-visible research triggers.
+    const researchTriggers = SLASH_COMMANDS.filter(
+      (c) => c.trigger === "research" || c.trigger.startsWith("deep"),
+    );
+    expect(researchTriggers.map((c) => c.trigger)).toEqual(["research"]);
+  });
+
+  it("has unique triggers", () => {
+    const triggers = SLASH_COMMANDS.map((c) => c.trigger);
+    expect(new Set(triggers).size).toBe(triggers.length);
+  });
+
+  it("assigns the correct dispatch kind to each command", () => {
+    const kindOf = (trigger: string) =>
+      SLASH_COMMANDS.find((c) => c.trigger === trigger)?.dispatch.kind;
+    // Prompt-composing research verbs.
+    expect(kindOf("research")).toBe("prompt");
+    expect(kindOf("compare")).toBe("prompt");
+    expect(kindOf("screener")).toBe("prompt");
+    // Direct frontend actions.
+    expect(kindOf("chart")).toBe("action");
+    expect(kindOf("watch")).toBe("action");
+    expect(kindOf("portfolio")).toBe("action");
+    expect(kindOf("layout")).toBe("action");
+    expect(kindOf("export")).toBe("action");
+    expect(kindOf("sources")).toBe("action");
+    expect(kindOf("clear")).toBe("action");
+  });
+
+  it("maps action commands to the right SlashAction", () => {
+    const actionOf = (trigger: string) => {
+      const dispatch = SLASH_COMMANDS.find((c) => c.trigger === trigger)?.dispatch;
+      return dispatch?.kind === "action" ? dispatch.action : undefined;
+    };
+    expect(actionOf("chart")).toBe("chart");
+    expect(actionOf("watch")).toBe("watch");
+    expect(actionOf("portfolio")).toBe("portfolio");
+    expect(actionOf("layout")).toBe("layout");
+    expect(actionOf("export")).toBe("export");
+    expect(actionOf("sources")).toBe("sources");
+    expect(actionOf("clear")).toBe("clear");
+  });
+
+  it("composes prompt templates the agent maps to its tools", () => {
+    const template = (trigger: string) => {
+      const dispatch = SLASH_COMMANDS.find((c) => c.trigger === trigger)?.dispatch;
+      return dispatch?.kind === "prompt" ? dispatch.template : undefined;
+    };
+    expect(template("research")?.("AAPL moat")).toBe("research AAPL moat");
+    expect(template("compare")?.("AAPL MSFT")).toBe("compare AAPL MSFT");
+    expect(template("screener")?.("low PE high growth")).toBe("screen for low PE high growth");
   });
 });

@@ -1,0 +1,3 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, in-process python (cand sidecar/.venv), scratch b16_r.py
+DDG HTML zero-rows -> Lite fallback via registry _PacedBackend: results=1 http calls=['https://html.duckduckgo.com/html/', 'https://lite.duckduckgo.com/lite/'] pacing acquires=['ddg']
+bucket symbols still on ddg module: []

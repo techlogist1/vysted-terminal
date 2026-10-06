@@ -1,0 +1,70 @@
+{
+ "focusedPanel": "watchlist",
+ "capturedAt": 0,
+ "charts": [],
+ "focusedChart": null,
+ "watchlist": {
+  "symbols": [
+   "INFY.NS"
+  ],
+  "selected": null
+ },
+ "portfolio": {
+  "positionCount": 4,
+  "totalValue": null,
+  "activePortfolioId": "default",
+  "activePortfolioName": "Portfolio",
+  "holdings": [
+   {
+    "id": "h-039492c4-b130-49b1-ab8f-7584f7736b67",
+    "symbol": "RELIANCE.NS",
+    "quantity": 10,
+    "costBasis": 1200,
+    "assetClass": "equity",
+    "currency": "INR",
+    "marketValue": null,
+    "pnl": null
+   },
+   {
+    "id": "h-cc9960f6-0ab1-4b1d-ab61-b52e9b77f318",
+    "symbol": "TCS.NS",
+    "quantity": 5,
+    "costBasis": 2500,
+    "assetClass": "equity",
+    "currency": "INR",
+    "marketValue": null,
+    "pnl": null
+   },
+   {
+    "id": "h-4be6b5f8-0c93-4fa3-90dc-1a48123cf92e",
+    "symbol": "TCS.NS",
+    "quantity": 21,
+    "costBasis": 3900,
+    "assetClass": "equity",
+    "currency": "INR",
+    "marketValue": null,
+    "pnl": null
+   },
+   {
+    "id": "h-a1f341c0-45d8-4560-a813-619a646cdb6c",
+    "symbol": "AAPL",
+    "quantity": 2,
+    "costBasis": 190,
+    "assetClass": "equity",
+    "currency": "INR",
+    "marketValue": null,
+    "pnl": null
+   }
+  ]
+ },
+ "openPanels": [
+  "watchlist"
+ ],
+ "brief": {
+  "phase": "empty"
+ },
+ "viewport": {
+  "width": 1920,
+  "height": 1080
+ }
+}

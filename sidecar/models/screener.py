@@ -25,7 +25,18 @@ def _reject_non_finite(value: float, name: str) -> float:
 # Universe
 # ---------------------------------------------------------------------------
 
-ScreenerUniverseId = Literal["sp500", "nifty50", "crypto-top50", "custom"]
+ScreenerUniverseId = Literal[
+    "sp500",
+    "nifty50",
+    "crypto-top50",
+    "custom",
+    # R10 (D40): full-market India universes resolved from the bundled resolver
+    # masters — nse-all (EQ + ETF + SM/NSE Emerge rows), bse-all (Active
+    # scrips), india-all (union, NSE listing preferred on dual-listings).
+    "nse-all",
+    "bse-all",
+    "india-all",
+]
 ScreenerAssetClass = Literal["equity", "crypto"]
 
 
@@ -45,16 +56,38 @@ class ScreenerUniverse(BaseModel):
 # ---------------------------------------------------------------------------
 
 ScreenerNumericField = Literal[
+    # Valuation
     "market_cap",
     "pe_ratio",
     "forward_pe",
     "peg_ratio",
     "price_to_book",
+    "price_to_sales",
+    "ev_to_ebitda",
+    "book_value",
     "dividend_yield",
     "eps",
     "beta",
+    # Profitability (fractions: 0.20 = 20%)
+    "roe",
+    "roa",
+    "gross_margin",
+    "operating_margin",
+    "profit_margin",
+    # Financial health
+    "debt_to_equity",
+    "current_ratio",
+    "quick_ratio",
+    # Growth (fractions)
+    "revenue_growth",
+    "earnings_growth",
+    # Range / ownership
     "fifty_two_week_high",
     "fifty_two_week_low",
+    "fifty_two_week_change",
+    "held_percent_insiders",
+    "held_percent_institutions",
+    # Price-derived (from the live quote)
     "price",
     "change_percent_1d",
     "volume",
@@ -134,6 +167,33 @@ ScreenerCriterion = (
 )
 
 
+class CriterionGroup(BaseModel):
+    """A boolean combinator node — AND/OR over leaf criteria or nested groups.
+
+    Enables OR + nested logic (e.g. ``(P/E < 15 AND ROE > 0.2) OR dividend_yield >
+    0.04``) beyond the flat AND-only ``criteria`` list. An EMPTY group matches
+    everything (no filter) regardless of combinator, mirroring the "no criteria =
+    show all" behaviour of the flat path. Recursive: a child may itself be a group.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    combinator: Literal["and", "or"] = "and"
+    # ``from __future__ import annotations`` makes this whole annotation a string,
+    # so the recursive self-reference resolves at ``model_rebuild()`` below — do
+    # NOT quote ``CriterionGroup`` inline (``UnionType | str`` fails to eval).
+    criteria: list[
+        NumericThresholdCriterion
+        | NumericBetweenCriterion
+        | StringEqCriterion
+        | SetInCriterion
+        | CriterionGroup
+    ] = Field(default_factory=list)
+
+
+CriterionGroup.model_rebuild()
+
+
 # ---------------------------------------------------------------------------
 # Request / response
 # ---------------------------------------------------------------------------
@@ -147,9 +207,42 @@ class ScreenerRequest(BaseModel):
     universe: ScreenerUniverseId
     custom_symbols: list[str] | None = None
     criteria: list[ScreenerCriterion]
+    # Optional boolean tree (AND/OR, nestable). When present it SUPERSEDES the flat
+    # ``criteria`` (which stays AND-combined for back-compat). Lets the UI / agent
+    # express OR + grouped logic without breaking the old wire shape.
+    group: CriterionGroup | None = None
+    # Optional free-text boolean expression evaluated SERVER-SIDE per universe
+    # member, AND-combined with the criteria/group (R7 Pillar 3). The grammar is
+    # services.screener_formula (field refs + arithmetic + comparisons +
+    # and/or/not + abs/min/max — no eval). A row missing a referenced field is
+    # skipped and itemized ``missing_field:<f>`` in the skip ledger.
+    formula: str | None = None
     # Upper-bounded to match types/screener.ts ("max 1000") and the runtime
     # clamp in services/screener.py (_MAX_LIMIT=1000) — Phase 9.5.
     limit: int = Field(default=200, ge=1, le=1000)
+    # R15-UI-006: applied BEFORE the ``limit`` cut (services.screener.apply_criteria),
+    # so a header re-sort actually changes which rows survive the cut, not just
+    # their order on the page already served. NULLs sort last regardless of
+    # ``sort_dir`` (a missing value is not "lowest").
+    sort_by: ScreenerNumericField = "market_cap"
+    sort_dir: Literal["asc", "desc"] = "desc"
+
+    @field_validator("formula")
+    @classmethod
+    def _formula_parses(cls, v: str | None) -> str | None:
+        """Reject an unparseable formula at the request boundary (422 with the
+        parser's message + 1-based column). Blank normalizes to ``None``. The
+        import is lazy to keep ``models`` free of import-time service deps."""
+        if v is None or not v.strip():
+            return None
+        from services.screener_formula import FormulaError, compile_formula
+
+        try:
+            compile_formula(v)
+        except FormulaError as exc:
+            col = f" (col {exc.position + 1})" if exc.position is not None else ""
+            raise ValueError(f"invalid formula: {exc}{col}") from exc
+        return v
 
     @model_validator(mode="after")
     def _custom_requires_symbols(self) -> ScreenerRequest:
@@ -175,10 +268,71 @@ class ScreenerResultRow(BaseModel):
     industry: str | None = None
     market_cap: float | None = None
     pe_ratio: float | None = None
+    forward_pe: float | None = None
+    peg_ratio: float | None = None
+    price_to_book: float | None = None
+    dividend_yield: float | None = None
+    roe: float | None = None
+    debt_to_equity: float | None = None
     price: float | None = None
     change_percent_1d: float | None = None
     volume: float | None = None
-    matched_criteria: list[int] = []
+    # --- R11 (D52/D57) honest-basis block — additive, defaulted for back-compat.
+    #: Listing currency of the currency-denominated fields (market_cap, price).
+    currency: str | None = None
+    #: Which serving basis produced this row's values: ``"live"`` — every field
+    #: came from a fresh tier this run; ``"mixed"`` — some fields fresh, some
+    #: stale/snapshot; ``"snapshot"`` — served from the bundled seed pack or
+    #: stale cache tiers (see ``data_as_of``). ``None`` on pre-R11 payloads.
+    data_basis: str | None = None
+    #: Epoch seconds of the OLDEST stamp among the fields this screen used —
+    #: the honest "as of" for the row when ``data_basis != "live"``.
+    data_as_of: float | None = None
+
+
+class SkipDetail(BaseModel):
+    """One itemized skip — a universe member that never reached evaluation.
+
+    The R4 batch fast path (FR-126 / SC-034) replaced the old "silently drop
+    242/506" behaviour with a complete ledger: every symbol the screener could
+    not evaluate is itemized here with a machine-readable ``reason`` so the UI
+    can surface coverage honestly. ``skipped_count == len(skip_details)`` always.
+
+    ``reason`` is one of:
+      - ``"timeout"`` — the upstream fetch (batch chunk or per-symbol) timed out.
+      - ``"not_found"`` — Yahoo did not return a row for the symbol.
+      - ``"no_data"`` — a row came back but carried no usable price / payload.
+      - ``"rate_limited"`` — the upstream throttled the request (HTTP 429).
+      - ``"correctness_gate"`` — the provider raised a ``ProviderError`` (a
+        deliberate refusal to fabricate a value).
+      - ``"missing_field:<field>"`` — a criterion or the custom ``formula``
+        referenced a field neither the batch row nor the per-symbol enrichment
+        could supply for this symbol.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    symbol: str
+    reason: str
+
+
+class FormulaValidation(BaseModel):
+    """Response shape from ``POST /screener/formula/validate`` (R7 Pillar 3).
+
+    The inline-validation surface for the custom formula grammar
+    (:mod:`services.screener_formula`) — never a 4xx/5xx for a bad formula;
+    the error + 0-based caret ``position`` ride the body so an editor (or the
+    agent) can render `^` at the offending column.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    ok: bool
+    error: str | None = None
+    #: 0-based character offset of the error in the formula text.
+    position: int | None = None
+    #: Canonical (snake_case) fields the formula references, sorted.
+    fields: list[str] = Field(default_factory=list)
 
 
 class ScreenerResult(BaseModel):
@@ -192,6 +346,33 @@ class ScreenerResult(BaseModel):
     # so a low evaluated_count no longer silently misrepresents coverage
     # (Phase 9.5). Defaulted for backward compatibility.
     skipped_count: int = 0
+    # Itemized skip ledger (R4 / FR-126 / SC-034) — one entry per dropped symbol
+    # with a machine-readable reason. ``skipped_count == len(skip_details)``.
+    # Defaulted so older callers / fixtures that omit it still validate.
+    skip_details: list[SkipDetail] = Field(default_factory=list)
     result_count: int
+    # R15-UI-006: the count that matched the criteria BEFORE the ``limit`` cut —
+    # ``result_count`` (the page served) is capped at the request's ``limit``,
+    # so it alone cannot tell the UI "there are more". Defaulted for back-compat.
+    matched_count: int = 0
     rows: list[ScreenerResultRow]
     duration_ms: float
+    # R10 (D40) honest-coverage block — additive, defaulted for back-compat.
+    # ``partial`` is True when the wall budget, a cancellation, or upstream
+    # throttling / timeouts left universe members unevaluated; ``coverage`` is
+    # the one human line the UI/agent surface ("screened 1,840 of 2,100 — 260
+    # unavailable");
+    # ``freshness`` stamps the data tiers the rows were served from (epoch
+    # seconds: {"quotes_as_of": …, "valuation_as_of": …, "deep_as_of": …};
+    # R11/D52 adds "seed_as_of" when any row served from the bundled snapshot).
+    partial: bool = False
+    coverage: str | None = None
+    freshness: dict[str, float] | None = None
+    # --- R11 (D52/D53) honest-basis block — additive, defaulted for back-compat.
+    #: Result rows per serving basis ({"live": N, "mixed": M, "snapshot": K}) —
+    #: the machine-readable companion to ``coverage``.
+    basis_counts: dict[str, int] | None = None
+    #: True when the run detected upstream throttling (majority-rate-limited
+    #: sweep or an open circuit breaker) and degraded to stale/snapshot basis —
+    #: the UI surfaces an honest "provider throttled this IP" notice.
+    throttled: bool = False

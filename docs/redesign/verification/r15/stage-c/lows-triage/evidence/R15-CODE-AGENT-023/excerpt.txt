@@ -1,0 +1,16 @@
+sidecar/services/mcp_server.py:139-147 @e032be7
+    async def _handler(**kwargs: Any) -> dict[str, Any]:
+        try:
+            return await agent_tools.invoke_tool(tool_id, kwargs)
+        except KeyError:
+            return {"ok": False, "error": f"tool {tool_id!r} is not available in this build"}
+        except Exception as exc:  # noqa: BLE001 — surface to the MCP client
+            return {"ok": False, "error": f"tool {tool_id!r} raised: {exc}"}
+
+    return _handler
+
+cmd: grep -n 'ToolError|isError' sidecar/services/mcp_server.py => (empty)
+sidecar/services/openbb_mcp_provider.py:189
+    if result.get("isError"):
+sidecar/services/sec_filings_provider.py:140
+    if result.get("isError"):

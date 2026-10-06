@@ -1,0 +1,912 @@
+{"t":2.576,"_request":{"agentId":"munger","prompt":"Is Cochin Shipyard a business you would own for ten years at today's price?","contextSnapshot":{"focusedSource":null,"bySource":{"__terminal__":{"focusedPanel":null,"focusedSymbol":"^NSEI","charts":[],"watchlist":{"symbols":["^NSEI","RELIANCE.NS","TCS.NS","HDFCBANK.NS"],"selected":null},"portfolio":{"positionCount":0,"totalValue":null,"activePortfolioId":"default","activePortfolioName":"Portfolio","holdings":[]},"brief":{"phase":"empty"},"otherPanels":[],"openPanels":[],"region":"IN","capturedAt":1791024332301},"__notes__":{"general":"","bySymbol":{}}},"capturedAt":1791024332301},"provider":"ollama","model":"llama3.1:8b","mode":"agent","autonomy":"auto","options":{"history":[],"deepResearchBackend":"native","researchDepth":"normal"}}}
+{"t":12.597,"event":{"kind":"heartbeat"}}
+{"t":22.599,"event":{"kind":"heartbeat"}}
+{"t":30.093,"event":{"kind":"tool_use","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","name":"research","input":{"depth":"quick","query":"Cochin Shipyard"}}}
+{"t":30.163,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"engine","detail":"research:begin 9101809cb2b449029ed56422c7a36ddb depth=normal query=Cochin Shipyard","status":"ok","index":1}}
+{"t":30.163,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"plan","detail":"resolving \"Cochin Shipyard\"","status":"ok","index":2}}
+{"t":30.654,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"plan","detail":"resolved → COCHINSHIP","latencyMs":499,"status":"ok","index":3}}
+{"t":30.676,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"tool","detail":"pulling market data for COCHINSHIP","status":"ok","index":4}}
+{"t":30.676,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"search","detail":"searching the web for Cochin Shipyard Limited","status":"ok","index":5}}
+{"t":35.07,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"tool","detail":"growth cross-check","latencyMs":0,"status":"ok","index":6}}
+{"t":35.078,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"tool","detail":"earnings quality cross-check","latencyMs":18,"status":"ok","index":7}}
+{"t":35.078,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"tool","detail":"market-cap witness cross-check","latencyMs":18,"status":"ok","index":8}}
+{"t":35.409,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"tool","detail":"dividend TTM cross-check","latencyMs":358,"status":"ok","index":9}}
+{"t":36.325,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"tool","detail":"declared dividend cross-check","latencyMs":1273,"status":"ok","index":10}}
+{"t":38.656,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"search","detail":"no web backend — structured only","latencyMs":8002,"status":"skipped","index":11}}
+{"t":41.052,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"tool","detail":"ownership cross-check timed out after 6s — dropped","latencyMs":6000,"status":"error","index":12}}
+{"t":41.052,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"tool","detail":"52-week range cross-check timed out after 6s — dropped","latencyMs":6000,"status":"error","index":13}}
+{"t":41.061,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"tool","detail":"pulled 4/4 data sources","latencyMs":10398,"status":"ok","index":14}}
+{"t":41.061,"event":{"kind":"research_step","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","tool":"research","stepKind":"synthesize","detail":"assembling the research bundle","status":"ok","index":15}}
+{"t":41.061,"event":{"kind":"tool_result","toolCallId":"call_d1736b45f24c47878ff4b459388077b3","name":"research","ok":true}}
+{"t":41.07,"event":{"kind":"tool_use","toolCallId":"call_d1736b45f24c47878ff4b459388077b3__autobrief","name":"publish_brief","input":{"query":"Cochin Shipyard","symbol":"COCHINSHIP","mode":"fast","depth":"quick","execution":{"run_id":"9101809cb2b449029ed56422c7a36ddb","requested_depth":"normal","loop":"fast","backend":null,"started_at":1791024359.876126,"finished_at":1791024370.77743,"degraded_reason":null},"markdown":"","sources":[],"structured":{"price":{"ok":true,"provider":"nse_direct","data":{"symbol":"COCHINSHIP","price":1287,"change":-28,"change_percent":-2.129277566539924,"volume":727942,"open":1315,"high":1315.9,"low":1265.6,"prev_close":1315,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"nse_direct","freshness":null}},"fundamentals":{"ok":true,"provider":"yfinance","data":{"symbol":"COCHINSHIP.NS","name":"Cochin Shipyard Limited","sector":"Industrials","industry":"Capital Goods / Ship Building & Allied Services","sector_source":"resolver","currency":"INR","financial_currency":null,"ratio_price":1287,"market_cap":338584961024,"pe_ratio":49.74874,"forward_pe":28.791946,"peg_ratio":null,"price_to_book":5.76507,"price_to_sales":6.7079883,"ev_to_ebitda":42.52,"book_value":223.241,"dividend_yield":0.0087,"dividend_per_share":11.25,"eps":25.86,"beta":0.582,"fifty_two_week_high":1890,"fifty_two_week_low":1187,"fifty_two_week_change":-0.30862206,"fifty_two_week_high_date":"2025-10-03","fifty_two_week_low_date":"2026-03-30","listing_date":"2017-08-11","first_trade_date":"2017-08-11","forward_pe_fiscal_year":"2027-03-31","roe":0.11585091377521958,"roa":null,"gross_margin":0.33388,"operating_margin":0.14696,"profit_margin":0.13479,"debt_to_equity":0.28466,"current_ratio":null,"quick_ratio":null,"roce":0.1666412091056881,"basis":null,"revenue_ttm":50474894000,"net_income_ttm":6801376000,"free_cash_flow":null,"shares_outstanding":263080780,"revenue_growth":0.023974943542678664,"earnings_growth":-0.19366146192703143,"growth_basis":"mrq_yoy","held_percent_insiders":0.63335,"held_percent_institutions":0.11094,"dividend_per_share_ttm":9,"revenue_growth_computed":0.023974943542678664,"earnings_growth_computed":-0.19366146192703143,"growth_computed_quarters":{"mrq":"2026-06-30","prior":"2025-06-30"},"field_meta":{"name":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"sector":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"industry":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"sector_source":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"currency":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"ratio_price":{"status":"ok","provider":"yfinance","as_of":"2026-10-01T09:45:00+00:00","reason":null,"label":null,"basis_note":null},"market_cap":{"status":"ok","provider":"yfinance","as_of":"2026-10-01T09:45:00+00:00","reason":null,"label":null,"basis_note":null},"pe_ratio":{"status":"ok","provider":"yfinance","as_of":"2026-10-01T09:45:00+00:00","reason":null,"label":null,"basis_note":null},"forward_pe":{"status":"ok","provider":"yfinance","as_of":"2026-10-01T09:45:00+00:00","reason":null,"label":null,"basis_note":null},"peg_ratio":{"status":"unavailable","provider":"yfinance","as_of":"2026-10-01T09:45:00+00:00","reason":"provider did not publish this field","label":null,"basis_note":null},"price_to_book":{"status":"ok","provider":"yfinance","as_of":"2026-10-01T09:45:00+00:00","reason":null,"label":null,"basis_note":null},"price_to_sales":{"status":"ok","provider":"yfinance","as_of":"2026-10-01T09:45:00+00:00","reason":null,"label":null,"basis_note":null},"ev_to_ebitda":{"status":"ok","provider":"yfinance","as_of":"2026-10-01T09:45:00+00:00","reason":null,"label":null,"basis_note":null},"book_value":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"dividend_yield":{"status":"ok","provider":"yfinance","as_of":"2026-10-01T09:45:00+00:00","reason":null,"label":null,"basis_note":null},"dividend_per_share":{"status":"flagged","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":"dividend per share 11.25 (Yahoo dividendRate) exceeds the 9 actually paid in the trailing 12 months by 20% — the rate can omit a special dividend or anticipate an unpaid one; kept, flagged","label":null,"basis_note":null},"eps":{"status":"ok","provider":"nse","as_of":"2026-06-30","reason":null,"label":"consolidated, sum of 4 filed quarters to 2026-06-30","basis_note":null},"beta":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"fifty_two_week_high":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"fifty_two_week_low":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"fifty_two_week_change":{"status":"ok","provider":"yfinance","as_of":"2026-10-01T09:45:00+00:00","reason":null,"label":null,"basis_note":null},"fifty_two_week_high_date":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"fifty_two_week_low_date":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"listing_date":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"first_trade_date":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"forward_pe_fiscal_year":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"roe":{"status":"ok","provider":"derived","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":"net income (TTM) / stockholders equity"},"roa":{"status":"unavailable","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":"provider did not publish this field","label":null,"basis_note":null},"gross_margin":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"operating_margin":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"profit_margin":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"debt_to_equity":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"current_ratio":{"status":"unavailable","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":"provider did not publish this field","label":null,"basis_note":null},"quick_ratio":{"status":"unavailable","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":"provider did not publish this field","label":null,"basis_note":null},"roce":{"status":"ok","provider":"derived","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":"annual EBIT / (total assets - current liabilities)"},"basis":{"status":"unavailable","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":"provider did not publish this field","label":null,"basis_note":null},"revenue_ttm":{"status":"ok","provider":"nse","as_of":"2026-06-30","reason":null,"label":"consolidated, sum of 4 filed quarters to 2026-06-30","basis_note":null},"net_income_ttm":{"status":"ok","provider":"nse","as_of":"2026-06-30","reason":null,"label":"consolidated, sum of 4 filed quarters to 2026-06-30","basis_note":null},"free_cash_flow":{"status":"unavailable","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":"provider did not publish this field","label":null,"basis_note":null},"shares_outstanding":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"revenue_growth":{"status":"ok","provider":"nse","as_of":"2026-06-30","reason":null,"label":"consolidated, period to 2026-06-30 vs the same period to 2025-06-30","basis_note":null},"earnings_growth":{"status":"ok","provider":"nse","as_of":"2026-06-30","reason":null,"label":"consolidated, period to 2026-06-30 vs the same period to 2025-06-30","basis_note":null},"held_percent_insiders":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"held_percent_institutions":{"status":"ok","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":null,"label":null,"basis_note":null},"identity_note":{"status":"unavailable","provider":"yfinance","as_of":"2026-10-03T10:46:01.409105+00:00","reason":"provider did not publish this field","label":null,"basis_note":null},"dividend_per_share_ttm":{"status":"ok","provider":"yfinance","reason":null,"label":null}},"provider":"yfinance","identity_note":null,"earnings_quality":{"reported_net_income":7167395000,"normalized_income":7458779450.287588,"unusual_items":-406149000,"tax_effect":-114764549.712412,"one_off_net":-291384450.2875881,"distortion_fraction":0.04065416379138977,"period":"2026-03-31"},"market_cap_witness":{"shares_outstanding":263080781,"source":"BSE ListOfScripData (bundled India master) (as of 2026-06-11)","scrip_code":"540678","as_of":"2026-06-11"}}},"derived":{"ok":true,"provider":"derived","data":{"drawdown_from_high":{"value":0.319047619047619,"label":"Below 52-week high","basis":"vs 52w high","formula":"(52w high - price) / 52w high","unit":"fraction","display":"31.90%"},"fifty_two_week_change":{"value":-0.30862206,"label":"52-week price change (Yahoo)","basis":"trailing 52 weeks","unit":"fraction","display":"-30.86%"},"dividend_yield":{"value":0.008741258741258742,"label":"Dividend yield","basis":"fraction of price","formula":"dividend per share / price","unit":"fraction","display":"0.87%"},"dividend_per_share":{"value":11.25,"label":"Dividend per share","basis":"per share, INR","unit":"currency","display":"₹11.25"},"dividend_per_share_ttm":{"value":9,"label":"Dividend/share (trailing 12m paid)","basis":"corporate-action history","formula":"sum of dividends paid in the trailing 12 months","unit":"currency","display":"₹9.00"},"revenue_growth":{"value":0.023974943542678664,"label":"Revenue growth","basis":"quarterly YoY (MRQ)","unit":"fraction","display":"2.40%"},"earnings_growth":{"value":-0.19366146192703143,"label":"Earnings growth","basis":"quarterly YoY (MRQ)","unit":"fraction","display":"-19.37%"},"market_cap":{"value":338584961024,"label":"Market cap","basis":"provider market cap","unit":"currency","display":"₹33,858 cr"},"conflicts":[{"field":"dividend_per_share","kind":"dividend_conflict","conflict_kind":"data_conflict","sources":[{"provider":"yfinance (dividendRate)","value":11.25},{"provider":"derived (trailing-12m paid history)","value":9}],"note":"The provider's dividend per share (Yahoo dividendRate, 11.25) EXCEEDS the trailing-12-month dividends actually PAID (9) by more than 10% — the scalar may anticipate a declared-but-unpaid dividend or ride a forward/inflated basis; the paid history is the settled figure."}]}},"news":{"ok":true,"provider":null,"data":[]},"filings":{"ok":true,"provider":"nse+bse","data":{"symbol":"COCHINSHIP","exchange":null,"coverage":"covered","sources":["NSE","BSE"],"errors":{},"count":20,"announcements":[{"symbol":"COCHINSHIP","exchange":"NSE","headline":"Cochin Shipyard Limited has submitted the Exchange a copy Srutinizers report of  Annual General Meeting held on September 29, 2026. Further, the company has informed the Exchange regarding voting results.","category":"Shareholders meeting","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_30092026141622_SE_Intimation_sd.pdf","ts":"2026-09-30T14:16:37+05:30"},{"symbol":"COCHINSHIP","exchange":"NSE","headline":"Cochin Shipyard Limited has informed the Exchange regarding Proceedings of Annual General Meeting held on September 29, 2026","category":"Shareholders meeting","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_29092026150133_SE_Intimation_sd.pdf","ts":"2026-09-29T15:01:51+05:30"},{"symbol":"COCHINSHIP","exchange":"NSE","headline":"Cochin Shipyard Limited has informed the Exchange about Disclosure pursuant to Regulation 30 of the SEBI LODR Regulations","category":"Acquisition","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_24092026153822_SE_Intimation_sd.pdf","ts":"2026-09-24T15:38:34+05:30"},{"symbol":"COCHINSHIP","exchange":"NSE","headline":"Cochin Shipyard Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015","category":"Trading Window","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_24092026153139_Trading_Window_Closure_SE_Intimation_Sep_2026_sd.pdf","ts":"2026-09-24T15:31:53+05:30"},{"symbol":"COCHINSHIP","exchange":"NSE","headline":"Cochin Shipyard Limited has informed the Exchange about Transcript","category":"Analysts/Institutional Investor Meet/Con. Call Updates","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_18092026110658_SE_Intimation_sd.pdf","ts":"2026-09-18T11:07:19+05:30"},{"symbol":"COCHINSHIP","exchange":"NSE","headline":"Cochin Shipyard Limited has informed the Exchange about Agreements","category":"Agreements","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_11092026213638_SE_Intimation_Sgd.pdf","ts":"2026-09-11T21:37:21+05:30"},{"symbol":"COCHINSHIP","exchange":"BSE","headline":"Announcement under Regulation 30 (LODR)-Updates on Joint Venture","category":"Company Update","attachment_url":"https://www.bseindia.com/xml-data/corpfiling/AttachHis/8605bd8a-6fda-4be8-bf43-4078a8e3fe45.pdf","ts":"2026-09-11T21:34:30.030000+05:30"},{"symbol":"COCHINSHIP","exchange":"NSE","headline":"Cochin Shipyard Limited has informed the Exchange about Link of Recording","category":"Analysts/Institutional Investor Meet/Con. Call Updates","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_10092026165613_SE_Intimation_sd.pdf","ts":"2026-09-10T16:56:26+05:30"},{"symbol":"COCHINSHIP","exchange":"NSE","headline":"Cochin Shipyard Limited has informed the Exchange about Investor Presentation","category":"Investor Presentation","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_10092026103615_SE_Intimation_sd.pdf","ts":"2026-09-10T10:36:31+05:30"},{"symbol":"COCHINSHIP","exchange":"NSE","headline":"Cochin Shipyard Limited has informed the Exchange regarding 'Comments Of  The Board Of Directors Of The Company Pursuant To SEBI Master Circular Dated January 30, 2026'.","category":"Updates","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_09092026115928_Board_Comments_Q1FY27_sd.pdf","ts":"2026-09-09T11:59:44+05:30"},{"symbol":"COCHINSHIP","exchange":"NSE","headline":"CSL Board approves the proposal for forming a joint venture with Drydocks World Dubai   FZCO (DDW)","category":"Outcome of Board Meeting","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_09092026113101_SE_Intimation_Cov_Pag_BM_Outcome_sd.pdf","ts":"2026-09-09T11:33:03+05:30"},{"symbol":"COCHINSHIP","exchange":"NSE","headline":"Cochin Shipyard Limited has informed the Exchange about Schedule of meet","category":"Analysts/Institutional Investor Meet/Con. Call Updates","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_07092026170256_SE_Intimation_sd.pdf","ts":"2026-09-07T17:04:10+05:30"},{"symbol":"COCHINSHIP","exchange":"NSE","headline":"Cochin Shipyard Limited has informed the Exchange about Copy of Newspaper Publication","category":"Copy of Newspaper Publication","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_05092026132536_SE_Intimation_Sgd.pdf","ts":"2026-09-05T13:25:48+05:30"},{"symbol":"COCHINSHIP","exchange":"BSE","headline":"Intimation Of Record Date For Payment Of Final Dividend For FY 2025-26","category":"Corp. Action","attachment_url":"https://www.bseindia.com/xml-data/corpfiling/AttachHis/e06c6e32-e938-4a7d-b5bb-548b79673525.pdf","ts":"2026-09-04T11:29:54.777000+05:30"},{"symbol":"COCHINSHIP","exchange":"NSE","headline":"Cochin Shipyard Limited has informed the Exchange that Record date for the purpose of Dividend  is 18-Sep-2026.","category":"Record Date","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_04092026112457_SE_Intimation_Record_Date_Sgd.pdf","ts":"2026-09-04T11:25:21+05:30"},{"symbol":"COCHINSHIP","exchange":"BSE","headline":"Business Responsibility and Sustainability Reporting (BRSR)","category":"Others","attachment_url":"https://www.bseindia.com/xml-data/corpfiling/AttachHis/e63e7e8f-ea8b-4b50-8d53-1878b791a19c.pdf","ts":"2026-09-04T11:12:47.807000+05:30"},{"symbol":"COCHINSHIP","exchange":"NSE","headline":"Cochin Shipyard Limited has informed the Exchange regarding Notice of Annual General Meeting to be held on September 29, 2026","category":"Shareholders meeting","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_04092026110043_SE_Intimation_54th_AGM_Notice_Sgd.pdf","ts":"2026-09-04T11:00:57+05:30"},{"symbol":"COCHINSHIP","exchange":"BSE","headline":"Reg. 34 (1) Annual Report.","category":"Others","attachment_url":"https://www.bseindia.com/xml-data/corpfiling/AttachHis/aba1459d-eea7-4d24-9b40-e52540f83926.pdf","ts":"2026-09-04T10:56:11.670000+05:30"},{"symbol":"COCHINSHIP","exchange":"NSE","headline":"Cochin Shipyard Limited has informed the Exchange about Copy of Newspaper Publication","category":"Copy of Newspaper Publication","attachment_url":"https://nsearchives.nseindia.com/corporate/Aswi4739_02092026144931_SE_Intimation_Sgd.pdf","ts":"2026-09-02T14:49:43+05:30"},{"symbol":"COCHINSHIP","exchange":"BSE","headline":"Disclosure Pursuant To Regulation 30 Of The SEBI LODR Regulations","category":"Company Update","attachment_url":"https://www.bseindia.com/xml-data/corpfiling/AttachHis/11fbfecc-3e24-4810-b794-23aa68f52aa4.pdf","ts":"2026-08-27T13:04:05.407000+05:30"}]}},"source_floor":{"ok":true,"provider":"derived","data":{"cited":0,"floor":3},"note":"0 sources (below 3)"}},"cost":null,"web_available":false,"note":"Web search did not answer within 8s — structured data only","web_reason":"timeout","backend":null}}}
+{"t":51.066,"event":{"kind":"heartbeat"}}
+{"t":60.633,"event":{"kind":"delta","text":"The"}}
+{"t":60.634,"event":{"kind":"delta","text":" previous"}}
+{"t":60.634,"event":{"kind":"delta","text":" response"}}
+{"t":60.634,"event":{"kind":"delta","text":" appears"}}
+{"t":60.634,"event":{"kind":"delta","text":" to"}}
+{"t":60.634,"event":{"kind":"delta","text":" be"}}
+{"t":60.634,"event":{"kind":"delta","text":" incomplete"}}
+{"t":60.634,"event":{"kind":"delta","text":"."}}
+{"t":60.634,"event":{"kind":"delta","text":" "}}
+{"t":61.093,"event":{"kind":"delta","text":"I"}}
+{"t":61.094,"event":{"kind":"delta","text":" will"}}
+{"t":61.094,"event":{"kind":"delta","text":" try"}}
+{"t":61.105,"event":{"kind":"delta","text":" to"}}
+{"t":61.106,"event":{"kind":"delta","text":" answer"}}
+{"t":61.106,"event":{"kind":"delta","text":" the"}}
+{"t":61.106,"event":{"kind":"delta","text":" question"}}
+{"t":61.106,"event":{"kind":"delta","text":" again"}}
+{"t":61.106,"event":{"kind":"delta","text":".\n\n"}}
+{"t":62.916,"event":{"kind":"delta","text":"To"}}
+{"t":62.916,"event":{"kind":"delta","text":" determine"}}
+{"t":62.916,"event":{"kind":"delta","text":" if"}}
+{"t":62.916,"event":{"kind":"delta","text":" Co"}}
+{"t":62.925,"event":{"kind":"delta","text":"chin"}}
+{"t":62.925,"event":{"kind":"delta","text":" Ship"}}
+{"t":62.925,"event":{"kind":"delta","text":"yard"}}
+{"t":62.925,"event":{"kind":"delta","text":" is"}}
+{"t":62.925,"event":{"kind":"delta","text":" a"}}
+{"t":62.925,"event":{"kind":"delta","text":" business"}}
+{"t":62.925,"event":{"kind":"delta","text":" worth"}}
+{"t":62.925,"event":{"kind":"delta","text":" owning"}}
+{"t":62.925,"event":{"kind":"delta","text":" for"}}
+{"t":62.925,"event":{"kind":"delta","text":" ten"}}
+{"t":62.925,"event":{"kind":"delta","text":" years"}}
+{"t":62.926,"event":{"kind":"delta","text":" at"}}
+{"t":62.926,"event":{"kind":"delta","text":" today"}}
+{"t":62.926,"event":{"kind":"delta","text":"'s"}}
+{"t":62.926,"event":{"kind":"delta","text":" price"}}
+{"t":62.926,"event":{"kind":"delta","text":","}}
+{"t":62.926,"event":{"kind":"delta","text":" let"}}
+{"t":62.926,"event":{"kind":"delta","text":"'s"}}
+{"t":62.926,"event":{"kind":"delta","text":" apply"}}
+{"t":62.926,"event":{"kind":"delta","text":" some"}}
+{"t":62.926,"event":{"kind":"delta","text":" of"}}
+{"t":62.926,"event":{"kind":"delta","text":" the"}}
+{"t":62.926,"event":{"kind":"delta","text":" mental"}}
+{"t":62.926,"event":{"kind":"delta","text":" models"}}
+{"t":62.926,"event":{"kind":"delta","text":" mentioned"}}
+{"t":62.926,"event":{"kind":"delta","text":" earlier"}}
+{"t":62.926,"event":{"kind":"delta","text":".\n\n"}}
+{"t":63.614,"event":{"kind":"delta","text":"First"}}
+{"t":63.614,"event":{"kind":"delta","text":","}}
+{"t":63.614,"event":{"kind":"delta","text":" we"}}
+{"t":63.614,"event":{"kind":"delta","text":" need"}}
+{"t":63.614,"event":{"kind":"delta","text":" to"}}
+{"t":63.614,"event":{"kind":"delta","text":" assess"}}
+{"t":63.614,"event":{"kind":"delta","text":" the"}}
+{"t":63.614,"event":{"kind":"delta","text":" company"}}
+{"t":63.614,"event":{"kind":"delta","text":"'s"}}
+{"t":63.623,"event":{"kind":"delta","text":" fundamentals"}}
+{"t":63.623,"event":{"kind":"delta","text":"."}}
+{"t":63.623,"event":{"kind":"delta","text":" "}}
+{"t":64.998,"event":{"kind":"delta","text":"According"}}
+{"t":64.998,"event":{"kind":"delta","text":" to"}}
+{"t":64.998,"event":{"kind":"delta","text":" the"}}
+{"t":65.01,"event":{"kind":"delta","text":" provided"}}
+{"t":65.01,"event":{"kind":"delta","text":" research"}}
+{"t":65.011,"event":{"kind":"delta","text":","}}
+{"t":65.011,"event":{"kind":"delta","text":" Co"}}
+{"t":65.011,"event":{"kind":"delta","text":"chin"}}
+{"t":65.011,"event":{"kind":"delta","text":" Ship"}}
+{"t":65.011,"event":{"kind":"delta","text":"yard"}}
+{"t":65.011,"event":{"kind":"delta","text":" has"}}
+{"t":65.011,"event":{"kind":"delta","text":" a"}}
+{"t":65.011,"event":{"kind":"delta","text":" market"}}
+{"t":65.011,"event":{"kind":"delta","text":" capital"}}
+{"t":65.011,"event":{"kind":"delta","text":"ization"}}
+{"t":65.011,"event":{"kind":"delta","text":" of"}}
+{"t":65.011,"event":{"kind":"delta","text":" ₹"}}
+{"t":65.011,"event":{"kind":"delta","text":"33"}}
+{"t":65.012,"event":{"kind":"delta","text":","}}
+{"t":65.012,"event":{"kind":"delta","text":"858"}}
+{"t":65.012,"event":{"kind":"delta","text":" cro"}}
+{"t":65.012,"event":{"kind":"delta","text":"res"}}
+{"t":65.012,"event":{"kind":"delta","text":" and"}}
+{"t":65.012,"event":{"kind":"delta","text":" a"}}
+{"t":65.012,"event":{"kind":"delta","text":" "}}
+{"t":65.514,"event":{"kind":"delta","text":"52"}}
+{"t":65.514,"event":{"kind":"delta","text":"-week"}}
+{"t":65.514,"event":{"kind":"delta","text":" high"}}
+{"t":65.514,"event":{"kind":"delta","text":" of"}}
+{"t":65.514,"event":{"kind":"delta","text":" ₹"}}
+{"t":65.514,"event":{"kind":"delta","text":"189"}}
+{"t":65.514,"event":{"kind":"delta","text":"0"}}
+{"t":65.514,"event":{"kind":"delta","text":"."}}
+{"t":65.514,"event":{"kind":"delta","text":" "}}
+{"t":66.318,"event":{"kind":"delta","text":"The"}}
+{"t":66.318,"event":{"kind":"delta","text":" company"}}
+{"t":66.318,"event":{"kind":"delta","text":"'s"}}
+{"t":66.327,"event":{"kind":"delta","text":" EPS"}}
+{"t":66.327,"event":{"kind":"delta","text":" is"}}
+{"t":66.327,"event":{"kind":"delta","text":" ₹"}}
+{"t":66.327,"event":{"kind":"delta","text":"25"}}
+{"t":66.327,"event":{"kind":"delta","text":"."}}
+{"t":66.327,"event":{"kind":"delta","text":"86"}}
+{"t":66.327,"event":{"kind":"delta","text":","}}
+{"t":66.327,"event":{"kind":"delta","text":" and"}}
+{"t":66.327,"event":{"kind":"delta","text":" its"}}
+{"t":66.327,"event":{"kind":"delta","text":" beta"}}
+{"t":66.327,"event":{"kind":"delta","text":" is"}}
+{"t":66.327,"event":{"kind":"delta","text":" "}}
+{"t":66.547,"event":{"kind":"delta","text":"0"}}
+{"t":66.548,"event":{"kind":"delta","text":"."}}
+{"t":66.548,"event":{"kind":"delta","text":"582"}}
+{"t":66.548,"event":{"kind":"delta","text":".\n\n"}}
+{"t":67.351,"event":{"kind":"delta","text":"Now"}}
+{"t":67.351,"event":{"kind":"delta","text":","}}
+{"t":67.351,"event":{"kind":"delta","text":" let"}}
+{"t":67.351,"event":{"kind":"delta","text":"'s"}}
+{"t":67.351,"event":{"kind":"delta","text":" invert"}}
+{"t":67.351,"event":{"kind":"delta","text":" this"}}
+{"t":67.36,"event":{"kind":"delta","text":" investment"}}
+{"t":67.36,"event":{"kind":"delta","text":" idea"}}
+{"t":67.36,"event":{"kind":"delta","text":" using"}}
+{"t":67.36,"event":{"kind":"delta","text":" the"}}
+{"t":67.36,"event":{"kind":"delta","text":" inversion"}}
+{"t":67.36,"event":{"kind":"delta","text":" model"}}
+{"t":67.36,"event":{"kind":"delta","text":"."}}
+{"t":67.36,"event":{"kind":"delta","text":" "}}
+{"t":67.868,"event":{"kind":"delta","text":"What"}}
+{"t":67.869,"event":{"kind":"delta","text":" would"}}
+{"t":67.869,"event":{"kind":"delta","text":" make"}}
+{"t":67.877,"event":{"kind":"delta","text":" Co"}}
+{"t":67.877,"event":{"kind":"delta","text":"chin"}}
+{"t":67.878,"event":{"kind":"delta","text":" Ship"}}
+{"t":67.878,"event":{"kind":"delta","text":"yard"}}
+{"t":67.878,"event":{"kind":"delta","text":" fail"}}
+{"t":67.878,"event":{"kind":"delta","text":"?"}}
+{"t":67.878,"event":{"kind":"delta","text":" "}}
+{"t":69.034,"event":{"kind":"delta","text":"Some"}}
+{"t":69.045,"event":{"kind":"delta","text":" possible"}}
+{"t":69.045,"event":{"kind":"delta","text":" failure"}}
+{"t":69.045,"event":{"kind":"delta","text":" modes"}}
+{"t":69.045,"event":{"kind":"delta","text":" could"}}
+{"t":69.045,"event":{"kind":"delta","text":" be"}}
+{"t":69.046,"event":{"kind":"delta","text":":\n\n"}}
+{"t":69.046,"event":{"kind":"delta","text":"1"}}
+{"t":69.046,"event":{"kind":"delta","text":"."}}
+{"t":69.046,"event":{"kind":"delta","text":" Decre"}}
+{"t":69.046,"event":{"kind":"delta","text":"ase"}}
+{"t":69.046,"event":{"kind":"delta","text":" in"}}
+{"t":69.046,"event":{"kind":"delta","text":" demand"}}
+{"t":69.046,"event":{"kind":"delta","text":" for"}}
+{"t":69.046,"event":{"kind":"delta","text":" ships"}}
+{"t":69.046,"event":{"kind":"delta","text":" or"}}
+{"t":69.046,"event":{"kind":"delta","text":" ship"}}
+{"t":69.046,"event":{"kind":"delta","text":"building"}}
+{"t":69.046,"event":{"kind":"delta","text":" services"}}
+{"t":69.046,"event":{"kind":"delta","text":".\n"}}
+{"t":69.619,"event":{"kind":"delta","text":"2"}}
+{"t":69.62,"event":{"kind":"delta","text":"."}}
+{"t":69.62,"event":{"kind":"delta","text":" Competition"}}
+{"t":69.62,"event":{"kind":"delta","text":" from"}}
+{"t":69.621,"event":{"kind":"delta","text":" other"}}
+{"t":69.621,"event":{"kind":"delta","text":" ship"}}
+{"t":69.621,"event":{"kind":"delta","text":"builders"}}
+{"t":69.621,"event":{"kind":"delta","text":" or"}}
+{"t":69.621,"event":{"kind":"delta","text":" manufacturers"}}
+{"t":69.621,"event":{"kind":"delta","text":".\n"}}
+{"t":70.313,"event":{"kind":"delta","text":"3"}}
+{"t":70.313,"event":{"kind":"delta","text":"."}}
+{"t":70.314,"event":{"kind":"delta","text":" Increase"}}
+{"t":70.314,"event":{"kind":"delta","text":" in"}}
+{"t":70.314,"event":{"kind":"delta","text":" raw"}}
+{"t":70.314,"event":{"kind":"delta","text":" material"}}
+{"t":70.314,"event":{"kind":"delta","text":" costs"}}
+{"t":70.314,"event":{"kind":"delta","text":" or"}}
+{"t":70.314,"event":{"kind":"delta","text":" supply"}}
+{"t":70.314,"event":{"kind":"delta","text":" chain"}}
+{"t":70.314,"event":{"kind":"delta","text":" disruptions"}}
+{"t":70.314,"event":{"kind":"delta","text":".\n"}}
+{"t":70.777,"event":{"kind":"delta","text":"4"}}
+{"t":70.778,"event":{"kind":"delta","text":"."}}
+{"t":70.791,"event":{"kind":"delta","text":" Regulatory"}}
+{"t":70.791,"event":{"kind":"delta","text":" changes"}}
+{"t":70.791,"event":{"kind":"delta","text":" affecting"}}
+{"t":70.791,"event":{"kind":"delta","text":" the"}}
+{"t":70.791,"event":{"kind":"delta","text":" industry"}}
+{"t":70.791,"event":{"kind":"delta","text":".\n"}}
+{"t":71.36,"event":{"kind":"delta","text":"5"}}
+{"t":71.36,"event":{"kind":"delta","text":"."}}
+{"t":71.36,"event":{"kind":"delta","text":" Management"}}
+{"t":71.36,"event":{"kind":"delta","text":" decisions"}}
+{"t":71.36,"event":{"kind":"delta","text":" that"}}
+{"t":71.36,"event":{"kind":"delta","text":" lead"}}
+{"t":71.361,"event":{"kind":"delta","text":" to"}}
+{"t":71.361,"event":{"kind":"delta","text":" poor"}}
+{"t":71.361,"event":{"kind":"delta","text":" financial"}}
+{"t":71.369,"event":{"kind":"delta","text":" performance"}}
+{"t":71.369,"event":{"kind":"delta","text":".\n\n"}}
+{"t":72.293,"event":{"kind":"delta","text":"Est"}}
+{"t":72.293,"event":{"kind":"delta","text":"imating"}}
+{"t":72.305,"event":{"kind":"delta","text":" the"}}
+{"t":72.305,"event":{"kind":"delta","text":" probability"}}
+{"t":72.305,"event":{"kind":"delta","text":" of"}}
+{"t":72.305,"event":{"kind":"delta","text":" each"}}
+{"t":72.305,"event":{"kind":"delta","text":" failure"}}
+{"t":72.305,"event":{"kind":"delta","text":" mode"}}
+{"t":72.305,"event":{"kind":"delta","text":" would"}}
+{"t":72.305,"event":{"kind":"delta","text":" require"}}
+{"t":72.306,"event":{"kind":"delta","text":" more"}}
+{"t":72.306,"event":{"kind":"delta","text":" information"}}
+{"t":72.306,"event":{"kind":"delta","text":" and"}}
+{"t":72.306,"event":{"kind":"delta","text":" analysis"}}
+{"t":72.306,"event":{"kind":"delta","text":"."}}
+{"t":72.306,"event":{"kind":"delta","text":" "}}
+{"t":73.573,"event":{"kind":"delta","text":"However"}}
+{"t":73.574,"event":{"kind":"delta","text":","}}
+{"t":73.588,"event":{"kind":"delta","text":" if"}}
+{"t":73.589,"event":{"kind":"delta","text":" the"}}
+{"t":73.589,"event":{"kind":"delta","text":" inversion"}}
+{"t":73.589,"event":{"kind":"delta","text":" list"}}
+{"t":73.589,"event":{"kind":"delta","text":" is"}}
+{"t":73.589,"event":{"kind":"delta","text":" long"}}
+{"t":73.589,"event":{"kind":"delta","text":" and"}}
+{"t":73.589,"event":{"kind":"delta","text":" irre"}}
+{"t":73.589,"event":{"kind":"delta","text":"ducible"}}
+{"t":73.589,"event":{"kind":"delta","text":","}}
+{"t":73.589,"event":{"kind":"delta","text":" it"}}
+{"t":73.589,"event":{"kind":"delta","text":" may"}}
+{"t":73.589,"event":{"kind":"delta","text":" indicate"}}
+{"t":73.589,"event":{"kind":"delta","text":" a"}}
+{"t":73.589,"event":{"kind":"delta","text":" high"}}
+{"t":73.589,"event":{"kind":"delta","text":" risk"}}
+{"t":73.589,"event":{"kind":"delta","text":" associated"}}
+{"t":73.589,"event":{"kind":"delta","text":" with"}}
+{"t":73.589,"event":{"kind":"delta","text":" this"}}
+{"t":73.589,"event":{"kind":"delta","text":" investment"}}
+{"t":73.589,"event":{"kind":"delta","text":".\n\n"}}
+{"t":74.404,"event":{"kind":"delta","text":"Next"}}
+{"t":74.405,"event":{"kind":"delta","text":","}}
+{"t":74.42,"event":{"kind":"delta","text":" let"}}
+{"t":74.42,"event":{"kind":"delta","text":"'s"}}
+{"t":74.42,"event":{"kind":"delta","text":" consider"}}
+{"t":74.42,"event":{"kind":"delta","text":" l"}}
+{"t":74.42,"event":{"kind":"delta","text":"oll"}}
+{"t":74.42,"event":{"kind":"delta","text":"ap"}}
+{"t":74.42,"event":{"kind":"delta","text":"al"}}
+{"t":74.42,"event":{"kind":"delta","text":"oo"}}
+{"t":74.42,"event":{"kind":"delta","text":"za"}}
+{"t":74.42,"event":{"kind":"delta","text":" effects"}}
+{"t":74.421,"event":{"kind":"delta","text":"."}}
+{"t":74.421,"event":{"kind":"delta","text":" "}}
+{"t":75.754,"event":{"kind":"delta","text":"Are"}}
+{"t":75.754,"event":{"kind":"delta","text":" there"}}
+{"t":75.754,"event":{"kind":"delta","text":" any"}}
+{"t":75.763,"event":{"kind":"delta","text":" psychological"}}
+{"t":75.763,"event":{"kind":"delta","text":" biases"}}
+{"t":75.764,"event":{"kind":"delta","text":" or"}}
+{"t":75.764,"event":{"kind":"delta","text":" economic"}}
+{"t":75.764,"event":{"kind":"delta","text":" forces"}}
+{"t":75.764,"event":{"kind":"delta","text":" that"}}
+{"t":75.764,"event":{"kind":"delta","text":" could"}}
+{"t":75.764,"event":{"kind":"delta","text":" be"}}
+{"t":75.764,"event":{"kind":"delta","text":" comp"}}
+{"t":75.764,"event":{"kind":"delta","text":"ounding"}}
+{"t":75.764,"event":{"kind":"delta","text":" in"}}
+{"t":75.764,"event":{"kind":"delta","text":" the"}}
+{"t":75.764,"event":{"kind":"delta","text":" same"}}
+{"t":75.764,"event":{"kind":"delta","text":" direction"}}
+{"t":75.764,"event":{"kind":"delta","text":","}}
+{"t":75.764,"event":{"kind":"delta","text":" leading"}}
+{"t":75.764,"event":{"kind":"delta","text":" to"}}
+{"t":75.764,"event":{"kind":"delta","text":" an"}}
+{"t":75.764,"event":{"kind":"delta","text":" exaggerated"}}
+{"t":75.764,"event":{"kind":"delta","text":" effect"}}
+{"t":75.764,"event":{"kind":"delta","text":"?\n\n"}}
+{"t":76.986,"event":{"kind":"delta","text":"One"}}
+{"t":76.986,"event":{"kind":"delta","text":" possible"}}
+{"t":76.999,"event":{"kind":"delta","text":" l"}}
+{"t":76.999,"event":{"kind":"delta","text":"oll"}}
+{"t":76.999,"event":{"kind":"delta","text":"ap"}}
+{"t":76.999,"event":{"kind":"delta","text":"al"}}
+{"t":76.999,"event":{"kind":"delta","text":"oo"}}
+{"t":76.999,"event":{"kind":"delta","text":"za"}}
+{"t":76.999,"event":{"kind":"delta","text":" phenomenon"}}
+{"t":76.999,"event":{"kind":"delta","text":" related"}}
+{"t":76.999,"event":{"kind":"delta","text":" to"}}
+{"t":76.999,"event":{"kind":"delta","text":" Co"}}
+{"t":76.999,"event":{"kind":"delta","text":"chin"}}
+{"t":76.999,"event":{"kind":"delta","text":" Ship"}}
+{"t":76.999,"event":{"kind":"delta","text":"yard"}}
+{"t":76.999,"event":{"kind":"delta","text":" is"}}
+{"t":76.999,"event":{"kind":"delta","text":" the"}}
+{"t":76.999,"event":{"kind":"delta","text":" availability"}}
+{"t":76.999,"event":{"kind":"delta","text":" heuristic"}}
+{"t":77,"event":{"kind":"delta","text":"."}}
+{"t":77,"event":{"kind":"delta","text":" "}}
+{"t":78.72,"event":{"kind":"delta","text":"If"}}
+{"t":78.72,"event":{"kind":"delta","text":" investors"}}
+{"t":78.72,"event":{"kind":"delta","text":" are"}}
+{"t":78.73,"event":{"kind":"delta","text":" over"}}
+{"t":78.73,"event":{"kind":"delta","text":"conf"}}
+{"t":78.73,"event":{"kind":"delta","text":"ident"}}
+{"t":78.73,"event":{"kind":"delta","text":" about"}}
+{"t":78.73,"event":{"kind":"delta","text":" the"}}
+{"t":78.73,"event":{"kind":"delta","text":" company"}}
+{"t":78.73,"event":{"kind":"delta","text":"'s"}}
+{"t":78.73,"event":{"kind":"delta","text":" growth"}}
+{"t":78.73,"event":{"kind":"delta","text":" prospects"}}
+{"t":78.73,"event":{"kind":"delta","text":" due"}}
+{"t":78.73,"event":{"kind":"delta","text":" to"}}
+{"t":78.73,"event":{"kind":"delta","text":" its"}}
+{"t":78.73,"event":{"kind":"delta","text":" past"}}
+{"t":78.73,"event":{"kind":"delta","text":" performance"}}
+{"t":78.731,"event":{"kind":"delta","text":","}}
+{"t":78.731,"event":{"kind":"delta","text":" they"}}
+{"t":78.731,"event":{"kind":"delta","text":" may"}}
+{"t":78.731,"event":{"kind":"delta","text":" overlook"}}
+{"t":78.731,"event":{"kind":"delta","text":" potential"}}
+{"t":78.731,"event":{"kind":"delta","text":" risks"}}
+{"t":78.731,"event":{"kind":"delta","text":" and"}}
+{"t":78.731,"event":{"kind":"delta","text":" invest"}}
+{"t":78.731,"event":{"kind":"delta","text":" more"}}
+{"t":78.731,"event":{"kind":"delta","text":" than"}}
+{"t":78.731,"event":{"kind":"delta","text":" they"}}
+{"t":78.731,"event":{"kind":"delta","text":" should"}}
+{"t":78.731,"event":{"kind":"delta","text":".\n\n"}}
+{"t":80.187,"event":{"kind":"delta","text":"Another"}}
+{"t":80.187,"event":{"kind":"delta","text":" possibility"}}
+{"t":80.187,"event":{"kind":"delta","text":" is"}}
+{"t":80.187,"event":{"kind":"delta","text":" the"}}
+{"t":80.187,"event":{"kind":"delta","text":" rec"}}
+{"t":80.188,"event":{"kind":"delta","text":"ency"}}
+{"t":80.188,"event":{"kind":"delta","text":" bias"}}
+{"t":80.188,"event":{"kind":"delta","text":","}}
+{"t":80.188,"event":{"kind":"delta","text":" where"}}
+{"t":80.188,"event":{"kind":"delta","text":" investors"}}
+{"t":80.188,"event":{"kind":"delta","text":" focus"}}
+{"t":80.188,"event":{"kind":"delta","text":" too"}}
+{"t":80.188,"event":{"kind":"delta","text":" much"}}
+{"t":80.2,"event":{"kind":"delta","text":" on"}}
+{"t":80.201,"event":{"kind":"delta","text":" recent"}}
+{"t":80.201,"event":{"kind":"delta","text":" events"}}
+{"t":80.201,"event":{"kind":"delta","text":" or"}}
+{"t":80.201,"event":{"kind":"delta","text":" trends"}}
+{"t":80.201,"event":{"kind":"delta","text":","}}
+{"t":80.201,"event":{"kind":"delta","text":" such"}}
+{"t":80.201,"event":{"kind":"delta","text":" as"}}
+{"t":80.201,"event":{"kind":"delta","text":" the"}}
+{"t":80.201,"event":{"kind":"delta","text":" company"}}
+{"t":80.201,"event":{"kind":"delta","text":"'s"}}
+{"t":80.201,"event":{"kind":"delta","text":" "}}
+{"t":80.772,"event":{"kind":"delta","text":"52"}}
+{"t":80.772,"event":{"kind":"delta","text":"-week"}}
+{"t":80.772,"event":{"kind":"delta","text":" high"}}
+{"t":80.772,"event":{"kind":"delta","text":","}}
+{"t":80.782,"event":{"kind":"delta","text":" and"}}
+{"t":80.783,"event":{"kind":"delta","text":" ignore"}}
+{"t":80.783,"event":{"kind":"delta","text":" long"}}
+{"t":80.783,"event":{"kind":"delta","text":"-term"}}
+{"t":80.783,"event":{"kind":"delta","text":" fundamentals"}}
+{"t":80.783,"event":{"kind":"delta","text":".\n\n"}}
+{"t":82.176,"event":{"kind":"delta","text":"To"}}
+{"t":82.177,"event":{"kind":"delta","text":" further"}}
+{"t":82.177,"event":{"kind":"delta","text":" assess"}}
+{"t":82.177,"event":{"kind":"delta","text":" Co"}}
+{"t":82.177,"event":{"kind":"delta","text":"chin"}}
+{"t":82.177,"event":{"kind":"delta","text":" Ship"}}
+{"t":82.177,"event":{"kind":"delta","text":"yard"}}
+{"t":82.177,"event":{"kind":"delta","text":"'s"}}
+{"t":82.177,"event":{"kind":"delta","text":" attractiveness"}}
+{"t":82.177,"event":{"kind":"delta","text":","}}
+{"t":82.177,"event":{"kind":"delta","text":" we"}}
+{"t":82.177,"event":{"kind":"delta","text":" need"}}
+{"t":82.177,"event":{"kind":"delta","text":" to"}}
+{"t":82.177,"event":{"kind":"delta","text":" evaluate"}}
+{"t":82.178,"event":{"kind":"delta","text":" its"}}
+{"t":82.178,"event":{"kind":"delta","text":" competitive"}}
+{"t":82.178,"event":{"kind":"delta","text":" dynamics"}}
+{"t":82.178,"event":{"kind":"delta","text":" using"}}
+{"t":82.178,"event":{"kind":"delta","text":" Porter"}}
+{"t":82.178,"event":{"kind":"delta","text":"'s"}}
+{"t":82.178,"event":{"kind":"delta","text":" five"}}
+{"t":82.178,"event":{"kind":"delta","text":" forces"}}
+{"t":82.178,"event":{"kind":"delta","text":"."}}
+{"t":82.178,"event":{"kind":"delta","text":" "}}
+{"t":83.53,"event":{"kind":"delta","text":"This"}}
+{"t":83.53,"event":{"kind":"delta","text":" would"}}
+{"t":83.53,"event":{"kind":"delta","text":" involve"}}
+{"t":83.53,"event":{"kind":"delta","text":" analyzing"}}
+{"t":83.531,"event":{"kind":"delta","text":" the"}}
+{"t":83.531,"event":{"kind":"delta","text":" bargaining"}}
+{"t":83.54,"event":{"kind":"delta","text":" power"}}
+{"t":83.54,"event":{"kind":"delta","text":" of"}}
+{"t":83.54,"event":{"kind":"delta","text":" suppliers"}}
+{"t":83.54,"event":{"kind":"delta","text":","}}
+{"t":83.54,"event":{"kind":"delta","text":" buyers"}}
+{"t":83.54,"event":{"kind":"delta","text":","}}
+{"t":83.54,"event":{"kind":"delta","text":" new"}}
+{"t":83.54,"event":{"kind":"delta","text":" entr"}}
+{"t":83.541,"event":{"kind":"delta","text":"ants"}}
+{"t":83.541,"event":{"kind":"delta","text":","}}
+{"t":83.541,"event":{"kind":"delta","text":" and"}}
+{"t":83.541,"event":{"kind":"delta","text":" substitutes"}}
+{"t":83.541,"event":{"kind":"delta","text":" in"}}
+{"t":83.541,"event":{"kind":"delta","text":" the"}}
+{"t":83.541,"event":{"kind":"delta","text":" ship"}}
+{"t":83.541,"event":{"kind":"delta","text":"building"}}
+{"t":83.541,"event":{"kind":"delta","text":" industry"}}
+{"t":83.541,"event":{"kind":"delta","text":".\n\n"}}
+{"t":84.297,"event":{"kind":"delta","text":"Finally"}}
+{"t":84.298,"event":{"kind":"delta","text":","}}
+{"t":84.298,"event":{"kind":"delta","text":" let"}}
+{"t":84.298,"event":{"kind":"delta","text":"'s"}}
+{"t":84.298,"event":{"kind":"delta","text":" consider"}}
+{"t":84.298,"event":{"kind":"delta","text":" the"}}
+{"t":84.309,"event":{"kind":"delta","text":" accounting"}}
+{"t":84.309,"event":{"kind":"delta","text":" aspect"}}
+{"t":84.309,"event":{"kind":"delta","text":" of"}}
+{"t":84.309,"event":{"kind":"delta","text":" this"}}
+{"t":84.309,"event":{"kind":"delta","text":" investment"}}
+{"t":84.309,"event":{"kind":"delta","text":"."}}
+{"t":84.31,"event":{"kind":"delta","text":" "}}
+{"t":85.412,"event":{"kind":"delta","text":"Are"}}
+{"t":85.412,"event":{"kind":"delta","text":" there"}}
+{"t":85.413,"event":{"kind":"delta","text":" any"}}
+{"t":85.424,"event":{"kind":"delta","text":" red"}}
+{"t":85.425,"event":{"kind":"delta","text":" flags"}}
+{"t":85.425,"event":{"kind":"delta","text":" in"}}
+{"t":85.425,"event":{"kind":"delta","text":" the"}}
+{"t":85.425,"event":{"kind":"delta","text":" company"}}
+{"t":85.425,"event":{"kind":"delta","text":"'s"}}
+{"t":85.425,"event":{"kind":"delta","text":" financial"}}
+{"t":85.425,"event":{"kind":"delta","text":" statements"}}
+{"t":85.425,"event":{"kind":"delta","text":" that"}}
+{"t":85.425,"event":{"kind":"delta","text":" could"}}
+{"t":85.425,"event":{"kind":"delta","text":" indicate"}}
+{"t":85.425,"event":{"kind":"delta","text":" poor"}}
+{"t":85.425,"event":{"kind":"delta","text":" management"}}
+{"t":85.425,"event":{"kind":"delta","text":" or"}}
+{"t":85.425,"event":{"kind":"delta","text":" accounting"}}
+{"t":85.425,"event":{"kind":"delta","text":" practices"}}
+{"t":85.425,"event":{"kind":"delta","text":"?\n\n"}}
+{"t":87.115,"event":{"kind":"delta","text":"In"}}
+{"t":87.115,"event":{"kind":"delta","text":" conclusion"}}
+{"t":87.115,"event":{"kind":"delta","text":","}}
+{"t":87.115,"event":{"kind":"delta","text":" while"}}
+{"t":87.115,"event":{"kind":"delta","text":" Co"}}
+{"t":87.115,"event":{"kind":"delta","text":"chin"}}
+{"t":87.115,"event":{"kind":"delta","text":" Ship"}}
+{"t":87.125,"event":{"kind":"delta","text":"yard"}}
+{"t":87.125,"event":{"kind":"delta","text":" has"}}
+{"t":87.125,"event":{"kind":"delta","text":" a"}}
+{"t":87.125,"event":{"kind":"delta","text":" strong"}}
+{"t":87.125,"event":{"kind":"delta","text":" market"}}
+{"t":87.126,"event":{"kind":"delta","text":" position"}}
+{"t":87.126,"event":{"kind":"delta","text":" and"}}
+{"t":87.126,"event":{"kind":"delta","text":" attractive"}}
+{"t":87.126,"event":{"kind":"delta","text":" fundamentals"}}
+{"t":87.126,"event":{"kind":"delta","text":","}}
+{"t":87.126,"event":{"kind":"delta","text":" further"}}
+{"t":87.126,"event":{"kind":"delta","text":" analysis"}}
+{"t":87.126,"event":{"kind":"delta","text":" is"}}
+{"t":87.126,"event":{"kind":"delta","text":" needed"}}
+{"t":87.126,"event":{"kind":"delta","text":" to"}}
+{"t":87.126,"event":{"kind":"delta","text":" assess"}}
+{"t":87.126,"event":{"kind":"delta","text":" its"}}
+{"t":87.126,"event":{"kind":"delta","text":" long"}}
+{"t":87.126,"event":{"kind":"delta","text":"-term"}}
+{"t":87.126,"event":{"kind":"delta","text":" potential"}}
+{"t":87.127,"event":{"kind":"delta","text":"."}}
+{"t":87.127,"event":{"kind":"delta","text":" "}}
+{"t":88.645,"event":{"kind":"delta","text":"The"}}
+{"t":88.646,"event":{"kind":"delta","text":" inversion"}}
+{"t":88.646,"event":{"kind":"delta","text":" model"}}
+{"t":88.646,"event":{"kind":"delta","text":" suggests"}}
+{"t":88.646,"event":{"kind":"delta","text":" several"}}
+{"t":88.646,"event":{"kind":"delta","text":" possible"}}
+{"t":88.646,"event":{"kind":"delta","text":" failure"}}
+{"t":88.655,"event":{"kind":"delta","text":" modes"}}
+{"t":88.655,"event":{"kind":"delta","text":","}}
+{"t":88.656,"event":{"kind":"delta","text":" and"}}
+{"t":88.656,"event":{"kind":"delta","text":" l"}}
+{"t":88.656,"event":{"kind":"delta","text":"oll"}}
+{"t":88.656,"event":{"kind":"delta","text":"ap"}}
+{"t":88.656,"event":{"kind":"delta","text":"al"}}
+{"t":88.656,"event":{"kind":"delta","text":"oo"}}
+{"t":88.656,"event":{"kind":"delta","text":"za"}}
+{"t":88.656,"event":{"kind":"delta","text":" effects"}}
+{"t":88.656,"event":{"kind":"delta","text":" may"}}
+{"t":88.656,"event":{"kind":"delta","text":" be"}}
+{"t":88.656,"event":{"kind":"delta","text":" at"}}
+{"t":88.656,"event":{"kind":"delta","text":" play"}}
+{"t":88.656,"event":{"kind":"delta","text":" due"}}
+{"t":88.656,"event":{"kind":"delta","text":" to"}}
+{"t":88.656,"event":{"kind":"delta","text":" psychological"}}
+{"t":88.656,"event":{"kind":"delta","text":" biases"}}
+{"t":88.656,"event":{"kind":"delta","text":"."}}
+{"t":88.656,"event":{"kind":"delta","text":" "}}
+{"t":89.706,"event":{"kind":"delta","text":"A"}}
+{"t":89.706,"event":{"kind":"delta","text":" more"}}
+{"t":89.707,"event":{"kind":"delta","text":" comprehensive"}}
+{"t":89.707,"event":{"kind":"delta","text":" evaluation"}}
+{"t":89.707,"event":{"kind":"delta","text":" of"}}
+{"t":89.707,"event":{"kind":"delta","text":" the"}}
+{"t":89.707,"event":{"kind":"delta","text":" company"}}
+{"t":89.707,"event":{"kind":"delta","text":"'s"}}
+{"t":89.707,"event":{"kind":"delta","text":" competitive"}}
+{"t":89.707,"event":{"kind":"delta","text":" dynamics"}}
+{"t":89.707,"event":{"kind":"delta","text":" and"}}
+{"t":89.707,"event":{"kind":"delta","text":" accounting"}}
+{"t":89.707,"event":{"kind":"delta","text":" practices"}}
+{"t":89.707,"event":{"kind":"delta","text":" would"}}
+{"t":89.707,"event":{"kind":"delta","text":" provide"}}
+{"t":89.707,"event":{"kind":"delta","text":" a"}}
+{"t":89.707,"event":{"kind":"delta","text":" clearer"}}
+{"t":89.707,"event":{"kind":"delta","text":" picture"}}
+{"t":89.707,"event":{"kind":"delta","text":".\n\n"}}
+{"t":90.946,"event":{"kind":"delta","text":"I"}}
+{"t":90.946,"event":{"kind":"delta","text":" propose"}}
+{"t":90.947,"event":{"kind":"delta","text":" opening"}}
+{"t":90.947,"event":{"kind":"delta","text":" the"}}
+{"t":90.947,"event":{"kind":"delta","text":" Company"}}
+{"t":90.947,"event":{"kind":"delta","text":" Overview"}}
+{"t":90.956,"event":{"kind":"delta","text":" panel"}}
+{"t":90.957,"event":{"kind":"delta","text":" to"}}
+{"t":90.957,"event":{"kind":"delta","text":" view"}}
+{"t":90.957,"event":{"kind":"delta","text":" Co"}}
+{"t":90.957,"event":{"kind":"delta","text":"chin"}}
+{"t":90.957,"event":{"kind":"delta","text":" Ship"}}
+{"t":90.957,"event":{"kind":"delta","text":"yard"}}
+{"t":90.957,"event":{"kind":"delta","text":"'s"}}
+{"t":90.957,"event":{"kind":"delta","text":" financial"}}
+{"t":90.957,"event":{"kind":"delta","text":" statements"}}
+{"t":90.957,"event":{"kind":"delta","text":" and"}}
+{"t":90.957,"event":{"kind":"delta","text":" other"}}
+{"t":90.957,"event":{"kind":"delta","text":" relevant"}}
+{"t":90.957,"event":{"kind":"delta","text":" information"}}
+{"t":90.957,"event":{"kind":"delta","text":".\n\n"}}
+{"t":93.196,"event":{"kind":"delta","text":"`"}}
+{"t":93.207,"event":{"kind":"tool_result","toolCallId":"call_cc010b3f0fb54941ac22b08fae3d9f74","name":"open_panel","ok":false,"error":"invalid arguments for open_panel: missing panel — ask the user for it; do not guess"}}
+{"t":94.711,"event":{"kind":"delta","text":"To"}}
+{"t":94.711,"event":{"kind":"delta","text":" answer"}}
+{"t":94.711,"event":{"kind":"delta","text":" your"}}
+{"t":94.711,"event":{"kind":"delta","text":" question"}}
+{"t":94.721,"event":{"kind":"delta","text":","}}
+{"t":94.721,"event":{"kind":"delta","text":" let"}}
+{"t":94.721,"event":{"kind":"delta","text":"'s"}}
+{"t":94.721,"event":{"kind":"delta","text":" focus"}}
+{"t":94.722,"event":{"kind":"delta","text":" on"}}
+{"t":94.722,"event":{"kind":"delta","text":" the"}}
+{"t":94.722,"event":{"kind":"delta","text":" inversion"}}
+{"t":94.722,"event":{"kind":"delta","text":" model"}}
+{"t":94.722,"event":{"kind":"delta","text":"."}}
+{"t":94.722,"event":{"kind":"delta","text":" "}}
+{"t":95.401,"event":{"kind":"delta","text":"We"}}
+{"t":95.402,"event":{"kind":"delta","text":" will"}}
+{"t":95.402,"event":{"kind":"delta","text":" analyze"}}
+{"t":95.402,"event":{"kind":"delta","text":" what"}}
+{"t":95.402,"event":{"kind":"delta","text":" could"}}
+{"t":95.402,"event":{"kind":"delta","text":" go"}}
+{"t":95.402,"event":{"kind":"delta","text":" wrong"}}
+{"t":95.402,"event":{"kind":"delta","text":" with"}}
+{"t":95.403,"event":{"kind":"delta","text":" Co"}}
+{"t":95.403,"event":{"kind":"delta","text":"chin"}}
+{"t":95.403,"event":{"kind":"delta","text":" Ship"}}
+{"t":95.403,"event":{"kind":"delta","text":"yard"}}
+{"t":95.403,"event":{"kind":"delta","text":".\n\n"}}
+{"t":95.865,"event":{"kind":"delta","text":"1"}}
+{"t":95.865,"event":{"kind":"delta","text":"."}}
+{"t":95.866,"event":{"kind":"delta","text":" "}}
+{"t":95.866,"event":{"kind":"delta","text":" In"}}
+{"t":95.866,"event":{"kind":"delta","text":"version"}}
+{"t":95.866,"event":{"kind":"delta","text":":\n\n"}}
+{"t":95.866,"event":{"kind":"delta","text":"   "}}
+{"t":95.866,"event":{"kind":"delta","text":" "}}
+{"t":96.726,"event":{"kind":"delta","text":"*"}}
+{"t":96.748,"event":{"kind":"delta","text":"  "}}
+{"t":96.748,"event":{"kind":"delta","text":" What"}}
+{"t":96.748,"event":{"kind":"delta","text":" would"}}
+{"t":96.748,"event":{"kind":"delta","text":" make"}}
+{"t":96.748,"event":{"kind":"delta","text":" this"}}
+{"t":96.748,"event":{"kind":"delta","text":" investment"}}
+{"t":96.748,"event":{"kind":"delta","text":" fail"}}
+{"t":96.748,"event":{"kind":"delta","text":"?"}}
+{"t":96.748,"event":{"kind":"delta","text":" List"}}
+{"t":96.749,"event":{"kind":"delta","text":" the"}}
+{"t":96.749,"event":{"kind":"delta","text":" failure"}}
+{"t":96.749,"event":{"kind":"delta","text":" modes"}}
+{"t":96.749,"event":{"kind":"delta","text":".\n"}}
+{"t":96.749,"event":{"kind":"delta","text":"       "}}
+{"t":96.749,"event":{"kind":"delta","text":" "}}
+{"t":97.191,"event":{"kind":"delta","text":"-"}}
+{"t":97.191,"event":{"kind":"delta","text":"  "}}
+{"t":97.191,"event":{"kind":"delta","text":" Lack"}}
+{"t":97.2,"event":{"kind":"delta","text":" of"}}
+{"t":97.201,"event":{"kind":"delta","text":" government"}}
+{"t":97.201,"event":{"kind":"delta","text":" orders"}}
+{"t":97.201,"event":{"kind":"delta","text":"\n"}}
+{"t":97.201,"event":{"kind":"delta","text":"       "}}
+{"t":97.201,"event":{"kind":"delta","text":" "}}
+{"t":97.714,"event":{"kind":"delta","text":"-"}}
+{"t":97.714,"event":{"kind":"delta","text":"  "}}
+{"t":97.715,"event":{"kind":"delta","text":" Competition"}}
+{"t":97.715,"event":{"kind":"delta","text":" from"}}
+{"t":97.715,"event":{"kind":"delta","text":" other"}}
+{"t":97.715,"event":{"kind":"delta","text":" ship"}}
+{"t":97.715,"event":{"kind":"delta","text":"yards"}}
+{"t":97.716,"event":{"kind":"delta","text":"\n"}}
+{"t":97.716,"event":{"kind":"delta","text":"       "}}
+{"t":97.716,"event":{"kind":"delta","text":" "}}
+{"t":98.236,"event":{"kind":"delta","text":"-"}}
+{"t":98.236,"event":{"kind":"delta","text":"  "}}
+{"t":98.236,"event":{"kind":"delta","text":" Del"}}
+{"t":98.236,"event":{"kind":"delta","text":"ays"}}
+{"t":98.236,"event":{"kind":"delta","text":" in"}}
+{"t":98.236,"event":{"kind":"delta","text":" project"}}
+{"t":98.246,"event":{"kind":"delta","text":" execution"}}
+{"t":98.246,"event":{"kind":"delta","text":"\n"}}
+{"t":98.246,"event":{"kind":"delta","text":"       "}}
+{"t":98.246,"event":{"kind":"delta","text":" "}}
+{"t":98.657,"event":{"kind":"delta","text":"-"}}
+{"t":98.657,"event":{"kind":"delta","text":"  "}}
+{"t":98.657,"event":{"kind":"delta","text":" Quality"}}
+{"t":98.657,"event":{"kind":"delta","text":" control"}}
+{"t":98.658,"event":{"kind":"delta","text":" issues"}}
+{"t":98.658,"event":{"kind":"delta","text":"\n"}}
+{"t":98.667,"event":{"kind":"delta","text":"       "}}
+{"t":98.668,"event":{"kind":"delta","text":" "}}
+{"t":99.122,"event":{"kind":"delta","text":"-"}}
+{"t":99.123,"event":{"kind":"delta","text":"  "}}
+{"t":99.123,"event":{"kind":"delta","text":" Economic"}}
+{"t":99.123,"event":{"kind":"delta","text":" downturn"}}
+{"t":99.134,"event":{"kind":"delta","text":" affecting"}}
+{"t":99.134,"event":{"kind":"delta","text":" demand"}}
+{"t":99.134,"event":{"kind":"delta","text":" for"}}
+{"t":99.134,"event":{"kind":"delta","text":" ships"}}
+{"t":99.134,"event":{"kind":"delta","text":"\n\n"}}
+{"t":99.18,"event":{"kind":"delta","text":"   "}}
+{"t":99.645,"event":{"kind":"delta","text":" *"}}
+{"t":99.646,"event":{"kind":"delta","text":"  "}}
+{"t":99.646,"event":{"kind":"delta","text":" Estimate"}}
+{"t":99.659,"event":{"kind":"delta","text":" the"}}
+{"t":99.659,"event":{"kind":"delta","text":" probability"}}
+{"t":99.659,"event":{"kind":"delta","text":" of"}}
+{"t":99.659,"event":{"kind":"delta","text":" each"}}
+{"t":99.66,"event":{"kind":"delta","text":".\n\n"}}
+{"t":99.702,"event":{"kind":"delta","text":"   "}}
+{"t":100.34,"event":{"kind":"delta","text":" We"}}
+{"t":100.34,"event":{"kind":"delta","text":" cannot"}}
+{"t":100.34,"event":{"kind":"delta","text":" accurately"}}
+{"t":100.34,"event":{"kind":"delta","text":" estimate"}}
+{"t":100.341,"event":{"kind":"delta","text":" the"}}
+{"t":100.341,"event":{"kind":"delta","text":" probabilities"}}
+{"t":100.35,"event":{"kind":"delta","text":" without"}}
+{"t":100.35,"event":{"kind":"delta","text":" more"}}
+{"t":100.35,"event":{"kind":"delta","text":" information"}}
+{"t":100.35,"event":{"kind":"delta","text":"."}}
+{"t":100.35,"event":{"kind":"delta","text":" "}}
+{"t":101.448,"event":{"kind":"delta","text":"However"}}
+{"t":101.448,"event":{"kind":"delta","text":","}}
+{"t":101.449,"event":{"kind":"delta","text":" we"}}
+{"t":101.449,"event":{"kind":"delta","text":" can"}}
+{"t":101.458,"event":{"kind":"delta","text":" conclude"}}
+{"t":101.458,"event":{"kind":"delta","text":" that"}}
+{"t":101.458,"event":{"kind":"delta","text":" there"}}
+{"t":101.459,"event":{"kind":"delta","text":" are"}}
+{"t":101.459,"event":{"kind":"delta","text":" several"}}
+{"t":101.459,"event":{"kind":"delta","text":" potential"}}
+{"t":101.459,"event":{"kind":"delta","text":" risks"}}
+{"t":101.459,"event":{"kind":"delta","text":" associated"}}
+{"t":101.459,"event":{"kind":"delta","text":" with"}}
+{"t":101.459,"event":{"kind":"delta","text":" investing"}}
+{"t":101.459,"event":{"kind":"delta","text":" in"}}
+{"t":101.459,"event":{"kind":"delta","text":" Co"}}
+{"t":101.459,"event":{"kind":"delta","text":"chin"}}
+{"t":101.459,"event":{"kind":"delta","text":" Ship"}}
+{"t":101.459,"event":{"kind":"delta","text":"yard"}}
+{"t":101.459,"event":{"kind":"delta","text":".\n\n"}}
+{"t":102.207,"event":{"kind":"delta","text":"2"}}
+{"t":102.208,"event":{"kind":"delta","text":"."}}
+{"t":102.208,"event":{"kind":"delta","text":" "}}
+{"t":102.226,"event":{"kind":"delta","text":" L"}}
+{"t":102.227,"event":{"kind":"delta","text":"oll"}}
+{"t":102.227,"event":{"kind":"delta","text":"ap"}}
+{"t":102.227,"event":{"kind":"delta","text":"al"}}
+{"t":102.227,"event":{"kind":"delta","text":"oo"}}
+{"t":102.227,"event":{"kind":"delta","text":"za"}}
+{"t":102.227,"event":{"kind":"delta","text":" effects"}}
+{"t":102.227,"event":{"kind":"delta","text":":\n\n"}}
+{"t":102.227,"event":{"kind":"delta","text":"   "}}
+{"t":102.227,"event":{"kind":"delta","text":" "}}
+{"t":102.962,"event":{"kind":"delta","text":"No"}}
+{"t":102.962,"event":{"kind":"delta","text":" l"}}
+{"t":102.962,"event":{"kind":"delta","text":"oll"}}
+{"t":102.962,"event":{"kind":"delta","text":"ap"}}
+{"t":102.962,"event":{"kind":"delta","text":"al"}}
+{"t":102.973,"event":{"kind":"delta","text":"oo"}}
+{"t":102.973,"event":{"kind":"delta","text":"za"}}
+{"t":102.973,"event":{"kind":"delta","text":" effects"}}
+{"t":102.973,"event":{"kind":"delta","text":" were"}}
+{"t":102.973,"event":{"kind":"delta","text":" identified"}}
+{"t":102.973,"event":{"kind":"delta","text":" at"}}
+{"t":102.973,"event":{"kind":"delta","text":" this"}}
+{"t":102.973,"event":{"kind":"delta","text":" time"}}
+{"t":102.973,"event":{"kind":"delta","text":".\n\n"}}
+{"t":103.718,"event":{"kind":"delta","text":"3"}}
+{"t":103.718,"event":{"kind":"delta","text":"."}}
+{"t":103.718,"event":{"kind":"delta","text":" "}}
+{"t":103.718,"event":{"kind":"delta","text":" The"}}
+{"t":103.718,"event":{"kind":"delta","text":" psychology"}}
+{"t":103.73,"event":{"kind":"delta","text":" of"}}
+{"t":103.73,"event":{"kind":"delta","text":" human"}}
+{"t":103.73,"event":{"kind":"delta","text":" mis"}}
+{"t":103.73,"event":{"kind":"delta","text":"jud"}}
+{"t":103.731,"event":{"kind":"delta","text":"gment"}}
+{"t":103.731,"event":{"kind":"delta","text":":\n\n"}}
+{"t":103.731,"event":{"kind":"delta","text":"   "}}
+{"t":103.731,"event":{"kind":"delta","text":" "}}
+{"t":104.775,"event":{"kind":"delta","text":"There"}}
+{"t":104.776,"event":{"kind":"delta","text":" is"}}
+{"t":104.777,"event":{"kind":"delta","text":" no"}}
+{"t":104.788,"event":{"kind":"delta","text":" indication"}}
+{"t":104.789,"event":{"kind":"delta","text":" of"}}
+{"t":104.789,"event":{"kind":"delta","text":" psychological"}}
+{"t":104.789,"event":{"kind":"delta","text":" biases"}}
+{"t":104.789,"event":{"kind":"delta","text":" influencing"}}
+{"t":104.789,"event":{"kind":"delta","text":" the"}}
+{"t":104.789,"event":{"kind":"delta","text":" management"}}
+{"t":104.789,"event":{"kind":"delta","text":" or"}}
+{"t":104.789,"event":{"kind":"delta","text":" analyst"}}
+{"t":104.789,"event":{"kind":"delta","text":" consensus"}}
+{"t":104.789,"event":{"kind":"delta","text":" regarding"}}
+{"t":104.789,"event":{"kind":"delta","text":" Co"}}
+{"t":104.789,"event":{"kind":"delta","text":"chin"}}
+{"t":104.789,"event":{"kind":"delta","text":" Ship"}}
+{"t":104.789,"event":{"kind":"delta","text":"yard"}}
+{"t":104.789,"event":{"kind":"delta","text":".\n\n"}}
+{"t":105.476,"event":{"kind":"delta","text":"4"}}
+{"t":105.477,"event":{"kind":"delta","text":"."}}
+{"t":105.477,"event":{"kind":"delta","text":" "}}
+{"t":105.477,"event":{"kind":"delta","text":" Micro"}}
+{"t":105.489,"event":{"kind":"delta","text":"e"}}
+{"t":105.489,"event":{"kind":"delta","text":"conomics"}}
+{"t":105.489,"event":{"kind":"delta","text":" and"}}
+{"t":105.489,"event":{"kind":"delta","text":" competitive"}}
+{"t":105.489,"event":{"kind":"delta","text":" dynamics"}}
+{"t":105.489,"event":{"kind":"delta","text":":\n\n"}}
+{"t":105.489,"event":{"kind":"delta","text":"   "}}
+{"t":105.489,"event":{"kind":"delta","text":" "}}
+{"t":106.822,"event":{"kind":"delta","text":"We"}}
+{"t":106.822,"event":{"kind":"delta","text":" do"}}
+{"t":106.822,"event":{"kind":"delta","text":" not"}}
+{"t":106.822,"event":{"kind":"delta","text":" have"}}
+{"t":106.833,"event":{"kind":"delta","text":" information"}}
+{"t":106.833,"event":{"kind":"delta","text":" about"}}
+{"t":106.833,"event":{"kind":"delta","text":" comparative"}}
+{"t":106.833,"event":{"kind":"delta","text":" advantage"}}
+{"t":106.834,"event":{"kind":"delta","text":","}}
+{"t":106.834,"event":{"kind":"delta","text":" economies"}}
+{"t":106.834,"event":{"kind":"delta","text":" of"}}
+{"t":106.834,"event":{"kind":"delta","text":" scale"}}
+{"t":106.834,"event":{"kind":"delta","text":","}}
+{"t":106.834,"event":{"kind":"delta","text":" or"}}
+{"t":106.834,"event":{"kind":"delta","text":" Porter"}}
+{"t":106.834,"event":{"kind":"delta","text":"'s"}}
+{"t":106.834,"event":{"kind":"delta","text":" five"}}
+{"t":106.834,"event":{"kind":"delta","text":" forces"}}
+{"t":106.834,"event":{"kind":"delta","text":" for"}}
+{"t":106.834,"event":{"kind":"delta","text":" Co"}}
+{"t":106.834,"event":{"kind":"delta","text":"chin"}}
+{"t":106.834,"event":{"kind":"delta","text":" Ship"}}
+{"t":106.834,"event":{"kind":"delta","text":"yard"}}
+{"t":106.834,"event":{"kind":"delta","text":".\n\n"}}
+{"t":107.53,"event":{"kind":"delta","text":"5"}}
+{"t":107.531,"event":{"kind":"delta","text":"."}}
+{"t":107.531,"event":{"kind":"delta","text":" "}}
+{"t":107.541,"event":{"kind":"delta","text":" Accounting"}}
+{"t":107.541,"event":{"kind":"delta","text":" as"}}
+{"t":107.541,"event":{"kind":"delta","text":" the"}}
+{"t":107.541,"event":{"kind":"delta","text":" language"}}
+{"t":107.541,"event":{"kind":"delta","text":" of"}}
+{"t":107.541,"event":{"kind":"delta","text":" business"}}
+{"t":107.541,"event":{"kind":"delta","text":":\n\n"}}
+{"t":107.541,"event":{"kind":"delta","text":"   "}}
+{"t":107.541,"event":{"kind":"delta","text":" "}}
+{"t":109.054,"event":{"kind":"delta","text":"The"}}
+{"t":109.055,"event":{"kind":"delta","text":" company"}}
+{"t":109.055,"event":{"kind":"delta","text":"'s"}}
+{"t":109.069,"event":{"kind":"delta","text":" financial"}}
+{"t":109.069,"event":{"kind":"delta","text":" statements"}}
+{"t":109.069,"event":{"kind":"delta","text":" appear"}}
+{"t":109.069,"event":{"kind":"delta","text":" to"}}
+{"t":109.069,"event":{"kind":"delta","text":" be"}}
+{"t":109.069,"event":{"kind":"delta","text":" available"}}
+{"t":109.07,"event":{"kind":"delta","text":" through"}}
+{"t":109.07,"event":{"kind":"delta","text":" Yahoo"}}
+{"t":109.07,"event":{"kind":"delta","text":" Finance"}}
+{"t":109.07,"event":{"kind":"delta","text":","}}
+{"t":109.07,"event":{"kind":"delta","text":" but"}}
+{"t":109.07,"event":{"kind":"delta","text":" we"}}
+{"t":109.07,"event":{"kind":"delta","text":" cannot"}}
+{"t":109.07,"event":{"kind":"delta","text":" access"}}
+{"t":109.07,"event":{"kind":"delta","text":" the"}}
+{"t":109.07,"event":{"kind":"delta","text":" most"}}
+{"t":109.07,"event":{"kind":"delta","text":" recent"}}
+{"t":109.07,"event":{"kind":"delta","text":" figures"}}
+{"t":109.07,"event":{"kind":"delta","text":" because"}}
+{"t":109.07,"event":{"kind":"delta","text":" the"}}
+{"t":109.07,"event":{"kind":"delta","text":" data"}}
+{"t":109.07,"event":{"kind":"delta","text":" is"}}
+{"t":109.07,"event":{"kind":"delta","text":" stale"}}
+{"t":109.07,"event":{"kind":"delta","text":".\n\n"}}
+{"t":109.696,"event":{"kind":"delta","text":"6"}}
+{"t":109.697,"event":{"kind":"delta","text":"."}}
+{"t":109.697,"event":{"kind":"delta","text":" "}}
+{"t":109.697,"event":{"kind":"delta","text":" Prob"}}
+{"t":109.708,"event":{"kind":"delta","text":"abil"}}
+{"t":109.708,"event":{"kind":"delta","text":"istic"}}
+{"t":109.708,"event":{"kind":"delta","text":" decision"}}
+{"t":109.708,"event":{"kind":"delta","text":"-making"}}
+{"t":109.709,"event":{"kind":"delta","text":":\n\n"}}
+{"t":109.709,"event":{"kind":"delta","text":"   "}}
+{"t":109.709,"event":{"kind":"delta","text":" "}}
+{"t":111.161,"event":{"kind":"delta","text":"Without"}}
+{"t":111.176,"event":{"kind":"delta","text":" more"}}
+{"t":111.176,"event":{"kind":"delta","text":" information"}}
+{"t":111.176,"event":{"kind":"delta","text":" about"}}
+{"t":111.176,"event":{"kind":"delta","text":" the"}}
+{"t":111.177,"event":{"kind":"delta","text":" expected"}}
+{"t":111.177,"event":{"kind":"delta","text":" value"}}
+{"t":111.177,"event":{"kind":"delta","text":" and"}}
+{"t":111.177,"event":{"kind":"delta","text":" edge"}}
+{"t":111.177,"event":{"kind":"delta","text":" associated"}}
+{"t":111.177,"event":{"kind":"delta","text":" with"}}
+{"t":111.177,"event":{"kind":"delta","text":" investing"}}
+{"t":111.177,"event":{"kind":"delta","text":" in"}}
+{"t":111.177,"event":{"kind":"delta","text":" Co"}}
+{"t":111.177,"event":{"kind":"delta","text":"chin"}}
+{"t":111.177,"event":{"kind":"delta","text":" Ship"}}
+{"t":111.177,"event":{"kind":"delta","text":"yard"}}
+{"t":111.177,"event":{"kind":"delta","text":","}}
+{"t":111.177,"event":{"kind":"delta","text":" we"}}
+{"t":111.177,"event":{"kind":"delta","text":" cannot"}}
+{"t":111.177,"event":{"kind":"delta","text":" make"}}
+{"t":111.177,"event":{"kind":"delta","text":" a"}}
+{"t":111.178,"event":{"kind":"delta","text":" probabil"}}
+{"t":111.178,"event":{"kind":"delta","text":"istic"}}
+{"t":111.178,"event":{"kind":"delta","text":" decision"}}
+{"t":111.178,"event":{"kind":"delta","text":".\n\n"}}
+{"t":113.517,"event":{"kind":"delta","text":"In"}}
+{"t":113.518,"event":{"kind":"delta","text":" conclusion"}}
+{"t":113.518,"event":{"kind":"delta","text":","}}
+{"t":113.518,"event":{"kind":"delta","text":" while"}}
+{"t":113.518,"event":{"kind":"delta","text":" there"}}
+{"t":113.519,"event":{"kind":"delta","text":" are"}}
+{"t":113.519,"event":{"kind":"delta","text":" potential"}}
+{"t":113.519,"event":{"kind":"delta","text":" risks"}}
+{"t":113.519,"event":{"kind":"delta","text":" associated"}}
+{"t":113.519,"event":{"kind":"delta","text":" with"}}
+{"t":113.519,"event":{"kind":"delta","text":" investing"}}
+{"t":113.519,"event":{"kind":"delta","text":" in"}}
+{"t":113.519,"event":{"kind":"delta","text":" Co"}}
+{"t":113.519,"event":{"kind":"delta","text":"chin"}}
+{"t":113.519,"event":{"kind":"delta","text":" Ship"}}
+{"t":113.519,"event":{"kind":"delta","text":"yard"}}
+{"t":113.519,"event":{"kind":"delta","text":","}}
+{"t":113.52,"event":{"kind":"delta","text":" we"}}
+{"t":113.52,"event":{"kind":"delta","text":" do"}}
+{"t":113.52,"event":{"kind":"delta","text":" not"}}
+{"t":113.52,"event":{"kind":"delta","text":" have"}}
+{"t":113.52,"event":{"kind":"delta","text":" enough"}}
+{"t":113.52,"event":{"kind":"delta","text":" information"}}
+{"t":113.52,"event":{"kind":"delta","text":" to"}}
+{"t":113.52,"event":{"kind":"delta","text":" determine"}}
+{"t":113.52,"event":{"kind":"delta","text":" whether"}}
+{"t":113.52,"event":{"kind":"delta","text":" it"}}
+{"t":113.52,"event":{"kind":"delta","text":" is"}}
+{"t":113.52,"event":{"kind":"delta","text":" a"}}
+{"t":113.521,"event":{"kind":"delta","text":" good"}}
+{"t":113.521,"event":{"kind":"delta","text":" investment"}}
+{"t":113.521,"event":{"kind":"delta","text":" for"}}
+{"t":113.521,"event":{"kind":"delta","text":" ten"}}
+{"t":113.521,"event":{"kind":"delta","text":" years"}}
+{"t":113.521,"event":{"kind":"delta","text":" at"}}
+{"t":113.521,"event":{"kind":"delta","text":" today"}}
+{"t":113.521,"event":{"kind":"delta","text":"'s"}}
+{"t":113.521,"event":{"kind":"delta","text":" price"}}
+{"t":113.521,"event":{"kind":"delta","text":"."}}
+{"t":113.521,"event":{"kind":"done","usage":{"inputTokens":4556,"outputTokens":336},"finishReason":"stop","contextWindow":16384,"spendUsd":0}}

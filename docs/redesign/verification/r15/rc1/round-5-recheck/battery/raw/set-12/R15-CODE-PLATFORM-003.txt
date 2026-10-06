@@ -1,0 +1,14 @@
+candidate sha: 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+method: identical probe to R15-AGENT-016 (same handler, same defect class) —
+see R15-AGENT-016.txt raw SSE output in this directory for the full transcript.
+
+sidecar/services/workflow_nodes/builtin.py:agent_invoke now does:
+    elif isinstance(event, LLMErrorEvent):
+        raise RuntimeError(f"ai.agent_invoke ({agent_id}): {event.message}")
+(confirmed by reading the file at this sha) — raises rather than substituting
+"(no provider key configured)" and returning normally.
+
+observed live: node-error + run-error surfaced with the real message
+("unknown agent: ..."), not a laundered "ok" status with a sentinel string.
+
+verdict: holds

@@ -1,0 +1,65 @@
+[
+  {
+    "raw_id": "INT-blueprint-192-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The dead control is real at HEAD: the blocking first-launch TOS (mounted via DisclaimerFlow at src/app/page.tsx:289) tells the user Cmd/Ctrl+Shift+K 'halts all order routing'. The shortcut emits 'kill-switch:requested' (kill_switch.rs:95-96, registered lib.rs:446), but nothing in src/ or plugins/ listens for it and nothing calls fireKillSwitch; the store comment at src/store/safety.ts:13-17 says so. Corrected on severity and fix shape: the kill switch gates ORDERS ONLY. Its only bus subscriber is the broker adapter constructor (broker_base.py:103), and its only readers are the propose/confirm order gates (broker_base.py:251, :345). No agent-runtime, run_manager or budget_guard code reads it. With trading removed there is no order routing to halt, so this is a false statement in a legal-style dialog, not a missing safety control. The fix is to rewrite the TOS for the read-only product (its first line still says it 'connects to live trading venues') and delete the shortcut, bus and routes along with trading, not to wire up the listener.",
+    "evidence": "src/modules/safety/DisclaimerFlow.tsx:36-45, :47, :228-229; src/app/page.tsx:19, :289; src/store/safety.ts:11-17, :212-230; src-tauri/src/kill_switch.rs:49-63, :72-81, :95-97; src-tauri/src/lib.rs:395, :416, :446; sidecar/services/kill_switch.py:102-150; sidecar/routers/safety.py:119-146; sidecar/services/broker_base.py:100-103, :251-252, :345-346",
+    "evidence_checked": "Code-only. Opened the TOS body and its mount, the safety store, the Rust shortcut and emit code, the sidecar bus and routes, and broker_base. Grepped src/ and plugins/ for 'kill-switch:requested' and kill_switch_emit and found no listener or caller. Grepped sidecar/ for get_bus() and subscribe: broker_base is the only subscriber and reader apart from the safety router.",
+    "repro_check": "grep -rn \"kill-switch:requested\\|kill_switch_emit\" src plugins found no listener. grep -rn \"get_bus()\" sidecar found only routers/safety.py and services/broker_base.py (subscribe :103, order gates :251 and :345). The shortcut was not pressed because GUI interaction is forbidden."
+  },
+  {
+    "raw_id": "INT-blueprint-192-2",
+    "verdict": "removed_with_feature",
+    "severity_final": "high",
+    "reason": "This concerns the broker paper-to-live mode toggle (BrokerConnectPanel handleModeToggle, POST /brokers/{id}/mode, BrokerBase.set_mode). That surface exists only for broker connectivity and order execution, and it is being deleted in the 23 Sep trading removal.",
+    "evidence": "src/modules/broker-connect/BrokerConnectPanel.tsx:245-248, :278-280; sidecar/routers/brokers.py:327-328; sidecar/services/broker_base.py:135-137",
+    "evidence_checked": "Opened the cited toggle, route and set_mode to confirm the subject is the broker live/paper switch. No deep refute, per the scope-change rule.",
+    "repro_check": "None needed. The live/paper switch is in the trading surface being removed."
+  },
+  {
+    "raw_id": "INT-blueprint-192-3",
+    "verdict": "removed_with_feature",
+    "severity_final": "medium",
+    "reason": "This concerns the PositionLimits caps enforced only in BrokerBase.propose_order (order-size gating for broker orders). The order-proposal and position-cap surface is being deleted in the 23 Sep trading removal. It is not part of the tracked-portfolio feature that stays.",
+    "evidence": "sidecar/services/broker_base.py:98, :245-252 (propose_order gates); sidecar/models/safety.py:110-118",
+    "evidence_checked": "Opened broker_base propose_order to confirm the caps only gate broker order proposals. No deep refute, per the scope-change rule.",
+    "repro_check": "None needed. The caps gate only order proposals, which are being removed."
+  },
+  {
+    "raw_id": "INT-blueprint-192-4",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "All three workflows (build, lint, test) trigger only on push to main and on pull_request. No PR exists for 004-r4-experience-rebuild, so the product branch has never run CI. main..HEAD is now 654 commits (the raw finding said 640). The newest runs are on main cfcf5be (2026-05-30T19:08:14Z): lint failed, while test and build succeeded.",
+    "evidence": ".github/workflows/build.yml:3-6, :10-14; .github/workflows/lint.yml:3-6; .github/workflows/test.yml:3-6; gh run list output; git rev-list --count main..HEAD = 654",
+    "evidence_checked": "Opened all three workflow triggers and matrices. Ran gh run list, gh pr list --head 004-r4-experience-rebuild (returned []) and git ls-remote (the branch is pushed to origin, but no workflow triggers on it).",
+    "repro_check": "gh run list --limit 6: newest headSha cfcf5be on main, lint conclusion 'failure', test and build 'success'. gh pr list --state all --head 004-r4-experience-rebuild returned []. git rev-list --count main..HEAD returned 654."
+  },
+  {
+    "raw_id": "INT-blueprint-192-5",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The finding was written before commit 0c63d46 (23 Sep, operator Tier-4 relicense), and its premise no longer holds. The core is now PolyForm Strict 1.0.0 plus a commercial license, not AGPL-3.0 dual (LICENSE:1, LICENSING.md). CONTRIBUTING.md now states 'Contributions are closed for now. We are not accepting pull requests' and says the CLA process 'does not apply until they reopen' (CONTRIBUTING.md:4-7, :96-99). With no inbound PRs accepted at 0.9.0, a CLA bot is not needed at the public release; the quoted 'before v1.0 ... placeholder acknowledgement' text is gone. Residual nit only: CONTRIBUTING.md:77-80 still carries a 'Pull requests: Target the main branch' section, now framed as reference for when contributions reopen.",
+    "evidence": "LICENSE:1-3; LICENSING.md:1-30; CONTRIBUTING.md:4-7, :77-80, :88-99; git show 0c63d46 -- CONTRIBUTING.md; .github/ contains only workflows/ (build.yml, lint.yml, test.yml)",
+    "evidence_checked": "Opened LICENSE, LICENSING.md and CONTRIBUTING.md at HEAD. Diffed commit 0c63d46, which rewrote the CLA section and closed contributions. Listed .github/.",
+    "repro_check": "git show 0c63d46 -- CONTRIBUTING.md: the old 'dual-licensed under AGPL-3.0 ... CLA ... before v1.0' text is replaced by 'Contributions are closed for now ... CLA process ... does not apply until they reopen'."
+  },
+  {
+    "raw_id": "INT-blueprint-192-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "CLAUDE.md:28 still says 'Next.js 16 (App Router, static export)'. So do :5, :38 and the static-export SSR rationale at :222. The repo is Vite: package.json scripts dev='vite' and build='vite build', vite ^8.0.16 and @vitejs/plugin-react, index.html and vite.config.ts at the root, and no next.config.* or 'next' dependency. The correction already exists as a pending operator proposal (docs/redesign/CLAUDE_MD_PROPOSAL.md:5-6) but has not landed. CLAUDE.md:57 is now also stale after 0c63d46: it lists 'AGPL-3.0 + commercial dual license' as Locked, and the core is PolyForm Strict.",
+    "evidence": "CLAUDE.md:5, :28, :38, :57, :222; package.json:8-9, :68, :82; vite.config.ts and index.html at the repo root; docs/redesign/CLAUDE_MD_PROPOSAL.md:5-6; LICENSE:1",
+    "evidence_checked": "Grepped CLAUDE.md and package.json, listed the repo root for next.config.* (none) and vite.config.ts/index.html (present), and opened the pending CLAUDE_MD_PROPOSAL.",
+    "repro_check": "grep -n 'Next.js' CLAUDE.md hits lines 5, 28 and 38. grep '\"next\"' package.json finds nothing. ls next.config.* finds no such file."
+  },
+  {
+    "raw_id": "INT-blueprint-192-7",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "The repo has no landing-page or install-page source: no web/, site/ or www/ directory and no vercel.json. README.md:86-108 is the de facto install surface, text-only with no Gatekeeper screenshot, and it correctly supersedes the BLUEPRINT's right-click advice for macOS 15+. The pages could live in a separate repo or hosting account, which cannot be verified from here. Unverified is not refuted, so this is admitted at low.",
+    "evidence": "repo root listing (no web/site/www/vercel.json); README.md:86-108; docs/BLUEPRINT.md:390-394, :452",
+    "evidence_checked": "Listed the repo root with hidden files, read the README install section and the BLUEPRINT 6.3 and Phase 0 lines. Did not fetch terminal.vysted.com (non-code world check, not needed at low severity).",
+    "repro_check": "ls -a repo root found no landing-page source and no vercel.json. README.md:88-108 walks through Open Anyway and xattr with no screenshot."
+  }
+]

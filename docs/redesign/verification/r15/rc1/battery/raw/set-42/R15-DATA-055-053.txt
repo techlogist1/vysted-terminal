@@ -1,0 +1,12 @@
+=== DATA-055 listing_date ===
+--AMAL.NS--
+listing_date 2026-08-17
+--DHOOTTRANS.NS--
+listing_date 2026-08-17
+--RELIANCE.NS--
+listing_date 1995-11-29
+--TCS.NS--
+listing_date 2004-08-25
+=== DATA-053 ICON.BO quotes ===
+{"symbol":"ICON","price":64.45,"change":0.0,"change_percent":0.0,"volume":1200.0,"open":64.45,"high":64.45,"low":64.45,"prev_close":63.06,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-24T00:00:00Z","provider":"bse","freshness":"eod"}
+{"symbol":"ICONIKSPEV","price":31.32,"change":-1.6400000000000006,"change_percent":-4.975728155339807,"volume":0.81,"open":33.9,"high":34.59,"low":31.32,"prev_close":32.96,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"bse","freshness":"eod"}

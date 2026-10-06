@@ -1,0 +1,119 @@
+[
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The id mismatch is real: PanelHost sets focusedSource to the dockview id ('chart', 'equity-overview'), but publishers key the bus 'chart-chart', 'equity' and 'backtest-panel'. So SuggestionChips and the ChatSidebar badge never find the focused symbol. Two corrections. First, the agent's own deixis still works by accident for the default singleton chart, because captureTerminalState falls back to charts[0]; it is wrong only when a non-chart panel such as Equity Overview is focused on a different ticker. Second, sub-claim (d) has a different cause: foreground and delegate invokes send bySource = {__terminal__: ...} only, so _planner_context's 'chart'/'equity-overview' candidates can never match whatever the naming. What breaks is secondary UI plus an edge case, not a core flow, so high becomes medium.",
+    "evidence": "src/components/PanelHost.tsx:197-199, src/config/default-layout.ts:33-38, src/modules/chart/ChartPanel.tsx:216-219,885-886, src/modules/equity-overview/EquityOverviewPanel.tsx:647-653, src/modules/backtest/BacktestResultView.tsx:423-424, src/modules/chat/SuggestionChips.tsx:47-66, src/modules/chat/ChatSidebar.tsx:838-843,997-1002,2038-2063, src/modules/chat/context-provider.ts:221-233,275-277, sidecar/services/agent_runtime.py:115-133, src/store/workspace.ts:117-128",
+    "evidence_checked": "code-only: opened every cited publisher and consumer, plus captureTerminalState and both snapshot builders in ChatSidebar; read the critic's vitest proof file",
+    "repro_check": "Read ChartPanel.tsx:885 (source = `chart-${panelId}`, where panelId = api.id = 'chart') against SuggestionChips.tsx:54 lastEventBySource[focusedSource='chart'] -> undefined; the critic's vitest (2 tests) also shows no chips."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The bug is real: findPanel matches spec.id, and the marketplace panel id is 'marketplace', so openPanel('marketplace-panel') silently returns. But the Settings -> Integrations section exists only to route users to broker connections (its copy: 'Connect a broker...'), so that call site goes with the trading removal. The same bug remains live in PluginManagerPanel.tsx:71, which renders only in the plugins.length===0 empty state; that is reachable only after the user removes every preinstalled first-party plugin. What survives is a rare dead CTA plus openPanel's silent no-op on unknown ids, so medium becomes low.",
+    "evidence": "src/components/SettingsPanel.tsx:1562-1582, src/components/PluginManagerPanel.tsx:62-73, src/modules/marketplace/index.ts:12-23, src/store/workspace.ts:92-100, src/store/modules.ts:83, src/lib/plugin-bootstrap.ts:248-265",
+    "evidence_checked": "code-only: read openPanel/findPanel, the marketplace module spec, both call sites and how plugin bootstrap preinstalls plugins",
+    "repro_check": "grep -rn 'openPanel(\"' src: only these two call sites pass a component id; findPanel filters on panel.id === 'marketplace-panel' -> undefined (the critic's vitest agrees)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-3",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. comboFromEvent pushes 'meta'/'ctrl' and never 'mod', contrary to its own comment. normalizeBinding only reorders tokens. conflicts() groups raw strings. On macOS, then, no recorded Cmd-combo is ever flagged against a default 'mod+' combo, yet matchesEvent fires both. The conflict warning fails systematically on the primary platform.",
+    "evidence": "src/components/SettingsPanel.tsx:1342-1363, src/store/keybindings.ts:31-33,194-195,217-233,275-279,367-383",
+    "evidence_checked": "code-only: read the recorder, the store's setBinding/normalizeBinding/conflicts and matchesEvent; the critic's vitest proof is consistent with them",
+    "repro_check": "setBinding('agent.toggle','meta+k') -> normalizeBinding keeps 'meta+k'; conflicts() groups by raw string, so 'meta+k' and 'mod+k' fall into separate buckets and [] is returned."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. The section hint says region affects only number formatting and the row says 'Defaults to United States', but DEFAULT_REGION is 'IN'. The region rides X-Vysted-Region on every sidecar request, and it chooses the symbol resolver's market in fundamentals, the freshness calendar for quotes and history, and the macro default provider. The region.ts module doc comment is stale as well ('selecting a non-US region only changes number LOCALE'). The regionConfig fallback to REGIONS[0] is reachable only with a malformed value, a minor sub-point.",
+    "evidence": "src/components/SettingsPanel.tsx:1303-1310, src/lib/region.ts:1-49, src/lib/sidecar-client.ts:169-173, sidecar/routers/fundamentals.py:73, sidecar/routers/quotes.py:45, sidecar/routers/history.py:25-48, sidecar/routers/macro.py:101",
+    "evidence_checked": "code-only: read the Settings copy, region.ts, the sidecar-client header injection and four sidecar routers that read get_region()",
+    "repro_check": "grep -n 'get_region' sidecar/routers/{quotes,fundamentals,history,macro}.py: all four read the per-request region; the UI copy at SettingsPanel.tsx:1306/1310 contradicts that."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The central consequence is overstated. The cited error call sites already read differently from their empty states: the headline is 'Could not load the news feed' / 'Could not load <series>', the hint is the error message, and there is a primary 'Retry' CTA. A user does not read 'nothing here' when the fetch failed. What remains real is that EmptyState has no error variant, no role=alert and identical tones. The '39 files' number is a text-negative grep, not a count of hand-rolled error UIs. That is accessibility and consistency polish, so low.",
+    "evidence": "src/components/EmptyState.tsx:21-58, src/modules/news/NewsFeedPanel.tsx:291-310, src/modules/macro/MacroPanel.tsx:70-90",
+    "evidence_checked": "code-only: read EmptyState and the news and macro error-vs-empty branches",
+    "repro_check": "Read NewsFeedPanel.tsx:294-297: the error branch passes headline 'Could not load the news feed', hint=state.message and cta Retry(primary), which is distinguishable from the empty branch at 306-309."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The structure claims are accurate. PANEL_MIN_SIZE is private to PanelHost. The grow sweep runs only in the boot finally. Named-layout load (loadWorkspace -> deserializeWorkspace -> fromJSON) never grows sub-minimum panels. 'chat-sidebar' and 'broker-order-entry' are dead keys; broker-order-entry goes with trading. 'brief-panel' and 'notes-panel' fall to the 300x180 default. The functional repro, though, needs a legacy or sub-minimum blob: onDidAddPanel applies constraints to every loaded panel, so new saves cannot capture a sub-minimum sash. No clipped brief or notes state was shown. This is a maintainability risk plus an edge case, so medium becomes low.",
+    "evidence": "src/components/PanelHost.tsx:25-109,150-186, src/lib/workspace.ts:255-270,432, src/lib/layout-templates.ts:363-365,479-480,723, src/modules/chat/index.ts:3-21, src/modules/research/index.ts:23, src/modules/notes/index.ts:18",
+    "evidence_checked": "code-only: read the whole PanelHost policy block, the deserializeWorkspace fromJSON path, the template constants and the research/notes component ids",
+    "repro_check": "grep -rn 'enforceConstraintsAfterRestore' src: the only caller is PanelHost.tsx:185 (boot), and nothing calls it from loadWorkspace/deserializeWorkspace."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-7",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. WorkspaceDialog Delete and the Settings layout X call deleteWorkspace on one click, with no confirm and no undo. 'Reset to default' is a one-click ghost button. handleRemove awaits deleteSecret -> invoke('keychain_delete') with no try/catch, and its caller uses `void`, so a keychain failure becomes an unhandled rejection with no UI message and refreshOne never runs.",
+    "evidence": "src/modules/platform/WorkspaceDialog.tsx:209-222,287-296, src/components/SettingsPanel.tsx:424-427,516-526,1656,1685-1693, src/lib/keychain.ts:69-71",
+    "evidence_checked": "code-only: read every cited handler and the keychain wrapper",
+    "repro_check": "Read SettingsPanel.tsx:424-427 (no try/catch) and 521 (onClick={() => void handleRemove(...)}); WorkspaceDialog.tsx:292 calls handleDelete directly with no confirm step."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The mechanics are confirmed. Status is fetched once on mount and polled only during pulling/starting. Every non-2xx or throw becomes null and renders 'unavailable (sidecar not connected)'. A failed setup POST shows no error. Fetches bypass sidecarGet. The consequence is smaller than claimed: the sidecar status endpoint re-derives from docker on every call, and research routing does not depend on the chip. The stale 'Ready' therefore lasts only while the Settings panel stays mounted (reopening refetches), and the misleading copy appears only on a sidecar 5xx. Medium becomes low.",
+    "evidence": "src/components/SettingsPanel.tsx:697-734,785-855, src/lib/hardware-fit.ts:43-56, sidecar/routers/search_tiers.py:7-15, sidecar/services/searxng_manager.py:304-324",
+    "evidence_checked": "code-only: read the SettingsPanel SearXNG flow, fetchHardwareReport, and the sidecar status route doc plus snapshot()",
+    "repro_check": "Read SettingsPanel.tsx:792-821: the mount-only effect plus the poll gated on `transitional`; nothing refetches on focus or visibility."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Confirmed for the surviving surfaces. EquityOverviewPanel shadows the shared ProvenanceBadge. The shared badge without a prefix renders only the provider short label when synthetic, signalling by colour and tooltip only. Watchlist and Chart pass freshness without asOf, so they show a bare 'EOD'. asOfDate uses toISOString, a UTC date, and BriefPanel labels the brief's createdAt 'EOD as of <UTC date>', which is off by one day for 00:00-05:29 IST. Scope correction: the BrokerReadsSection fork goes with the trading removal. Severity stays low.",
+    "evidence": "src/components/DataBadges.tsx:30-65,68-110, src/modules/equity-overview/EquityOverviewPanel.tsx:280-290, src/modules/watchlist/WatchlistPanel.tsx:72-76, src/modules/chart/ChartPanel.tsx:1420-1424, src/modules/research/BriefPanel.tsx:168-171",
+    "evidence_checked": "code-only: read DataBadges in full and every cited caller; src/modules/broker-connect/ is broker-only",
+    "repro_check": "DataBadges.tsx:51 label = prefix ? ... : short, so with synthetic and no prefix the text is just the provider; :78 returns d.toISOString().slice(0,10), a UTC date."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-10",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed. onDidLayoutChange arms a 1500 ms timer, and cleanup clears it rather than flushing it. No beforeunload, pagehide, visibilitychange or onCloseRequested handler exists anywhere in src or src-tauri/src, so a layout change made in the 1.5 s before quit is lost.",
+    "evidence": "src/components/PanelHost.tsx:12-13,187-203",
+    "evidence_checked": "code-only: read the PanelHost autosave wiring and grepped src and src-tauri/src for close/unload hooks (none found)",
+    "repro_check": "grep -rn 'beforeunload|visibilitychange|pagehide|CloseRequested|onCloseRequested' src src-tauri/src finds nothing outside tests."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-11",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed as latent. registerModules runs synchronously before PanelHost mounts, while bootstrapPlugins appends plugin modules only after async persistence and loadPlugin awaits. restoreLastSessionOrDefault drops to the default layout when any component is unknown. Every surviving plugin (yfinance, vysted-news, vysted-lenses, openbb-mcp, example) sets contributesPanels:false, so nothing triggers it today; it fires the moment a panel-contributing plugin exists.",
+    "evidence": "src/app/page.tsx:44-92, src/components/PanelHost.tsx:150-160,214-226, src/lib/plugin-bootstrap.ts:133-141,218-270, src/lib/workspace.ts:505-515, plugins/*/index.ts contributesPanels",
+    "evidence_checked": "code-only: read the boot order, the restore guard and every plugin's contributesPanels flag",
+    "repro_check": "grep -rn contributesPanels plugins: every entry is false, which confirms the finding is latent."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-12",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed. The sortable <th> has only onClick, with no tabIndex, role or key handler, so keyboard users cannot sort. DataTable has no loading or empty slot, so ScreenerResultsTable hand-writes a second <table>/<colgroup> skeleton from the same COLUMNS, which contradicts the 'ONE table primitive' header comment.",
+    "evidence": "src/components/DataTable.tsx:13-39,235-266, src/modules/screener/ScreenerResultsTable.tsx:343-352",
+    "evidence_checked": "code-only: read the DataTable header rendering and the screener's loading branch",
+    "repro_check": "Read DataTable.tsx:239-258: the <th> carries onClick={sortable ? ... : undefined} and has no tabIndex or onKeyDown."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-13",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed. The app is a Vite SPA: dev/build are vite, main.tsx calls createRoot, and src/app holds only page.tsx and globals.css. The PanelHost and page.tsx comments still justify ordering by 'static-export SSR safety'. chart-theme.ts calls ACCENT_CORAL_RGB (#cccccc) a 'three-place lockstep', while globals.css --accent-rgb is a neutral gray explicitly 'NOT the accent' and tokens.css defines a peach amber accent. The SettingsPanel header claims 'ONE search surface'. The CLAUDE.md Stack/token lines are Tier-1, so fixing them needs operator sign-off. This is not a reopening of the R9 design system; it concerns only false comments.",
+    "evidence": "package.json:8-9, src/main.tsx:15-21, src/components/PanelHost.tsx:118-119, src/app/page.tsx:44-49, src/app/globals.css:50-55, src/lib/chart-theme.ts:45, styles/tokens.css:47-55, src/components/SettingsPanel.tsx:68-75",
+    "evidence_checked": "code-only: read every cited line; `grep -rl '^\"use client\"' src | wc -l` = 82",
+    "repro_check": "grep -n '\"dev\"|\"build\"' package.json shows vite; /bin/ls src/app shows only globals.css and page.tsx."
+  }
+]

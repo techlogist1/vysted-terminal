@@ -1,0 +1,96 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_ced10e75781c4f3bab069bc9e2f5034c", "name": "price_data", "input": {"__vysted_invalid_args__": "invalid arguments for price_data: '' is not one of ['1d', '1h', '1wk', '1mo']; call again with valid args"}}
+{"kind": "tool_use", "tool_call_id": "call_3fd19bfa71a14426bb2b20c2475fe660", "name": "price_data", "input": {"__vysted_invalid_args__": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}}
+{"kind": "tool_use", "tool_call_id": "call_4baddb8b356444deb969849bba0aca84", "name": "price_data", "input": {"__vysted_invalid_args__": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}}
+{"kind": "tool_use", "tool_call_id": "call_788b94bab55944579f801d2b749f97cf", "name": "price_data", "input": {"__vysted_invalid_args__": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}}
+{"kind": "tool_result", "tool_call_id": "call_ced10e75781c4f3bab069bc9e2f5034c", "name": "price_data", "ok": false, "error": "invalid arguments for price_data: '' is not one of ['1d', '1h', '1wk', '1mo']; call again with valid args"}
+{"kind": "tool_result", "tool_call_id": "call_3fd19bfa71a14426bb2b20c2475fe660", "name": "price_data", "ok": false, "error": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+{"kind": "tool_result", "tool_call_id": "call_4baddb8b356444deb969849bba0aca84", "name": "price_data", "ok": false, "error": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+{"kind": "tool_result", "tool_call_id": "call_788b94bab55944579f801d2b749f97cf", "name": "price_data", "ok": false, "error": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " closes"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "BI"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " A"}
+{"kind": "delta", "text": "irt"}
+{"kind": "delta", "text": "el"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " L"}
+{"kind": "delta", "text": "&T"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " should"}
+{"kind": "delta", "text": " pass"}
+{"kind": "delta", "text": " their"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": " names"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "price"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": "`"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "Here"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " example"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " how"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " do"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "``"}
+{"kind": "delta", "text": "`\n"}
+{"kind": "tool_use", "tool_call_id": "call_cb6faefa6fbf4ca3aabae6f94df4c3d5", "name": "price_data", "input": {"__vysted_invalid_args__": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}}
+{"kind": "tool_result", "tool_call_id": "call_cb6faefa6fbf4ca3aabae6f94df4c3d5", "name": "price_data", "ok": false, "error": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+{"kind": "delta", "text": "Let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " again"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " get"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " closes"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "BI"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " A"}
+{"kind": "delta", "text": "irt"}
+{"kind": "delta", "text": "el"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " L"}
+{"kind": "delta", "text": "&T"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " call"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "price"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": "`"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " their"}
+{"kind": "delta", "text": " respective"}
+{"kind": "delta", "text": " symbols"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The price_data tool returned no data for this in this turn.\n\n"}
+{"kind": "delta", "text": "The price_data tool returned no data for this in this turn."}
+{"kind": "done", "usage": {"input_tokens": 3200, "output_tokens": 148, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

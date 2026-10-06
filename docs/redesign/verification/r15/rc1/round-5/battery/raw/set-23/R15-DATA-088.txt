@@ -1,0 +1,8 @@
+CMD: sed -n '72,97p' src/store/portfolios.ts  (normalizeHolding)
+->   const quantity = Number(h.quantity); const costBasis = Number(h.costBasis);
+     if (!(Number.isFinite(quantity) && quantity > 0 && Number.isFinite(costBasis) && costBasis >= 0)) { return null; }
+CMD: sed -n '198,215p' src/store/portfolios.ts  (setAll, the workspace-restore path)
+->   holdings: (Array.isArray(p.holdings) ? p.holdings : []).map(normalizeHolding).filter((h): h is Holding => h !== null)
+
+OBSERVED: normalizeHolding now REJECTS (returns null) a non-finite/zero/negative quantity or a negative cost basis instead of coercing to 0/-100 as the register described; setAll (workspace restore) maps every holding through this same normalizer and drops the nulls. A garbage/negative-cost holding from a workspace blob is now dropped, not silently accepted as a plausible zero-value row.
+VERDICT: holds

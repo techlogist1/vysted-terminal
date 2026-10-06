@@ -1,0 +1,14 @@
+# R15-DATA-096 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:46:27+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for r in income balance cashflow ratings; do for k in 1 2; do curl -s -m 60 -o /dev/null -w "/fundamentals/AAPL/$r call$k %{http_code} %{time_total}s\n" -H "X-Vysted-Region: US" "$H/fundamentals/AAPL/$r"; done; done
+--- output ---
+/fundamentals/AAPL/income call1 200 0.835348s
+/fundamentals/AAPL/income call2 200 0.001162s
+/fundamentals/AAPL/balance call1 200 0.668832s
+/fundamentals/AAPL/balance call2 200 0.001245s
+/fundamentals/AAPL/cashflow call1 200 0.762485s
+/fundamentals/AAPL/cashflow call2 200 0.001164s
+/fundamentals/AAPL/ratings call1 200 0.818092s
+/fundamentals/AAPL/ratings call2 200 0.001069s
+
+EXIT=0 (3.2s)

@@ -1,0 +1,38 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_e7fb44aef13d430aa1f15b043d615b54", "name": "price_data", "input": {"symbol": "ITC.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_e7fb44aef13d430aa1f15b043d615b54", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "TC"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "269"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " up"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " September"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6822, "output_tokens": 30, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

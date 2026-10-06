@@ -1,0 +1,50 @@
+{
+ "tag": "refute-W2",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_refute.md in full before touching anything. Your raw file and output file are given per-item below; if the output file already exists, verify it and finish it, never restart.",
+ "stages": [
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Raw file: {{raw_file}} ({{count}} findings). Output: {{out_file}}. Follow PROMPT_refute.md exactly; return the RESULT object."
+  }
+ ],
+ "items": [
+  {
+   "id": "code-backtest",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-backtest.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-backtest.json",
+   "count": 16
+  },
+  {
+   "id": "code-macro-quant",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-macro-quant.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-macro-quant.json",
+   "count": 15
+  },
+  {
+   "id": "code-workspace-layout",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-workspace-layout.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-workspace-layout.json",
+   "count": 14
+  },
+  {
+   "id": "code-llm-adapters",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-llm-adapters.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-llm-adapters.json",
+   "count": 13
+  },
+  {
+   "id": "code-research-depth-iter-deep",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-research-depth-iter-deep.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-research-depth-iter-deep.json",
+   "count": 14
+  },
+  {
+   "id": "code-disclosures-witnesses",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-disclosures-witnesses.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-disclosures-witnesses.json",
+   "count": 13
+  }
+ ]
+}

@@ -1,0 +1,10 @@
+# R15-RESEARCH-025 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:40+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for f in 'min(pe < 5, roe) > 0.5' 'abs(pe > 10) > 0' '(pe > 10) + 1' 'pe < 5 and roe > 0.1'; do echo -n "$f -> "; python3 -c "import json,sys;print(json.dumps({'formula':sys.argv[1]}))" "$f" | curl -s -m 20 -X POST -H 'content-type: application/json' -d @- "$H/screener/formula/validate"; echo; done
+--- output ---
+min(pe < 5, roe) > 0.5 -> {"ok":false,"error":"min() needs a numeric argument, not a boolean expression — wrap the comparison on its own, or combine with 'and'/'or'","position":3,"fields":[]}
+abs(pe > 10) > 0 -> {"ok":false,"error":"abs() needs a numeric argument, not a boolean expression — wrap the comparison on its own, or combine with 'and'/'or'","position":3,"fields":[]}
+(pe > 10) + 1 -> {"ok":false,"error":"a boolean expression can't be used in arithmetic — wrap the comparison on its own, or combine with 'and'/'or'","position":10,"fields":[]}
+pe < 5 and roe > 0.1 -> {"ok":true,"error":null,"position":null,"fields":["pe_ratio","roe"]}
+
+EXIT=0 (0.1s)

@@ -1,0 +1,2 @@
+{"yahoo":{"open":true,"cooldown_remaining":40.33542640839005,"consecutive_throttles":0.0,"consecutive_opens":1,"opens_total":1,"throttles_total":11.0},"fallthroughs":[{"provider":"openbb-mcp","model_key":"fundamentals","count":6,"last_error":"openbb-mcp fundamentals returned no rows for 'GREENLEAF.NS'","last_at":1790497183.872298},{"provider":"yfinance","model_key":"fundamentals","count":3,"last_error":"yfinance fundamentals rate-limited for 'GREENLEAF.NS': Too Many Requests. Rate limited. Try after a while.","last_at":1790497183.93835}]}
+HTTP 200

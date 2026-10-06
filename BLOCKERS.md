@@ -57,6 +57,9 @@ running the Tauri shell with real credentials + macOS:
    India broker adapters (Alpaca, IB, OANDA, ccxt-exec) are not in
    `BUNDLED_PLUGINS` or `bootstrap_default_adapters` (T4-brokers-not-
    registered + X-broker-bootstrap-india-only). Phase 9 to confirm + fix.
+   **CLOSED — removed with feature (D81, 23 Sep 2026).** Trading was
+   removed from the product permanently; no broker adapter exists to
+   verify or register.
 3. **Workflow + backtest cross-cutting (L10 deferred).** Verify F1 fix
    for openbb-mcp deadlock actually unblocks the chain in production
    (test_rebuilt sidecar showed openbb-mcp "unavailable" gracefully — the
@@ -217,12 +220,15 @@ From Phase 8 audit. Per-finding detail in
 230`) entirely untested. The POST body field `reAck: true` has never been
    asserted; camelCase/snake_case drift would permanently lock the kill
    switch with no test catching it. §6.5-adjacent.
+   **CLOSED — removed with feature (D81, 23 Sep 2026).** No kill switch
+   exists; nothing to reset or test.
 2. **T5-broker-base-invalid-order-type** — `propose_order()` raises
    `BrokerError` on invalid `order_type` but test only covers invalid
    `side` and zero quantity. §6.5-adjacent.
+   **CLOSED — removed with feature (D81, 23 Sep 2026).** No order path
+   exists; nothing to test.
 
-   Both are test-additions; feature itself works. Add tests in v0.8.x to
-   tighten the §6.5 invariant boundary.
+   Both were test-additions; feature itself worked. Superseded by D81.
 
 ### S2 — fix in v0.8.x
 
@@ -239,6 +245,9 @@ From Phase 8 audit. Per-finding detail in
 5. **T4-brokers-not-registered** — register the 7 broker plugins in
    `BUNDLED_PLUGINS` (or document the deferred dynamic-load path).
    Pairs with `bootstrap_default_adapters` extension to non-India brokers.
+   **CLOSED — removed with feature (D81, 23 Sep 2026).** The 7 broker
+   plugins and `bootstrap_default_adapters` are deleted, not merely
+   unregistered.
 6. **T4-connection-keychain + T4-settings-dialog-keychain** — Tradesa V2
    plugin reaches into `@/lib/keychain` + `@/lib/sidecar-client`. Should
    use `PluginConfig.sidecarBaseUrl` + `PluginConfig.secrets`. Part of
@@ -280,8 +289,10 @@ bootstrap.ts:39` going forward.
 - **D-4 light theme** — v1.1 BLUEPRINT carry-forward.
 - **UC1-canvas-chart-renders observation** — Playwright real-event suite
   for canvas-interactive features is v0.5.1+ carry-forward (unchanged).
-- **UC6 / UC7 stretch goals** — plugin-ecosystem year-2 / multi-broker
-  aggregation. v1.x territory.
+- **UC6 stretch goal** — plugin-ecosystem year-2. v1.x territory.
+- **UC7 (multi-broker aggregation)** — **CLOSED — removed with feature (D81,
+  23 Sep 2026).** Trading was removed from the product permanently; there is
+  no broker to aggregate.
 
 ## v0.7.0 → Phase 10 carry-forwards (launch ops — explicit non-scope in Phase 7)
 
@@ -448,6 +459,12 @@ The `sidecar/services/agent_tools/registry_v0_6_5.py` aggregator slot
 exists for write tools when this lands. The frontend `plugins/tradesa-v2/
 connection.ts` would gain a `WriteOps` interface (separate from the
 current `TradingBotReadAdapter`).
+
+**CLOSED — removed with feature (D81, 23 Sep 2026).** The enabling
+infrastructure this item depended on (the propose→confirm flow, the §6.5
+order audit log, the AI-order gate, and the `registry_v0_6_5.py` slot
+itself) is deleted with trading. Tradesa V2 stays read-only permanently;
+no write capability for it will land.
 
 ### 3. MCP tool exposure for the brain-decision log
 

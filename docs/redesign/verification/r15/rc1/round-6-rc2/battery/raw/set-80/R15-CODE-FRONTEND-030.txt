@@ -1,0 +1,4 @@
+# R15-CODE-FRONTEND-030 at ace7dd76 (pinned test existence + source check; vitest not run, heavy lane owns)
+$ grep -n -F 'R15-CODE-FRONTEND-030' src/store/settings.test.ts
+72:  it("R15-CODE-FRONTEND-030: fresh store, setActiveAgent(copilot), setAll({defaultAgentId: quant}) keeps copilot", () => {
+exit=0

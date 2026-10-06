@@ -1,0 +1,100 @@
+{
+ "steps": [
+  {
+   "name": "ledger-unchanged-while-proposed",
+   "pass": true,
+   "detail": {
+    "blob": [
+     {
+      "id": "h-674352ae-f462-4dc4-957f-c9228564a57a",
+      "symbol": "AAPL",
+      "quantity": 7,
+      "costBasis": 175,
+      "note": null
+     },
+     {
+      "id": "h-8d7048a2-0aab-4740-a630-0b6d87ab6cc9",
+      "symbol": "MSFT",
+      "quantity": 3,
+      "costBasis": 400,
+      "note": "gate8 r5: core holding, added via the panel form"
+     }
+    ],
+    "ledger": [
+     {
+      "id": "h-674352ae-f462-4dc4-957f-c9228564a57a",
+      "symbol": "AAPL",
+      "quantity": 7,
+      "costBasis": 175,
+      "note": null
+     },
+     {
+      "id": "h-8d7048a2-0aab-4740-a630-0b6d87ab6cc9",
+      "symbol": "MSFT",
+      "quantity": 3,
+      "costBasis": 400,
+      "note": "gate8 r5: core holding, added via the panel form"
+     }
+    ]
+   }
+  },
+  {
+   "name": "order-accept-fails-closed",
+   "pass": true,
+   "detail": {
+    "chatWouldStage": false,
+    "applyHostActionLabel": null,
+    "forgedAccept": "failed",
+    "detail": "unknown action \"propose_order\"",
+    "holdingsUnchanged": true
+   }
+  },
+  {
+   "name": "enqueue-stages-without-applying",
+   "pass": true,
+   "detail": {
+    "staged": "staged",
+    "change": "Add 4 NVDA @ ₹120 to the portfolio"
+   }
+  },
+  {
+   "name": "accept-applies-and-persists",
+   "pass": true,
+   "detail": {
+    "res": "applied",
+    "added": [
+     {
+      "id": "h-0454e2d2-414c-4557-b038-c59703885ca5",
+      "symbol": "NVDA",
+      "quantity": 4,
+      "costBasis": 120,
+      "note": null
+     }
+    ],
+    "readback": [
+     {
+      "id": "h-674352ae-f462-4dc4-957f-c9228564a57a",
+      "symbol": "AAPL",
+      "quantity": 7,
+      "costBasis": 175,
+      "note": null
+     },
+     {
+      "id": "h-8d7048a2-0aab-4740-a630-0b6d87ab6cc9",
+      "symbol": "MSFT",
+      "quantity": 3,
+      "costBasis": 400,
+      "note": "gate8 r5: core holding, added via the panel form"
+     },
+     {
+      "id": "h-0454e2d2-414c-4557-b038-c59703885ca5",
+      "symbol": "NVDA",
+      "quantity": 4,
+      "costBasis": 120,
+      "note": null
+     }
+    ]
+   }
+  }
+ ]
+}

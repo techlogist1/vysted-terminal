@@ -1,0 +1,15 @@
+{
+ "tag": "judge-S2",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_offmachine_s2.md section 6 (JUDGE panel) in full before touching anything. Run this AFTER ideate-S2 and world-S2 (opp-ledger-verify) have completed.",
+ "stages": [
+  {
+   "label": "judge",
+   "model": "opus",
+   "effort": "xhigh",
+   "prompt": "Your task spec is PROMPT_offmachine_s2.md section 6. Rank every idea in r15/invent/ideas/*.json and every surviving Tier-A opportunity in CENSUS/OPPORTUNITY_LEDGER.md into r15/invent/BACKLOG.md + BACKLOG.json. If either output already exists, verify and finish it rather than restarting."
+  }
+ ],
+ "items": [
+  {"id": "backlog"}
+ ]
+}

@@ -1,0 +1,75 @@
+{
+ "group": "triage-c",
+ "verdicts": [
+  {
+   "id": "rc1-vshard-7:1",
+   "key": "rc1-vshard-7:1",
+   "tie": "R15-UI-090",
+   "verdict": "partial",
+   "severity": "high",
+   "root_cause": "sidecar/services/locale.py:187: instrument_region falls through to REGION_US for any listing that is not Indian. Only US and IN calendars exist (locale.py:44-55), so every ASX/TSE/LSE/HKEX listing and every non-US caret index is dated against the NYSE session. sidecar/routers/quotes.py:43-44 then labels a same-day tick 'live' whenever NYSE is open.",
+   "fix_shape": "Stop defaulting unknown listings to US in instrument_region. Add a small table mapping each Yahoo exchange suffix (.AX, .T, .L, .HK, .TO, .DE, .PA, ...) and each non-US caret index (^N225, ^HSI, ^FTSE, ^AXJO, ...) to its exchange timezone and session. market_timezone, market_session and _is_trading_day read that table (a weekend calendar is enough where no holiday list exists). A listing that is neither in the table nor positively US (plain ticker, US class share such as BRK.B, US caret index) fails closed: _label_freshness passes intraday=False, so it can be eod or stale but never live.",
+   "acceptance_test": "sidecar/tests/test_quotes.py: parametrised test using _freeze_locale_clock, with get_quote monkeypatched to provider='yfinance'. Assert freshness != 'live' for BHP.AX, 7203.T, ^N225 and 0700.HK at now=2026-09-23T15:00Z with ts 06:00Z/08:00Z, under X-Vysted-Region US and IN, and for HSBA.L at now=17:00Z with ts=15:30Z. Keep AAPL and BRK.B == 'live' at 15:00Z, and ^NSEI == 'live' at 05:00Z. Live re-proof: cd sidecar && VYSTED_DATA_DIR=$S/data ./.venv/bin/python -m pytest -q -s -p no:cacheprovider -p tests.conftest --rootdir $S/ui090 $S/ui090/test_triagec_ui090.py, where $S is scratchpad/refaudit4-triage-c. Every not-live case and all three controls must pass.",
+   "failure_count": 2,
+   "failure_sources": "R15-UI-090 note has no 'certification failures so far' clause. batch VERDICTS: certified in batch-4 and batch-12, in no not_certified list (0). rc1 REFUTATION_AUDIT.json: partial (1). round-*/REFUTATION_AUDIT.json: none. Baseline 1, plus this partial (1), gives 2.",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/round-4/triage-c-rc1-vshard-7-1.md",
+   "note": "Reproduced at HEAD with an in-process frozen-clock pytest. The controls pass: AAPL under IN during NSE hours is eod, and ^NSEI/^BSESN during NSE hours are live. The residual cases fail: BHP.AX, 7203.T, ^N225, HSBA.L and 0700.HK read 'live' 1.5-9 h after their own exchange closed, and 7203.T during Tokyo hours reads 'eod'. My sidecar :52430 serves all four listings from yfinance (it is Sunday, so they read eod today). This residual is the entry's own class (freshness not dated against the instrument's exchange). The rc1 refutation audit had already named '.AX and other foreign listings', but its acceptance test pinned only the Indian indices. Not a duplicate: R15-LEAD-022 is about symbol spelling, not the calendar. Severity is kept at high: a false 'live' label and live styling for a whole class of listings, with the price itself correct."
+  },
+  {
+   "id": "rc1-vshard-5:3",
+   "key": "rc1-vshard-5:3",
+   "tie": "R15-CODE-PLATFORM-017",
+   "verdict": "partial",
+   "severity": "medium",
+   "root_cause": "src/modules/node-editor/code-node-inspector.tsx:44-57 computes the Preview value with the mathjs evaluateCodeExpression (src/modules/node-editor/code-node.ts:171-198). The inline validity check at :38 is mathjs parse (code-node.ts:153-165). The canonical evaluator, sidecar/services/workflow_nodes/code_node.py (_FUNCS :66-75 is 8 functions, a single top-level ternary at :88-122, _round on raw floats at :59-63), is consulted by neither. No shared parity fixture ties the two together.",
+   "fix_shape": "Make the inspector Preview come from the canonical evaluator. Debounce a POST /workflow/run (an existing route) with a one-node transform.code spec and inputs set to the sample values; a source node receives the run-level inputs (workflow_engine.py:301-305). Render the node-output value or the node-error message, and drop evaluateCodeExpression from the inspector. Keep mathjs parse only as a 'does not parse' hint, never as the only signal that an expression is valid. If any client evaluation stays, add one JSON parity fixture of [expression, scope, value|error] evaluated by both test_code_node.py and code-node.test.ts.",
+   "acceptance_test": "src/modules/node-editor/code-node-inspector.test.tsx: with the run transport mocked to return the server result, render CodeNodeInspector with expression log(x, 10), inputs ['x'] and sample x=100. Assert that code-node-preview shows 'disallowed syntax: Call' and never '= 2'. round(x, 2) with x=1.005 must show '= 1'. The nested ternary must show the parse error. Pin the same three expressions in sidecar/tests/test_code_node.py (or in a shared fixture). Live re-proof: cd $S/fe && ./node_modules/.bin/vitest run src/modules/node-editor/TRIAGEC_P017.test.tsx must not show '= 2' or '= 1.01', and POST /workflow/run on a main.py-booted sidecar with the one-node specs in the evidence must agree with the preview.",
+   "failure_count": 1,
+   "failure_sources": "R15-CODE-PLATFORM-017 note has no clause. batch VERDICTS: certified in batch-10, in no not_certified list (0). No REFUTATION_AUDIT regression_confirmed or partial verdict (0). Baseline 0, plus this partial (1), gives 1.",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/round-4/triage-c-rc1-vshard-5-3.md",
+   "note": "The entry's named cases agree at HEAD (round(2.5)=3, 2^3=8, one ternary), and every run is on the server. The value preview is still mathjs, and it disagrees with the server. The rendered inspector shows '= 2' with no syntax error for log(x,10) at x=100, while a live POST /workflow/run on my sidecar gives node-error 'disallowed syntax: Call'. It shows '= 1.01' for round(x,2) at x=1.005, while the run gives 1.0. It shows '= 2' with no syntax error for a nested ternary, while the run gives 'parse error: invalid syntax'. exp, pi, 1/0 and sqrt(-4) also drift. This is the entry's own failure narrative ('authored and tested in the editor ... yields a different value or fails'). The fix went beyond the fix_shape's 'syntax preview at most' and added no shared parity fixture. Not a duplicate: CODE-PLATFORM-065 and CODE-PLATFORM-066 are different defects. Severity is kept at medium: a stated feature is degraded, and running the workflow shows the truth. Note that a bare 'uvicorn app:app' boot does not register transform.code (main.py calls register_all), so I ran the live proof on a main.py boot."
+  },
+  {
+   "id": "rc1-vshard-3:4",
+   "key": "rc1-vshard-3:4",
+   "tie": "R15-CODE-FRONTEND-017",
+   "verdict": "partial",
+   "severity": "medium",
+   "root_cause": "src/store/sec.ts:188-214: loadFilingDetail commits with no generation check and writes activeAccession from the response (:208). Its error goes to the unkeyed scalar filingDetailError (:212). src/store/sec.ts:220-242: loadInsider commits insiderStatus/insiderError with no generation check (:233-240). Only loadFilings is guarded (filingsGeneration, :128/158/174/182).",
+   "fix_shape": "Give loadFilingDetail and loadInsider their own generation counter, following the filingsGeneration pattern, or extract it into the one small helper the fix_shape names. Drop a superseded response or error before set; caching the payload in the keyed map is harmless. Stop loadFilingDetail writing activeAccession, because the caller (setActiveAccession in SecFilingsPanel) owns it, mirroring the loadFilings/activeIdentifier fix. Optionally key the detail and insider error by accession or cache key, so FilingViewer and InsiderTradingTable only show their own.",
+   "acceptance_test": "src/store/sec.test.ts, all with deferred sidecarGet mocks: (1) loadFilingDetail('A-1') pending, setActiveAccession('B-2') plus loadFilingDetail('B-2') resolved, then A-1 resolves: expect activeAccession 'B-2' and filingDetailStatus 'ready'. (2) The same after setActiveAccession(null): activeAccession stays null. (3) A late A-1 rejection after B-2 is ready: filingDetailError null. (4) loadInsider('AAPL') pending, loadInsider('MSFT') resolved, then AAPL rejects: insiderStatus 'ready' and insiderError null. Live re-proof: cd $S/fe && ./node_modules/.bin/vitest run src/store/TRIAGEC_FE017.test.tsx must report 4 passed.",
+   "failure_count": 1,
+   "failure_sources": "R15-CODE-FRONTEND-017 note has no clause. batch VERDICTS: certified in batch-7, in no not_certified list (0). No REFUTATION_AUDIT regression_confirmed or partial verdict (0). Baseline 0, plus this partial (1), gives 1.",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/round-4/triage-c-rc1-vshard-3-4.md",
+   "note": "Reproduced at HEAD with a scratch vitest over a git-archive copy of src (4 of 4 fail). D1: a late A-1 detail after B-2 is open and ready sets activeAccession back to A-1, so the viewer jumps back. D2: a late A-1 after the user pressed Back reopens the viewer. D3: a late A-1 'EDGAR timeout' error lands on B-2's viewer. I1: the rendered InsiderTradingTable shows 'Could not load insider data \u2014 EDGAR timeout' above MSFT's rows after a late AAPL 504. These are the entry's own class and title symptom ('the SEC panel reverts to the previous ...') on the two SEC slices the fix did not guard. The fix_shape asked for a per-slice generation, no active id written from a response, and keyed status/error; none of these hold for these slices. EDGAR detail loads of tens of seconds are normal (shard-7 measured 23 s). Not a duplicate: the only register hit is the entry itself. Severity is kept at medium."
+  },
+  {
+   "id": "rc1-vshard-2:5",
+   "key": "rc1-vshard-2:5",
+   "tie": "R15-CODE-FRONTEND-015",
+   "verdict": "verifier_error",
+   "severity": "low",
+   "root_cause": "",
+   "fix_shape": "",
+   "acceptance_test": "",
+   "failure_count": 0,
+   "failure_sources": "n/a",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/round-4/triage-c-rc1-vshard-2-5.md",
+   "note": "The key mismatch is real: EarningsCalendarPanel.tsx:178 publishes 'earnings' against dockview id 'earnings-calendar' (earnings/index.ts:20), and ScreenerPanel.tsx:216 publishes 'screener' against 'screener-panel'. The shard's consequence ('so a focused Earnings Calendar falls back to the chart symbol') is not caused by the mismatch. focusedSymbolFromBus (context-provider.ts:243-252) reads only payload.symbol or payload.ticker. The Earnings payload {symbols, windowDays, expandedSymbol} and the Screener payload {universe, resultCount, partial} carry neither, so the snapshot falls back to the chart by design (context-provider.ts:398-409). A scratch vitest at HEAD with a counterfactual gives the same result both ways. With the real EarningsCalendarPanel publishing under 'earnings' and focus on 'earnings-calendar', snapshot focusedSymbol is SPY. With the same event republished under 'earnings-calendar', focusedSymbol is still SPY (SAME_FOCUSED_SYMBOL_EITHER_WAY true). The badge ('Context: earnings-calendar'), the chips (none), and the sidecar planner and preamble are identical under either key. The shard tested a structural property, not the entry's defect (a wrong focused symbol). The only residual is a label inconsistency in the agent snapshot: otherPanels source 'earnings'/'screener' against focusedPanel/openPanels 'earnings-calendar'/'screener-panel'. That is low and cosmetic, below the c/h/m bar, so the tie is not reopened. An optional one-line cleanup would key both publishers by props.api?.id, as EquityOverviewPanel.tsx:550 does. Severity changed from the shard's medium to low. For reference, R15-CODE-FRONTEND-015's own baseline stays at 1 (batch-5 not_certified)."
+  },
+  {
+   "id": "rc1-vshard-2:6",
+   "key": "rc1-vshard-2:6",
+   "tie": "R15-UI-021",
+   "verdict": "partial",
+   "severity": "medium",
+   "root_cause": "src/modules/chart/ChartPanel.tsx:825 exempts document.body from the per-panel scope check in the window keydown listener (:810-837), and that listener is installed once per ChartPanel instance. Each instance's selectedDrawingId (checked at :817) is never cleared when the user leaves that chart; only Escape, a delete or that chart's own inspector clear it (:815, :832, :1210-1248). So one body-targeted Delete or Backspace deletes the selected drawing in every chart that still holds a selection.",
+   "fix_shape": "Clear a chart's selection on outside interaction. In the effect at :810-837, also register a document pointerdown listener that calls setSelectedDrawingId(null) when rootRef.current does not contain event.target. The body exemption then applies only to the chart the user last clicked in, and the WebKit chip-then-Delete path of 4c9f7516 still works because the chip is inside the root. An equivalent alternative is to honour the body case only when usePanelContextBus.getState().focusedSource === panelId.",
+   "acceptance_test": "src/modules/chart/ChartPanel.test.tsx: render ChartPanel chart-A and chart-B, each with one SPY/1d trendline. Click A's 'Select trendline' chip, then B's chip, firing pointerDown before each click. fireEvent.keyDown(document.body, {key:'Delete'}) must leave chart-A with 1 drawing and chart-B with 0. Second case: select A's chip, pointerDown on an element outside both charts, Backspace on body, and chart-A still has 1 drawing. The existing 'Delete with nothing focused still deletes' test must stay green. Live re-proof: cd $S/fe && ./node_modules/.bin/vitest run src/modules/chart/TRIAGEC_UI021.test.tsx must report 4 passed, with R3 chartA 1.",
+   "failure_count": 1,
+   "failure_sources": "R15-UI-021 note has no clause. batch VERDICTS: certified in batch-6, in no not_certified list (0). No REFUTATION_AUDIT regression_confirmed or partial verdict (0). Baseline 0, plus this partial (1), gives 1.",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/round-4/triage-c-rc1-vshard-2-6.md",
+   "note": "The entry's own repro holds at HEAD: a Backspace typed in a composer textarea deletes nothing (R0). The residual reproduces in a scratch vitest over a git-archive copy of src using the real ChartPanel harness. R1 is the everyday case: select a line on chart A, later select a line on chart B, press Delete with body focused (as on WebKit), and both lines are deleted (0/0). The drawing store has no undo. R2 is the shard's case and reproduces (0/0 instead of 1/1). R3: in a single chart, clicking a non-focusable spot in another panel and then pressing Backspace still deletes. This is the entry's own stated root cause ('selectedDrawingId persists after focus leaves the chart'). The fix_shape's 'outside containerRef' bail does not hold for body, because of the deliberate WebKit exemption in 4c9f7516. Not a duplicate: CODE-FRONTEND-005 and UI-022 are unrelated. Severity is kept at medium: silent loss of user-drawn work from one keypress in ordinary multi-chart use, and Escape before switching charts is a workaround."
+  }
+ ]
+}

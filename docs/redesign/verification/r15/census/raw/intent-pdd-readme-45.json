@@ -1,0 +1,102 @@
+[
+  {
+    "raw_id": "INT-pdd-readme-45-1",
+    "title": "Research brief re-implements its own money formatter: ISO-code spelling, en-US grouping, and USD as the silent null default",
+    "severity": "high",
+    "area": "research",
+    "subsystem": "research-brief / formatting",
+    "repro": "Publish a brief for a name whose fundamentals carry no `currency` (an obscure NSE small-cap where the provider omits it) -> the metric card renders `Market cap  4.48T`, byte-identical to how a USD name renders. Open Equity Overview on the same symbol -> it renders `$4.48T` / `INR 4.48T` via formatCompactMoney. Same number, two spellings, and the unknown-currency case is indistinguishable from dollars.",
+    "evidence": "src/modules/research/brief-blocks.tsx:55-101 (a complete shadow formatter suite: formatNumber/formatLarge/formatFractionPct/formatSignedPct/formatSigned, declared under the comment 'mirror EquityOverviewPanel's battle-tested conventions'), :61 (`toLocaleString(\"en-US\", ...)` — locale hardcoded), :187-192 (`withCode`: returns the bare number when currency is null OR 'USD', else prefixes the ISO code), :351,368 (Market cap / Revenue call sites); versus src/lib/format.ts:74-80 ('so the compact path never hardcodes `$`'), :82-100 (currencyAffix — the one Intl-derived affix source app-wide), :105-114 (formatCompactMoney), :63-64 (R8 sec6: the INSTRUMENT's ISO-4217 code)",
+    "notes": "PRODUCT_DESIGN_DECISIONS sec11 requires every numeric surface to format 'exclusively through the single src/lib/format.ts suite -- never a per-panel formatter'. The brief is the product's flagship answer surface and it is the one panel that bypasses the suite, so it inherits none of the currency seam (R8 sec6 / D57) and none of activeLocale(): a null currency degrades silently into the USD rendering instead of being stated, and Indian digit grouping is unreachable. Smallest fix: delete brief-blocks.tsx:55-101 and route the call sites through formatCompactMoney/formatPercent/formatUnit, passing the instrument currency; keep a wrapper only if the brief genuinely needs a non-currency mantissa (format.ts:78-80 already exports currencyAffix for exactly that case)."
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-2",
+    "title": "The design-token audit that enforces the R9 spacing/type law runs in no script, no gate and no workflow",
+    "severity": "medium",
+    "area": "release",
+    "subsystem": "design-system / CI",
+    "repro": "`grep -rn audit-design .github/workflows/ package.json` -> no hits. `node scripts/audit-design-tokens.mjs` -> 'design-token audit clean' (so the law holds today, by hand-discipline only). Push any off-grid value (`gap-1.5`, `px-[7px]`, `text-[12px]`) and lint, typecheck, vitest, `pnpm ci-local` and all three workflows stay green.",
+    "evidence": "scripts/audit-design-tokens.mjs (exists, passes); docs/redesign/R9_DESIGN_SYSTEM.md:40-42 ('`scripts/audit-design-tokens.mjs` enforces the allowed set statically over `src/` and `plugins/`; it runs in the gate battery') and :133 ('Run `node scripts/audit-design-tokens.mjs` on your partition before pushing'); package.json:6-23 (no reference; the `ci-local` chain at :19 omits it); .github/workflows/{build,lint,test}.yml (no reference)",
+    "notes": "R9 sec0 documents what an unenforced spacing law already cost once: 1,897 call sites resolved against halved --spacing-N tokens, h-7 rendering taller than h-8, clipped Settings fields. The audit was written to stop that recurring and is then never invoked by anything automated. CLAUDE.md makes `pnpm ci-local` the hard pre-tag gate, so the audit is outside the only gate that counts. Smallest fix: append `&& node scripts/audit-design-tokens.mjs` to the `lint` script in package.json:9 (it is then inside ci-local and the lint workflow for free)."
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-3",
+    "title": "Six panels still hand-roll a <table> after the shared DataTable shipped",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "data-tables",
+    "repro": "design",
+    "evidence": "src/components/DataTable.tsx:13-39 (the contract: 'Every tabular / numeric surface ... renders through this instead of hand-rolling a `<table>`'); remaining hand-rolled tables: src/modules/research/brief-blocks.tsx:926, src/modules/screener/ScreenerResultsTable.tsx:347, src/modules/safety/AuditLogViewer.tsx:155, src/modules/backtest/BacktestResultView.tsx:242, src/modules/earnings/EarningsCalendarPanel.tsx:216 and :278, src/modules/watchlist/WatchlistPanel.tsx:437",
+    "notes": "PRODUCT_DESIGN_DECISIONS sec11 promised 'no more per-panel hand-rolled <table> markup'. Each survivor re-implements header tint, row rhythm, the null glyph and the sort affordance by hand, so the table law now has seven implementations and a change to it (row height, null rendering, aria-sort) silently diverges across panels. Note that ScreenerResultsTable and WatchlistPanel import DataTable AND hand-roll one, so the split is intra-file. Smallest fix shape: port the three plain cases (AuditLogViewer, BacktestResultView, EarningsCalendarPanel) to DataTable, and if screener/watchlist need virtualisation or sticky columns DataTable cannot express, record that as the reason in the file rather than leaving the contract comment false."
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-4",
+    "title": "No reading surface caps its line length -- 16px brief prose runs the full panel width",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "research-brief / notes",
+    "repro": "Open a published brief in a dockview panel widened past ~1200px -> the synthesis prose renders at text-prose (16px) across the entire panel, ~150 characters per line. Same for the Equity Overview AI narrative.",
+    "evidence": "grep for `max-w-prose` across src/ returns ZERO hits; src/modules/research/brief-blocks.tsx:1001 steps only the SIZE by container width (`text-body @min-[420px]:text-prose`) with no width cap; src/modules/equity-overview/EquityOverviewPanel.tsx:419 (`text-charcoal-100 text-prose leading-relaxed`, uncapped); styles/tokens.css:131 (--leading-prose 1.6 — the leading half of the promise IS delivered); docs/redesign/R9_DESIGN_SYSTEM.md:122-124 ('Reading (transcript, brief, notes): ... leading 1.5-1.6, max-w-prose, 16px+ block spacing')",
+    "notes": "PRODUCT_DESIGN_DECISIONS sec4/sec8 asked for 'a comfortable reading measure' and R9 sec7 states max-w-prose as law; only the line-height half was implemented, so the wider the user's display the worse the brief reads — the opposite of the intended scaling. Smallest fix: add `max-w-prose` to the brief body container (brief-blocks.tsx:1001) and the narrative paragraph (EquityOverviewPanel.tsx:419); one class each, no token change."
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-5",
+    "title": "Notes slash-menu rows stack two 13px lines inside a fixed 32px row, so descriptions collide",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "notes-editor",
+    "repro": "In Notes, type `/` at the start of a line -> the suggestion popup renders each item as a fixed h-8 (32px) button containing a title line and a description line, each text-caption (13px at --leading-body 1.5 = 19.5px). 39px of text in a 32px box: the two lines overrun their row and run into the neighbouring item.",
+    "evidence": "src/modules/notes/NotesPanel.tsx:364 (`flex h-8 w-full flex-col items-start justify-center px-3 text-left`), :375 (title `text-caption font-medium`), :376 (description `text-caption text-charcoal-500`), :357 (the scroll container, no per-row clip); styles/tokens.css:114 (--text-caption 0.8125rem) + :177-180 (text-caption binds --leading-body) + :127 (--leading-body 1.5); docs/redesign/R9_DESIGN_SYSTEM.md:75 ('Text containers reserve ceil(fontSize x lineHeight) + 2px')",
+    "notes": "This is the descender rule violated by a factor of two lines, not a taste call: the slash menu is the primary discovery surface for Notes commands and its hints are unreadable. The sibling wikilink menu (NotesPanel.tsx:401) is single-line and fine. Smallest fix: drop the fixed height on the two-line row (`min-h-8` + `py-1`, or h-10 if a fixed rung is wanted — 40px is on the 8-pt grid)."
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-6",
+    "title": "Notes toolbar's Lists group omits the task-list control the node and slash menu already support",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "notes-editor",
+    "repro": "Open Notes -> the toolbar Lists group offers bullet and numbered only. Task lists exist (type `/` -> 'Task List') and render correctly, but there is no toolbar affordance and no active-state indicator for them.",
+    "evidence": "src/modules/notes/NotesToolbar.tsx:210-224 (Lists group: bulletList + orderedList only); src/modules/notes/slash-commands.ts:44-46 ('Task List' -> `toggleTaskList()`); src/app/globals.css:277-285 (.notes-prose taskList styling ships); PRODUCT_DESIGN_DECISIONS sec12 promised 'Lists (bullet/numbered/task)'",
+    "notes": "The capability is reachable, only the promised control is missing, so this is a discoverability gap rather than a functional break. Smallest fix: one more `<ToolbarButton icon={ListChecks} label=\"Task list\" active={editor.isActive(\"taskList\")} onClick={() => editor.chain().focus().toggleTaskList().run()} />` in the existing Lists group."
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-7",
+    "title": "Slashed zero was never enabled, and the token file asserts that it was",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "design-system / typography",
+    "repro": "design",
+    "evidence": "src/app/globals.css:113-116 sets `font-variant-numeric: tabular-nums` and `font-feature-settings: \"tnum\" 1, \"calt\" 0` — no `\"zero\" 1` and no `ss01`; grep for `\"zero\"`/`ss01`/`slashed` across src/ and styles/ returns only the claim at styles/tokens.css:101 ('Numerics use tabular figures + slashed zero (globals.css)')",
+    "notes": "PRODUCT_DESIGN_DECISIONS sec7 asked for tabular figures AND a slashed zero; half shipped. JetBrains Mono renders its default dotted zero, which is a weaker 0/O disambiguation than the slashed form in a terminal whose whole job is reading digits off filings. The false comment is the part that matters for the next maintainer: it guarantees nobody checks again. Smallest fix: add `\"zero\" 1` to the font-feature-settings list at globals.css:114-116 (JetBrains Mono ships the `zero` feature), or correct tokens.css:101."
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-8",
+    "title": ".notes-prose literal fallbacks still name the four type sizes R9 abolished",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "design-system / notes-editor",
+    "repro": "design",
+    "evidence": "src/app/globals.css:243 (h1 fallback `1.375rem` = 22px), :249 (h2 fallback `1.125rem` = 18px), :255 (h3 fallback `0.9375rem` = 15px), :301 (pre fallback `0.75rem` = 12px), :244,251 (weight fallback `590`); versus styles/tokens.css:112 ('12, 15, 18, 22 are dead sizes; the audit script rejects them') and :124 (--font-weight-heading 700)",
+    "notes": "The rule bodies are token-bound and render correctly today; only the CSS fallbacks are stale, so if a token ever fails to resolve, .notes-prose degrades onto exactly the 12/15/18/22 scale and the 590 weight that R9 deleted — the failure mode the fallbacks exist to prevent. Same class of rot as the group-heading-style fallback at globals.css:73,76. Smallest fix: re-value the five literals to the current token values (or drop the fallbacks, since tokens.css is imported unconditionally at globals.css:7)."
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-9",
+    "title": "Two shared-component contract comments still specify the pre-R9 amber affordance the code deliberately does not implement",
+    "severity": "low",
+    "area": "docs",
+    "subsystem": "data-tables / notes-editor",
+    "repro": "design",
+    "evidence": "src/components/DataTable.tsx:30-31 ('a quiet caret that is amber **only** on the active sort key (the table's one accent)') vs the actual caret at :262 (`text-charcoal-300`, neutral); src/modules/notes/NotesToolbar.tsx:10 ('Each control reads `editor.isActive(x)` for its active state (amber TEXT, not a fill)') vs :104-105 (active `text-charcoal-300`, idle `text-charcoal-400`); the governing rule is docs/redesign/R9_DESIGN_SYSTEM.md:79-81 (the accent is reserved for live agent activity)",
+    "notes": "Both files document a rule R9 reversed, in the header docstring a maintainer reads before editing — an invitation to 'restore' an accent that the design system forbids. The NotesToolbar case has a second edge: with amber gone, the surviving active indicator is a single luminance step (#cccccc active vs #a8a8a8 idle, styles/tokens.css:42-43) carrying no weight, fill or tick, so 'is bold on?' is close to unreadable. Smallest fix: correct both comments to the neutral rule, and give the toolbar's active state a second cue (a filled charcoal-800 surface, as the Notes scope pills already do at NotesPanel.tsx:73-75)."
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-10",
+    "title": "Quant pricers hardcode a `$` prefix on values computed from currency-free user inputs",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "quant-panels",
+    "repro": "Open the Bond Pricer, enter an INR bond's face value and coupon -> the clean price, dirty price and accrued interest all render with a leading `$`. Same in the Option Pricer for the option price and standard error. Neither panel collects a currency.",
+    "evidence": "src/modules/quant/BondPricerPanel.tsx:301,323,326 (`${lastResult.clean_price.toFixed(2)}` style with a literal `$`), src/modules/quant/OptionPricerPanel.tsx:525,532; versus src/lib/format.ts:74-80 ('so the compact path never hardcodes `$`') and :82-100 (currencyAffix)",
+    "notes": "On a terminal whose benchmark market is India, a pricer that stamps dollars onto a rupee-denominated instrument mislabels a money figure the user typed in. It is a labelling error rather than a wrong computation, but PRODUCT_DESIGN_DECISIONS sec11 forbids exactly this (no per-panel formatter, no unsuffixed/mislabelled raw number) and format.ts already solved it. Smallest fix: drop the literal `$` and render the mantissa bare (the inputs are unit-free), or carry a currency selector through the pricer request and use `currencyAffix`."
+  }
+]

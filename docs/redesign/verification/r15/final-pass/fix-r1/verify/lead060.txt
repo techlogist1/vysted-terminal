@@ -1,0 +1,15 @@
+'_UNVERIFIED_ - no source confirms the 23' -> unverified
+'__UNVERIFIED__ - no source confirms it.' -> unverified
+'**_UNVERIFIED_** - none' -> unverified
+'__DISAGREE__ - the 10-K says 18%' -> disagree
+'`UNVERIFIED` no match' -> unverified
+'_AGREE_ - matches the filing' -> agree
+'***UNVERIFIED*** nothing' -> unverified
+'> _DISAGREE_ wrong year' -> disagree
+'_Unverified_: sources silent' -> unverified
+'__agree__ confirmed by 10-Q' -> agree
+'UNVERIFIED_ - stray' -> unverified
+'_UNVERIFIED - stray' -> unverified
+'*UNVERIFIED* - none' -> unverified
+'AGREE - but no source confirms' -> agree
+'snake_case_word only' -> unverified

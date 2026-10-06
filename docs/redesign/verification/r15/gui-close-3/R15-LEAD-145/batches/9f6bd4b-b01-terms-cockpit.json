@@ -1,0 +1,58 @@
+[
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-01-terms.png"
+ },
+ {
+  "cmd": "click",
+  "x": 768,
+  "y": 598
+ },
+ {
+  "cmd": "wait",
+  "seconds": 3
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-02-after-terms.png"
+ },
+ {
+  "cmd": "click",
+  "x": 502,
+  "y": 722
+ },
+ {
+  "cmd": "wait",
+  "seconds": 4
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-03-cockpit-import.png"
+ },
+ {
+  "cmd": "click",
+  "x": 838,
+  "y": 348
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-04-news-closed.png"
+ },
+ {
+  "cmd": "click",
+  "x": 856,
+  "y": 97
+ },
+ {
+  "cmd": "wait",
+  "seconds": 2
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-05-portfolio-full-column.png"
+ }
+]

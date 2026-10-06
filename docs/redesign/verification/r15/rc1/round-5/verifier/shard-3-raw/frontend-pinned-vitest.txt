@@ -1,0 +1,8 @@
+# candidate's own pinned vitest files, run in a scratch copy of the worktree's src/ (node_modules symlinked), HEAD 633f8440
+ Test Files  20 passed (20)
+      Tests  408 passed (408)
+ Test Files  20 passed (20)
+      Tests  408 passed (408)
+   Start at  16:46:52
+   Duration  12.13s (transform 7.96s, setup 2.52s, import 18.18s, tests 15.53s, environment 17.78s)
+

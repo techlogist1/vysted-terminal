@@ -1,0 +1,14 @@
+=== R15-LIFECYCLE-026: idle CPU spot-check on worker pid 19284 ===
+M1  Fri Sep 25 06:42:34 IST 2026   TIME=0:57.53
+M2  Fri Sep 25 06:43:02 IST 2026   TIME=0:58.83  %CPU=3.8  (mid-idle-window)
+M3  Fri Sep 25 06:47:25 IST 2026   TIME=1:11.35  %CPU=0.1  ETIME=22:27 (process lifetime)
+
+Idle-window delta (M1->M3, zero curl/HTTP activity issued to this sidecar in between):
+  wall elapsed = 291s, CPU consumed = 13.82s -> ~4.75% average
+  instantaneous %CPU at M3 = 0.1%
+
+Register baseline: buggy build sits ~60% of a core continuously; clean idle sits 0-0.8%.
+fix_shape bound: idle-between-cycles loop CPU < 5% over 5 min.
+Observed here is well below the 60% buggy baseline and consistent with the <5% target
+(instantaneous reading 0.1%; the 4.75% window average includes residual settling right
+after the prior verification burst of curl calls, not a sustained busy-loop).

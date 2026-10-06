@@ -1,0 +1,180 @@
+{
+ "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/research-briefs/final/01-normal-coforge-llama.jsonl": {
+  "phase": "published",
+  "applied": [
+   {
+    "name": "publish_brief",
+    "label": "Published the DEEP research brief",
+    "phaseAfter": "published"
+   }
+  ],
+  "errors": [],
+  "engineNotices": [
+   "Your active model — ollama/llama3.1:8b · IterResearch (evolving report)"
+  ],
+  "brief": {
+   "symbol": "COFORGE",
+   "depth": "deep",
+   "mode": "DEEP",
+   "backend": "native",
+   "webAvailable": false,
+   "sourceCount": 7,
+   "sourcesStored": 7,
+   "sourcesRendered": 7,
+   "markdownLen": 1111,
+   "markersInBody": [],
+   "maxMarker": 0,
+   "markersAfterSanitize": 0,
+   "execution": {
+    "runId": "04dfc23060de491c98dc9ea75fe3c3d5",
+    "requestedDepth": "deep",
+    "loop": "iter",
+    "backend": "native",
+    "startedAt": 1791023100.7168388,
+    "finishedAt": 1791023332.826869,
+    "degradedReason": null
+   },
+   "metrics": {
+    "symbol": "COFORGE",
+    "provider": "nse_direct",
+    "asOf": 1790812800000,
+    "price": 1826,
+    "change": 76.90000000000009,
+    "changePercent": 4.396546795494832,
+    "currency": "INR",
+    "assetClass": "equity",
+    "items": [
+     {
+      "label": "Below 52-week high",
+      "value": "-9.66% · vs 52w high",
+      "title": "(52w high - price) / 52w high"
+     },
+     {
+      "label": "52-week price change (Yahoo)",
+      "value": "+13.20% · trailing 52 weeks",
+      "title": "trailing 52 weeks"
+     },
+     {
+      "label": "Dividend yield",
+      "value": "0.88% · fraction of price",
+      "title": "dividend per share / price"
+     },
+     {
+      "label": "Dividend per share",
+      "value": "₹16.00 · per share, INR",
+      "title": "per share, INR"
+     },
+     {
+      "label": "Dividend/share (trailing 12m paid)",
+      "value": "₹12.00 · corporate-action history",
+      "title": "sum of dividends paid in the trailing 12 months"
+     },
+     {
+      "label": "Revenue growth",
+      "value": "+49.86% · quarterly YoY (MRQ)",
+      "title": "quarterly YoY (MRQ)"
+     },
+     {
+      "label": "Earnings growth",
+      "value": "+48.60% · quarterly YoY (MRQ)",
+      "title": "quarterly YoY (MRQ)"
+     },
+     {
+      "label": "Promoter group (exchange filing)",
+      "value": "0.00% · NSE shareholding filing, 2026-06-30",
+      "title": "NSE shareholding filing, 2026-06-30"
+     },
+     {
+      "label": "Institutional holding (exchange filing)",
+      "value": "66.93% · BSE shareholding filing, 2026-06-30",
+      "title": "BSE shareholding filing, 2026-06-30"
+     },
+     {
+      "label": "Market cap",
+      "value": "₹809B"
+     },
+     {
+      "label": "P/E",
+      "value": "37.46"
+     },
+     {
+      "label": "Fwd P/E",
+      "value": "25.57"
+     },
+     {
+      "label": "Price/Book",
+      "value": "6.43"
+     },
+     {
+      "label": "EPS",
+      "value": "49.23"
+     },
+     {
+      "label": "Beta",
+      "value": "0.314"
+     },
+     {
+      "label": "ROE",
+      "value": "18.42%"
+     },
+     {
+      "label": "Net margin",
+      "value": "9.64%"
+     },
+     {
+      "label": "Debt/Equity",
+      "value": "0.07518"
+     },
+     {
+      "label": "Revenue",
+      "value": "₹182B"
+     },
+     {
+      "label": "52w range",
+      "value": "1,008–2,021"
+     },
+     {
+      "label": "Volume",
+      "value": "3.42M"
+     }
+    ],
+    "conflicts": [
+     {
+      "text": "Sources disagree on dividend per share: 16 (yfinance (dividendRate)) vs 12 (derived (trailing-12m paid history)) — The provider's dividend per share (Yahoo dividendRate, 16) EXCEEDS the trailing-12-month dividends actually PAID (12) by more than 10% — the scalar may anticipate a declared-but-unpaid dividend or ride a forward/inflated basis; the paid history is the settled figure.",
+      "kind": "data_conflict"
+     },
+     {
+      "text": "Sources disagree on held percent insiders: 21.339 (yfinance (heldPercentInsiders)) vs 0 (NSE shareholding filing) — The provider's heldPercentInsiders (21.34%) counts INSIDERS — a superset that mixes promoter-group holders with other insider rows and can carry stale, individually-dated as-of dates — while the NSE shareholding filing reports the strict PROMOTER GROUP at 0.00% as of 2026-06-30. Insiders and promoter-group are different by definition; both figures are shown, neither replaced.",
+      "kind": "data_conflict"
+     }
+    ]
+   }
+  },
+  "anchors": [],
+  "renderedText": " Save .md Save PDF Save PNGDEEPCOFORGE7 sources· 6.7k tok DEEPweb + structured dataEOD as of 2026-10-03Coforge — latest quarterly resultsStructured-data-only briefStructured data only — no web sources found for COFORGE.COFORGE₹1,826.00+₹76.90 (+4.40%)nse_directBelow 52-week high-9.66% · vs 52w high52-week price change (Yahoo)+13.20% · trailing 52 weeksDividend yield0.88% · fraction of priceDividend per share₹16.00 · per share, INRDividend/share (trailing 12m paid)₹12.00 · corporate-action historyRevenue growth+49.86% · quarterly YoY (MRQ)Earnings growth+48.60% · quarterly YoY (MRQ)Promoter group (exchange filing)0.00% · NSE shareholding filing, 2026-06-30Institutional holding (exchange filing)66.93% · BSE shareholding filing, 2026-06-30Market cap₹809BP/E37.46Fwd P/E25.57Price/Book6.43EPS49.23Beta0.314ROE18.42%Net margin9.64%Debt/Equity0.07518Revenue₹182B52w range1,008–2,021Volume3.42MCONFLICTSources disagree on dividend per share: 16 (yfinance (dividendRate)) vs 12 (derived (trailing-12m paid history)) — The provider's dividend per share (Yahoo dividendRate, 16) EXCEEDS the trailing-12-month dividends actually PAID (12) by more than 10% — the scalar may anticipate a declared-but-unpaid dividend or ride a forward/inflated basis; the paid history is the settled figure.CONFLICTSources disagree on held percent insiders: 21.339 (yfinance (heldPercentInsiders)) vs 0 (NSE shareholding filing) — The provider's heldPercentInsiders (21.34%) counts INSIDERS — a superset that mixes promoter-group holders with other insider rows and can carry stale, individually-dated as-of dates — while the NSE shareholding filing reports the strict PROMOTER GROUP at 0.00% as of 2026-06-30. Insiders and promoter-group are different by definition; both figures are shown, neither replaced.Here is a concise research brief in markdown based on the working report:COFORGE (COFORGE) Latest Quarterly ResultsMarket MetricsMarket Cap: ₹80,899 cr [basis: provider market cap]Below 52-week high: 9.66% [basis: vs 52w high] = (52w high - price) / 52w high52-week price change: 13.20% [basis: trailing 52 weeks]Dividend MetricsDividend yield: 0.88% [basis: fraction of price] = dividend per share / priceDividend per share: ₹16.00 [basis: per share, INR]Dividend/share (trailing 12m paid): ₹12.00 [basis: corporate-action history] = sum of dividends paid in the trailing 12 monthsGrowth MetricsRevenue growth: +49.9% [basis: quarterly YoY (MRQ)]Earnings growth: +48.6% [basis: quarterly YoY (MRQ)]ShareholdingPromoter group: 0.00% [basis: NSE shareholding filing, 2026-06-30]Institutional holding: 66.93% [basis: BSE shareholding filing, 2026-06-30]Conflict Note: The provider's dividend per share (Yahoo dividendRate, 16) EXCEEDS the trailing-12-month dividends actually PAID (12) by more than 10%.Sources(7)"
+ },
+ "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-drive-rb-harness/cut-inflight.jsonl": {
+  "phase": "in_flight",
+  "applied": [],
+  "errors": [
+   "transport: The stream ended before the answer finished."
+  ],
+  "engineNotices": [
+   "Your active model — ollama/llama3.1:8b · IterResearch (evolving report)"
+  ],
+  "brief": null,
+  "anchors": [],
+  "renderedText": "Researching — DEEP · 0.0sCoforge — latest quarterly resultsResearching0.0sEngineYour active model — ollama/llama3.1:8b · IterResearch (evolving report)Planninground 1: seeded 3 sub-question(s) (planning rides round 2)0msAssessing coverageround overran its 90s slice — winding downPlanningone wind-down round (1 researcher, visits off)Planninground 2: rebuilt workspace → 1 sub-question(s)56623msWriting the briefwrote brief from evolving report51737msAssessing coveragecitation check: stripped 0 out-of-range marker(s), 0 model-written source list(s)/[n] literal(s); audit skipped (-52s wall remaining < 15s)"
+ },
+ "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-drive-rb-harness/cut-nopublish.jsonl": {
+  "phase": "empty",
+  "applied": [],
+  "errors": [],
+  "engineNotices": [
+   "Your active model — ollama/llama3.1:8b · IterResearch (evolving report)"
+  ],
+  "brief": null,
+  "anchors": [],
+  "renderedText": "Ask JARVIS to research a companyRun a research query in the agent dock and the brief — with cited sources and a cost readout — lands here."
+ }
+}

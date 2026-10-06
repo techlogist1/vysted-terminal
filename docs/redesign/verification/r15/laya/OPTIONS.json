@@ -1,0 +1,11 @@
+{
+  "options": ["read", "edit", "build", "research"],
+  "source": [
+    "sidecar/services/planner.py:35-42 (INTENTS tuple: read | edit | build | research)",
+    "sidecar/services/planner.py:178-220 (classify_intent — deterministic signal-phrase scoring, read is the residual/safe default)",
+    "sidecar/services/agent_runtime.py:1604,1651-1653 (classify_intent invoked on the composer prompt server-side; gates read intent to read-only tools)",
+    "src/modules/chat/streaming.ts:229 (frontend comment confirming classify_intent gates a read intent to read-only tools server-side)",
+    "types/agent-modes.ts:24 (frontend AgentMode axis, orthogonal: agent | delegate — the composer's own mode picker, not the intent classifier)"
+  ],
+  "notes": "Two distinct routing layers exist. (1) Server-side: sidecar/services/planner.py classify_intent() is the ONLY place a composer message's free text is classified into a fixed intent set — INTENTS = (read, edit, build, research), scored deterministically by signal phrases (no LLM), with 'read' as the safe residual default. This gates which tools the agent loop may call (read-only vs mutating) per sidecar/services/agent_runtime.py:1604-1653. (2) Frontend: types/agent-modes.ts defines AgentMode = 'agent' | 'delegate' as an orthogonal, user-picked axis (not inferred from message content) selected via the composer's mode control (src/modules/chat/ComposerPlusMenu.tsx, src/modules/chat/ChatSidebar.tsx) — this is NOT an intent classifier, it's a manual toggle between inline-agent and background-delegate execution. No code path in src/ or sidecar/ routes a composer message to any panel/module-named surface (e.g. 'chart', 'screener', 'brief') by intent classification; per-intent HostIntent actions (src/lib/host-actions.ts) target specific panels only as the RESULT of an already-executed tool call, not as an upfront routing decision. The fixed option set the code actually classifies a message into is therefore the sidecar's 4-value Intent enum. No Laya code or naming was added; this file is verification evidence only."
+}

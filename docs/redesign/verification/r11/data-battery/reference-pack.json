@@ -1,0 +1,854 @@
+[
+ {
+  "dividends": {
+   "components": "FY26 (year ended Mar-2026): FINAL dividend \u20b94.00/share only, record date 12-Jun-2026 \u2014 no interim, no special dividend paid during FY26. FY25 (year ended Mar-2025): FINAL \u20b97.00/share only, record date 20-Jun-2025 \u2014 likewise no interim/special. Voltas has not paid an interim or special dividend in at least the last 4 fiscal years (FY22-FY26); it pays a single post-year-end final dividend.",
+   "fy_total_per_share": 4,
+   "ttm_paid_per_share": 4,
+   "yield_pct": 0.32
+  },
+  "entity": {
+   "exchange": "NSE (also listed BSE, code 500575)",
+   "industry": "Air Conditioners, Commercial Refrigeration & Engineering Projects",
+   "isin": "INE226A01021",
+   "name": "Voltas Limited",
+   "sector": "Consumer Durables"
+  },
+  "growth": {
+   "earnings_annual_pct": -55.6,
+   "earnings_mrq_yoy_pct": -51.87,
+   "revenue_annual_pct": -7.58,
+   "revenue_mrq_yoy_pct": 2.52
+  },
+  "price": {
+   "as_of": "2026-07-08 15:30 IST (NSE close)",
+   "close": 1253.6,
+   "currency": "INR"
+  },
+  "quarterly": {
+   "pat_cr": 113.43,
+   "pat_yoy_pct": -51.87,
+   "period": "Q4 FY26 (Jan-Mar 2026)",
+   "revenue_cr": 4887.83,
+   "revenue_yoy_pct": 2.52
+  },
+  "range52w": {
+   "change_52w_pct": -8.21,
+   "drawdown_from_high_pct": 20.78,
+   "high": 1582.5,
+   "low": 1186.8
+  },
+  "roe": 6.1,
+  "symbol": "VOLTAS",
+  "traps": [
+   "MRQ-YoY vs Annual FY-vs-FY are materially different and must not be conflated: Q4FY26-vs-Q4FY25 shows revenue +2.5% / PAT -51.9%, while full-year FY26-vs-FY25 shows revenue -7.6% / PAT -55.6% \u2014 the quarter's small revenue growth does NOT imply the full year grew.",
+   "Dividend base-effect trap: FY26's declared dividend (\u20b94.00, final-only) is a ~43% cut from FY25's \u20b97.00 (final-only), tracking the ~55.6% PAT collapse. Both years paid a single FINAL dividend only \u2014 there is no interim/special component to add, but naive TTM-dividend calculations must use the correct record-date window (12-Jun-2026 payout falls inside the trailing 12 months from this pack's date; the prior \u20b97.00 payout, record date 20-Jun-2025, falls just outside it) or they will double count or miss a payout.",
+   "Revenue/'total income' definitional mismatch across sources for FY26: Screener's consolidated 'Sales' figure is \u20b914,244cr (-7.5% YoY vs FY25's \u20b915,413cr), while Business Standard (citing company results) cites 'total consolidated income' of \u20b913,768.48cr (-4.5% YoY) for the same fiscal year. These are not the same line item (revenue-from-operations vs total-income-incl-other-income vs possible netting differences) \u2014 flagged as unresolved; do not treat as interchangeable without checking the exact P&L line each source pulled.",
+   "52-week price-change figure is unusually inconsistent across aggregators for this name in the same week: values seen ranging from +19.5%, +5.1%, -5.6% to -8.2% for what should be the same 'last 1 year' metric, likely due to differing snapshot timestamps, total-return vs price-only-return conflation, or stale caching. This pack uses stockanalysis.com's -8.21% (cross-checked against a same-second closing price with tickertape.in) as the headline figure, but it should be independently recomputed from confirmed exchange closing prices if used for anything decision-critical.",
+   "Corporate-action history: one bonus issue (ex-date Dec-1989) and one stock split/face-value change (ex-date Sep-2006) exist in Voltas's history. Any multi-decade EPS/price/dividend-per-share comparison spanning pre-2006 data must be split/bonus-adjusted; none of the FY22-FY26 figures in this pack are affected since no corporate action has occurred in that window.",
+   "Voltas Limited is not the same entity as 'Voltbek'/Voltas Beko \u2014 the latter is a 50:50 JV with Ar\u00e7elik (Turkey) for the consumer-appliances business. Voltas's consolidated financials pick up Voltbek via consolidation/equity accounting, so segment-level (UCP/cooling vs appliances) YoY comparisons can shift with JV stake or accounting-method changes; don't assume 100% of appliances revenue flows through Voltas's standalone segment the way UCP does.",
+   "Q1 FY27 (Apr-Jun 2026 quarter) results had NOT been officially announced as of this pack's as-of date (2026-07-08), despite some secondary web content already circulating a 'Q1 FY27 PAT -51.87% to \u20b9113.43cr' figure \u2014 that number is actually Q4 FY26 (Mar-2026) mislabeled/recycled by an aggregator. Do not use it as an actual Q1 FY27 result.",
+   "Intraday/day-to-day price snapshots for VOLTAS varied from \u20b91,253.60 to \u20b91,296.75 across 6-8 Jul 2026 depending on the source and capture time; this pack anchors to the explicitly dated, two-source-corroborated NSE close of \u20b91,253.60 as of 2026-07-08 15:30 IST rather than an undated 'live' quote."
+  ],
+  "valuation": {
+   "eps_ttm": 11.36,
+   "market_cap_inr_cr": 42618,
+   "pe_ttm": 113.38,
+   "price_to_book": 6.5,
+   "shares_outstanding_cr": 34
+  },
+  "sources": [
+   "https://www.screener.in/company/VOLTAS/consolidated/",
+   "https://trendlyne.com/equity/Dividend/VOLTAS/1500/voltas-ltd-dividend/",
+   "https://www.business-standard.com/companies/quarterly-results/voltas-q4-net-profit-falls-52-pc-to-rs-113-43-crore-126051401520_1.html",
+   "https://www.tickertape.in/stocks/voltas-VOLT",
+   "https://stockanalysis.com/quote/nse/VOLTAS/",
+   "https://trendlyne.com/equity/Split/VOLTAS/1500/voltas-ltd-split/",
+   "https://trendlyne.com/equity/corporate-actions/VOLTAS/1500/voltas-ltd/",
+   "https://www.indmoney.com/stocks/voltas-ltd-share-price",
+   "https://www.gurufocus.com/news/8860500/voltas-ltd-bom500575-q4-2026-earnings-call-highlights-navigating-challenges-with-strategic-resilience?mobile=true"
+  ]
+ },
+ {
+  "dividends": {
+   "components": "FY2025-26: Interim \u20b94.00/share (ex-date & record date 23-Jan-2026) + Final \u20b96.00/share (record date 24-May-2026, approved at 43rd AGM on 19-Jun-2026) = \u20b910.00 total. No special/one-off dividend was declared in FY2025-26. FY2024-25 had the identical structure (interim \u20b94 + final \u20b96 = \u20b910), so a naive YoY comparison of the FY total (10 vs 10, flat) masks that both components sit on the same \u20b94/\u20b96 split rather than a genuine repeat \u2014 check dates, not just totals, each year.",
+   "fy_total_per_share": 10,
+   "ttm_paid_per_share": 10,
+   "yield_pct": 0.83
+  },
+  "entity": {
+   "name": "Havells India Limited",
+   "exchange": "NSE/BSE",
+   "isin": "INE176B01034",
+   "sector": "Consumer Durables",
+   "industry": "Electrical Equipment (wires & cables, switchgear, fans, lighting, appliances, Lloyd AC/consumer electronics)"
+  },
+  "price": {
+   "close": 1207.8,
+   "as_of": "2026-07-08",
+   "currency": "INR"
+  },
+  "valuation": {
+   "market_cap_inr_cr": 75800,
+   "pe_ttm": 44.8,
+   "eps_ttm": 26.96,
+   "price_to_book": 8,
+   "shares_outstanding_cr": 62.76
+  },
+  "range52w": {
+   "high": 1621.1,
+   "low": 1123.6,
+   "drawdown_from_high_pct": 25.5,
+   "change_52w_pct": -21.45
+  },
+  "quarterly": {
+   "period": "Q4 FY26 (Jan-Mar 2026)",
+   "revenue_cr": 6705.2,
+   "revenue_yoy_pct": 2.46,
+   "pat_cr": 723.06,
+   "pat_yoy_pct": 39.85
+  },
+  "growth": {
+   "revenue_mrq_yoy_pct": 2.46,
+   "earnings_mrq_yoy_pct": 39.85,
+   "revenue_annual_pct": 3.44,
+   "earnings_annual_pct": 14.83
+  },
+  "roe": 19.1,
+  "traps": [
+   "MARKET CAP / SHARE-COUNT MISMATCH: Screener.in prices ~75,800 cr market cap (implying ~62.76 cr shares, matching the exchange-filed 627.56 million shares outstanding, FV \u20b91), while Tickertape, Bajaj Broking and Stockanalysis.com all show ~76,876 cr (implying a share count closer to ~63.6 cr). The higher figure likely bakes in ESOP-trust-held or not-yet-cancelled treasury shares as outstanding. Treat the exchange/filing-derived 627.56m shares as ground truth (BSE code 517354 / NSE HAVELLS) and flag the aggregator variance rather than silently averaging it away.",
+   "MRQ-YoY vs ANNUAL FY-vs-FY GROWTH ARE NOT INTERCHANGEABLE: Q4FY26 (Jan-Mar 2026) PAT grew 39.85% YoY vs Q4FY25, but full FY26 PAT grew only 14.83% YoY vs FY25. The ~40% quarterly pop is flattered by an unusually weak Q4FY25 base (\u20b9517 cr, well below the FY's quarterly run-rate that year) \u2014 it is NOT representative of the underlying full-year earnings trend (~15%). Similarly revenue: +2.46% MRQ-YoY vs +3.44% annual FY-vs-FY \u2014 different denominators, do not conflate.",
+   "DIVIDEND TOTALS LOOK FLAT BUT AREN'T A CLEAN REPEAT: FY2025-26 total (interim \u20b94 + final \u20b96 = \u20b910) numerically equals FY2024-25's total (interim \u20b94 + final \u20b96 = \u20b910), but the record/ex-dates shifted by roughly a year in each sub-component (interim: 22-Jan-2025 to 23-Jan-2026; final: 23-May-2025 to 22/24-May-2026) and payment timing determines what actually lands in a trailing-12-month (TTM) window. In this case TTM-paid (10.00) happens to equal FY-declared (10.00) only because both FY25-26 tranches were paid within the last 12 months from the July-2026 as-of date \u2014 this coincidence will break in other quarters.",
+   "52-WEEK CHANGE vs DRAWDOWN-FROM-HIGH ARE DIFFERENT METRICS AND SOURCES DISAGREE ON THE FORMER: drawdown-from-52w-high is a clean, source-agreed ~25.5% (computed from \u20b91,621.10 high and \u20b91,207.80 close). But the trailing 1-year price return is reported inconsistently across aggregators \u2014 Stockanalysis.com shows -21.45% (as of 8-Jul-2026), while other trackers show -24.84% / -23.20% CAGR measured as of earlier dates (12-Jun-2026, 1-Jul-2026). The dispersion is a reference-date artifact, not a data error \u2014 always pin the 'as of' date before quoting a 52-week change.",
+   "VALUATION-RATIO SPREAD FROM EPS-TTM TIMING: PE (TTM) ranges from 43.45 to 45.47 and ROE from 19.0% to 19.15% across screener/tickertape/bajaj broking, driven by whether the EPS-TTM window already fully incorporates the just-reported Q4FY26 print or still uses a slightly stale trailing four quarters. Book value/P-B similarly ranges 7.88x-8.12x. These are timing/rounding noise, not conflicting fundamentals \u2014 do not treat as a real discrepancy requiring reconciliation beyond noting the range.",
+   "NO RECENT BONUS/SPLIT/DEMERGER TO CONFOUND FY25-26 OR FY24-25 COMPARISONS: Havells' last stock split was 26-Aug-2014 (face value step-downs cumulating to 1 pre-Dec-2003 share = 80 shares today) and there is no bonus issue or demerger in the last decade. This means recent YoY and quarterly comparisons above are NOT distorted by a corporate action \u2014 but anyone pulling a long-run (pre-2014) chart or per-share history for Havells must adjust for that historical split stack or the numbers will look wildly wrong.",
+   "OFFICIAL NSE quote page (nseindia.com) could not be fetched directly in this session (request timed out) \u2014 all price/valuation figures here are cross-validated across at least two independent aggregators (Screener, Tickertape, Bajaj Broking, Stockanalysis.com) rather than confirmed against the primary exchange feed; treat the price as reliable to within a few rupees/same trading session but not tick-exact."
+  ],
+  "sources": [
+   "https://www.screener.in/company/HAVELLS/consolidated/",
+   "https://www.tickertape.in/stocks/havells-india-HVEL",
+   "https://www.bajajbroking.in/stock/havells-india-limited-share-price",
+   "https://stockanalysis.com/quote/nse/HAVELLS/",
+   "https://trendlyne.com/equity/Dividend/HAVELLS/525/havells-india-ltd-dividend/",
+   "https://trendlyne.com/equity/Split/HAVELLS/525/havells-india-ltd-split/"
+  ],
+  "symbol": "HAVELLS"
+ },
+ {
+  "dividends": {
+   "components": "FY26 (Apr-2025\u2192Mar-2026): FINAL dividend of \u20b962/share ONLY \u2014 no interim, no special this year. (For contrast: FY25 was \u20b957 final only; the last time Mphasis paid a special was FY2020-21: \u20b938 final + \u20b927 special = \u20b965 total.)",
+   "fy_total_per_share": 62,
+   "ttm_paid_per_share": 119,
+   "yield_pct": 2.77
+  },
+  "entity": {
+   "name": "Mphasis Limited",
+   "exchange": "NSE (primary: MPHASIS) / BSE (526299)",
+   "isin": "INE356A01018",
+   "sector": "Information Technology",
+   "industry": "IT Services & Consulting (BFSI-focused, cloud & AI-led application services)"
+  },
+  "price": {
+   "close": 2241.9,
+   "as_of": "2026-07-08",
+   "currency": "INR"
+  },
+  "valuation": {
+   "market_cap_inr_cr": 42794,
+   "pe_ttm": 22.7,
+   "eps_ttm": 97.61,
+   "price_to_book": 3.98,
+   "shares_outstanding_cr": 19.09
+  },
+  "range52w": {
+   "high": 3037.2,
+   "low": 2013,
+   "drawdown_from_high_pct": 26.19,
+   "change_52w_pct": -16.6
+  },
+  "quarterly": {
+   "period": "Q4 FY26 (Jan-Mar 2026)",
+   "revenue_cr": 4242.66,
+   "revenue_yoy_pct": 14.4,
+   "pat_cr": 509.64,
+   "pat_yoy_pct": 14.14
+  },
+  "growth": {
+   "revenue_mrq_yoy_pct": 14.4,
+   "earnings_mrq_yoy_pct": 14.14,
+   "revenue_annual_pct": 11.59,
+   "earnings_annual_pct": 9.43
+  },
+  "roe": 18.5,
+  "symbol": "MPHASIS",
+  "traps": [
+   "QUARTER-MISLABELING TRAP (the big one): A naive scrape of an aggregator's quarterly table attributed the actual Q4 FY25 (Jan-Mar 2025) figures \u2014 revenue \u20b93,710cr, PAT \u20b9446.5cr, per Mphasis's own press release and Business Standard coverage of the Apr-2025 results \u2014 to a row labeled 'Q1 FY26', while a different, lower figure (\u20b93,561cr rev / \u20b9428cr PAT) got labeled 'Q4 FY25'. Computing MRQ-YoY off the mislabeled rows gives a false ~19.1-19.2% growth number. The COMPANY-CONFIRMED Q4 FY26 vs Q4 FY25 YoY growth is +14.4% revenue / +14.1% PAT (per Mphasis press release / EquityBulls / Univest coverage of the Apr-2026 results) \u2014 always reconcile aggregator quarter labels against the official press release before trusting a YoY delta.",
+   "DIVIDEND YIELD METHOD TRAP: Because Mphasis pays a single annual (final-only) dividend with a July ex-date, two full annual dividends (FY25's \u20b957, ex-date 9-Jul-2025, and FY26's \u20b962, ex-date 8-Jul-2026) both fall inside the trailing-12-month window right now. A naive TTM-sum dividend yield (\u20b9119/price \u2248 5.3%, as Trendlyne computes) is roughly DOUBLE the conventional latest-FY-dividend yield (\u20b962/price \u2248 2.77%, as Screener computes) \u2014 these are not comparable and sources disagree because of this timing quirk, not because of a data error.",
+   "EX-DIVIDEND PRICE DISTORTION: The as-of date for this pack (8-Jul-2026) is also the ex-date/record date for the \u20b962 final dividend. The day's reported move (-5.59% per Screener/Tickertape vs -3.06% per StockAnalysis \u2014 sources disagree even on the day-change %) mixes genuine trading action with the mechanical ex-dividend markdown; do not naively trend or annualize this single day's return.",
+   "REPORTED (INR) vs CONSTANT-CURRENCY (USD) GROWTH: Mphasis's own releases distinguish 'Gross Revenue' growth on a reported INR basis from constant-currency USD growth \u2014 Q4 FY26 was +14.4% YoY reported INR but only ~+7.1% YoY in constant-currency USD terms. Never quote one as the other.",
+   "STANDALONE vs CONSOLIDATED: Coverage of the FY26 annual results (Whalesbook) explicitly notes consolidated profit grew strongly while STANDALONE (parent-only) profit declined. All figures in this pack are CONSOLIDATED \u2014 standalone-only comparisons would look very different.",
+   "MARKET CAP / SHARE COUNT DISAGREEMENT: Screener's cap (\u20b942,794cr @ \u20b92,242) implies ~19.09cr shares outstanding, consistent with Mphasis's long-stable share count (no split; only 1:1 bonus issues in 2003, 2004 and 2005, pre-current-listing era). Tickertape's snapshot implied a much higher cap (\u20b945,311cr) and an internally-inconsistent P/E (24.33, which doesn't reconcile with its own quoted price/EPS) \u2014 treated as stale/erroneous and NOT used; Screener/exchange-consistent figures preferred per instructions.",
+   "52-WEEK HIGH/LOW DISAGREEMENT: Screener, Tickertape and StockAnalysis all corroborate a \u20b93,037.20 high / \u20b92,013.00 low, but one Trendlyne-linked snippet cited a much wider \u20b91,840-\u20b93,200 range (likely a different lookback window or stale cache) \u2014 the 3-source-corroborated range was used.",
+   "52-WEEK CHANGE IS APPROXIMATE: Could not confirm an exact NSE close for 8-Jul-2025 from a single authoritative source in the time available; the -16.6% figure is triangulated from a nearby dated quote (~\u20b92,690 on 29-Jul-2025) rather than an exact same-day-last-year close. Aggregators themselves show wildly different 1-year-return numbers right now (-21.72% per one Investing.com-linked snippet, -8.77% per Motilal Oswal, +6.58% total return incl. dividends per MarketsMojo) because their snapshot dates differ and some include dividends / use price-return vs total-return \u2014 none of these should be treated as authoritative without checking their as-of date.",
+   "No stock splits in Mphasis's history; only 1:1 bonus issues in 2003, 2004 and 2005. No demerger or major accounting reclassification identified in the FY26/Q4FY26 results themselves, beyond the reported-vs-constant-currency and standalone-vs-consolidated distinctions noted above."
+  ],
+  "sources": [
+   "https://www.screener.in/company/MPHASIS/consolidated/",
+   "https://www.tickertape.in/stocks/mphasis-MBFL",
+   "https://stockanalysis.com/quote/nse/MPHASIS/history/",
+   "https://trendlyne.com/equity/Dividend/MPHASIS/881/mphasis-ltd-dividend/",
+   "https://www.mphasis.com/content/dam/mphasis-com/global/en/investors/financial-results/2026/q4-earnings-press-release.pdf",
+   "https://www.equitybulls.com/category.php?id=369795",
+   "https://univest.in/blogs/mphasis-limited-q4-fy26-results-pat-509-crore",
+   "https://www.business-standard.com/companies/news/mphasis-q4-results-net-profit-rises-13-6-to-446-5-cr-on-bfsi-led-growth-125042501124_1.html",
+   "https://www.mphasis.com/content/dam/mphasis-com/global/en/investors/financial-results/2025/q4-earnings-press-release.pdf",
+   "https://www.whalesbook.com/corporate-news/English/technology/Mphasis-FY26-Revenue-Jumps-116percent-to-indian-rupee15879-Crore-Profit-Up-94percent/6a4635ff7e4cc8ec72e310cc",
+   "https://www.indiatvnews.com/business/markets/mphasis-dividend-rs-62-ex-date-record-date-mphasis-share-price-and-other-details-2026-07-07-1047377",
+   "https://trendlyne.com/equity/Bonus/MPHASIS/881/mphasis-ltd-bonus/",
+   "https://upstox.com/stocks/mphasis-limited-share-price/INE356A01018/"
+  ]
+ },
+ {
+  "dividends": {
+   "components": "Single ANNUAL (final) dividend only, declared alongside Q4/full-year results and subject to AGM approval \u2014 not split into separate interim + final tranches, and no special dividend found in the last 4 fiscal years. FY26: \u20b93.00/share recommended (150% of \u20b92 face value); record date 24-Jul-2026, payment date 06-Sep-2026 \u2014 STILL PENDING shareholder/AGM approval as of the data-pull date (08-Jul-2026). FY25: \u20b93.00/share (paid Sep-2025). FY24: \u20b93.00/share (paid Aug-2024). FY23: \u20b92.50/share. One AI-search-synthesized source claimed 'FY25 total dividend was \u20b96.00/share' implying a hidden interim \u2014 this could NOT be corroborated against the actual ex-date/pay-date table (stockanalysis.com), which shows exactly one \u20b93.00 payment for FY25. Treat the \u20b96.00 claim as an unverified/likely erroneous aggregator error.",
+   "fy_total_per_share": 3,
+   "ttm_paid_per_share": 3,
+   "yield_pct": 1.16
+  },
+  "entity": {
+   "name": "Crompton Greaves Consumer Electricals Limited",
+   "exchange": "NSE (also listed on BSE, code 539876)",
+   "isin": "INE299U01018",
+   "sector": "Consumer Discretionary",
+   "industry": "Household Electrical Appliances (fans, pumps, lighting, water heaters, coolers, small/large kitchen appliances via Butterfly brand)"
+  },
+  "price": {
+   "close": 258.9,
+   "as_of": "2026-07-08 15:31 IST",
+   "currency": "INR"
+  },
+  "valuation": {
+   "market_cap_inr_cr": 16674,
+   "shares_outstanding_cr": 64.4,
+   "eps_ttm": -3.76,
+   "pe_ttm": -68.85,
+   "price_to_book": 5.62
+  },
+  "range52w": {
+   "high": 353.25,
+   "low": 217.4,
+   "drawdown_from_high_pct": 26.71,
+   "change_52w_pct": -22
+  },
+  "quarterly": {
+   "period": "Q4 FY26 (Jan-Mar 2026), consolidated",
+   "revenue_cr": 2283,
+   "revenue_yoy_pct": 10.8,
+   "pat_cr": -531,
+   "pat_yoy_pct": -408.7
+  },
+  "growth": {
+   "revenue_mrq_yoy_pct": 10.8,
+   "earnings_mrq_yoy_pct": -408.7,
+   "revenue_annual_pct": 2.95,
+   "earnings_annual_pct": -141
+  },
+  "roe": 10.5,
+  "traps": [
+   "STANDALONE vs CONSOLIDATED mismatch: screener.in's default/standalone view shows materially different FY26 numbers (revenue \u20b97,193 Cr, PAT \u20b9-243 Cr; Q4 revenue \u20b92,083 Cr, PAT \u20b9-537 Cr) than the consolidated view used in this pack (revenue \u20b98,096 Cr, PAT \u20b9-231 Cr; Q4 revenue \u20b92,283 Cr, PAT \u20b9-531 Cr). Scraping the wrong tab understates group revenue by ~13%.",
+   "FY26 net loss is driven almost entirely by a one-off, NON-CASH \u20b9716.04 Cr impairment charge on the investment in Butterfly Gandhimathi Appliances (accounting reclassification/write-down), not an operating collapse. A single (unverified, not independently double-sourced) figure claims 'PAT excluding exceptional items' was ~\u20b9502 Cr for FY26 and ~\u20b9172 Cr for Q4 \u2014 directionally plausible but could not be corroborated against a second source, so treat as indicative only, not headline-grade.",
+   "Both MRQ-YoY and Annual PAT 'growth' are sign-flips (profit to loss), so the naive percentages (-408.7% MRQ, -141.0% annual) are arithmetically correct but NOT a meaningful 'growth rate' \u2014 always report alongside the underlying rupee swing (e.g., +\u20b9172 Cr \u2192 -\u20b9531 Cr) and the impairment context, never as a standalone growth headline.",
+   "ROE is reported wildly inconsistently across sources: screener.in shows ~10.3-10.6%, Tijori Finance shows 16.40%, while a literal computation on reported (loss-making) FY26 PAT over book equity would be NEGATIVE (~-8%). This is likely because aggregators are using pre-exceptional/adjusted earnings or stale (pre-Q4-results) trailing windows rather than reported net loss \u2014 no two sources agree on methodology, so any single ROE number should be treated with caution and always paired with a note on which earnings base was used.",
+   "Trailing P/E is not economically meaningful: FY26 EPS is negative (~-3.76 consolidated) due to the impairment-driven loss, so a correct trailing P/E is negative (~-69x, matching tickertape's -71.39x), while several other platforms display a stale POSITIVE P/E (~39x-50x) that appears to predate the Q4 results being folded in, or is computed on pre-exceptional EPS.",
+   "Market cap and implied share count vary by source: \u20b916,674 Cr (screener.in) to \u20b917,569 Cr across trackers, implying anywhere from ~64.4 Cr to ~66.8 Cr shares outstanding, depending on capture timestamp and possibly different treatment of ESOP-diluted shares. This pack uses the \u20b9258.90 close (agreed by screener.in, tickertape.in, tijorifinance.com and trendlyne.com, all independently timestamped 08-Jul-2026 ~15:31 IST) with the ~64.4 Cr share count implied by screener's own market-cap/price consistency.",
+   "DRAWDOWN-FROM-52W-HIGH (26.71%, well corroborated: trendlyne.com states '26.71% Fall from 52W High' independently matching the (353.25-258.90)/353.25 calc from tickertape/tijori 52-week-high data) is NOT the same number as the 52-WEEK PRICE CHANGE (close vs close 52 weeks ago), which is reported inconsistently across sources from -16.4% to -24.6% depending on exact capture date \u2014 this pack uses an approximate -22.0% midpoint for the latter and flags it as not independently pinned to a single verified pair of closing prices.",
+   "No stock split, bonus issue, or demerger was found in company history within the lookback window used here (last ~5 years) \u2014 but the company itself is a legacy 2015-16 demerger from the erstwhile Crompton Greaves Ltd, which matters for anyone naively backtesting price/EPS CAGR through that date; not relevant to the 1-5yr figures reported in this pack but worth flagging.",
+   "Segment revenue reported by one source (ECD \u20b96,095.9 Cr + Lighting \u20b91,084.6 Cr = \u20b97,180.5 Cr) does not reconcile to the \u20b98,096 Cr consolidated total (gap ~\u20b9915 Cr) \u2014 likely an 'Others'/Butterfly-Gandhimathi kitchen-appliances segment or inter-segment eliminations not captured by the single source used; segment split is NOT independently double-verified and should be treated as indicative only."
+  ],
+  "sources": [
+   "https://www.screener.in/company/CROMPTON/",
+   "https://www.screener.in/company/CROMPTON/consolidated/",
+   "https://www.tickertape.in/stocks/crompton-greaves-consumer-electricals-CROP",
+   "https://www.tijorifinance.com/company/crompton-greaves-consumer-electricals-ltd/",
+   "https://trendlyne.com/share-price/performance/2020/CROMPTON/crompton-greaves-consumer-electricals-ltd/",
+   "https://stockanalysis.com/quote/nse/CROMPTON/dividend/",
+   "https://www.investywise.com/crompton-greaves-consumer-electricals-limited-q4-fy26-financial-results-and-dividend-announcement/",
+   "https://scanx.trade/stock-market-news/companies/crompton-greaves-consumer-electricals-reports-fy26-consolidated-net-loss-of-230-76-crores-amid-756-44-crore-exceptional-charge/40227242",
+   "https://www.business-standard.com/markets/capital-market-news/crompton-greaves-consumer-electricals-posts-sharp-q4-loss-despite-revenue-growth-126051400686_1.html"
+  ],
+  "symbol": "CROMPTON"
+ },
+ {
+  "dividends": {
+   "components": "FY26 (year ended Mar-2026): single FINAL dividend of Rs 140/share only \u2014 no interim, no special. Declared 28-Apr-2026 with FY26 results; record date 7-Aug-2026; subject to AGM approval 31-Aug-2026; payout ~9-Sep-2026 \u2014 NOT YET PAID as of this report date. History (all FINAL-only, no interims/specials found in last 5 yrs): FY22 Rs60 -> FY23 Rs90 -> FY24 Rs125 -> FY25 Rs135 -> FY26 Rs140 (declared, pending payment).",
+   "fy_total_per_share": 140,
+   "ttm_paid_per_share": 135,
+   "yield_pct": 0.94
+  },
+  "entity": {
+   "exchange": "NSE (primary; also BSE code 532500)",
+   "industry": "Passenger vehicles / four-wheeler manufacturing",
+   "isin": "INE585B01010",
+   "name": "Maruti Suzuki India Limited",
+   "sector": "Automobiles (Consumer Discretionary)"
+  },
+  "growth": {
+   "earnings_annual_pct": 1.2,
+   "earnings_mrq_yoy_pct": -6.4,
+   "revenue_annual_pct": 20.2,
+   "revenue_mrq_yoy_pct": 28.21
+  },
+  "price": {
+   "as_of": "2026-07-08",
+   "close": 14307,
+   "currency": "INR"
+  },
+  "quarterly": {
+   "pat_cr": 3659,
+   "pat_yoy_pct": -6.4,
+   "period": "Q4 FY26 (Jan-Mar 2026), most recent reported quarter",
+   "revenue_cr": 52462.5,
+   "revenue_yoy_pct": 28.21
+  },
+  "range52w": {
+   "change_52w_pct": 12.52,
+   "drawdown_from_high_pct": 17.63,
+   "high": 17370,
+   "low": 12201
+  },
+  "roe": 14.4,
+  "symbol": "MARUTI",
+  "traps": [
+   "MAJOR TRAP - SMG amalgamation: Maruti's scheme of amalgamation with wholly-owned subsidiary Suzuki Motor Gujarat (SMG) became legally effective 1-Dec-2025, but the accounting 'appointed date' was 1-Apr-2025 \u2014 i.e. backdated to the start of FY26. This means FY26 STANDALONE financials now absorb what used to be a separate manufacturing subsidiary's revenue/costs (previously only a trading margin showed up standalone; consolidated numbers already included SMG). This is very likely the real driver behind FY26's unusual pattern of ~20% revenue growth against near-flat (~1%) profit growth \u2014 a naive YoY comparison of standalone figures pre- and post-amalgamation is NOT apples-to-apples. Authorised share capital was also increased by Rs 15,000 cr as part of the scheme.",
+   "MRQ-YoY vs ANNUAL FY-vs-FY are materially different and must not be conflated: Q4 FY26 (Jan-Mar 2026) revenue +28.2% YoY but PAT -6.4% YoY (margin compression from commodity/input costs and mark-to-market impact per company commentary); full FY26 vs FY25 revenue grew ~+20% but PAT grew only ~+1% (near flat). Neither figure predicts the other.",
+   "One-off charge distorting a quarter: Q3 FY26 (Dec-2025) PAT grew only +4.1% YoY despite +29% revenue growth, dragged down by a one-time Rs 593.9 cr charge related to implementation of the new Labour Codes \u2014 treat that quarter's YoY profit growth as artificially depressed, not representative of run-rate margins.",
+   "Sales/Revenue classification gap between sources: aggregator 'Sales' figures (screener.in shows FY26 Sales = Rs 1,83,316 cr) run ~5% above the company's officially reported 'Revenue from Operations' (Rs 1,74,369.5 cr, +20.2% YoY, per company results/press coverage). The aggregator figure appears to include other operating income; don't cross-compare growth % computed on the two different bases.",
+   "Live price disagreement across sources on the same day: multiple independent aggregators (Groww, Kotak Neo, Angel One, Business Today, implied BSE quote) converged on NSE ~Rs 14,307 / BSE ~Rs 14,349.8 with previous close Rs 14,538 and an intraday range of Rs 14,286-14,500 \u2014 no crash was reported in news. By contrast two other live-fetch sources (screener.in, tickertape.in) both returned Rs 13,951 'down 4.04%', a value below even the day's stated low band on the other sources. Treated as a stale/out-of-sync data-vendor snapshot on those two sites; the multi-source-corroborated NSE-referenced price (Rs 14,307) was preferred as the exchange-anchored figure.",
+   "Market-cap figure widely quoted by aggregators (Rs 4,57,078 cr) reconciles almost exactly to PREVIOUS CLOSE (Rs 14,538) x shares outstanding (~31.44 cr), not to the current live price (Rs 14,307) \u2014 i.e. several sites had refreshed the price tick but not the market-cap field. Market cap recomputed off the live price and share count here (~Rs 4,49,800 cr) is ~1.6% lower; use whichever price/market-cap pair is internally consistent, don't mix a 'live' price quote from one site with a 'market cap' quote from another without checking the underlying price timestamp.",
+   "No stock split or bonus issue found in Maruti's recent corporate-action history (face value has stayed at Rs 5); however the SMG amalgamation (above) is a real structural break that behaves like a base-effect trap even though there's no explicit share-count/face-value action.",
+   "Dividend timing trap: don't count the FY26 Rs 140/share final dividend as 'received income' yet \u2014 it is declared but unpaid (record date 7-Aug-2026, AGM approval needed 31-Aug-2026). The trailing-twelve-month CASH-PAID dividend as of the report date is Rs 135/share (the FY25 final, paid ~Aug/Sep-2025), which is what the ~0.94-1.0% dividend yield is actually based on across sources."
+  ],
+  "valuation": {
+   "eps_ttm": 466.9,
+   "market_cap_inr_cr": 449812,
+   "price_to_book": 4.2,
+   "shares_outstanding_cr": 31.44
+  },
+  "sources": [
+   "https://www.screener.in/company/MARUTI/consolidated/",
+   "https://groww.in/stocks/maruti-suzuki-india-ltd",
+   "https://www.tickertape.in/stocks/maruti-suzuki-india-MRTI",
+   "https://www.kotakneo.com/stocks/maruti-suzuki-india-share-price/",
+   "https://www.business-standard.com/companies/quarterly-results/maruti-suzuki-fy26-q4-results-net-profit-annual-sales-126042800787_1.html",
+   "https://www.business-standard.com/companies/quarterly-results/maruti-suzuki-q3-fy26-results-profit-sales-revenue-gst-earnings-share-price-126012800830_1.html",
+   "https://www.bajajbroking.in/share-market-news/maruti-suzuki-q4-fy26-results-revenue-up-28-9-percent-profit-under-pressure-rs140-dividend",
+   "https://trendlyne.com/equity/Dividend/MARUTI/842/maruti-suzuki-india-ltd-dividend/",
+   "https://trendlyne.com/equity/corporate-actions/MARUTI/842/maruti-suzuki-india-ltd/",
+   "https://www.upstox.com/news/market-news/earnings/maruti-suzuki-dividend-fy-26-automaker-announces-140-share-dividend-check-record-date/article-192846/",
+   "https://www.business-standard.com/markets/capital-market-news/suzuki-motor-gujarat-mergers-with-maruti-suzuki-india-125120100404_1.html",
+   "https://www.storyboard18.com/how-it-works/maruti-suzuki-completes-merger-with-suzuki-motor-gujarat-on-dec-1-85084.htm",
+   "https://www.indiacarnews.com/news/maruti-suzuki-fy26-earnings-highest-ever-sales-revenue-profit-67728/",
+   "https://companiesmarketcap.com/inr/maruti-suzuki-india/shares-outstanding/",
+   "https://www.nseindia.com/get-quote/equity/MARUTI/Maruti-Suzuki-India-Limited"
+  ]
+ },
+ {
+  "dividends": {
+   "components": "FY2026 (year ended 31-Mar-2026): single FINAL dividend of \u20b98/share only \u2014 no interim, no special. Board recommended it with Q4 results; record date 10-Jul-2026, payment by 30-Jul-2026, subject to shareholder approval at the 42nd AGM on 23-Jul-2026. FY2025 was likewise a single final dividend of \u20b98/share (ex/record date 10-Jul-2025). CRITICAL TRAP: FY2024's dividend was \u20b940/share, but that was declared on the OLD face value of \u20b95 (800% of FV) \u2014 Dr Reddy's did a 5:1 stock split (FV \u20b95\u2192\u20b91) with record date 28-Oct-2024. Split-adjusted, FY2024's \u20b940 = \u20b98 equivalent on today's \u20b91 FV shares. So the 'apparent' \u20b940\u2192\u20b98 collapse in raw dividend-history tables is a split artifact, not an 80% dividend cut \u2014 on a like-for-like adjusted basis the per-share payout has been flat at ~\u20b98-equivalent for FY24, FY25 and FY26 (payout ratio 12%, 12%, 16% of PAT respectively per screener.in). Similarly FY2023 \u20b940 (FV5)\u2248\u20b98 adj., FY2022 \u20b930(FV5)\u2248\u20b96 adj., FY2021/FY2020 \u20b925(FV5)\u2248\u20b95 adj.",
+   "fy_total_per_share": 8,
+   "ttm_paid_per_share": 8,
+   "yield_pct": 0.59
+  },
+  "entity": {
+   "exchange": "NSE (primary; also BSE:500124; ADR on NYSE:RDY)",
+   "industry": "Pharmaceuticals \u2014 Generics/Specialty (API + Formulations)",
+   "isin": "INE089A01031",
+   "name": "Dr. Reddy's Laboratories Limited",
+   "sector": "Healthcare"
+  },
+  "price": {
+   "as_of": "2026-07-08 15:31 IST",
+   "close": 1349,
+   "currency": "INR"
+  },
+  "valuation": {
+   "eps_ttm": 50.27,
+   "market_cap_inr_cr": 112668,
+   "pe_ttm": 28.1,
+   "price_to_book": 2.97,
+   "shares_outstanding_cr": 83.52
+  },
+  "range52w": {
+   "change_52w_pct": 5.08,
+   "drawdown_from_high_pct": 4.66,
+   "high": 1414.9,
+   "low": 1148.4
+  },
+  "quarterly": {
+   "pat_cr": 221,
+   "pat_yoy_pct": -86.08,
+   "period": "Q4 FY26 (quarter ended 31-Mar-2026)",
+   "revenue_cr": 7546,
+   "revenue_yoy_pct": -11.52
+  },
+  "growth": {
+   "earnings_annual_pct": -27.37,
+   "earnings_mrq_yoy_pct": -86.08,
+   "revenue_annual_pct": 3.24,
+   "revenue_mrq_yoy_pct": -11.52
+  },
+  "roe": 11.2,
+  "traps": [
+   "5:1 STOCK SPLIT (FV \u20b95\u2192\u20b91, record date 28-Oct-2024) is the single biggest trap: any pre-Oct-2024 per-share figure (dividend, EPS, price) quoted from a source that hasn't split-adjusted will look ~5x too high vs current figures. Trendlyne's raw dividend-history table, e.g., shows \u20b940/\u20b930/\u20b925 for FY24/22/21 vs \u20b98 now \u2014 a naive reading implies an 80% dividend cut; adjusted for the split it is actually flat (~\u20b98-equivalent throughout), confirmed by screener.in's stable 12\u201316% payout ratio across FY24-FY26.",
+   "MRQ-YoY vs ANNUAL FY-vs-FY diverge sharply and must not be conflated: revenue is +3.24% for full FY26 vs FY25, but \u221211.52% for Q4FY26 alone vs Q4FY25. PAT is \u221227.37% annual vs a much steeper \u221286.08% for the single most recent quarter \u2014 Q4 (Jan\u2013Mar 2026) was an unusually weak quarter (US generics pricing pressure) that drags the quarterly YoY number far below the full-year trend.",
+   "FY2026's \u20b98 final dividend (record date 10-Jul-2026) had NOT yet gone ex-dividend/been paid as of the 08-Jul-2026 as-of date and is still subject to AGM approval (23-Jul-2026) \u2014 it is a board recommendation, not a completed distribution. The trailing-12-month 'paid' dividend is therefore the FY2025 \u20b98 (ex-date 10-Jul-2025), not both years' \u20b98 stacked to \u20b916.",
+   "Market cap / PE show mild source disagreement: screener.in \u20b91,12,668 Cr (PE 28.1) vs tickertape.in \u20b91,12,799 Cr (PE 26.88) vs a Trendlyne search snippet showing \u20b91,06,370 Cr (PE ~25) that does not reconcile with price\u00d7shares-outstanding and looks stale \u2014 treated as an outlier here. A separate search-engine snippet also showed PE 35.1, unexplained by any EPS basis found and likely a cached/stale quote; disregarded in favor of screener/tickertape which agree closely with each other.",
+   "Same-day intraday price drift: three independent sources (screener, trendlyne, tickertape) converge on \u20b91,349.00 at 15:31 IST on 08-Jul-2026, but later same-day search snippets showed \u20b91,364\u20131,368 \u2014 normal intraday movement toward close, not a data error. Pin the exact as-of timestamp when quoting price; do not treat later intraday quotes as contradicting the 15:31 print.",
+   "52-week change (1-year return) varies by source/methodology: ~4.38% (one aggregator) vs 5.08% (tickertape's dedicated 1Y-return field) \u2014 both computed independently since NSE does not publish a canonical 1Y-return figure; treat as approximate (\u00b11pp band) rather than exact.",
+   "Reported PAT in FY23/FY24 included elevated one-off/litigation-settlement-related income common to this period for Dr Reddy's (e.g., Copaxone-related settlement gains) \u2014 this can inflate the base or the comparison year in a naive YoY PAT calc versus 'core' operating profit; verify against management commentary/exceptional-items footnotes before treating any single year's PAT growth as pure underlying performance.",
+   "All figures in this pack are CONSOLIDATED (screener.in explicitly labels its table 'Consolidated Figures in Rs. Crores'); standalone (parent-only) financials live on a separate tab and differ materially \u2014 do not mix consolidated and standalone numbers when comparing across sources or across periods."
+  ],
+  "sources": [
+   "https://www.screener.in/company/DRREDDY/consolidated/",
+   "https://www.tickertape.in/stocks/drreddys-laboratories-REDY",
+   "https://trendlyne.com/equity/Dividend/DRREDDY/346/dr-reddy-s-laboratories-ltd-dividend/",
+   "https://trendlyne.com/equity/346/DRREDDY/dr-reddy-s-laboratories-ltd/",
+   "https://www.nseindia.com/get-quote/equity/DRREDDY/Dr.-Reddy's-Laboratories-Limited",
+   "https://www.goodreturns.in/personal-finance/investment/1-5-stock-split-of-dr-reddys-laboratories-record-date-on-october-28-buy-sell-1380799.html",
+   "https://www.goodreturns.in/news/dr-reddys-q4-results-net-profit-drops-revenue-down-on-weak-us-sales-board-recommends-800-dividend-1507861.html",
+   "https://www.drreddys.com/cms/cms/sites/default/files/2024-05/Earnings%20Release_Q4FY24.pdf",
+   "https://scanx.trade/stock-market-news/companies/dr-reddy-s-fixes-july-23-for-agm-recommends-rs-8-dividend/43489759",
+   "https://www.business-standard.com/companies/quarterly-results/dr-reddys-q4-fy25-results-net-profit-revenue-dividend-125050901062_1.html"
+  ],
+  "symbol": "DRREDDY"
+ },
+ {
+  "dividends": {
+   "fy_total_per_share": 3.6,
+   "components": "FY2025-26 (year ended 31 Mar 2026): SINGLE final dividend of \u20b93.60/share (180% of face value \u20b92), recommended by the Board on 28 May 2026 \u2014 still subject to AGM shareholder approval and NOT yet paid as of this pack's as-of date. No interim, no special. FY2024-25 (year ended 31 Mar 2025): SINGLE final dividend of \u20b96.00/share (300% of FV \u20b92), declared 29 Apr 2025, paid ~Sept 2025 (ex-date 4 Aug 2025). No interim, no special. Praj has historically paid only one (final) dividend per fiscal year \u2014 there is no interim/special component to add in either year, but naive scrapers sometimes mislabel the FY25 dividend (paid in cash during Sept 2025, i.e. within FY26 calendar-payment-year) as an 'FY26' dividend \u2014 it belongs to FY25 by entitlement.",
+   "ttm_paid_per_share": 6,
+   "yield_pct": 1.69
+  },
+  "entity": {
+   "name": "Praj Industries Limited",
+   "exchange": "NSE (also listed on BSE, code 522205)",
+   "isin": "INE074A01025",
+   "sector": "Capital Goods / Industrial Equipment (Engineering)",
+   "industry": "Engineering \u2014 bioenergy/ethanol process equipment, breweries, water & wastewater treatment (biotech-engineering EPC)"
+  },
+  "price": {
+   "close": 355.15,
+   "as_of": "8 Jul 2026, ~15:31 IST (NSE, near end-of-day)",
+   "currency": "INR"
+  },
+  "range52w": {
+   "high": 512,
+   "low": 273,
+   "drawdown_from_high_pct": 30.63,
+   "change_52w_pct": -27.5
+  },
+  "quarterly": {
+   "period": "Q4 FY26 (quarter ended 31 Mar 2026)",
+   "revenue_cr": 845,
+   "revenue_yoy_pct": 2,
+   "pat_cr": 11.8,
+   "pat_yoy_pct": -70
+  },
+  "growth": {
+   "revenue_mrq_yoy_pct": 2,
+   "earnings_mrq_yoy_pct": -70,
+   "revenue_annual_pct": -1.9,
+   "earnings_annual_pct": -89.1
+  },
+  "roe": 1.44,
+  "valuation": {
+   "market_cap_inr_cr": 6531,
+   "pe_ttm": 273,
+   "price_to_book": 4.99,
+   "eps_ttm": 1.3,
+   "shares_outstanding_cr": 18.41
+  },
+  "symbol": "PRAJIND",
+  "traps": [
+   "STOCK SPLIT (2016): face value cut from \u20b910 to \u20b92 (5:1 split) \u2014 any pre-2016 price/EPS/book-value comparison is meaningless unless adjusted; current FV is \u20b92, which also makes 'dividend % of face value' figures (e.g. '180% of FV') look dramatic vs. the much smaller \u20b9-per-share number.",
+   "BONUS ISSUES (historical): at least two bonus issues (incl. 1:1 in 2007); 1 share held since 1995 became 4 shares by 2025 \u2014 long-run per-share metrics or 'shares outstanding then vs now' comparisons pre-dating these dates are not naively comparable.",
+   "DIVIDEND FY-LABELING TRAP: Praj pays a single FINAL dividend per year, declared 1\u20132 months after fiscal year-end and CASH-PAID even later (after AGM). The \u20b96.00/share dividend that was cash-paid in Sept 2025 belongs to FY2024-25 (entitlement), not FY2025-26, even though the cash hit shareholders' accounts during calendar FY26 \u2014 several aggregators (e.g., IndMoney) mislabel it as the 'current FY2025-26' dividend. Similarly the \u20b93.60/share FY26 dividend (board-recommended 28 May 2026) is NOT YET PAID and is pending AGM approval \u2014 treating it as 'already paid TTM dividend' overstates trailing cash yield; treating the TTM-paid \u20b96.00 as 'this year's dividend' understates the real FY26 cut.",
+   "PAT COLLAPSE IS PARTLY AN OTHER-INCOME BASE EFFECT, not a pure core-business collapse: FY25/Q4FY25 net profit was inflated by unusually high non-operating 'other income' (~\u20b9105 Cr in Q4FY25 alone, per Free Press Journal); Q4FY26 other income fell to ~\u20b929 Cr. Revenue was roughly FLAT (annual -1.9%, quarterly near 0%/+2%) while reported PAT fell ~89% annually / ~70% quarterly \u2014 a naive reading of 'profit down 89%' as 'business collapsing 89%' is wrong; margin/other-income normalization plus rising costs, not a revenue crash, drove it.",
+   "PE RATIO WILDLY INCONSISTENT ACROSS SOURCES: because trailing EPS crashed from \u20b911.91 (FY25) to \u20b91.30 (FY26), reported TTM P/E ranges from ~56 to ~337 depending on aggregator (some appear to use stale/pre-Q4FY26 EPS, others a different EPS window). This pack's PE (~273) is self-computed from price \u00f7 EPS_ttm and cross-checked against market-cap \u00f7 PAT \u2014 treat any single third-party P/E quote for PRAJIND right now as unreliable without checking its EPS window.",
+   "SUSPECT HALLUCINATED FIGURES IN AI SEARCH SUMMARIES: one web-search AI summary (sourced nominally from Free Press Journal) reported Q4 FY26 net profit as '\u20b9123.1 Cr' (down from '\u20b9401.6 Cr') and FY26 annual net profit as '\u20b91,275 Cr' (up 22% from '\u20b91,042 Cr') \u2014 these are internally implausible (they'd imply ~35%+ net margins for an EPC company with ~2-4% operating margins that quarter) and are directly contradicted by two independent, mutually consistent primary sources (screener.in and scanx.trade / Business Upturn), which both show Q4FY26 PAT \u2248 \u20b911.6\u201312 Cr (down ~70%) and FY26 PAT \u2248 \u20b923.8 Cr (down ~89%). Do not use the \u20b9123.1 Cr / \u20b91,275 Cr figures \u2014 flagged here explicitly because a careless pull would silently corrupt this pack.",
+   "MARKET CAP / 52-WEEK RANGE VARY 2-4% ACROSS PROVIDERS even within the same week (market cap seen as \u20b96,531 Cr, \u20b96,535 Cr, \u20b96,652 Cr, and \u20b96,727.56 Cr on dates 1\u20137 Jul 2026; 52w high seen as both \u20b9512 and \u20b9538 depending on provider) purely due to snapshot-timing/rounding differences, not a real data conflict \u2014 treat point-in-time market data as approximate to its stated as-of timestamp.",
+   "ROE PERIOD SENSITIVITY: latest single-year ROE (~1.44%, FY26, depressed by the profit collapse) is roughly 1/9th of the 3-year-average ROE (~12.5%) cited by the same source (screener.in) \u2014 pulling 'ROE' without specifying the period grossly misrepresents normal profitability in either direction."
+  ],
+  "sources": [
+   "https://www.screener.in/company/PRAJIND/consolidated/",
+   "https://trendlyne.com/equity/1061/PRAJIND/praj-industries-ltd/",
+   "https://www.freepressjournal.in/business/praj-industries-reports-2-revenue-growth-in-q4-fy26-net-profit-falls-69",
+   "https://scanx.trade/stock-market-news/companies/praj-industries-fy26-net-profit-falls-89-1-to-inr-238-mn/41541776",
+   "https://www.sahi.com/news/praj-industries-q4-net-profit-drops-71-to-11-6-crore-amidst-revenue-contraction-1342-PE1_COR",
+   "https://www.indmoney.com/stocks/dividend/praj-industries-ltd-dividend",
+   "https://www.marketsmojo.com/news/stocks-in-action/what-is-the-bonus-history-of-the-praj-industries-2759463",
+   "https://trendlyne.com/equity/Bonus/PRAJIND/1061/praj-industries-ltd-bonus/",
+   "https://companiesmarketcap.com/inr/praj-industries/shares-outstanding/",
+   "https://www.business-standard.com/markets/news/praj-industries-hits-52-week-low-tanks-54-from-january-high-here-s-why-125081200498_1.html",
+   "https://www.praj.net/wp-content/uploads/2025/04/Praj-Q4-FY25-Results-Release.pdf"
+  ]
+ },
+ {
+  "dividends": {
+   "components": "FY26 (year ended Mar-2026): FINAL Rs 75/share only \u2014 board-recommended 8-May-2026, record date 7-Jul-2026, AGM approval pending 23-Jul-2026, payment date 22-Aug-2026 (NOT YET PAID as of this pack's as-of date). FY25 (year ended Mar-2025): FINAL Rs 65/share only, ex-date 1-Jul-2025, paid 16-Aug-2025. No interim and no special component in either of the last two fiscal years. (For reference, FY22 was the last year with a special dividend: Rs 20 final + Rs 15 special = Rs 35 total; last interim dividend was Rs 13 in Feb-2020 for FY20.)",
+   "fy_total_per_share": 75,
+   "ttm_paid_per_share": 65,
+   "yield_pct": 1.19
+  },
+  "entity": {
+   "name": "Cera Sanitaryware Limited",
+   "exchange": "NSE (primary; also listed BSE code 532443)",
+   "isin": "INE739E01017",
+   "sector": "Consumer Durables / Building Products",
+   "industry": "Ceramics - Tiles/Sanitaryware (Sanitaryware, Faucetware, Bathware)"
+  },
+  "price": {
+   "close": 6324,
+   "as_of": "2026-07-08 (NSE close ~3:31 PM IST; screener.in and trendlyne both time-stamped this date, showing Rs 6,324 and Rs 6,323.50 respectively, down ~0.85% on the day)",
+   "currency": "INR"
+  },
+  "valuation": {
+   "market_cap_inr_cr": 8154,
+   "shares_outstanding_cr": 1.2897,
+   "eps_ttm": 158.32,
+   "pe_ttm": 39.9,
+   "price_to_book": 5.54
+  },
+  "range52w": {
+   "high": 7100,
+   "low": 4461,
+   "drawdown_from_high_pct": 10.93,
+   "change_52w_pct": -6.8
+  },
+  "quarterly": {
+   "period": "Q4 FY26 (Jan-Mar 2026)",
+   "revenue_cr": 643.81,
+   "pat_cr": 77.33,
+   "revenue_yoy_pct": 11.4,
+   "pat_yoy_pct": -9.6
+  },
+  "growth": {
+   "revenue_mrq_yoy_pct": 11.4,
+   "revenue_annual_pct": 7,
+   "earnings_mrq_yoy_pct": -9.6,
+   "earnings_annual_pct": -17.2
+  },
+  "roe": 14.8,
+  "symbol": "CERA",
+  "traps": [
+   "MRQ-YoY vs FY-vs-FY are materially different and moving in different directions: Q4 FY26 revenue was UP 11.4% YoY and PAT down only 9.6% YoY, but the FULL FY26 year was revenue +7.0% YoY with PAT down a much steeper 17.2% YoY. Q4 was the strongest quarter of a weak year \u2014 quoting the quarterly number as 'the' growth rate would flatter the annual trend, and vice versa.",
+   "Dividend double-count risk: the FY26 Rs 75/share FINAL dividend (record date 7-Jul-2026) has NOT been paid yet as of the price as-of date \u2014 payment is scheduled 22-Aug-2026, after AGM approval on 23-Jul-2026. If you sum 'FY total declared' (Rs 75) into a cash-basis TTM-paid figure you double count; TTM PAID (cash actually received by shareholders in the trailing 12 months) is only Rs 65 (the FY25 final, paid 16-Aug-2025). The commonly-quoted 'dividend yield' of 1.19% on screener/trendlyne is computed off the newly-declared-but-unpaid Rs 75, not off TTM-paid Rs 65 (which yields ~1.03%) \u2014 state which basis you're using.",
+   "Standalone vs consolidated basis mismatch: screener's consolidated view showed FY25 revenue as Rs 1,926 cr while the standalone view (which matches the company's own FY26 results press release comparatives) shows FY25 revenue as Rs 1,915 cr. This pack uses STANDALONE figures throughout for the multi-year table to match the company's own FY26 filing comparatives \u2014 an aggregator mixing consolidated-year-N against standalone-year-N+1 would show a false growth number.",
+   "Stale-cache / vintage mismatch across sources: an early screener.in fetch (consolidated URL) returned FY2025-vintage headline metrics (EPS 191.11, ROE 18.2%, book value Rs 1,049, P/E 33.0) that had evidently not yet refreshed after the FY2026 annual results were declared on 8-May-2026. A later fetch of screener's standalone default page showed the updated FY2026 figures (EPS 158.32, ROE 14.8%, book value Rs 1,142, P/E ~39.0). Anyone scraping without checking page freshness could report a P/E off by ~7 points and EPS off by ~Rs 33 (~17%).",
+   "52-week high disagreement across sources: screener.in, Google Finance and trendlyne all show Rs 7,100; Yahoo Finance shows Rs 7,138; one other aggregator (search-snippet) shows Rs 7,275. Likely causes: NSE vs BSE tick-level feed differences, intraday-high vs official-closing-high capture, or a stale cache. This pack uses Rs 7,100 (corroborated by 3 independent live fetches) and flags the Yahoo/other-aggregator variance rather than silently picking one.",
+   "52-week CHANGE and drawdown-from-HIGH are genuinely different numbers here and diverge in sign of implication: drawdown from the 52w high is a steep -10.9% (price hit Rs 7,100 then pulled back), but the 52-week change (price now vs price ~12 months ago, anchored to an independently found close of ~Rs 6,787 on 24-Jul-2025) is a much smaller -6.8%. One aggregator snippet claimed a wildly different -17.4% one-year return that could not be corroborated against any actual historical close and is almost certainly stale/wrong \u2014 do not use it.",
+   "No bonus issue, stock split, or demerger was found in company disclosures reviewed (face value stable at Rs 5/share across the multi-year window), so the FY21-FY26 revenue/EPS/dividend series should be directly comparable without an adjustment factor \u2014 but this was not cross-checked against the BSE corporate-actions history file directly (only aggregator 'corporate actions' pages), so treat as provisional, not certified.",
+   "FY26 quarterly PAT was lumpy, not smooth: standalone PAT went Rs 47cr (Q1) -> Rs 57cr (Q2) -> Rs 24cr (Q3, sharp dip attributed in coverage to elevated brass/input costs and possibly one-off items) -> Rs 77cr (Q4). A reader who annualizes any single quarter (especially Q3) will badly misstate the run-rate; the FY26 full-year PAT of Rs 204cr is the only reliable full-year figure.",
+   "Q1 FY27 (Apr-Jun 2026) results had NOT been published as of the as-of date searched \u2014 the most recent reported quarter used throughout this pack is Q4 FY26 (Jan-Mar 2026). Do not assume a more-recent quarter exists without re-checking closer to end-July/early-Aug 2026."
+  ],
+  "sources": [
+   "https://www.screener.in/company/CERA/ (standalone default view, fetched 2026-07-08 \u2014 current FY2026 figures: price Rs 6,324, mkt cap Rs 8,154cr, P/E 39.0, book value Rs 1,142, ROE 14.8%, EPS Rs 158.32, quarterly & annual standalone tables through Mar-2026)",
+   "https://www.screener.in/company/CERA/consolidated/ (consolidated view, fetched 2026-07-08 \u2014 showed an apparently-stale FY2025-vintage snapshot: EPS 191.11, ROE 18.2%, P/E 33.0, book value Rs 1,049; used only for cross-checking consolidated vs standalone revenue base, flagged as a trap)",
+   "https://trendlyne.com/equity/254/CERA/cera-sanitaryware-ltd/ (fetched 2026-07-08, 3:31PM IST \u2014 price Rs 6,323.50, confirms 52w high/low Rs 7,100/Rs 4,461, confirms Rs 75 latest dividend paid-status)",
+   "https://trendlyne.com/equity/Dividend/CERA/254/cera-sanitaryware-ltd-dividend/ (full dividend ex-date/type table 2020-2026, source for dividend components and TTM-paid computation)",
+   "https://scanx.trade/stock-market-news/companies/cera-sanitaryware-reports-fy26-annual-results-revenue-rises-to-205011-98-lakhs-net-profit-at-20418-56-lakhs-75-dividend-recommended/39773522 (FY26 annual results: revenue Rs 2,050cr, PAT Rs 204cr, Rs 75 dividend recommended, board meeting 8-May-2026)",
+   "https://www.cera-india.com/sites/default/files/2026-05/Intimation%20of%20Record%20Date%20for%20Corporate%20Action%20-%20Dividend%20under%20Regulation%2042%20of%20LODR.pdf (official BSE/company filing: record date 7-Jul-2026, payment date 22-Aug-2026, AGM 23-Jul-2026 for Rs 75 dividend)",
+   "https://www.business-standard.com/amp/markets/capital-market-news/cera-sanitaryware-posts-nearly-10-yoy-decline-in-q4-pat_126050800690_1.html (Q4 FY26: revenue Rs 643.81cr +11.4% YoY, PAT Rs 77.33cr -9.6% YoY)",
+   "Google Finance CERA:NSE page (fetched 2026-07-08 \u2014 corroborates 52w range Rs 4,461.10-7,100.00)",
+   "Yahoo Finance CERA.NS quote/search snippet (shows a divergent 52w high of Rs 7,138 and PE/EPS TTM figures Rs 38.89 / Rs 158.30 that independently corroborate the updated post-FY26 EPS, used as a cross-check flagged in traps)",
+   "https://www.nseindia.com/get-quote/equity/CERA/Cera-Sanitaryware-Limited (ISIN INE739E01017, BSE code 532443 confirmation)"
+  ]
+ },
+ {
+  "dividends": {
+   "components": "FY26 (declared/being paid): interim Rs 20/sh (record date 28-Jan-2026) + final Rs 10/sh (record/ex-date 17-Jul-2026, board-recommended with Q4/FY26 results, pending AGM approval -> falls AFTER this pack's price date). FY25 for comparison: interim Rs 30/sh (record 28-Jan-2025) + final Rs 20/sh (ex-date 14-Jul-2025) = Rs 50 total -> so FY26's Rs 30 total is a cut versus FY25's Rs 50, tracking the profit decline.",
+   "fy_total_per_share": 30,
+   "ttm_paid_per_share": 40,
+   "yield_pct": 0.52
+  },
+  "entity": {
+   "name": "Wendt (India) Limited",
+   "exchange": "NSE/BSE",
+   "isin": "INE274C01019",
+   "sector": "Industrials",
+   "industry": "Abrasives / Precision Grinding Tools & Machining Components"
+  },
+  "price": {
+   "close": 7664,
+   "as_of": "2026-07-08",
+   "currency": "INR"
+  },
+  "quarterly": {
+   "period": "Q4 FY26 (Jan-Mar 2026, standalone)",
+   "revenue_cr": 57.83,
+   "pat_cr": 7.46,
+   "revenue_yoy_pct": -17.96,
+   "pat_yoy_pct": -40.18
+  },
+  "growth": {
+   "revenue_mrq_yoy_pct": -17.96,
+   "earnings_mrq_yoy_pct": -40.18,
+   "revenue_annual_pct": -2.59,
+   "earnings_annual_pct": -40.58
+  },
+  "roe": 7.97,
+  "range52w": {
+   "high": 12990,
+   "low": 5841.5,
+   "drawdown_from_high_pct": 41,
+   "change_52w_pct": -19.94
+  },
+  "valuation": {
+   "market_cap_inr_cr": 1534,
+   "pe_ttm": 84.9,
+   "price_to_book": 6.56,
+   "eps_ttm": 90.4,
+   "shares_outstanding_cr": 0.2
+  },
+  "symbol": "WENDT",
+  "traps": [
+   "STANDALONE vs CONSOLIDATED diverge sharply and are widely conflated by aggregators: Q4FY26 PAT is Rs 7.46cr on a STANDALONE basis (BusinessUpturn/Tradebrains, matches Screener's standalone quarterly table) vs Rs 5.09cr on a CONSOLIDATED basis (Screener consolidated tab) -- a ~32% gap on the identical quarter. Full-year FY26 PAT is Rs 22.75cr standalone vs ~Rs 15cr consolidated (~34% gap), and FY26 revenue is Rs 209.31cr standalone vs Rs 236cr consolidated. Consequently MarketsMojo's headline '-60% profit plunge' is a CONSOLIDATED YoY number while BusinessUpturn's '-40.3% YoY' is STANDALONE -- both are individually correct but are NOT the same metric and must never be quoted against each other. This pack uses STANDALONE as the headline basis (revenue_mrq_yoy -17.96%, earnings_mrq_yoy -40.18%, annual revenue -2.59%, annual earnings -40.58%); consolidated equivalents are roughly revenue_mrq_yoy -11.67%, earnings_mrq_yoy -60.51%, annual revenue +0.85%, annual earnings -61.54%.",
+   "May 2025 promoter stake sale distorts the 52-week range and any 'drawdown from high' narrative: co-promoter Wendt GmbH (Germany) sold its entire ~37.5% stake via OFS (600,000 shares / 30% base + greenshoe) at a FLOOR PRICE of Rs 6,500 -- a 38% discount to the prior close of Rs 10,460 -- causing an approx. 17% single-day crash (source: Upstox). This reset the cap table (CUMI is now sole promoter at 37.5%, public 62.5%; no foreign promoter left despite the JV-derived company name). The current 52-week high of Rs 12,990 predates/reflects the pre-OFS price level, so the ~41% drawdown-from-high figure is dominated by this one-off ownership/overhang event, not by organic business deterioration alone -- flag this whenever citing the drawdown.",
+   "Dividend yield is quoted on two different bases by different sources for the exact same stock/date, demonstrating the exact trap this pack is built to catch: Screener shows 0.39% yield, computed off the Rs 30/share FY26-DECLARED total; Trendlyne shows 0.52%, computed off Rs 40/share TRAILING-12-MONTH CASH ACTUALLY PAID (FY25 final Rs 20 ex 14-Jul-2025 + FY26 interim Rs 20 ex 28-Jan-2026). Neither is wrong, but they are not comparable numbers -- always state which basis (FY-declared vs TTM-paid) a dividend yield uses. This pack reports both explicitly.",
+   "The FY26 final dividend of Rs 10/share has record/ex-date 17-Jul-2026 -- AFTER this pack's 8-Jul-2026 price/data date -- meaning it is board-RECOMMENDED pending AGM approval, not yet paid; do not include it in a trailing-12-month CASH-PAID dividend figure (this pack's ttm_paid_per_share of Rs 40 correctly excludes it).",
+   "P/E and ROE vary widely purely due to the standalone/consolidated split, not real valuation change: P/E is 84.9 on a standalone TTM EPS basis (Screener) vs ~126 on a consolidated basis (Screener) vs 108.65 shown by Tickertape (basis/date convention undisclosed); ROE is 7.97% standalone vs 4.89% consolidated. Always confirm which basis a quoted P/E or ROE uses before comparing across sources.",
+   "Extremely thin float: only ~20 lakh (0.20 crore / 2 million) shares outstanding at face value Rs 10, producing an unusually high per-share price (~Rs 7,664). This thin float amplifies single-event price swings (like the May-2025 OFS crash) in the 52-week range and can make trailing 1-year return figures diverge across providers for the same stock/date -- Tickertape shows -19.94% one-year return as of 8-Jul-2026 while another aggregator's snapshot showed -17.19% for a nearby but not identical date; treat any single '1-year return %' as provider/date-convention-dependent and cross-check the underlying dates before using it.",
+   "No bonus issue, stock split, or demerger was found in Wendt India's history (per Screener) over the lookback window used here -- so unlike many peers, the revenue/PAT comparisons in this pack are NOT distorted by share-count base effects; all the distortions identified above come from (a) standalone-vs-consolidated reporting differences and (b) the one-off 2025 promoter-stake-sale/OFS event, not from corporate actions on the share count."
+  ],
+  "sources": [
+   "https://www.screener.in/company/WENDT/consolidated/",
+   "https://www.screener.in/company/WENDT/",
+   "https://trendlyne.com/equity/Dividend/WENDT/1519/wendt-india-ltd-dividend/",
+   "https://www.businessupturn.com/business/corporates/wendt-india-q4-fy26-results-net-profit-falls-40-3-yoy-to-%E2%82%B97-46-crore-revenue-down-18-as-demand-softness-weighs/",
+   "https://tradebrains.in/wendt-india-q4-net-profit-jumps-29-sequentially-board-declares-10-dividend/",
+   "https://www.marketsmojo.com/news/result-analysis/wendt-india-q4-fy26-profit-plunges-60-despite-revenue-recovery-3961896",
+   "https://www.tickertape.in/stocks/wendt-india-WNDT",
+   "https://upstox.com/news/market-news/stocks/wendt-india-shares-crashe-17-as-promoter-eyes-stake-divestment-at-37-5-discount-via-ofs-check-details/article-167714/",
+   "https://www.nseindia.com/get-quotes/equity?symbol=WENDT"
+  ]
+ },
+ {
+  "dividends": {
+   "components": "FY26: final only, Rs 4.50/share (face value Rs 5, 90%) recommended by board (~May 2026), pending AGM approval/payment \u2014 no interim, no special dividend declared in FY26. FY25 (for comparison): final only, Rs 9/share (face value Rs 10, 90%), paid with record date 17-Sep-2025. On a split-adjusted, per-original-share basis these are IDENTICAL (both 90% of face value) \u2014 the FY26 number only looks like a 50% cut because of the Mar-2026 1:2 stock split, not because of an actual payout reduction.",
+   "fy_total_per_share": 4.5,
+   "ttm_paid_per_share": 4.5,
+   "yield_pct": 0.19
+  },
+  "entity": {
+   "name": "Tanfac Industries Ltd",
+   "exchange": "BSE (also listed NSE)",
+   "isin": "INE639B01015",
+   "sector": "Chemicals",
+   "industry": "Fluorochemicals / Specialty Inorganic Chemicals (aluminium fluoride, anhydrous/aqueous HF, sulphuric acid)"
+  },
+  "growth": {
+   "revenue_annual_pct": 27.6,
+   "earnings_annual_pct": -20.4,
+   "revenue_mrq_yoy_pct": 11.8,
+   "earnings_mrq_yoy_pct": -20.7
+  },
+  "price": {
+   "close": 2310.2,
+   "as_of": "2026-07-08",
+   "currency": "INR"
+  },
+  "quarterly": {
+   "period": "Q4 FY26 (Jan-Mar 2026) vs Q4 FY25 (Jan-Mar 2025)",
+   "revenue_cr": 193,
+   "revenue_yoy_pct": 11.8,
+   "pat_cr": 18.03,
+   "pat_yoy_pct": -20.7
+  },
+  "range52w": {
+   "high": 2585,
+   "low": 1632.6,
+   "drawdown_from_high_pct": 10.6,
+   "change_52w_pct": 15
+  },
+  "roe": 20.5,
+  "symbol": "TANFACIND",
+  "traps": [
+   "1:2 STOCK SPLIT (the big one): face value cut from Rs 10 to Rs 5, record date revised from 5-Mar-2026 to 9-Mar-2026 (BSE/EquityBulls/Angel One/HDFC Sky all confirm). Any raw price, EPS, or per-share-dividend figure dated before ~9-Mar-2026 must be halved before comparing to current figures, and any post-split figure must be doubled to compare against pre-split history. This single event explains most of the cross-source discrepancies below.",
+   "FY26 dividend of Rs 4.50/share (FV Rs5) vs FY25's Rs 9/share (FV Rs10) LOOKS like a 50% cut but is NOT \u2014 both are exactly 90% of face value, i.e. flat per-original-share payout. A naive YoY dividend comparison ignoring the split would wrongly report a payout collapse.",
+   "Dividend-yield inconsistency across live platforms: screener.in and stockanalysis.com show a split-adjusted 'latest dividend' of Rs 4.50 and yield 0.19%, while tickertape.in was still quoting the stale, un-adjusted Rs 9.00 (ex-date 17-Sep-2025) figure and derived an inconsistent 0.09% yield \u2014 clear evidence not all aggregators have caught up to the March-2026 split; do not trust a single source's yield figure.",
+   "Equity dilution from capital raises muddies per-share metrics: TANFAC completed a ~Rs 250 cr QIP (first equity raise in 30+ years, ~12.59 lakh shares at ~Rs 1,985.83, pre-split terms) plus a separately reported ~Rs 99.41 cr / ~Rs 173 cr preferential allotment in 2026. Different data providers appear to use different share-count vintages (pre- vs post-allotment), which is very likely why market cap is quoted anywhere from ~Rs 4,609 cr (stockanalysis.com) to ~Rs 4,900-4,943 cr (screener.in, tickertape.in) at similar prices, and why P/E ranges 65.7-70.5x and P/B ranges 12.4x-15.8x across sources for the same EPS (Rs 35.16, which all sources DO agree on).",
+   "MRQ-YoY vs annual FY-vs-FY growth diverge sharply and must not be conflated: revenue is +27.6% FY26-vs-FY25 (Rs 711 cr vs Rs 557 cr) but only +11.8% in Q4FY26-vs-Q4FY25 (Rs 193 cr vs Rs 172.66 cr) \u2014 the annual number is flattered by stronger growth earlier in the year. PAT growth happens to be similar at the annual and quarterly horizon (-20.4% annual vs -20.7% MRQ) but that is coincidence, not a rule \u2014 verify each period independently.",
+   "FY26 PAT decline (-20.4%) coincides with a base-effect-laden margin story, not a pure demand problem: EBITDA margin fell from 23% (FY25) to 16% (FY26) due to sulphur cost inflation, an FX mark-to-market loss of ~Rs 2.5-3 cr in Q4 alone, higher depreciation from ongoing capex, and HF-1 plant maintenance/bottleneck issues (per Sovrenn/Tradebrains concall coverage) \u2014 treat the profit decline as a mix of one-offs and margin normalization, not a clean run-rate to extrapolate.",
+   "Headline 52-week / 1-year price return figures disagree materially across live aggregators as of early-to-mid July 2026: 21.17% (MarketsMojo-style source), 22.99% and 28.11% (other trackers), and an outlier 60.04% figure that looks stale/wrong. My own independent back-calculation using a hard anchor (BSE close ~Rs 4,019.90-4,090 on 2-Jul-2025, split-adjusted to ~Rs 2,010-2,045) against the current Rs 2,310.20 close yields only ~+13% to +15% \u2014 noticeably below the aggregator range. This spread is almost certainly another split-adjustment artifact; the reported change_52w_pct here (15.0%) should be treated as an estimate with a wide error bar, not a precise figure, until checked against an official NSE/BSE adjusted bhavcopy series.",
+   "One listing (InvestOnline-style aggregator) surfaced an incorrect/unrelated ISIN (INE484A01028) for TANFACIND; the correct, exchange-confirmed ISIN is INE639B01015 (BSE scrip code 506854) per BSE's own listing page and multiple independent brokers.",
+   "52-week high/low itself has minor rounding disagreement across sources (Rs 2,585/Rs 1,633 on screener.in vs Rs 2,585/Rs 1,632.60 on stockanalysis.com/trendlyne) \u2014 immaterial (~Rs 0.40) but worth noting these aren't always quoted to the same precision.",
+   "ROE of 20.5% is the 'last year' (FY26 trailing) figure per screener.in; the company's 3-year average ROE is materially higher at 25.2%, reflecting the FY26 margin compression above \u2014 don't quote the 3-yr average as if it were the current run-rate, or vice versa."
+  ],
+  "sources": [
+   "https://www.screener.in/company/TANFACIND/",
+   "https://trendlyne.com/equity/1349/TANFACIND/tanfac-industries-ltd/",
+   "https://stockanalysis.com/quote/bom/506854/",
+   "https://www.tickertape.in/stocks/tanfac-industries-TAMF",
+   "https://www.equitybulls.com/category.php?id=370239",
+   "https://www.equitybulls.com/category.php?id=370273",
+   "https://www.equitybulls.com/category.php?id=356899",
+   "https://www.indianchemicalnews.com/general/tanfac-industries-posts-q4-fy25-pat-at-rs-2273-cr-25988",
+   "https://www.angelone.in/news/stocks/tanfac-industries-record-date-for-1-2-stock-split-is-today-march-9-2026",
+   "https://hdfcsky.com/news/tanfac-share-split-record-date-march-2026-stock-falls",
+   "https://scanx.trade/stock-market-news/companies/tanfac-industries-reports-record-revenue-of-711-crores-in-fy26-announces-495-crores-capex-for-hfc-32-expansion/40471942",
+   "https://tradebrains.in/tanfac-shares-fall-4-as-margin-pressure-offsets-record-revenue-performance-for-fy26/",
+   "https://tradebrains.in/tanfac-industries-raises-250-cr-via-qip-to-back-3612-cr-order-pipeline/",
+   "https://choiceindia.com/stocks/tanfac-industries-ltd-dividend",
+   "https://www.bseindia.com/stock-share-price/tanfac-industries-ltd/tanfacind/506854"
+  ],
+  "valuation": {
+   "market_cap_inr_cr": 4900,
+   "pe_ttm": 69.9,
+   "eps_ttm": 35.16,
+   "price_to_book": 12.4,
+   "shares_outstanding_cr": 2.12
+  }
+ },
+ {
+  "dividends": {
+   "components": "FY26 (year ended 31-Mar-2026): Final dividend of Rs 3.00/share (150% of Re 2 face value) recommended by the Board on 19-May-2026 \u2014 pending shareholder/AGM approval, not yet paid. No interim dividend was declared during FY26. For comparison, FY25 (year ended 31-Mar-2025) total was a single final dividend of Rs 2.00/share, declared 13-May-2025, record date 19-Sep-2025 (also no interim that year); FY24 final was Rs 1.00/share.",
+   "fy_total_per_share": 3,
+   "ttm_paid_per_share": 2,
+   "yield_pct": 0.07
+  },
+  "entity": {
+   "exchange": "NSE (primary; also listed BSE: 501423)",
+   "industry": "Injection-moulded precision plastic components/sub-assemblies for OEMs (Healthcare/drug-delivery devices, Consumer, Industrial segments)",
+   "isin": "INE151G01028",
+   "name": "Shaily Engineering Plastics Limited",
+   "sector": "Industrials / Plastic Products (Capital Goods-adjacent, some classifications tag it Consumer Durables due to FMCG/consumer packaging exposure)"
+  },
+  "growth": {
+   "earnings_annual_pct": 82.5,
+   "earnings_mrq_yoy_pct": 40,
+   "revenue_annual_pct": 25.9,
+   "revenue_mrq_yoy_pct": 8.7
+  },
+  "price": {
+   "as_of": "2026-07-08 (NSE close, ~15:30-15:31 IST)",
+   "close": 2794,
+   "currency": "INR"
+  },
+  "quarterly": {
+   "pat_cr": 40,
+   "pat_yoy_pct": 40,
+   "period": "Q4 FY26 (Jan-Mar 2026), consolidated",
+   "revenue_cr": 237,
+   "revenue_yoy_pct": 8.7
+  },
+  "range52w": {
+   "change_52w_pct": 28.6,
+   "drawdown_from_high_pct": 13.6,
+   "high": 3233.9,
+   "low": 1535.9
+  },
+  "roe": 26.9,
+  "symbol": "SHAILY",
+  "traps": [
+   "STANDALONE vs CONSOLIDATED conflation risk: screener.in's default (standalone) page shows FY26 sales Rs921cr/PAT Rs161cr (+128% YoY), while the consolidated tab shows FY26 sales Rs991cr/PAT Rs170cr (+82.5% YoY). Any single 'profit growth' figure quoted for this stock could be either base \u2014 always confirm which one before comparing across sources. This pack uses CONSOLIDATED throughout for growth/quarterly/ROE/valuation.",
+   "MRQ-YoY vs ANNUAL FY-vs-FY are very different in magnitude here and must never be conflated: Q4 FY26 vs Q4 FY25 (consolidated) = revenue +8.7%, PAT +40.0%; but FY26 vs FY25 full year = revenue +25.9%, PAT +82.5%. The full-year profit beat is driven disproportionately by H1/Q3 FY26 (revenue +26.8% YoY, profit +48.3% YoY per Q3), not by the more modest Q4 print.",
+   "Dividend yield split: the FY26 final dividend of Rs3/share was only 'recommended' (19-May-2026), pending AGM approval \u2014 not yet paid as of this pack's date. Trailing/paid-basis yield (last actual cash dividend of Rs2/share, paid Sep-2025) computes to ~0.07% (screener.in), while some platforms (tickertape, groww) quote ~0.11% by using the recommended-but-unpaid Rs3 as if already in force. Both numbers are 'real' depending on convention \u2014 this pack reports the trailing/paid figure and flags the forward one here.",
+   "52-week CHANGE vs gain-from-52-week-LOW are different and were being conflated across sources: several aggregators (e.g. finology: +84%, one search snippet: +81.9%) quote the stock's rise from its 52-week low of Rs1,535.90 to the current price and label it loosely as a '1-year'/'52-week' return \u2014 that is NOT the trailing 12-month price change. Using an independently dated news reference (an all-time-high of Rs2,170.25 on 25-Aug-2025) against the current Rs2,794 gives an approximate true ~1-year change of +28.6%; an exact NSE closing price for 08-Jul-2025 could not be independently retrieved in this session (NSE/moneycontrol were unreachable), so treat the 28.6% change_52w figure as a reasoned estimate, not an exact tick-for-tick calculation \u2014 distinct in any case from the 13.6% drawdown-from-52w-high, which IS precisely computable from the known high/low/current.",
+   "No bonus issue, stock split, rights issue, or demerger was found in company history in the lookback window (screener.in + multiple news searches); face value has stayed at Rs2 throughout. This means quarterly/annual comparisons above are on a like-for-like share-count basis, but flag immediately if any future corporate action is announced since none is baked into these historicals.",
+   "Valuation ratios show a consistent standalone-vs-consolidated (and possibly TTM-vs-latest-FY) split across sources: screener standalone EPS Rs35.10/P-E 79.6/P-B 19.8x/ROE 28.2% vs screener consolidated EPS Rs36.97/P-E 75.6/P-B 17.9x/ROE 26.9% vs other aggregators (groww, tijori, ticker.finology) showing P-B as high as 23.5x and ROE ranging 15.3%-24.8% depending on their own TTM/point-in-time methodology. Do not treat P/E, P/B, ROE as single agreed numbers across the web for this stock.",
+   "Market cap varies Rs12,845cr-12,970cr across sources checked within the same trading session (screener 12,845/12,867cr consolidated view, tickertape 12,867cr, groww 12,872cr, tijori 12,970cr) \u2014 likely driven by differing snapshot times and/or small share-count updates (ESOP allotments); treat any single-decimal market cap as approximate, not exact.",
+   "NSE's own quote page (nseindia.com) timed out and moneycontrol.com was unreachable in this session (both are commonly bot-blocked for automated fetches) \u2014 this pack cross-verifies instead via screener.in, tickertape.in and groww.in, which agree closely on live price and 52-week range, but true exchange-of-record confirmation for price/52w-high-low was not independently obtained this run."
+  ],
+  "sources": [
+   "https://www.screener.in/company/SHAILY/",
+   "https://www.screener.in/company/SHAILY/consolidated/",
+   "https://www.tickertape.in/stocks/shaily-engineering-plastics-SHAIL",
+   "https://groww.in/stocks/shaily-engineering-plastics-ltd",
+   "https://trendlyne.com/equity/2105/SHAILY/shaily-engineering-plastics-ltd/",
+   "https://www.indmoney.com/stocks/dividend/shaily-engineering-plastics-ltd-dividend",
+   "https://insights.dsij.in/dsijarticledetail/ashish-kacholia-backed-engineering-stock-surges-368-q4fy26-profit-jumps-40-yoy-57233",
+   "https://www.marketsmojo.com/news/stocks-in-action/shaily-engineering-plastics-achieves-all-time-high-of-rs-217025-on-august-25-2025-3427514",
+   "https://ticker.finology.in/company/SHAILY",
+   "https://www.tijorifinance.com/company/shaily-engineering-plastics-limited/",
+   "https://in.investing.com/equities/shaily-engineering-plastics-bo-historical-data",
+   "https://in.marketscreener.com/quote/stock/SHAILY-ENGINEERING-PLASTI-136094615/"
+  ],
+  "valuation": {
+   "eps_ttm": 36.97,
+   "market_cap_inr_cr": 12860,
+   "pe_ttm": 75.7,
+   "price_to_book": 17.9,
+   "shares_outstanding_cr": 4.6
+  }
+ },
+ {
+  "dividends": {
+   "ttm_paid_per_share": 5,
+   "fy_total_per_share": 27.5,
+   "components": "FY26: interim Rs 5.00/sh (ex/record 29-Jan-2026, paid ~Feb-2026) + final Rs 22.50/sh (225% of Rs10 FV; proposed by board, subject to shareholder approval at 46th AGM on 22-Jul-2026; record date reported 15-Jul-2026). Prior FY25 total was Rs 25.00/sh (interim 5.00 + final 20.00, ex-date 25-Jun-2025).",
+   "yield_pct": 1.23
+  },
+  "entity": {
+   "name": "Automobile Corporation of Goa Limited",
+   "exchange": "BSE (505036) / NSE (AUTOCORP)",
+   "isin": "INE451C01013",
+   "sector": "Automobile and Auto Components",
+   "industry": "Auto ancillary - sheet-metal pressed components & bus-body building; JV of Tata Motors Ltd and EDC Ltd (Govt of Goa undertaking)"
+  },
+  "price": {
+   "close": 2229.15,
+   "as_of": "2026-07-08 16:00 IST (BSE close)",
+   "currency": "INR"
+  },
+  "valuation": {
+   "market_cap_inr_cr": 1357.25,
+   "pe_ttm": 19.4,
+   "eps_ttm": 114.79,
+   "price_to_book": 4.4,
+   "shares_outstanding_cr": 0.61
+  },
+  "range52w": {
+   "high": 2390,
+   "low": 1410.5,
+   "drawdown_from_high_pct": 6.73,
+   "change_52w_pct": 29.2
+  },
+  "quarterly": {
+   "period": "Q4 FY26 (quarter ended 31-Mar-2026)",
+   "revenue_cr": 270.64,
+   "pat_cr": 21.32,
+   "revenue_yoy_pct": 22.94,
+   "pat_yoy_pct": 26.57
+  },
+  "growth": {
+   "revenue_mrq_yoy_pct": 22.94,
+   "earnings_mrq_yoy_pct": 26.57,
+   "revenue_annual_pct": 41.3,
+   "earnings_annual_pct": 50
+  },
+  "roe": 25.7,
+  "traps": [
+   "SCRAPING TRAP (most important): Screener.in's quarterly table, when auto-extracted, mislabels the FY-ending 'Mar' column as if it were the standalone Q4 quarter - e.g. it shows 'Mar-2026: Sales Rs934cr / PAT Rs70cr' which is actually the FULL-YEAR FY26 total (confirmed vs BSE exchange filing: FY26 revenue-from-ops Rs933.65cr, PAT Rs69.89cr). The TRUE standalone Q4 FY26 is Rs265-271cr revenue / Rs21.32cr PAT - roughly 3.5x smaller than the naive scrape. Any pipeline that sums 'quarterly' EPS across a year using this mislabeled data will double-count the Q4/FY overlap.",
+   "Revenue basis ambiguity: 'Net sales' (Rs265.27cr, Q4FY26) vs 'Total revenue from operations' (Rs270.64cr, Q4FY26) differ ~2%; the widely-quoted MRQ YoY growth of 22.94% is on the net-sales basis, while the total-revenue-from-ops basis works out to ~24.85% YoY. Don't mix bases across periods.",
+   "Dividend yield diverges sharply by methodology: ~1.23% using 'last declared FY total' (Rs27.50 = Rs5.00 interim + Rs22.50 proposed final, per Screener convention) vs ~0.22% using strict trailing-12-month CASH ACTUALLY PAID (only the Rs5.00 interim falls inside the 8-Jul-2025 to 8-Jul-2026 window - the FY25 final of Rs20.00, ex-date 25-Jun-2025, falls just outside it, and the FY26 final of Rs22.50 is still unpaid/pending 22-Jul-2026 AGM approval).",
+   "Final FY26 dividend (Rs22.50) is board-PROPOSED, not yet shareholder-approved as of this pack's as-of date; Trendlyne's listed record date of 15-Jul-2026 pre-dates the 22-Jul-2026 AGM approval date, an unusual sequence worth re-confirming against the company's official AGM notice before treating it as certain.",
+   "Market cap disagreement at the identical price/date (Rs2229.15, 8-Jul-2026): BSE official Rs1,357.25cr and Screener Rs1,357cr agree, but Tickertape shows Rs1,396.33cr (~2.7% higher), implying a larger share-count denominator on that platform. Used the BSE/Screener-consistent figure as primary.",
+   "P/E trap: summing the last four quarterly EPS values from the (corrupted) scraped quarterly table gives a false TTM EPS of ~Rs194.6 and an implausible P/E of ~11.4. Correct annual EPS is Rs114.79 (FY26), cross-verified via PAT/diluted-shares back-calc and via an independent aggregator's 'EPS 115' figure, giving the true P/E of ~18.8-20.0 depending on which day's CMP is used.",
+   "5-year profit CAGR figures quoted by aggregators (e.g. Screener's own ~51%) are inflated by a low/negative base: FY21 PAT was Rs-13cr (COVID-hit) and FY22 PAT only Rs3cr - do not read multi-year CAGR spanning this window as steady-state growth.",
+   "No bonus issue, stock split, rights issue, or demerger found for FY2015-FY2026; face value stable at Rs10 throughout, so YoY EPS/dividend comparisons in this pack are NOT distorted by corporate actions (checked and ruled out, not merely unchecked).",
+   "ROE cross-check gap: Screener reports ROE 25.7%, but a simple FY26 PAT / book-value-implied-equity back-calculation yields ~22-23%, likely due to averaging convention differences (opening vs average vs closing equity). Only one live ROE source was actually obtainable in this pass - treat 25.7% as sourced-but-not-independently-cross-verified.",
+   "Units vary across sources (lakhs on exchange filings/scanx, crore on Screener/Trendlyne, 'billion' INR on some aggregator summaries) - all figures in this pack are normalized to INR crore."
+  ],
+  "sources": [
+   "https://m.bseindia.com/StockReach.aspx?scripcd=505036",
+   "https://www.screener.in/company/505036/",
+   "https://trendlyne.com/equity/Dividend/AUTOCORP/2205/automobile-corporation-of-goa-ltd-dividend/",
+   "https://www.tickertape.in/stocks/automobile-corporation-of-goa-AUTOC",
+   "https://www.marketsmojo.com/news/result-analysis/automobile-corporation-of-goa-q4-fy26-strong-profit-growth-masks-margin-pressures-3977821",
+   "https://scanx.trade/stock-market-news/companies/automobile-corporation-of-goa-reports-strong-fy26-annual-results-net-profit-surges-final-dividend-of-rs-22-50-per-share-proposed/39546588",
+   "https://www.equitybulls.com/category.php?id=370143",
+   "https://in.marketscreener.com/quote/stock/AUTOMOBILE-CORPORATION-OF-6493118/company/",
+   "https://www.bseindia.com/stock-share-price/automobile-corporation-of-goa/acgl/505036"
+  ],
+  "symbol": "ACGL"
+ }
+]

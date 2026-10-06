@@ -1,0 +1,33 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand; grep -n 'R15-UI-078' src/modules/portfolio/PortfolioPanel.test.tsx src/store/portfolios.test.ts; sed -n 107,130p src/store/portfolios.ts; grep -n 'R15-DATA-088' -B1 src/lib/host-actions.test.ts | head -4
+src/modules/portfolio/PortfolioPanel.test.tsx:501:  it("R15-UI-078: a blank cost basis is refused, not saved as 0", async () => {
+src/modules/portfolio/PortfolioPanel.test.tsx:508:  it("R15-UI-078: a comma-formatted quantity like '1,000' names the field, not a generic message", async () => {
+src/modules/portfolio/PortfolioPanel.test.tsx:515:  it("R15-UI-078: an absurd quantity (1e20) is refused, not saved unbounded", async () => {
+src/store/portfolios.test.ts:76:describe("validateHolding rejects blank cost, qty>1e12, names the field for 1,000 (R15-UI-078)", () => {
+  if (quantity <= 0) {
+    return { valid: false, field: "quantity", message: "Quantity must be greater than 0" };
+  }
+  if (quantity > MAX_HOLDING_QUANTITY) {
+    return { valid: false, field: "quantity", message: "Quantity is too large" };
+  }
+  if (raw.costBasis === "" || raw.costBasis === null || raw.costBasis === undefined) {
+    return { valid: false, field: "costBasis", message: "Avg cost per share is required" };
+  }
+  const costBasis = Number(raw.costBasis);
+  if (!Number.isFinite(costBasis)) {
+    return {
+      valid: false,
+      field: "costBasis",
+      message: `Avg cost must be a plain number (got "${String(raw.costBasis)}")`,
+    };
+  }
+  if (costBasis < 0) {
+    return { valid: false, field: "costBasis", message: "Avg cost cannot be negative" };
+  }
+  return { valid: true };
+}
+
+/** Coerce an arbitrary (possibly corrupt-blob) holding to a valid one, or drop
+1270-
+1271:  it("add with a negative cost basis is an honest null, not a stored holding (R15-DATA-088)", async () => {
+EXIT=0

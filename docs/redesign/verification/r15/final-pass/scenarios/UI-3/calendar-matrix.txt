@@ -1,0 +1,13 @@
+AAPL    yfinance   region=US       tick=2026-10-01 now=2026-10-01T15:00Z -> live   | US mid-session Thu 11:00 ET tick today
+AAPL    yfinance   region=US       tick=2026-09-30 now=2026-10-01T15:00Z -> eod    | US mid-session, tick yesterday
+AAPL    yfinance   region=US       tick=2026-10-01 now=2026-10-01T06:00Z -> eod    | NSE hours (11:30 IST), US closed; last US bar = Sep 30? tick Oct1 impossible
+AAPL    yfinance   region=US       tick=2026-09-30 now=2026-10-01T06:00Z -> eod    | NSE hours, US closed; last close Sep 30
+INFY    nse_direct region=IN       tick=2026-10-01 now=2026-10-01T06:00Z -> live   | NSE mid-session tick today
+INFY    nse_direct region=IN       tick=2026-10-01 now=2026-10-02T06:00Z -> eod    | Oct 2 Gandhi Jayanti NSE holiday; last bar Oct 1
+INFY    nse_direct region=IN       tick=2026-10-01 now=2026-10-03T09:00Z -> eod    | Saturday; last bar Oct 1 (Oct 2 holiday)
+INFY    nse_direct region=IN       tick=2026-09-30 now=2026-10-03T09:00Z -> eod    | Saturday; bar Sep 30 = missed Oct 1 session
+AAPL    yfinance   region=US       tick=2026-10-02 now=2026-10-02T06:00Z -> eod    | US open on Oct 2 while NSE holiday
+AAPL    yfinance   region=US       tick=2026-11-25 now=2026-11-27T15:00Z -> eod    | US Thanksgiving Nov 26; Fri half-day
+AAPL    yfinance   region=US       tick=2026-11-25 now=2026-11-26T15:00Z -> eod    | on Thanksgiving, bar Nov 25
+^NSEI   yfinance   region=IN       tick=2026-10-01 now=2026-10-01T06:00Z -> live   | Nifty mid-NSE-session
+7203.T  yfinance   region=FOREIGN  tick=2026-10-01 now=2026-10-01T02:00Z -> eod    | Tokyo mid-session (UI-090 4.20 class)

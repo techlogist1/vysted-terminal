@@ -1,0 +1,3 @@
+=== R15-RESEARCH-001: in-process gate_news repro (original offending item: Sterling and Wilson Rs 985 cr, symbols:[]) ===
+kept titles: ['Bharat Dynamics wins order worth Rs 500 crore from Indian Army']
+note: None

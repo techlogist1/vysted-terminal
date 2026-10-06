@@ -1,0 +1,452 @@
+[
+  {
+    "pid": "INT-PD-226",
+    "promise": "A one-shot, non-raising outbound IP check exists for the Kite/SEBI static-IP requirement, but order placement does not pre-block on an IP mismatch -- it is an advisory banner only, and the panel always compares against a null configured IP.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "behaviour",
+    "status": "dropped",
+    "evidence": "sidecar/services/static_ip_detector.py (one-shot ipify GET, never raises); sidecar/services/broker_base.py set_mode('live') (advisory-only, no pre-block)",
+    "gap": "The IP check and its non-blocking behaviour exist only to serve order placement, which is removed from the product entirely.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-227",
+    "promise": "The \u00a76.5 execution-safety layer enforces eight non-negotiable safeguards across the sidecar, Rust core, and frontend, verified by a dedicated end-to-end test suite that passed 9 of 9 audits (58 tests total combined with the Tradesa V2 read-only audits).",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "sidecar/services/broker_base.py, src-tauri/src/kill_switch.rs, sidecar/models/audit_log.py, tests/test_safety_end_to_end.py (8 audits, 9/9 pass per CURRENT_STATE.md sec3.6)",
+    "gap": "The entire BLUEPRINT sec6.5 execution-safety layer exists solely to gate broker order placement, which is removed.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-228",
+    "promise": "Safety guarantee: paper mode is the hard broker default, with no constructor path that flips it to live.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "sidecar/services/broker_base.py self._mode='paper' default; no constructor path to live",
+    "gap": "Paper-vs-live mode is meaningless once no broker order path exists.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-229",
+    "promise": "Safety guarantee: every order requires human confirmation, because the order-placement method is private with a single caller that enforces confirmation.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "sidecar/services/broker_base.py _place_confirmed private, sole caller confirm_and_place",
+    "gap": "Human-confirmation-before-order-placement is removed along with order placement itself.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-230",
+    "promise": "Safety guarantee: position-size limits are enforced before any call reaches the broker.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "sidecar/services/broker_base.py propose_order position-size check before any broker call",
+    "gap": "Position-size limits gate order placement only.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-231",
+    "promise": "Safety guarantee: the order audit log is append-only at the database level, via SQLite triggers that abort on UPDATE or DELETE plus a read-only reader connection.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "sidecar/models/audit_log.py AUDIT_LOG_DDL BEFORE UPDATE/DELETE RAISE(ABORT) triggers + query_only reader; only consumers are sidecar/services/broker_base.py, sidecar/services/brokers/kite.py, sidecar/services/disclaimer_session.py, sidecar/routers/safety.py (grep of audit_log usage across sidecar/**/*.py, excluding tests) -- no non-order/non-disclaimer caller exists",
+    "gap": "Verified the append-only audit log has no consumer outside the order/broker/disclaimer surface -- it does not gate agent autonomy or any other control-plane action, so it is wholly on the trading-removal surface, not a mechanism that survives partially.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-232",
+    "promise": "Safety guarantee: the global kill switch acknowledges in under 2 seconds, with p50/p95/max acknowledgment latency instrumented.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "sidecar/services/kill_switch.py KillSwitchBus.fire (p50/p95/max ack instrumentation); only consumer is sidecar/services/broker_base.py (grep of kill_switch/KillSwitchBus usage across sidecar/**/*.py, excluding tests)",
+    "gap": "Verified the kill switch's only subscriber is the broker layer -- it gates order placement exclusively, not agent runs or any broader control-plane action, so the entire mechanism is on the trading-removal surface.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-233",
+    "promise": "Safety guarantee: there is an AI-order gate -- no tool exists that lets the AI place, submit, or execute an order; the AI can only propose one.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "sidecar/services/agent_tools/catalog.py FORBIDDEN_TOOL_SUBSTRINGS = ('place_order','submit_order','execute_order','auto_approve'); no place_/submit_/execute_ order tool registered in the catalog",
+    "gap": "The AI-order gate exists only to prevent the AI from placing orders, which are removed.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-234",
+    "promise": "Safety guarantee: a read-only mode is enforced and re-checked at both the propose and confirm stages of order placement.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "sidecar/services/broker_base.py _read_only checked in propose_order and re-checked in confirm_and_place",
+    "gap": "Read-only-mode enforcement gates order placement/confirmation specifically.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-235",
+    "promise": "Safety guarantee: layered disclaimers exist -- keychain-stored terms-of-service and per-broker acknowledgments, plus a sidecar in-memory per-session acknowledgment.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "sidecar/services/disclaimer_session.py (sidecar in-memory per-session ack); keychain TOS/per-broker ack surface",
+    "gap": "Disclaimers exist to gate broker order execution and paper-mode acknowledgement.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-236",
+    "promise": "The safety layer's defense-in-depth pattern combines a type/structure gate, a database-level invariant, and a grep-time CI audit, each layer designed to catch a different failure mode.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "sidecar/services/broker_base.py (_place_confirmed private + human_confirmed check), sidecar/models/audit_log.py (SQLite RAISE(ABORT) triggers), tests/test_safety_end_to_end.py (grep audit of call-sites)",
+    "gap": "The three-layer defense-in-depth pattern was built specifically for the order-placement boundary; the boundary itself is removed.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-237",
+    "promise": "The order-placement private method is documented as being enforced by naming convention only (not true language-level privacy), and an existing docstring's claim of name-mangled enforcement is itself inaccurate -- the real enforcement is a grep-based CI gate.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "behaviour",
+    "status": "dropped",
+    "evidence": "sidecar/services/broker_base.py _place_confirmed (convention-private, not name-mangled)",
+    "gap": "The private-method-naming-convention gap is specific to the order-placement method being removed.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-238",
+    "promise": "Two safety-related modules' docstrings claim the append-only trigger raises OperationalError, while the actual and test-asserted exception type is sqlite3.IntegrityError.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "behaviour",
+    "status": "dropped",
+    "evidence": "sidecar/models/audit_log.py and sidecar/services/audit_log.py docstrings (claim OperationalError vs actual sqlite3.IntegrityError)",
+    "gap": "The audit log's only consumers are order/broker/disclaimer paths (verified above); the docstring-accuracy gap goes with it.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-239",
+    "promise": "Kill-switch fired state does not survive a sidecar restart, since it is held only in an in-process singleton -- a crash or restart silently un-halts the kill switch, leaving only the audit-log entry as a durable trace.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "behaviour",
+    "status": "dropped",
+    "evidence": "sidecar/services/kill_switch.py bus = KillSwitchBus() module-level singleton (in-process state, no persistence)",
+    "gap": "The kill switch's only subscriber is the broker layer (verified above); its restart-survival gap is on the removed surface.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-240",
+    "promise": "The kill switch blocks new order placements and forces read-only mode, but does not cancel already-open orders -- cancel-all is left as an unimplemented responsibility for broker subclasses.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "sidecar/services/broker_base.py (kill-switch blocks new placements + forces read-only; no cancel-all implementation in the base class)",
+    "gap": "Cancel-all is a broker-subclass responsibility for order cancellation; broker subclasses are removed.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-241",
+    "promise": "The live audit-log tail in the UI works via 2-second polling rather than a push mechanism.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "behaviour",
+    "status": "dropped",
+    "evidence": "sidecar/models/audit_log.py-backed audit-log viewer panel in src/modules/safety (2s polling, per CURRENT_STATE.md sec3.6)",
+    "gap": "The audit-log tail UI surfaces order-placement audit rows exclusively (the log's only writers are the order/broker/disclaimer surface, verified above).",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-242",
+    "promise": "Ten specific files are Tier-1 LOCKED for the safety model and require a formal safety-audit re-run to change: the safety and broker TypeScript type files, the safety/broker/audit-log/kill-switch/broker-base Python models and services, the Rust kill-switch module, the plugin contract, and the safety end-to-end test suite.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "docs/CURRENT_STATE.md sec3.6 Tier-1 LOCKED list: types/safety.ts, types/broker.ts, sidecar/models/safety.py, sidecar/models/broker.py, sidecar/models/audit_log.py, sidecar/services/broker_base.py, src-tauri/src/kill_switch.rs, sidecar/models/kill_switch.py, tests/test_safety_end_to_end.py",
+    "gap": "Every listed file except types/plugin.ts (CLAUDE.md's own current Tier-1 list keeps only types/plugin.ts as the safety-adjacent lock) is a broker/order-safety file being deleted under D81; the lock itself is being retired with the surface it protects.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-243",
+    "promise": "The kill-switch reset function is entirely untested, so a naming-convention drift there could permanently lock the kill switch with nothing catching it in CI; the invalid-order-type rejection path of order proposal is likewise untested.",
+    "source": "docs/CURRENT_STATE.md \u00a73.6",
+    "kind": "behaviour",
+    "status": "dropped",
+    "evidence": "sidecar/services/kill_switch.py reset() (no dedicated test found: grep of test_kill_switch* / test_safety_end_to_end.py for a reset-path assertion); sidecar/models/broker.py order-type validation in propose_order",
+    "gap": "Both untested paths belong to the kill-switch/order-proposal surface being removed; the testing gap is moot once the code is deleted.",
+    "decision_ref": "docs/redesign/DECISIONS.md D81 (operator Tier-4 sign-off, 23 Sep 2026 \u2014 trading permanently out of the product; broker connectivity, order placement/proposal/review, simulated paper brokerage, live/paper switch, broker plugin, kill-switch/audit-log-as-order-gate all removed)"
+  },
+  {
+    "pid": "INT-PD-244",
+    "promise": "The two bundled MCP subprocesses ship as separate PyInstaller binaries with their own Python virtual environments, because the OpenBB dependency tree strictly pins FastAPI/uvicorn versions incompatible with the main sidecar's versions.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/openbb_mcp_subprocess/main.py:1-15 (docstring: 'the stock openbb-mcp-server package... bundled into a PyInstaller --onefile binary... spawned by src-tauri/src/openbb_mcp.rs'); sidecar/sec_edgar_mcp_subprocess/ has its own .venv directory (find confirms sidecar/openbb_mcp_subprocess/.venv and sidecar/sec_edgar_mcp_subprocess/.venv both exist, separate site-packages trees)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-245",
+    "promise": "Both MCP subprocesses are spawned exclusively via the Rust shell-sidecar API, never via Python's subprocess.Popen, specifically to avoid a Windows deadlock combining PyInstaller's onefile bootloader, anyio, and process-handle inheritance.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/openbb_mcp_subprocess/main.py:9-15 (docstring names src-tauri/src/openbb_mcp.rs Command::new as the spawn path and cites 'the Phase-2 Windows deadlock' as the reason, NOT Popen); sidecar/openbb_mcp_subprocess/main.py:27-52 (_exit_when_parent_closes_stdin uses os.read, not sys.stdin.buffer.read, 'to avoid the same Windows-specific deadlock')",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-246",
+    "promise": "Each MCP subprocess's provider integration is a REST proxy rather than an MCP passthrough, exposing the same interface shape a plain data provider would, so swapping the registry's data source is a one-line change.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/openbb_mcp_provider.py, sidecar/services/sec_filings_provider.py (both expose a data-provider-shaped surface, not an MCP passthrough)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-247",
+    "promise": "The sidecar's MCP client wrapper supports both HTTP and stdio transports with lazy sessions, reconnect-on-error, and a race-guard counter, but only the HTTP path has a real consumer today -- the stdio path is dead code reserved for future filesystem plugins.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "deferred-item",
+    "status": "delivered",
+    "evidence": "sidecar/services/mcp_client.py:83-106 (transport branch: http via streamablehttp_client, stdio via stdio_client), :78-152 (generation counter + reconnect-on-close-expected-generation guard); grep of mcp_client.get_client(...) call sites across sidecar/**/*.py shows only transport='http' at sidecar/services/openbb_mcp_provider.py:177 and sidecar/services/sec_filings_provider.py:129 -- no stdio caller exists outside sidecar/main.py:135 which runs Vysted's OWN mcp_server (the server side, not this client)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-248",
+    "promise": "Vysted's MCP server is a real FastMCP 3.x server mounted at /mcp over the Streamable-HTTP transport, exposing 11 tools at this baseline: quote/history/fundamentals/news/macro-series lookups, list_agents, invoke_agent (which collapses a streamed agent reply into one string), list_workspaces, get_workspace, run_workflow, and list_workflows.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "sidecar/services/mcp_server.py:132-159 (mcp_capabilities() catalog projection loop) + :159-368 (8 @mcp.tool hand-written functions: list_agents, invoke_agent, list_workspaces, get_workspace, run_workflow, save_workflow, list_workflows, list_runs); sidecar/services/agent_tools/catalog.py mcp_tool_ids() returns 28 catalog-projected ids at HEAD (verified by running `python3 -c \"from services.agent_tools.catalog import mcp_tool_ids; print(len(mcp_tool_ids()))\"` inside sidecar/.venv = 28)",
+    "gap": "FastMCP-at-/mcp-over-Streamable-HTTP and the tool categories (data/analysis + agent/workspace/workflow) are accurate, but the '11 tools' figure is stale: HEAD carries 28 catalog-projected tools + 8 hand-written = 36, not 11 -- two of the hand-written tools (save_workflow, list_runs) postdate this baseline and aren't named in the promise at all.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-249",
+    "promise": "Every MCP server tool is architected as a thin protocol-adapter shim calling the sidecar's own HTTP endpoint through an in-process transport, so there is zero business-logic duplication between the REST and MCP surfaces.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/mcp_server.py:106-126 (_make_catalog_tool dispatches to the SAME agent_tools handler the internal copilot uses) + module docstring 'Architecture: protocol adapter, zero logic duplication'; :76-96 _internal_client() calls the sidecar's own HTTP endpoints via httpx.ASGITransport",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-250",
+    "promise": "Every MCP tool response is returned as a dictionary, since the FastMCP framework rejects bare list responses.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/mcp_server.py: every @mcp.tool function is typed -> dict[str, Any] (list_agents:160, invoke_agent:183, list_workspaces:241, get_workspace:249, run_workflow:259, save_workflow:316, list_workflows:289, list_runs:341); :269,294,347 comments cite 'FastMCP dict-output requirement... FastMCP rejects bare lists/scalars'",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-251",
+    "promise": "The MCP server has no authentication, relying entirely on its localhost-only bind; connecting an external client such as Claude Desktop requires a manual copy-paste configuration flow.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/routers/mcp.py:12-14 ('Both endpoints are unauthenticated, mirroring the rest of the sidecar API... binds to 127.0.0.1 only'); docs/MCP_INTEGRATION.md:131-149 (Claude Desktop needs the mcp-remote npm bridge, manual claude_desktop_config.json edit) and :197 ('There is no authentication today')",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-252",
+    "promise": "MCP subprocess cold-bind time is documented as roughly 34 seconds in isolation on Apple Silicon, worse under concurrent disk-I/O contention during startup extraction, mitigated by a raised wait budget rather than a root fix (the true fix, an --onedir packaging change, is deferred).",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src-tauri/src/lib.rs:78 (MCP_PORT_WAIT_SECS: u64 = 45), :83 (MCP_PORT_WAIT_ATTEMPTS: u32 = 2), :82 ('total worst case ~MCP_PORT_WAIT_SECS * MCP_PORT_WAIT_ATTEMPTS' = 90s); CLAUDE.md 'Deferred / carry-forward' ('MCP cold-bind ~34s isolated... True fix is --onedir... needs an externalBin->resource-folder + Rust spawn change that ci-local can't verify')",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-253",
+    "promise": "At this baseline there is a documented doc/code drift on the MCP protocol version string (2025-06-18 in code versus 2025-11-25 in the TypeScript types) and on the MCP tool count (the integration doc said 9 tools while the code shipped 11).",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "types/mcp.ts:7 ('MCP protocol revision 2025-11-25'), sidecar/services/mcp_server.py:58 (_PROTOCOL_VERSION = '2025-06-18') -- protocol-version drift confirmed still live; docs/MCP_INTEGRATION.md:110 now reads 'The source of truth... the live toolCount rather than relying on a number here' (no longer asserts '9') and :192 shows an EXAMPLE 'toolCount':26 in a sample response, neither matching the current live 36",
+    "gap": "The protocol-version half of the doc/code drift (2025-06-18 vs 2025-11-25) still holds exactly as stated. The tool-count half is stale: the promise's claim ('doc said 9, code shipped 11') describes an EARLIER drift that MCP_INTEGRATION.md has since self-corrected (it no longer hardcodes a count) while the code has grown to 36 tools -- a different, larger drift the promise doesn't capture.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-254",
+    "promise": "There is no /sec-edgar-mcp/status route, which is asymmetric with the existing /openbb-mcp/status route.",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/routers/mcp.py:28-51 (only GET /mcp/status and GET /openbb-mcp/status defined; no /sec-edgar-mcp/status route in the file)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-255",
+    "promise": "The MCP smoke-test gate TCP-probes that each subprocess's port is bound, but does not verify that any endpoint actually returns real data (e.g. that the agents list is non-empty).",
+    "source": "docs/CURRENT_STATE.md \u00a73.7",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "scripts/smoke-test-sidecars.mjs:48-56 ('For each MCP subprocess sidecar... TCP-probe the claimed port until it binds... Then confirm it survives a short settle window' -- no endpoint-data assertion for openbb/sec-edgar, contrasted with :44-46 which DOES assert '/agents roster (count > 0)' but only for the MAIN vysted-sidecar binary)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-256",
+    "promise": "The frontend is a Next.js 16 static export with no Node server at runtime; SSR safety depends on the panel host rendering a loading placeholder until modules register client-side, since the dockview layout library is not SSR-safe.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "package.json:8-9 (scripts.dev='vite', scripts.build='vite build'; no 'next' dependency anywhere in package.json); index.html:2 (plain Vite SPA entry, <div id=\"root\">, <script type=\"module\" src=\"/src/main.tsx\">); git log --oneline -- vite.config.ts shows commit 8c2f9ab 'feat(shell): migrate Next.js -> Vite 8 + React 19 (WS1)' already at HEAD (ancestor of 38919f, the current tip); docs/redesign/DECISIONS.md D6 ('Vite migration verdict: zero blockers... 1 next/font import, 2 app-shell files, no routing/SSR/API routes')",
+    "gap": "The entire Next.js App Router / static-export / SSR-prerender premise of this promise no longer applies -- the app is a Vite 8 + React 19 client-side SPA (commit 8c2f9ab, decision D6). CURRENT_STATE.md sec3.8 and this promise chunk were never updated for the migration (grep -i vite docs/CURRENT_STATE.md finds zero mentions). src/components/PanelHost.tsx:118-119 still carries the docstring 'which keeps the static-export build SSR-safe (the prerender pass sees the loading state)' -- a stale comment describing a build mode (Next.js prerender) that no longer exists; the loading-placeholder mechanism itself is still present (PanelHost.tsx:214-220, gates on modules.length===0) but for a different reason now (async module registration timing in a CSR app, not SSR safety).",
+    "decision_ref": "docs/redesign/DECISIONS.md D6 (Vite migration verdict) + commit 8c2f9ab"
+  },
+  {
+    "pid": "INT-PD-257",
+    "promise": "The app is dark-theme only, with no light-theme toggle; light theme is documented as deferred to a later release.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "deferred-item",
+    "status": "delivered",
+    "evidence": "index.html:2 (<html lang=\"en\" class=\"dark\">, hardcoded); no ThemeToggle/prefers-color-scheme/light-theme code found anywhere under src/ (grep -rn 'ThemeToggle|toggleTheme|light.*theme' src --include='*.ts*' -> zero matches)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-258",
+    "promise": "The dockview panel-component registry does a flat merge of component ids across modules, so two modules that reuse the same component id will silently collide, with the later one winning and no guard against it.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/lib/module-registry.ts:49-55 (collectPanelComponents does Object.assign(map, mod.panelComponents) in a for-loop over modules, last write wins, no duplicate-id check or warning)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-259",
+    "promise": "The default panel layout places Chart over Equity Overview on the left, Watchlist/News/Portfolio stacked on the right, and an AI Assistant column on the far right.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour",
+    "status": "dropped",
+    "evidence": "src/config/default-layout.ts:6-8,30-57 (Chart and Equity Overview are placed as a TABBED group via direction:'within', not a vertical 'over' stack; Watchlist/News/Portfolio still stack right via 'right'/'below'; NO 'AI Assistant' panel entry exists in DEFAULT_PANELS at all)",
+    "gap": "The layout mechanics changed (Chart/Equity Overview are tabs, not stacked) and the AI Assistant panel is GONE from the dockview layout entirely -- default-layout.ts:5-8 explains why: 'The AGENT is no longer a panel here -- it is the shell's primary column (AgentDock, FR-001), always present beside this cockpit', per the redesign spec's agent-primary-surface mandate.",
+    "decision_ref": "specs/001-agent-native-redesign/spec.md FR-001 ('The agent MUST be a primary, co-equal surface (not a bolted-on sidebar)')"
+  },
+  {
+    "pid": "INT-PD-260",
+    "promise": "18 first-party frontend modules are hard-listed in one central module registry file, and plugins bridge into that same registry rather than a second, separate one.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "src/modules/index.ts:65-86 (vystedModules array); counted 22 entries at HEAD (chart, watchlist, news, portfolio, equity-overview, chat, research, platform, plugin-manager, marketplace, agent-builder, node-editor, backtest, broker-connect, safety, macro, sec, quant, earnings, analyst-ratings, screener, notes) vs src/modules/index.ts:59 doc comment listing only through 'v0.5.0' additions",
+    "gap": "18 was accurate at an earlier baseline; HEAD carries 22 (the 003-rebuild 'notes' module plus the full Phase-6 roster -- macro/sec/quant/earnings/analyst-ratings/screener -- are all now uncommented/live, not stubs). The one-central-registry claim (no second registry for plugins) still holds: src/lib/module-registry.ts moduleForPlugin bridges into the same vystedModules-fed map.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-261",
+    "promise": "The workspace blob persists layout, enabled modules, chart drawings, the default data provider, and the watchlist as one opaque JSON object that the sidecar never validates; adding a new field requires manually updating four separate call-sites in lockstep.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/lib/workspace.ts:45-69 (SerializedWorkspace fields: layout, enabledModules, chartDrawings?, defaultProviderId?, watchlist?), :202-204 (buildWorkspacePayload assembly), :234 (serializeWorkspace), :245 (deserializeWorkspace with per-field older-blob guards at :272,278,283), :541 (autosaveLayout) -- four distinct call-sites confirmed",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-262",
+    "promise": "Workspace restore is defensive: an unknown panel-component reference falls back to the default layout instead of throwing, the enabled-modules map rolls back if a restore throws partway through, and there are guards against React StrictMode/hot-reload double-invocation.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/lib/workspace.ts:262-266 (fromJSON wrapped in try/catch, useModulesStore setEnabledMap rolled back to prevEnabled on throw); src/lib/workspace.ts:509-515 (layoutReferencesUnknownComponent guard skips to applyDefaultLayout before calling deserializeWorkspace, avoiding a mid-fromJSON throw); src/components/PanelHost.tsx:128-168 (mountedRef + disposed-api guards around the async restore, StrictMode/HMR-safe)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-263",
+    "promise": "Workspace autosave is debounced by 1.5 seconds, and a failed autosave is silently swallowed with no user-visible error.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/components/PanelHost.tsx:13 (AUTOSAVE_DEBOUNCE_MS = 1500), :192 (setTimeout(() => void autosaveLayout(), AUTOSAVE_DEBOUNCE_MS)); src/lib/workspace.ts:541-555 (autosaveLayout's fetch wrapped in try/catch with an empty catch body -- 'Best-effort autosave; ignore transient failures', no user-visible surface)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-264",
+    "promise": "At this baseline, design token names are historical rather than literal (e.g. the amber-named tokens render a coral color, the charcoal-named tokens render an espresso color), a convention kept so that 80+ files can be reskinned by re-valuing the token file alone.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "styles/tokens.css:14-24 (header comment: 'names are historical, not literal: charcoal-N = PURE NEUTRAL gray ramp'), :52-56 (--color-amber-400: #fab283, commented 'BRAND -- OpenCode dark primary accent', a peach/coral hue)",
+    "gap": "The mechanism and the amber-as-coral half are accurate. The charcoal-as-espresso example is stale: the R6 'Pure Black' revalue (already documented in an earlier chunk of this same census pass, ledger-pdd-readme-45.json INT-PD-46) moved charcoal from a warm espresso tone to a pure-neutral gray ramp (R=G=B). The historical-naming CAPABILITY the promise describes is fully delivered; only its illustrative color example has drifted.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec4 (R6 Pure Black doctrine); styles/tokens.css:12-24"
+  },
+  {
+    "pid": "INT-PD-265",
+    "promise": "Because the chart canvas library cannot read CSS custom properties, its color palette is hand-mirrored in a separate TypeScript file; a reskin that updates the CSS tokens but not that file causes the chart canvas to visually drift from the surrounding chrome -- three color values, including a forbidden cyan, had previously drifted this way undetected.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/lib/chart-theme.ts:1-17 (module docstring: canvas can't read CSS vars, hand-mirrors styles/tokens.css, 'update both... but only here, not in 12 files'); no cyan or off-palette value present in the current file (:20-44) -- consistent with the promise's own past-tense framing ('had previously drifted... undetected')",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-266",
+    "promise": "The sidecar-connection status is computed in the frontend's app-level store but is not surfaced anywhere in the header UI.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour",
+    "status": "missing",
+    "evidence": "src/store/app.ts:12,22,25-32 (sidecarStatus computed: 'connecting'/'connected'/'error'); src/components/StatusChrome.tsx:172-211 (status read via useAppStore, rendered as a dot + label 'Connected'/'Sidecar error'/'Connecting...' with a title tooltip); StatusChrome is imported and mounted in src/app/page.tsx (grep -rln StatusChrome src --include='*.tsx' -> src/app/page.tsx, src/components/SettingsPanel.tsx, src/modules/chat/ModelControl.tsx)",
+    "gap": "The promise's claim (status computed but NOT surfaced anywhere) is now FALSE: sidecar connection status IS surfaced, as a live dot+label chip mounted in the app shell (page.tsx) via StatusChrome. This is a positive fix the doc never caught up with -- not a defect, so no raw finding, but the promise as literally worded does not hold.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-267",
+    "promise": "The default watchlist ships as 6 symbols (SPY, QQQ, BTC-USDT, ETH-USDT, NVDA, AAPL), which differs from a separately documented 7-symbol 'canonical visual protocol' used elsewhere for screenshots.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/store/symbols.ts:21-28 (DEFAULT_SYMBOLS: SPY, QQQ, BTC/USDT, ETH/USDT, NVDA, AAPL -- 6 entries); CLAUDE.md 'Visual verification' populated anchors line: 'watchlist AAPL, MSFT, NVDA, SPY, QQQ, BTC/USDT, ETH/USDT' (7 symbols, adds MSFT)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-268",
+    "promise": "Command-palette (Cmd+K) search is substring-match only, with no fuzzy matching, no result ranking, and no recent-items history.",
+    "source": "docs/CURRENT_STATE.md \u00a73.8",
+    "kind": "deferred-item",
+    "status": "missing",
+    "evidence": "src/store/command-palette.ts:14-15 (quality tiers: 'exact > prefix > word-start > substring > (label-only) subsequence -- plus a weaker tier for description substrings'), :274 ('Are all chars of needle present in haystack in order (fuzzy/acronym)?' -- a subsequence/fuzzy matcher), :141,153-154,159,175,187-193 (MAX_RECENTS, recents: string[] state, bump-to-front on selection)",
+    "gap": "The promise's claim (substring-only, no fuzzy, no ranking, no recents) is now entirely superseded: HEAD has a multi-tier ranked matcher including a fuzzy/subsequence tier AND an in-memory recents list with bump-to-front. All three named absences have since been built. Positive change, not a defect -- no raw finding, but the promise as worded does not describe current reality.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-269",
+    "promise": "The Chart panel offers lightweight-charts candlesticks, an 8-step timeframe selector, a 50-indicator multi-select computed entirely server-side, 10 drawing tools with a serializable per-panel drawing store, a comparison overlay whose failures are silently swallowed, and three cross-chart synchronization slices (crosshair, range, symbol).",
+    "source": "docs/CURRENT_STATE.md \u00a73.9",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/chart/indicators.ts:1-11 (module docstring: 'the 50-indicator catalog... Mirrors sidecar/services/indicators.SUPPORTED_INDICATORS'); types/drawings.ts:23-33 (DrawingKind union: trendline, horizontal-line, vertical-line, ray, rectangle, ellipse, fib-retracement, fib-extension, parallel-channel, text = 10 kinds); src/modules/chart/ChartPanel.tsx:250-355,828-830 (comparisonSeriesRef + comparisonCommand, comparison overlay wiring); src/store/chart-sync.ts:8-10,50-83 (crosshair/visibleRange/symbol broadcast slices, three distinct payload types)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-270",
+    "promise": "Canvas-interactive chart gestures (drawing, panning, zooming) are gated by the charting library on browser-trusted input events, so automated tools that synthesize untrusted events cannot exercise or visually regression-test these features -- only the underlying data models and toolbar wiring can be tested that way.",
+    "source": "docs/CURRENT_STATE.md \u00a73.9",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "CLAUDE.md 'Frontend' gotchas: 'chrome-devtools MCP can't synthesize trusted (isTrusted) events -- canvas-interactive features (drawings, drag-to-pan, lightweight-charts gestures) need Playwright/native event injection for visual regression, not chrome-devtools'; src/modules/chart/drawings/factory.ts + ChartPanel.tsx render via lightweight-charts' ISeriesPrimitive canvas API, an external library constraint not implemented in Vysted's own code (no isTrusted check exists in src/ -- confirmed by grep, consistent with the gate living inside the third-party library, not app code)",
+    "gap": "",
+    "decision_ref": null
+  }
+]

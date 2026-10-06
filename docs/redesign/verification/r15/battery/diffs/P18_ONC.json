@@ -1,0 +1,391 @@
+{
+  "slot": "P18",
+  "symbol": "ONC",
+  "diffed_at": "2026-09-23",
+  "pack_source": "docs/redesign/verification/r15/battery/packs/P18_ONC.json",
+  "collected_source": "docs/redesign/verification/r15/battery/collected/P18_ONC.json",
+  "subtle_tier_covered": true,
+  "notes": "P18 is the manifest's US-name slot (BeOne Medicines Ltd. / f/k/a BeiGene, NASDAQ: ONC, ADS ratio 13:1). No Indian shareholding/promoter/pledge regime applies to this issuer; the mandatory subtle-tier fields are diffed below against the pack's stated nearest US equivalents (insider/institutional ownership) where those exist, and recorded 'no source truth' where the world itself says the concept does not exist. No sidecar re-fetch was needed for this diff — the 2026-09-19 collected snapshot and the pack's 2026-09-18/19 sources are same-day and reconcile cleanly on every field that matched.",
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "resolve.resolved.name = 'BeOne Medicines Ltd.' (collected.calls.resolve_bare_symbol.body.resolved.name); fundamentals.name = 'BeOne Medicines AG' (collected.calls.fundamentals.body.name) — the app itself shows two different legal-name spellings across its own two identity endpoints for the same instrument",
+      "app_as_of": "2026-09-19",
+      "outside_value": "'BeOne Medicines Ltd.' per SEC EDGAR (10-Q cover + CIK0001651308 submissions record); 'BeOne Medicines AG' per stockanalysis.com",
+      "outside_as_of": "2026-08-05 (SEC) / 2026-09-18 (stockanalysis.com)",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm ; https://stockanalysis.com/stocks/onc/",
+      "status": "definitional difference",
+      "note": "Pack explicitly flags Ltd. vs AG as a trap, not a staleness bug: the Swiss registrant signs its own SEC filings 'Ltd.' while aggregators render 'AG'. Both app values match a real outside source; not a finding. The app's own internal inconsistency (two endpoints, two spellings) is a separate, milder observation not filed here."
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": "null (collected.calls.resolve_bare_symbol.body.resolved.former_name)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "'BeiGene, Ltd.' (renamed 2025-05-27)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://data.sec.gov/submissions/CIK0001651308.json",
+      "status": "app blank",
+      "note": "Covered by DAT-P18-4 (identity enrichment is India-only by design, sidecar/services/symbol_resolver.py:855-871)."
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "null (collected.calls.resolve_bare_symbol.body.resolved.isin)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "US07725L1026 (Nasdaq ADS ISIN; CUSIP 07725L102)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/company/",
+      "status": "app blank",
+      "note": "Covered by DAT-P18-4."
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "null",
+      "app_as_of": "2026-09-19",
+      "outside_value": "null (not an Indian security)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "match"
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": "not present in resolve schema for a US instrument",
+      "app_as_of": "2026-09-19",
+      "outside_value": "null (not an Indian security)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "match"
+    },
+    {
+      "field": "identity.board",
+      "app_value": "no board/listing-tier field anywhere in resolve or fundamentals response",
+      "app_as_of": "2026-09-19",
+      "outside_value": "The Nasdaq Global Select Market (US mainboard tier)",
+      "outside_as_of": "2026-08-05",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm",
+      "status": "app blank",
+      "note": "Covered by DAT-P18-4."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "'Healthcare' (collected.calls.fundamentals.body.sector)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "Healthcare",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/",
+      "status": "match"
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "'Biotechnology' (collected.calls.fundamentals.body.industry)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "Biotechnology",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/",
+      "status": "match"
+    },
+    {
+      "field": "identity.listing_date",
+      "app_value": "no listing_date field in resolve or fundamentals schema",
+      "app_as_of": "2026-09-19",
+      "outside_value": "2016-02-02 (original Nasdaq IPO under ticker BGNE; ONC Jan-2025 is a ticker change on the same listing, not a new listing)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://en.wikipedia.org/wiki/BeOne_Medicines",
+      "status": "app blank",
+      "note": "Covered by DAT-P18-4."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": "350.8399963378906 USD/ADS (collected.calls.quote.body.price, provider yfinance, freshness 'eod')",
+      "app_as_of": "2026-09-19T09:59:19.718694Z (timestamp of fetch; value itself is the prior session's close)",
+      "outside_value": "350.84 USD/ADS",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/",
+      "status": "match"
+    },
+    {
+      "field": "price.date (as-of labeling)",
+      "app_value": "quote.timestamp is a fetch timestamp ('2026-09-19T09:59:19Z'), not an explicit trading-day date; freshness flag 'eod' is the only signal this is the prior close, not a live 9/19 quote",
+      "app_as_of": "2026-09-19T09:59:19Z",
+      "outside_value": "explicit trading date 2026-09-18",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/",
+      "status": "as-of skew",
+      "note": "Value reconciles exactly; only the date label is implicit vs explicit. Not a finding per COMMON.md (both sides right, dated differently)."
+    },
+    {
+      "field": "market_cap",
+      "app_value": "39,687,778,304 USD (collected.calls.fundamentals.body.market_cap)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "39.89bn USD (cross-checked: 113,701,877 ADS x $350.84 = $39.891bn, reconciles to 4 sig figs)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/",
+      "status": "mismatch",
+      "note": "~0.51% low ($203M). Same root cause as DAT-P18-1 (shares_outstanding); folded into that finding's evidence rather than filed separately."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": "62.874554 (collected.calls.fundamentals.body.pe_ratio)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "62.77",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/",
+      "status": "match"
+    },
+    {
+      "field": "pe_forward",
+      "app_value": "34.004196 (collected.calls.fundamentals.body.forward_pe)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "43.91",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/",
+      "status": "mismatch",
+      "note": "Covered by DAT-P18-5 (~22.5% lower than the outside source, no disclosed consensus/estimate provenance on either side)."
+    },
+    {
+      "field": "pb",
+      "app_value": "7.663776 (collected.calls.fundamentals.body.price_to_book)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "7.66",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+      "status": "match"
+    },
+    {
+      "field": "roe",
+      "app_value": "0.14661999 = 14.66% (collected.calls.fundamentals.body.roe)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "14.66% (TTM net income / average equity basis)",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+      "status": "match"
+    },
+    {
+      "field": "roce",
+      "app_value": "not present in fundamentals schema (only roa=0.07457 is exposed, a different metric)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "13.08% (derived: TTM operating income / (total assets - current liabilities))",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/OperatingIncomeLoss.json",
+      "status": "app blank",
+      "note": "Not filed as a P18-specific raw finding: ROCE is absent from the fundamentals schema for every symbol in the battery (roa is shown instead), so this is a product-wide capability gap, not an ONC data-accuracy defect — leave to the code census to register once, not once per slot."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": "0.39612 (collected.calls.fundamentals.body.debt_to_equity)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "0.207 primary (filed interest-bearing debt only) / 0.4 disagreement basis (stockanalysis.com, total debt incl. capitalised leases)",
+      "outside_as_of": "2026-06-30 / 2026-09-18",
+      "outside_source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/LongTermDebtNoncurrent.json ; https://stockanalysis.com/stocks/onc/statistics/",
+      "status": "definitional difference",
+      "note": "App value (0.396) matches the stockanalysis.com 'total debt' basis the pack itself flags as a legitimate alternate definition, not an error."
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": "6,128,963,072 USD (collected.calls.fundamentals.body.revenue_ttm)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "6,128,963,000 USD (summed filed quarters)",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json",
+      "status": "match"
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": "655,707,008 USD (collected.calls.fundamentals.body.net_income_ttm)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "655,707,000 USD",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/NetIncomeLoss.json",
+      "status": "match"
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": "0.296 = 29.6%, growth_basis = 'mrq_yoy' (collected.calls.fundamentals.body.revenue_growth / growth_basis) — the app explicitly labels which of the four defensible YoY bases it is using",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "29.6% (Q2 2026 vs Q2 2025) — one of four defensible YoY figures (Q2 29.6%, H1 32.3%, TTM 34.3%, FY2025 40.2%) the pack flags as a trap",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json",
+      "status": "match",
+      "note": "App's explicit growth_basis label avoids the exact trap the pack calls out; worth noting as a positive, not a finding."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": "5.58 USD/ADS diluted (collected.calls.fundamentals.body.eps)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "5.59 USD/ADS diluted (0.43 filed per-ordinary-share x 13)",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/",
+      "status": "match"
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": "45.779 USD/ADS (collected.calls.fundamentals.body.book_value)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "45.78 USD/ADS",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+      "status": "match"
+    },
+    {
+      "field": "face_value",
+      "app_value": "no par-value field in fundamentals schema",
+      "app_as_of": "2026-09-19",
+      "outside_value": "0.0001 USD par value per ordinary share",
+      "outside_as_of": "2026-08-05",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm",
+      "status": "app blank",
+      "note": "Not filed separately: par/face value is absent from the schema for every symbol (US and Indian alike), a product-wide gap rather than an ONC-specific defect."
+    },
+    {
+      "field": "dividend.last_declared_per_share (+ record/ex date)",
+      "app_value": "null (no last-declared/record/ex-date fields in schema; dividend_yield/dividend_per_share both null)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "null — company has never declared a dividend",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/",
+      "status": "match"
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": "null, field_meta.dividend_per_share_ttm = {status: 'unavailable', reason: 'provider did not publish this field'} (collected.calls.fundamentals.body.dividend_per_share_ttm + field_meta)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "0 USD/ADS (explicit determinable value: never paid a dividend)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/",
+      "status": "app blank",
+      "note": "Covered by DAT-P18-3."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": "null, field_meta.dividend_yield = {status: 'unavailable', reason: 'provider did not publish this field'}",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "null ('n/a' — genuinely no dividend, not coerced to 0.00%)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/",
+      "status": "match",
+      "note": "Both sides correctly avoid rendering a false 0.00%; the underlying reason label differs (app: 'provider did not publish' vs true reason: 'no dividend exists') but see DAT-P18-3 for the sibling field where this labeling gap does surface as a real defect."
+    },
+    {
+      "field": "week52.high",
+      "app_value": "385.22 (collected.calls.fundamentals.body.fifty_two_week_high)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "385.22",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/",
+      "status": "match"
+    },
+    {
+      "field": "week52.low",
+      "app_value": "253.948 (collected.calls.fundamentals.body.fifty_two_week_low)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "253.95",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/",
+      "status": "match"
+    },
+    {
+      "field": "week52.high_date / week52.low_date",
+      "app_value": "no date fields for the 52w high/low in the schema",
+      "app_as_of": "2026-09-19",
+      "outside_value": "not reached (pack itself only found the values, not the dates each was set)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "no source truth"
+    },
+    {
+      "field": "shareholding.quarter",
+      "app_value": "N/A — collected.calls.shareholding.body.detail = \"disclosures: 'ONC' is not a known NSE/BSE instrument\" (HTTP 502)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "'n/a - no quarterly shareholding filing regime for this issuer'",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "match",
+      "note": "Both sides correctly agree the concept does not apply. See DAT-P18-6 for the broader consequence of the NSE/BSE-only disclosures routing."
+    },
+    {
+      "field": "shareholding.promoter_pct",
+      "app_value": "N/A (same 502)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "null, gap: world_gaps.no_promoter_concept",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "no source truth"
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": "N/A (same 502)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "null, gap: world_gaps.no_promoter_concept",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "no source truth"
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": "N/A (same 502)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "null, gap: world_gaps.no_promoter_concept",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "no source truth"
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": "N/A (same 502)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "null; nearest equivalent: float 80.96M ADS of 113.70M ADS outstanding = 71.2%",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+      "status": "no source truth",
+      "note": "No direct 'public_pct' field exists on either side for this issuer; the nearest equivalent (float %) is not a field the app's fundamentals schema carries either, so there is nothing to diff cleanly."
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": "N/A (same 502)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "null, gap: world_gaps.no_promoter_concept (absent, not zero — no pledge-disclosure regime applies)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "no source truth"
+    },
+    {
+      "field": "shareholding.insider_ownership_pct (nearest US equivalent to promoter_pct)",
+      "app_value": "0.17277001 = 17.28% (collected.calls.fundamentals.body.held_percent_insiders)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "4.1% (aggregator roll-up of Forms 3/4/5 + proxy table)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+      "status": "mismatch",
+      "note": "Covered by DAT-P18-2. ~4.2x the outside figure, same field, same definition (insider ownership %), same day."
+    },
+    {
+      "field": "shareholding.institutional_ownership_pct",
+      "app_value": "0.33159 = 33.16% (collected.calls.fundamentals.body.held_percent_institutions)",
+      "app_as_of": "2026-09-19T09:59:32Z",
+      "outside_value": "52.86% (13F-derived; pack notes this UNDERSTATES true institutional holding since 13F covers only US-registered managers)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+      "status": "mismatch",
+      "note": "Covered by DAT-P18-2. ~20 points low even before accounting for the pack's noted understatement direction — the app number diverges further still."
+    },
+    {
+      "field": "corporate_actions_2026 / latest_results.quarter+filing_date / last_3_announcements",
+      "app_value": "N/A on all three — collected.calls.announcements.body.detail and collected.calls.results_calendar.body.detail both = \"'ONC' is not a known NSE/BSE instrument\" (HTTP 502)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "6 real 2026 corporate actions (AGM share mandates, equity-plan increase, board reconstitution, S-8, S-3ASR shelf, China tax settlement); latest 10-Q = Q2 2026 filed 2026-08-05; 3 recent SEC filings (13D/A 2026-09-16, STAR-market 8-K 2026-08-26, Q2 8-K/10-Q 2026-08-05)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000165130826000017/bgne-20260611.htm ; https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm",
+      "status": "app blank",
+      "note": "Covered by DAT-P18-6. Not silent — the app returns an honest 502 explaining the route is NSE/BSE-only — but the net effect for the user is the same real data being completely unavailable."
+    },
+    {
+      "field": "consolidated_vs_standalone",
+      "app_value": "no explicit field; income/balance/cashflow data collected (provider openbb-mcp) is consolidated US GAAP and matches the real BeiGene/BeOne figures correctly (not the AMAL-style wrong-entity bug)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "US GAAP consolidated only; real dual-basis risk is US GAAP vs PRC Chinese Accounting Standards for the STAR-market (688235) line, not a consolidated/standalone split",
+      "outside_as_of": "2026-08-26",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000165130826000025/bgne-20260826.htm",
+      "status": "no source truth",
+      "note": "Niche fact, not a field either side tracks explicitly as a labeled value; confirmed the collected income/balance/cashflow figures ARE the correct company's real numbers (cross-checked total_revenue 2025-12-31 = 5,343,033,000 against the pack's FY2025 audited revenue — exact match), so no entity-mixup risk here unlike the P9/AMAL collision."
+    }
+  ]
+}

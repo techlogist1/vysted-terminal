@@ -1,0 +1,1 @@
+{"detail":[{"type":"literal_error","loc":["query","id"],"msg":"Input should be 'sp500', 'nifty50', 'crypto-top50', 'custom', 'nse-all', 'bse-all' or 'india-all'","input":"bogus","ctx":{"expected":"'sp500', 'nifty50', 'crypto-top50', 'custom', 'nse-all', 'bse-all' or 'india-all'"}}]}

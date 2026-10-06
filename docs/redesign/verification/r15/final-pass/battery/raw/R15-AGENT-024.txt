@@ -1,0 +1,7 @@
+# R15-AGENT-024 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:23:07+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py/R15-AGENT-024.py 2>&1 | grep -v "^WARNING\|DEBUG" | tail -c 9000
+[exit 0] [1.23s]
+type(criteria) after normalise: list
+input: {'criteria': [{'field': 'pe_ratio', 'op': 'lt', 'value': 20}, {'field': 'roe', 'op': 'gt', 'value': 15}, {'field': 'debt_to_equity', 'op': 'lt', 'value': 0.5}], 'universe': 'nse-all'}
+

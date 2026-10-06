@@ -1,0 +1,8 @@
+[   0.2s] error: {"kind": "error", "message": "Something went wrong with OpenRouter.", "action": "Try again or switch provider in Settings.", "detail": "Error code: 400 - {'error': {'message': 'zzz-nonsense/not-a-model-9000:free is not a valid model ID', 'code': 400}, 'user_id': 'user_<redacted>'}", "code": "unknown"}
+[   0.2s] done: {"kind": "done", "usage": null, "finish_reason": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 0.2s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · zzz-nonsense/not-a-model-9000:free
+exit=0

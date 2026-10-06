@@ -1,0 +1,4 @@
+web_search: catalog.is_untrusted_text=True fenced=True
+news: catalog.is_untrusted_text=True fenced=True
+corporate_announcements: catalog.is_untrusted_text=True fenced=True
+research: catalog.is_untrusted_text=True fenced=True

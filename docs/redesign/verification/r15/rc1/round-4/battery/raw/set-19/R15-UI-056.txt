@@ -1,0 +1,74 @@
+--- store/screener.ts: error frame handling + finish/runUnary helper ---
+402:    function finish(patch: Partial<ScreenerState>): boolean {
+443:    async function runUnary(describe: (err: unknown) => string): Promise<ScreenerResult | null> {
+530:    function processFrame(frame: Record<string, unknown>): boolean {
+563:        if (frame && processFrame(frame)) return true;
+--- test file ---
+310:    it("R15-CODE-DATA-006: run A's late unary fallback does not touch run B's result or status", async () => {
+339:    it("R15-UI-056: the stream's error frame puts the server's reason in store.error", async () => {
+    function processFrame(frame: Record<string, unknown>): boolean {
+      if (frame.event === "progress") {
+        if (_runAbortController === controller) {
+          set({
+            progress: {
+              phase: String(frame.phase ?? ""),
+              done: Number(frame.done ?? 0),
+              total: Number(frame.total ?? 0),
+              detail: String(frame.detail ?? ""),
+            },
+          });
+        }
+        return false;
+      }
+      if (frame.event === "result") {
+        // The result frame carries the full ScreenerResult fields inline.
+        // Strip the envelope key so the shape matches ScreenerResult exactly.
+        const { event: _e, ...resultFields } = frame;
+        finalResult = resultFields as unknown as ScreenerResult;
+        return true;
+      }
+      if (frame.event === "error") {
+        // R15-UI-056: the engine's own reason (ScreenerErrorFrame) reaches the panel.
+        serverError = typeof frame.message === "string" ? frame.message : "screener run failed";
+        return true;
+      }
+      return false;
+    }
+
+    /** Parse + apply complete lines; returns true once a terminal frame landed. */
+    function processLines(lines: string[]): boolean {
+      for (const line of lines) {
+        const frame = parseLine(line);
+        if (frame && processFrame(frame)) return true;
+      }
+      return false;
+    }
+    it("R15-UI-056: the stream's error frame puts the server's reason in store.error", async () => {
+      const frames = [
+        { event: "progress", phase: "universe", done: 0, total: 1, detail: "resolving" },
+        { event: "error", message: "missing universe snapshot 'nifty50.json'" },
+      ];
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          for (const f of frames)
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(f)}\n\n`));
+          controller.close();
+        },
+      });
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(stream, { status: 200, headers: { "Content-Type": "text/event-stream" } }),
+      );
+
+      expect(await useScreenerStore.getState().runScreener()).toBeNull();
+      const state = useScreenerStore.getState();
+      expect(state.status).toBe("error");
+      expect(state.error).toBe("missing universe snapshot 'nifty50.json'");
+      expect(state.progress).toBeNull();
+    });
+
+    it("for the custom universe, serialises custom_symbols from the raw text", async () => {
+      const fetchMock = mockFetchFallback(RESULT_SAMPLE);
+
+
+VERDICT: ci_pinned — behaviour is a store/stream-frame protocol only verifiable via vitest. Code confirmed live: processFrame (screener.ts:530) has an 'error' branch calling finish() with the server's message; helpers finish()/runUnary() (lines 402,443) are shared by all three completion paths as the fix specified. Pinned test: src/store/screener.test.ts:339 'R15-UI-056: the stream's error frame puts the server's reason in store.error'.

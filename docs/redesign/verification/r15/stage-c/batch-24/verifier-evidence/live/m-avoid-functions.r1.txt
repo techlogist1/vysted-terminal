@@ -1,0 +1,17 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  40.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_fd61db782e5f41b4b2f933c3aa3ed04b", "name": "portfolio_add_position", "input": {"asset_class": "equity", "cost_basis": 415, "note": "", "purchased_at": "2026-09-26", "quantity": 40, "symbol": "ITC"}}
+[  40.5s] tool_result: {"kind": "tool_result", "tool_call_id": "call_fd61db782e5f41b4b2f933c3aa3ed04b", "name": "portfolio_add_position", "ok": true, "error": null}
+[  45.4s] research_step: {"kind": "research_step", "tool_call_id": "call_fd61db782e5f41b4b2f933c3aa3ed04b", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position ITC. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  45.4s] done: {"kind": "done", "usage": {"input_tokens": 2970, "output_tokens": 62, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I have proposed adding your 40 ITC shares purchased at ₹415 to your holdings for review. To apply this change, please accept it from the review queue.
+
+If you'd like to confirm what you spent, the total amount is:
+
+₹16,600 (₹415 x 40)
+
+=== ok · 45.4s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 60, 'research_step': 1, 'done': 1} · usage in=2970 out=62 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,18 @@
+CMD (live): vy.py invoke copilot 'Research NVDA briefly.' via :52341 ollama llama3.1:8b; events from res.events.jsonl, EXIT=0, 76.4s total (local model prose turn)
+step idx 1 ok None ms research:begin f4db8209906641999b3d5d048203ef1c depth=normal query=NVDA
+step idx 2 ok None ms resolving "NVDA"
+step idx 3 ok 1882 ms resolved → NVDA
+step idx 4 ok None ms pulling market data for NVDA
+step idx 5 ok None ms searching the web for NVIDIA CORP
+step idx 6 ok 0 ms ownership cross-check
+step idx 7 ok 0 ms declared dividend cross-check
+step idx 8 ok 0 ms 52-week range cross-check
+step idx 9 ok 0 ms market-cap witness cross-check
+step idx 10 ok 22 ms growth cross-check
+step idx 11 ok 22 ms earnings quality cross-check
+step idx 12 ok 461 ms dividend TTM cross-check
+step idx 13 error 6002 ms filings timed out after 6s — dropped
+step idx 14 ok 6020 ms pulled 3/4 data sources
+step idx 15 skipped 8002 ms no web backend — structured only
+step idx 16 ok None ms assembling the research bundle
+step idx 0 ok None ms Staged for your review, not applied yet: publish_brief NVDA. Accept it below to apply.

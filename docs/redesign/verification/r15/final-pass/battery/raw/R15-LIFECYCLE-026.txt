@@ -1,0 +1,44 @@
+# R15-LIFECYCLE-026 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:43:56+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+echo "== own sidecar worker pid, 3 cycles x 8 cheap GETs per ~52 s plus two cold BSE history requests; ps cputime (lc026.sh, run detached) =="; cat $B/out/L-LIFECYCLE-026.txt
+--- output ---
+== own sidecar worker pid, 3 cycles x 8 cheap GETs per ~52 s plus two cold BSE history requests; ps cputime (lc026.sh, run detached) ==
+worker pid 18820
+cpu0 76.45s at Sat Oct  3 18:05:45 IST 2026
+  c1 200 0.001268s /health
+  c1 200 0.001436s /resolve?q=TCS
+  c1 200 0.001267s /resolve?q=INFY
+  c1 200 0.995394s /resolve?q=AAPL
+  c1 200 0.001425s /resolve?q=RELIANCE
+  c1 200 0.475294s /quotes/AAPL
+  c1 200 0.003048s /mcp/status
+  c1 200 0.001106s /health
+  c2 200 0.001078s /health
+  c2 200 0.001328s /resolve?q=TCS
+  c2 200 0.001131s /resolve?q=INFY
+  c2 200 0.000846s /resolve?q=AAPL
+  c2 200 0.001163s /resolve?q=RELIANCE
+  c2 200 0.624939s /quotes/AAPL
+  c2 200 0.001269s /mcp/status
+  c2 200 0.000942s /health
+  cold BSE history DAL 200 1.224429s
+  cold BSE history JUMBO 200 0.362501s
+  c3 200 0.001290s /health
+  c3 200 0.001438s /resolve?q=TCS
+  c3 200 0.001292s /resolve?q=INFY
+  c3 200 0.000848s /resolve?q=AAPL
+  c3 200 0.001206s /resolve?q=RELIANCE
+  c3 200 0.360133s /quotes/AAPL
+  c3 200 0.001235s /mcp/status
+  c3 200 0.000936s /health
+cpu1 84.83s at Sat Oct  3 18:08:19 IST 2026
+CPU 8.38 s over 154 s wall = 5.4%
+idle sample: 1.04 s over 20 s = 5.2%
+idle resample (long-lived sidecar, after 148 probes) 0: 0.96 s / 20 s = 4.8%
+idle resample 1: 0.98 s / 20 s = 4.9%
+idle resample 2: 0.91 s / 20 s = 4.6%
+fresh-sidecar idle sample 0 (pid 28130, rebooted 18:12): 0.86 s / 20 s = 4.3%
+fresh-sidecar idle sample 1 (pid 28130, rebooted 18:12): 0.92 s / 20 s = 4.6%
+fresh-sidecar idle sample 2 (pid 28130, rebooted 18:12): 0.79 s / 20 s = 3.9%
+
+EXIT=0 (0.0s)

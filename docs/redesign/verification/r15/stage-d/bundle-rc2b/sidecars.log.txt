@@ -1,0 +1,300 @@
+  Using cached referencing-0.37.0-py3-none-any.whl.metadata (2.8 kB)
+Collecting rpds-py>=0.25.0 (from jsonschema>=4.20.0->mcp==1.27.1->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 19))
+  Using cached rpds_py-2026.6.3-cp313-cp313-macosx_11_0_arm64.whl.metadata (4.1 kB)
+Collecting python-dotenv>=1.0.0 (from mcp[cli]>=1.7.1->sec-edgar-mcp==1.0.8->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 14))
+  Using cached python_dotenv-1.2.4-py3-none-any.whl.metadata (29 kB)
+Collecting typer>=0.16.0 (from mcp[cli]>=1.7.1->sec-edgar-mcp==1.0.8->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 14))
+  Using cached typer-0.27.2-py3-none-any.whl.metadata (16 kB)
+Collecting numpy>=1.26.0 (from pandas>=2.0.0->edgartools>=4.4.0->sec-edgar-mcp==1.0.8->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 14))
+  Using cached numpy-2.5.3-cp313-cp313-macosx_14_0_arm64.whl.metadata (6.6 kB)
+Collecting python-dateutil>=2.8.2 (from pandas>=2.0.0->edgartools>=4.4.0->sec-edgar-mcp==1.0.8->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 14))
+  Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+Collecting cryptography>=3.4.0 (from pyjwt[crypto]>=2.10.1->mcp==1.27.1->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 19))
+  Using cached cryptography-50.0.2-cp311-abi3-macosx_11_0_arm64.whl.metadata (4.4 kB)
+Collecting cffi>=2.0.0 (from cryptography>=3.4.0->pyjwt[crypto]>=2.10.1->mcp==1.27.1->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 19))
+  Using cached cffi-2.1.1-cp313-cp313-macosx_11_0_arm64.whl.metadata (2.5 kB)
+Collecting pycparser (from cffi>=2.0.0->cryptography>=3.4.0->pyjwt[crypto]>=2.10.1->mcp==1.27.1->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 19))
+  Using cached pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas>=2.0.0->edgartools>=4.4.0->sec-edgar-mcp==1.0.8->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 14))
+  Using cached six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+Collecting charset_normalizer<4,>=2 (from requests>=2.31.0->sec-edgar-mcp==1.0.8->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 14))
+  Using cached charset_normalizer-3.5.2-cp313-cp313-macosx_10_13_universal2.whl.metadata (46 kB)
+Collecting urllib3<3,>=1.26 (from requests>=2.31.0->sec-edgar-mcp==1.0.8->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 14))
+  Using cached urllib3-2.8.0-py3-none-any.whl.metadata (7.4 kB)
+Collecting markdown-it-py>=2.2.0 (from rich>=13.8.0->edgartools>=4.4.0->sec-edgar-mcp==1.0.8->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 14))
+  Using cached markdown_it_py-4.2.0-py3-none-any.whl.metadata (7.4 kB)
+Collecting pygments<3.0.0,>=2.13.0 (from rich>=13.8.0->edgartools>=4.4.0->sec-edgar-mcp==1.0.8->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 14))
+  Using cached pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=13.8.0->edgartools>=4.4.0->sec-edgar-mcp==1.0.8->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 14))
+  Using cached mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+Collecting tenacity (from stamina>=24.2.0->edgartools>=4.4.0->sec-edgar-mcp==1.0.8->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 14))
+  Using cached tenacity-9.1.4-py3-none-any.whl.metadata (1.2 kB)
+Collecting shellingham>=1.3.0 (from typer>=0.16.0->mcp[cli]>=1.7.1->sec-edgar-mcp==1.0.8->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 14))
+  Using cached shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+Collecting annotated-doc>=0.0.2 (from typer>=0.16.0->mcp[cli]>=1.7.1->sec-edgar-mcp==1.0.8->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 14))
+  Using cached annotated_doc-0.0.5-py3-none-any.whl.metadata (6.5 kB)
+Collecting click>=7.0 (from uvicorn>=0.31.1->mcp==1.27.1->-r <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/requirements.txt (line 19))
+  Using cached click-8.5.0-py3-none-any.whl.metadata (2.6 kB)
+Using cached sec_edgar_mcp-1.0.8-py3-none-any.whl (50 kB)
+Using cached mcp-1.27.1-py3-none-any.whl (216 kB)
+Using cached httpx-0.28.1-py3-none-any.whl (73 kB)
+Using cached httpcore-1.0.9-py3-none-any.whl (78 kB)
+Using cached pydantic-2.13.5-py3-none-any.whl (472 kB)
+Using cached pydantic_core-2.46.5-cp313-cp313-macosx_11_0_arm64.whl (1.9 MB)
+Using cached annotated_types-0.8.0-py3-none-any.whl (13 kB)
+Using cached anyio-4.15.1-py3-none-any.whl (132 kB)
+Using cached edgartools-5.60.0-py3-none-any.whl (3.5 MB)
+Using cached beautifulsoup4-4.15.0-py3-none-any.whl (109 kB)
+Using cached h11-0.16.0-py3-none-any.whl (37 kB)
+Using cached httpx_sse-0.4.3-py3-none-any.whl (9.0 kB)
+Using cached httpxthrottlecache-0.6.1-py3-none-any.whl (14 kB)
+Using cached aiofiles-25.1.0-py3-none-any.whl (14 kB)
+Using cached filelock-4.0.9-py3-none-any.whl (110 kB)
+Using cached humanize-4.16.0-py3-none-any.whl (137 kB)
+Using cached idna-3.20-py3-none-any.whl (69 kB)
+Using cached jinja2-3.1.6-py3-none-any.whl (134 kB)
+Using cached jsonschema-4.26.0-py3-none-any.whl (90 kB)
+Using cached attrs-26.1.0-py3-none-any.whl (67 kB)
+Using cached jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)
+Using cached lxml-6.1.3-cp313-cp313-macosx_10_13_universal2.whl (8.6 MB)
+Using cached markupsafe-3.0.4-cp313-cp313-macosx_11_0_arm64.whl (12 kB)
+Using cached nest_asyncio-1.6.0-py3-none-any.whl (5.2 kB)
+Using cached orjson-3.12.0-cp313-cp313-macosx_15_0_arm64.whl (123 kB)
+Using cached pandas-3.0.6-cp313-cp313-macosx_11_0_arm64.whl (10.1 MB)
+Using cached numpy-2.5.3-cp313-cp313-macosx_14_0_arm64.whl (5.4 MB)
+Using cached pyarrow-25.0.1-cp313-cp313-macosx_12_0_arm64.whl (35.9 MB)
+Using cached pydantic_settings-2.15.0-py3-none-any.whl (69 kB)
+Using cached pyjwt-2.15.1-py3-none-any.whl (33 kB)
+Using cached cryptography-50.0.2-cp311-abi3-macosx_11_0_arm64.whl (3.9 MB)
+Using cached cffi-2.1.1-cp313-cp313-macosx_11_0_arm64.whl (184 kB)
+Using cached pyrate_limiter-4.5.0-py3-none-any.whl (57 kB)
+Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+Using cached python_dotenv-1.2.4-py3-none-any.whl (23 kB)
+Using cached python_multipart-0.0.32-py3-none-any.whl (30 kB)
+Using cached rank_bm25-0.2.2-py3-none-any.whl (8.6 kB)
+Using cached rapidfuzz-3.14.6-cp313-cp313-macosx_11_0_arm64.whl (1.2 MB)
+Using cached referencing-0.37.0-py3-none-any.whl (26 kB)
+Using cached requests-2.34.2-py3-none-any.whl (73 kB)
+Using cached charset_normalizer-3.5.2-cp313-cp313-macosx_10_13_universal2.whl (366 kB)
+Using cached urllib3-2.8.0-py3-none-any.whl (135 kB)
+Using cached certifi-2026.7.22-py3-none-any.whl (136 kB)
+Using cached rich-15.0.0-py3-none-any.whl (310 kB)
+Using cached pygments-2.21.0-py3-none-any.whl (1.3 MB)
+Using cached markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
+Using cached mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+Using cached rpds_py-2026.6.3-cp313-cp313-macosx_11_0_arm64.whl (338 kB)
+Using cached six-1.17.0-py2.py3-none-any.whl (11 kB)
+Using cached soupsieve-2.10-py3-none-any.whl (38 kB)
+Using cached sse_starlette-3.5.0-py3-none-any.whl (17 kB)
+Using cached stamina-26.1.0-py3-none-any.whl (18 kB)
+Using cached starlette-1.7.0-py3-none-any.whl (78 kB)
+Using cached tabulate-0.10.0-py3-none-any.whl (39 kB)
+Using cached textdistance-4.6.3-py3-none-any.whl (31 kB)
+Using cached tqdm-4.70.1-py3-none-any.whl (80 kB)
+Using cached truststore-0.10.4-py3-none-any.whl (18 kB)
+Using cached typer-0.27.2-py3-none-any.whl (123 kB)
+Using cached annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
+Using cached shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+Using cached typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+Using cached typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+Using cached Unidecode-1.4.0-py3-none-any.whl (235 kB)
+Using cached uvicorn-0.54.0-py3-none-any.whl (87 kB)
+Using cached click-8.5.0-py3-none-any.whl (125 kB)
+Using cached pycparser-3.0-py3-none-any.whl (48 kB)
+Using cached tenacity-9.1.4-py3-none-any.whl (28 kB)
+Installing collected packages: urllib3, unidecode, typing-extensions, truststore, tqdm, textdistance, tenacity, tabulate, soupsieve, six, shellingham, rpds-py, rapidfuzz, python-multipart, python-dotenv, pyrate-limiter, pyjwt, pygments, pycparser, pyarrow, orjson, numpy, nest-asyncio, mdurl, MarkupSafe, lxml, idna, humanize, httpx-sse, h11, filelock, click, charset_normalizer, certifi, attrs, annotated-types, annotated-doc, aiofiles, uvicorn, typing-inspection, stamina, requests, referencing, rank-bm25, python-dateutil, pydantic-core, markdown-it-py, jinja2, httpxthrottlecache, httpcore, cffi, beautifulsoup4, anyio, starlette, rich, pydantic, pandas, jsonschema-specifications, httpx, cryptography, typer, sse-starlette, pydantic-settings, jsonschema, mcp, edgartools, sec-edgar-mcp
+
+Successfully installed MarkupSafe-3.0.4 aiofiles-25.1.0 annotated-doc-0.0.5 annotated-types-0.8.0 anyio-4.15.1 attrs-26.1.0 beautifulsoup4-4.15.0 certifi-2026.7.22 cffi-2.1.1 charset_normalizer-3.5.2 click-8.5.0 cryptography-50.0.2 edgartools-5.60.0 filelock-4.0.9 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 httpx-sse-0.4.3 httpxthrottlecache-0.6.1 humanize-4.16.0 idna-3.20 jinja2-3.1.6 jsonschema-4.26.0 jsonschema-specifications-2025.9.1 lxml-6.1.3 markdown-it-py-4.2.0 mcp-1.27.1 mdurl-0.1.2 nest-asyncio-1.6.0 numpy-2.5.3 orjson-3.12.0 pandas-3.0.6 pyarrow-25.0.1 pycparser-3.0 pydantic-2.13.5 pydantic-core-2.46.5 pydantic-settings-2.15.0 pygments-2.21.0 pyjwt-2.15.1 pyrate-limiter-4.5.0 python-dateutil-2.9.0.post0 python-dotenv-1.2.4 python-multipart-0.0.32 rank-bm25-0.2.2 rapidfuzz-3.14.6 referencing-0.37.0 requests-2.34.2 rich-15.0.0 rpds-py-2026.6.3 sec-edgar-mcp-1.0.8 shellingham-1.5.4 six-1.17.0 soupsieve-2.10 sse-starlette-3.5.0 stamina-26.1.0 starlette-1.7.0 tabulate-0.10.0 tenacity-9.1.4 textdistance-4.6.3 tqdm-4.70.1 truststore-0.10.4 typer-0.27.2 typing-extensions-4.16.0 typing-inspection-0.4.4 unidecode-1.4.0 urllib3-2.8.0 uvicorn-0.54.0
+[ensure-sec-edgar-mcp-sidecar] $ "<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/bin/python" -m pip install pyinstaller==6.20.0
+Collecting pyinstaller==6.20.0
+  Using cached pyinstaller-6.20.0-py3-none-macosx_10_13_universal2.whl.metadata (8.5 kB)
+Collecting altgraph (from pyinstaller==6.20.0)
+  Using cached altgraph-0.17.5-py2.py3-none-any.whl.metadata (7.5 kB)
+Collecting macholib>=1.8 (from pyinstaller==6.20.0)
+  Using cached macholib-1.16.4-py2.py3-none-any.whl.metadata (12 kB)
+Collecting packaging>=22.0 (from pyinstaller==6.20.0)
+  Using cached packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+Collecting pyinstaller-hooks-contrib>=2026.4 (from pyinstaller==6.20.0)
+  Using cached pyinstaller_hooks_contrib-2026.8-py3-none-any.whl.metadata (16 kB)
+Collecting setuptools>=42.0.0 (from pyinstaller==6.20.0)
+  Using cached setuptools-84.0.0-py3-none-any.whl.metadata (6.6 kB)
+Using cached pyinstaller-6.20.0-py3-none-macosx_10_13_universal2.whl (1.0 MB)
+Using cached macholib-1.16.4-py2.py3-none-any.whl (38 kB)
+Using cached altgraph-0.17.5-py2.py3-none-any.whl (21 kB)
+Using cached packaging-26.3-py3-none-any.whl (129 kB)
+Using cached pyinstaller_hooks_contrib-2026.8-py3-none-any.whl (462 kB)
+Using cached setuptools-84.0.0-py3-none-any.whl (818 kB)
+Installing collected packages: altgraph, setuptools, packaging, macholib, pyinstaller-hooks-contrib, pyinstaller
+
+Successfully installed altgraph-0.17.5 macholib-1.16.4 packaging-26.3 pyinstaller-6.20.0 pyinstaller-hooks-contrib-2026.8 setuptools-84.0.0
+[ensure-sec-edgar-mcp-sidecar] $ "<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/bin/pyinstaller" --onefile --clean --noconfirm --name vysted-sec-edgar-mcp-sidecar --hidden-import=uvicorn.loops.auto --hidden-import=uvicorn.loops.asyncio --hidden-import=uvicorn.protocols.http.auto --hidden-import=uvicorn.protocols.http.h11_impl --hidden-import=uvicorn.protocols.websockets.auto --hidden-import=uvicorn.lifespan.on --hidden-import=uvicorn.lifespan.off --hidden-import=sec_edgar_mcp.server --collect-all=sec_edgar_mcp --collect-data=edgar --collect-submodules=edgar --copy-metadata=mcp --copy-metadata=sec-edgar-mcp --copy-metadata=edgartools --copy-metadata=anyio --copy-metadata=httpx --copy-metadata=starlette --copy-metadata=uvicorn --distpath "<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/dist" --workpath "<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/build" --specpath "<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/build" main.py
+36 INFO: PyInstaller: 6.20.0, contrib hooks: 2026.8
+36 INFO: Python: 3.13.13
+42 INFO: Platform: macOS-26.3-arm64-arm-64bit-Mach-O
+42 INFO: Python environment: <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv
+42 INFO: wrote <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/build/vysted-sec-edgar-mcp-sidecar.spec
+44 INFO: Removing temporary files and cleaning cache in /Users/lokavyasingh/Library/Application Support/pyinstaller
+31701 INFO: Module search paths (PYTHONPATH):
+['/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python313.zip',
+ '/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13',
+ '/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/lib-dynload',
+ '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages',
+ '<scratchpad>/bundle-rc2b/sidecar']
+31838 INFO: Appending 'datas' from .spec
+31841 INFO: checking Analysis
+31841 INFO: Building Analysis because Analysis-00.toc is non existent
+31841 INFO: Looking for Python shared library...
+31843 INFO: Using Python shared library: /opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/Python
+31843 INFO: Running Analysis Analysis-00.toc
+31843 INFO: Target bytecode optimization level: 0
+31843 INFO: Initializing module dependency graph...
+31844 INFO: Initializing module graph hook caches...
+31849 INFO: Analyzing modules for base_library.zip ...
+32339 INFO: Processing standard module hook 'hook-encodings.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+32640 INFO: Processing standard module hook 'hook-heapq.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+33312 INFO: Processing standard module hook 'hook-pickle.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+34086 INFO: Caching module dependency graph...
+34111 INFO: Analyzing <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/main.py
+34221 INFO: Processing standard module hook 'hook-sysconfig.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+34229 INFO: Processing standard module hook 'hook-_osx_support.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+34231 INFO: Processing standard module hook 'hook-_ctypes.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+34573 INFO: Processing standard module hook 'hook-certifi.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+34684 INFO: Processing standard module hook 'hook-multiprocessing.util.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+34740 INFO: Processing standard module hook 'hook-xml.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+35152 INFO: Processing standard module hook 'hook-anyio.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+35299 INFO: Processing pre-safe-import-module hook 'hook-typing_extensions.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks/pre_safe_import_module'
+35300 INFO: SetuptoolsInfo: initializing cached setuptools info...
+35973 INFO: Processing standard module hook 'hook-platform.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+36056 INFO: Processing standard module hook 'hook-difflib.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+36126 INFO: Processing standard module hook 'hook-pygments.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+36624 INFO: Processing standard module hook 'hook-rich.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+37565 INFO: Processing standard module hook 'hook-numpy.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+38775 INFO: Processing standard module hook 'hook-charset_normalizer.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+38982 INFO: Processing standard module hook 'hook-pandas.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+39787 INFO: Processing standard module hook 'hook-zoneinfo.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+40616 INFO: Processing standard module hook 'hook-pandas.io.formats.style.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+41510 INFO: Processing standard module hook 'hook-pyarrow.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+41806 INFO: Processing standard module hook 'hook-urllib3.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+41870 INFO: Processing pre-safe-import-module hook 'hook-backports.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks/pre_safe_import_module'
+41870 INFO: Setuptools: 'backports' appears to be a full setuptools-vendored copy - creating alias to 'setuptools._vendor.backports'!
+41874 INFO: Processing standard module hook 'hook-setuptools.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+41881 INFO: Processing pre-safe-import-module hook 'hook-distutils.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks/pre_safe_import_module'
+41900 INFO: Processing pre-safe-import-module hook 'hook-jaraco.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks/pre_safe_import_module'
+41900 INFO: Setuptools: 'jaraco' appears to be a full setuptools-vendored copy - creating alias to 'setuptools._vendor.jaraco'!
+41907 INFO: Processing pre-safe-import-module hook 'hook-more_itertools.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks/pre_safe_import_module'
+41907 INFO: Setuptools: 'more_itertools' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.more_itertools'!
+41994 INFO: Processing pre-safe-import-module hook 'hook-packaging.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks/pre_safe_import_module'
+42153 INFO: Processing standard module hook 'hook-setuptools._vendor.jaraco.text.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+42154 INFO: Processing pre-safe-import-module hook 'hook-importlib_resources.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks/pre_safe_import_module'
+42443 INFO: Processing pre-safe-import-module hook 'hook-tomli.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks/pre_safe_import_module'
+42443 INFO: Setuptools: 'tomli' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.tomli'!
+42743 INFO: Processing pre-safe-import-module hook 'hook-wheel.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks/pre_safe_import_module'
+42743 INFO: Setuptools: 'wheel' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.wheel'!
+43051 INFO: Processing standard module hook 'hook-cryptography.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+44251 INFO: hook-cryptography: cryptography does not seem to be using dynamically linked OpenSSL.
+45078 INFO: Processing standard module hook 'hook-pandas.plotting.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+45397 INFO: Processing standard module hook 'hook-dateutil.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+45488 INFO: Processing pre-safe-import-module hook 'hook-six.moves.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks/pre_safe_import_module'
+46251 INFO: Processing standard module hook 'hook-sqlite3.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+46425 INFO: Processing standard module hook 'hook-pandas.io.clipboard.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+46592 INFO: Processing standard module hook 'hook-xml.etree.cElementTree.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+46593 INFO: Processing standard module hook 'hook-lxml.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+46705 INFO: Processing standard module hook 'hook-lxml.etree.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+46711 INFO: Processing standard module hook 'hook-xml.dom.domreg.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+47344 INFO: Processing standard module hook 'hook-unidecode.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+47476 INFO: Processing standard module hook 'hook-orjson.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+48039 INFO: Processing standard module hook 'hook-textdistance.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+48405 INFO: Processing standard module hook 'hook-pydantic.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+49902 INFO: Processing standard module hook 'hook-humanize.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+50222 INFO: Processing standard module hook 'hook-jinja2.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+52516 INFO: Processing standard module hook 'hook-jsonschema.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+52593 INFO: Processing standard module hook 'hook-jsonschema_specifications.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+53124 INFO: Processing standard module hook 'hook-uvicorn.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+53463 INFO: Analyzing hidden import 'uvicorn.loops.auto'
+53464 INFO: Analyzing hidden import 'uvicorn.protocols.http.auto'
+53465 INFO: Analyzing hidden import 'uvicorn.protocols.websockets.auto'
+53465 INFO: Analyzing hidden import 'uvicorn.lifespan.on'
+53469 INFO: Analyzing hidden import 'uvicorn.lifespan.off'
+53469 INFO: Analyzing hidden import 'edgar.ai'
+53492 INFO: Analyzing hidden import 'edgar.ai.__main__'
+53574 INFO: Analyzing hidden import 'edgar.ai.formats'
+53576 INFO: Analyzing hidden import 'edgar.beneficial_ownership.amendments'
+53579 INFO: Analyzing hidden import 'edgar.diagnose_ssl.__main__'
+53580 INFO: Analyzing hidden import 'edgar.display.demo'
+53596 INFO: Analyzing hidden import 'edgar.documents.extractors.heading_section_detector'
+53599 INFO: Analyzing hidden import 'edgar.documents.migration'
+53603 INFO: Analyzing hidden import 'edgar.effect'
+53603 INFO: Analyzing hidden import 'edgar.entity.tools'
+53604 INFO: Analyzing hidden import 'edgar.files.text'
+53606 INFO: Analyzing hidden import 'edgar.form144'
+53606 INFO: Analyzing hidden import 'edgar.forms'
+53609 INFO: Analyzing hidden import 'edgar.funds.examples'
+53610 INFO: Analyzing hidden import 'edgar.funds.thirteenf'
+53611 INFO: Analyzing hidden import 'edgar.offerings._424b_classifier'
+53612 INFO: Analyzing hidden import 'edgar.offerings._424b_cover'
+53612 INFO: Analyzing hidden import 'edgar.offerings._424b_tables'
+53612 INFO: Analyzing hidden import 'edgar.offerings._424b_xbrl'
+53613 INFO: Analyzing hidden import 'edgar.offerings._campaign_render'
+53613 INFO: Analyzing hidden import 'edgar.offerings._fee_table'
+53613 INFO: Analyzing hidden import 'edgar.offerings._s1_classifier'
+53614 INFO: Analyzing hidden import 'edgar.offerings._s1_cover'
+53614 INFO: Analyzing hidden import 'edgar.offerings._s3_cover'
+53614 INFO: Analyzing hidden import 'edgar.offerings.campaign'
+53615 INFO: Analyzing hidden import 'edgar.offerings.formc'
+53615 INFO: Analyzing hidden import 'edgar.offerings.formd'
+53615 INFO: Analyzing hidden import 'edgar.ownership.ownershipforms'
+53616 INFO: Analyzing hidden import 'edgar.shelfofferings'
+53617 INFO: Analyzing hidden import 'edgar.storage_management'
+53617 INFO: Analyzing hidden import 'edgar.xbrl.examples'
+53623 INFO: Analyzing hidden import 'edgar.xbrl.exceptions'
+53624 INFO: Analyzing hidden import 'edgar.xbrl.period_data_check'
+53628 INFO: Analyzing hidden import 'edgar.xbrl.standardization.utils'
+53638 INFO: Analyzing hidden import 'sec_edgar_mcp.document_parser'
+53648 INFO: Analyzing hidden import 'sec_edgar_mcp.tools.insider_complex'
+53657 INFO: Processing module hooks (post-graph stage)...
+54154 INFO: Processing standard module hook 'hook-lxml.isoschematron.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+54282 INFO: Processing standard module hook 'hook-pycparser.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+55943 INFO: Processing standard module hook 'hook-lxml.objectify.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+55943 WARNING: Hidden import "pycparser.lextab" not found!
+55943 WARNING: Hidden import "pycparser.yacctab" not found!
+55961 INFO: Performing binary vs. data reclassification (865 entries)
+56016 INFO: Looking for ctypes DLLs
+56038 WARNING: Library user32 required via ctypes not found
+56043 WARNING: Library msvcrt required via ctypes not found
+56044 WARNING: Library ntdll required via ctypes not found
+56077 INFO: Analyzing run-time hooks ...
+56085 INFO: Including run-time hook 'pyi_rth_inspect.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks/rthooks'
+56086 INFO: Including run-time hook 'pyi_rth_setuptools.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks/rthooks'
+56087 INFO: Including run-time hook 'pyi_rth_pkgutil.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks/rthooks'
+56088 INFO: Including run-time hook 'pyi_rth_multiprocessing.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/hooks/rthooks'
+56089 INFO: Including run-time hook 'pyi_rth_cryptography_openssl.py' from '<scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/rthooks'
+56124 INFO: Creating base_library.zip...
+56137 INFO: Looking for dynamic libraries
+56408 INFO: Warnings written to <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/build/vysted-sec-edgar-mcp-sidecar/warn-vysted-sec-edgar-mcp-sidecar.txt
+56480 INFO: Graph cross-reference written to <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/build/vysted-sec-edgar-mcp-sidecar/xref-vysted-sec-edgar-mcp-sidecar.html
+56632 INFO: checking PYZ
+56632 INFO: Building PYZ because PYZ-00.toc is non existent
+56632 INFO: Building PYZ (ZlibArchive) <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/build/vysted-sec-edgar-mcp-sidecar/PYZ-00.pyz
+58081 INFO: Building PYZ (ZlibArchive) <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/build/vysted-sec-edgar-mcp-sidecar/PYZ-00.pyz completed successfully.
+58113 INFO: EXE target arch: arm64
+58113 INFO: Code signing identity: None
+58123 INFO: checking PKG
+58123 INFO: Building PKG because PKG-00.toc is non existent
+58123 INFO: Building PKG (CArchive) vysted-sec-edgar-mcp-sidecar.pkg
+76835 INFO: Building PKG (CArchive) vysted-sec-edgar-mcp-sidecar.pkg completed successfully.
+76849 INFO: Bootloader <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/.venv/lib/python3.13/site-packages/PyInstaller/bootloader/Darwin-64bit/run
+76849 INFO: checking EXE
+76850 INFO: Building EXE because EXE-00.toc is non existent
+76850 INFO: Building EXE from EXE-00.toc
+76850 INFO: Copying bootloader EXE to <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/dist/vysted-sec-edgar-mcp-sidecar
+76850 INFO: Converting EXE to target arch (arm64)
+76867 INFO: Removing signature(s) from EXE
+76888 INFO: Modifying Mach-O image UUID(s) in EXE
+76938 INFO: Appending PKG archive to EXE
+76969 INFO: Fixing EXE headers for code signing
+76972 INFO: Re-signing the EXE
+77089 INFO: Building EXE from EXE-00.toc completed successfully.
+77104 INFO: Build complete! The results are available in: <scratchpad>/bundle-rc2b/sidecar/sec_edgar_mcp_subprocess/dist
+[ensure-sec-edgar-mcp-sidecar] wrote <scratchpad>/bundle-rc2b/src-tauri/binaries/vysted-sec-edgar-mcp-sidecar-aarch64-apple-darwin
+[ensure-sec-edgar-mcp-sidecar] done.
+[ensure-all-sidecars] all sidecars present.

@@ -1,0 +1,6 @@
+{
+  "universe": "custom",
+  "custom_symbols": ["ZZZBOGUS1", "ZZZBOGUS2", "ZZZBOGUS3"],
+  "criteria": [{"field": "market_cap", "operator": "gt", "value": 0}],
+  "limit": 50
+}

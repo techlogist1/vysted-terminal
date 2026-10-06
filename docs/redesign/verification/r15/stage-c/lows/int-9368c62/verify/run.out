@@ -1,0 +1,145 @@
+announcements      FOCUS.BO   n=  23 cov=covered sym=543312 sources=['BSE'] note='' err=''
+announcements      543312     n=  23 cov=covered sym=543312 sources=['BSE'] note='' err=''
+announcements      FOCUS      n=  44 cov=covered sym=FOCUS sources=['NSE'] note='BSE FOCUS is a different company; only the NSE feed is served' err=''
+announcements      KALYANI.BO n=  28 cov=covered sym=544023 sources=['BSE'] note='' err=''
+announcements      544023     n=  28 cov=covered sym=544023 sources=['BSE'] note='' err=''
+announcements      KALYANI    n=  47 cov=covered sym=KALYANI sources=['NSE'] note='BSE KALYANI is a different company; only the NSE feed is served' err=''
+announcements      RAJPUTANA.BO n=  25 cov=covered sym=539090 sources=['BSE'] note='' err=''
+announcements      539090     n=  25 cov=covered sym=539090 sources=['BSE'] note='' err=''
+announcements      RAJPUTANA  n=  45 cov=covered sym=RAJPUTANA sources=['NSE'] note='BSE RAJPUTANA is a different company; only the NSE feed is served' err=''
+announcements      MAL.BO     n=  23 cov=covered sym=531613 sources=['BSE'] note='' err=''
+announcements      531613     n=  23 cov=covered sym=531613 sources=['BSE'] note='' err=''
+announcements      MAL        n=  47 cov=covered sym=MAL sources=['NSE'] note='BSE MAL is a different company; only the NSE feed is served' err=''
+announcements      SEL.BO     n=  27 cov=covered sym=509423 sources=['BSE'] note='' err=''
+announcements      509423     n=  27 cov=covered sym=509423 sources=['BSE'] note='' err=''
+announcements      SEL        n=  48 cov=covered sym=SEL sources=['NSE'] note='BSE SEL is a different company; only the NSE feed is served' err=''
+announcements      ZEAL.BO    n=  48 cov=covered sym=539963 sources=['BSE'] note='' err=''
+announcements      539963     n=  48 cov=covered sym=539963 sources=['BSE'] note='' err=''
+announcements      ZEAL       n=  50 cov=covered sym=ZEAL sources=['NSE'] note='BSE ZEAL is a different company; only the NSE feed is served' err=''
+announcements      AMAL.BO    n=  21 cov=covered sym=AMAL sources=['NSE', 'BSE'] note='' err=''
+announcements      AMAL       n=  21 cov=covered sym=AMAL sources=['NSE', 'BSE'] note='' err=''
+announcements      INFY.NS    n=  50 cov=covered sym=INFY sources=['NSE', 'BSE'] note='' err=''
+announcements      HDFCBANK   n=  50 cov=covered sym=HDFCBANK sources=['NSE', 'BSE'] note='' err=''
+  CHECK announcements FOCUS.BO == 543312: True (n=23)
+  CHECK announcements KALYANI.BO == 544023: True (n=28)
+  CHECK announcements RAJPUTANA.BO == 539090: True (n=25)
+  CHECK announcements MAL.BO == 531613: True (n=23)
+  CHECK announcements SEL.BO == 509423: True (n=27)
+  CHECK announcements ZEAL.BO == 539963: True (n=48)
+  CHECK announcements AMAL.BO == AMAL: True
+results            FOCUS.BO   n=  10 cov=covered sym=543312 sources=['BSE'] note='' err=''
+results            543312     n=  10 cov=covered sym=543312 sources=['BSE'] note='' err=''
+results            FOCUS      n=  35 cov=covered sym=FOCUS sources=['NSE'] note='BSE FOCUS is a different company; only the NSE feed is served' err=''
+results            KALYANI.BO n=   8 cov=covered sym=544023 sources=['BSE'] note='' err=''
+results            544023     n=   8 cov=covered sym=544023 sources=['BSE'] note='' err=''
+results            KALYANI    n=  41 cov=covered sym=KALYANI sources=['NSE'] note='BSE KALYANI is a different company; only the NSE feed is served' err=''
+results            RAJPUTANA.BO n=  10 cov=covered sym=539090 sources=['BSE'] note='' err=''
+results            539090     n=  10 cov=covered sym=539090 sources=['BSE'] note='' err=''
+results            RAJPUTANA  n=   0 cov=covered sym=RAJPUTANA sources=['NSE'] note='BSE RAJPUTANA is a different company; only the NSE feed is served' err=''
+results            MAL.BO     n=  10 cov=covered sym=531613 sources=['BSE'] note='' err=''
+results            531613     n=  10 cov=covered sym=531613 sources=['BSE'] note='' err=''
+results            MAL        n=   0 cov=covered sym=MAL sources=['NSE'] note='BSE MAL is a different company; only the NSE feed is served' err=''
+results            SEL.BO     n=  10 cov=covered sym=509423 sources=['BSE'] note='' err=''
+results            509423     n=  10 cov=covered sym=509423 sources=['BSE'] note='' err=''
+results            SEL        n=   0 cov=covered sym=SEL sources=['NSE'] note='BSE SEL is a different company; only the NSE feed is served' err=''
+results            ZEAL.BO    n=  10 cov=covered sym=539963 sources=['BSE'] note='' err=''
+results            539963     n=  10 cov=covered sym=539963 sources=['BSE'] note='' err=''
+results            ZEAL       n=   0 cov=covered sym=ZEAL sources=['NSE'] note='BSE ZEAL is a different company; only the NSE feed is served' err=''
+results            AMAL.BO    n=  10 cov=covered sym=AMAL sources=['NSE', 'BSE'] note='' err=''
+results            AMAL       n=  10 cov=covered sym=AMAL sources=['NSE', 'BSE'] note='' err=''
+results            INFY.NS    n=  70 cov=covered sym=INFY sources=['NSE', 'BSE'] note='' err=''
+results            HDFCBANK   n=  75 cov=covered sym=HDFCBANK sources=['NSE', 'BSE'] note='' err=''
+  CHECK results FOCUS.BO == 543312: True (n=10)
+  CHECK results KALYANI.BO == 544023: True (n=8)
+  CHECK results RAJPUTANA.BO == 539090: True (n=10)
+  CHECK results MAL.BO == 531613: True (n=10)
+  CHECK results SEL.BO == 509423: True (n=10)
+  CHECK results ZEAL.BO == 539963: True (n=10)
+  CHECK results AMAL.BO == AMAL: True
+shareholding       FOCUS.BO   n=  12 cov=covered sym=543312 sources=None note='' err=''
+shareholding       543312     n=  12 cov=covered sym=543312 sources=None note='' err=''
+shareholding       FOCUS      n=  21 cov=covered sym=FOCUS sources=None note='BSE FOCUS is a different company; only the NSE feed is served' err=''
+shareholding       KALYANI.BO n=  11 cov=covered sym=544023 sources=None note='' err=''
+shareholding       544023     n=  11 cov=covered sym=544023 sources=None note='' err=''
+shareholding       KALYANI    n=  20 cov=covered sym=KALYANI sources=None note='BSE KALYANI is a different company; only the NSE feed is served' err=''
+shareholding       RAJPUTANA.BO n=  47 cov=covered sym=539090 sources=None note='' err=''
+shareholding       539090     n=  47 cov=covered sym=539090 sources=None note='' err=''
+shareholding       RAJPUTANA  n=   4 cov=covered sym=RAJPUTANA sources=None note='BSE RAJPUTANA is a different company; only the NSE feed is served' err=''
+shareholding       MAL.BO     n= 101 cov=covered sym=531613 sources=None note='' err=''
+shareholding       531613     n= 101 cov=covered sym=531613 sources=None note='' err=''
+shareholding       MAL        n=   7 cov=covered sym=MAL sources=None note='BSE MAL is a different company; only the NSE feed is served' err=''
+shareholding       SEL.BO     n=  93 cov=covered sym=509423 sources=None note='' err=''
+shareholding       509423     n=  93 cov=covered sym=509423 sources=None note='' err=''
+shareholding       SEL        n=   8 cov=covered sym=SEL sources=None note='BSE SEL is a different company; only the NSE feed is served' err=''
+shareholding       ZEAL.BO    n=  37 cov=covered sym=539963 sources=None note='' err=''
+shareholding       539963     n=  37 cov=covered sym=539963 sources=None note='' err=''
+shareholding       ZEAL       n=   7 cov=covered sym=ZEAL sources=None note='BSE ZEAL is a different company; only the NSE feed is served' err=''
+shareholding       AMAL.BO    n= 104 cov=covered sym=AMAL sources=None note='' err=''
+shareholding       AMAL       n= 104 cov=covered sym=AMAL sources=None note='' err=''
+shareholding       INFY.NS    n=  21 cov=covered sym=INFY sources=None note='' err=''
+shareholding       HDFCBANK   n=  22 cov=covered sym=HDFCBANK sources=None note='' err=''
+  CHECK shareholding FOCUS.BO == 543312: True (n=12)
+  CHECK shareholding KALYANI.BO == 544023: False (n=11)
+  CHECK shareholding RAJPUTANA.BO == 539090: False (n=47)
+  CHECK shareholding MAL.BO == 531613: True (n=101)
+  CHECK shareholding SEL.BO == 509423: True (n=93)
+  CHECK shareholding ZEAL.BO == 539963: False (n=37)
+  CHECK shareholding AMAL.BO == AMAL: True
+corporate-actions  FOCUS.BO   n=   5 cov=covered sym=543312 sources=['BSE'] note='' err=''
+corporate-actions  543312     n=   5 cov=covered sym=543312 sources=['BSE'] note='' err=''
+corporate-actions  FOCUS      n=   4 cov=covered sym=FOCUS sources=['NSE'] note='BSE FOCUS is a different company; only the NSE feed is served' err=''
+corporate-actions  KALYANI.BO n=   0 cov=covered sym=544023 sources=['BSE'] note='' err=''
+corporate-actions  544023     n=   0 cov=covered sym=544023 sources=['BSE'] note='' err=''
+corporate-actions  KALYANI    n=   9 cov=covered sym=KALYANI sources=['NSE'] note='BSE KALYANI is a different company; only the NSE feed is served' err=''
+corporate-actions  RAJPUTANA.BO n=   1 cov=covered sym=539090 sources=['BSE'] note='' err=''
+corporate-actions  539090     n=   1 cov=covered sym=539090 sources=['BSE'] note='' err=''
+corporate-actions  RAJPUTANA  n=   0 cov=covered sym=RAJPUTANA sources=['NSE'] note='BSE RAJPUTANA is a different company; only the NSE feed is served' err=''
+corporate-actions  MAL.BO     n=   2 cov=covered sym=531613 sources=['BSE'] note='' err=''
+corporate-actions  531613     n=   2 cov=covered sym=531613 sources=['BSE'] note='' err=''
+corporate-actions  MAL        n=   1 cov=covered sym=MAL sources=['NSE'] note='BSE MAL is a different company; only the NSE feed is served' err=''
+corporate-actions  SEL.BO     n=   6 cov=covered sym=509423 sources=['BSE'] note='' err=''
+corporate-actions  509423     n=   6 cov=covered sym=509423 sources=['BSE'] note='' err=''
+corporate-actions  SEL        n=   0 cov=covered sym=SEL sources=['NSE'] note='BSE SEL is a different company; only the NSE feed is served' err=''
+corporate-actions  ZEAL.BO    n=   2 cov=covered sym=539963 sources=['BSE'] note='' err=''
+corporate-actions  539963     n=   2 cov=covered sym=539963 sources=['BSE'] note='' err=''
+corporate-actions  ZEAL       n=   3 cov=covered sym=ZEAL sources=['NSE'] note='BSE ZEAL is a different company; only the NSE feed is served' err=''
+corporate-actions  AMAL.BO    n=   5 cov=covered sym=AMAL sources=['NSE', 'BSE'] note='' err=''
+corporate-actions  AMAL       n=   5 cov=covered sym=AMAL sources=['NSE', 'BSE'] note='' err=''
+corporate-actions  INFY.NS    n=  20 cov=covered sym=INFY sources=['NSE', 'BSE'] note='' err=''
+corporate-actions  HDFCBANK   n=  20 cov=covered sym=HDFCBANK sources=['NSE', 'BSE'] note='' err=''
+  CHECK corporate-actions FOCUS.BO == 543312: True (n=5)
+  CHECK corporate-actions KALYANI.BO == 544023: True (n=0)
+  CHECK corporate-actions RAJPUTANA.BO == 539090: True (n=1)
+  CHECK corporate-actions MAL.BO == 531613: True (n=2)
+  CHECK corporate-actions SEL.BO == 509423: True (n=6)
+  CHECK corporate-actions ZEAL.BO == 539963: True (n=2)
+  CHECK corporate-actions AMAL.BO == AMAL: True
+deals              FOCUS.BO   n=  39 cov=covered sym=543312 sources=['BSE bulk', 'BSE block'] note='' err=''
+deals              543312     n=  39 cov=covered sym=543312 sources=['BSE bulk', 'BSE block'] note='' err=''
+deals              FOCUS      n=  11 cov=covered sym=FOCUS sources=['NSE bulk', 'NSE block', 'NSE sast'] note='BSE FOCUS is a different company; only the NSE feed is served' err=''
+deals              KALYANI.BO n=  31 cov=covered sym=544023 sources=['BSE bulk', 'BSE block'] note='' err=''
+deals              544023     n=  31 cov=covered sym=544023 sources=['BSE bulk', 'BSE block'] note='' err=''
+deals              KALYANI    n=   0 cov=covered sym=KALYANI sources=['NSE bulk', 'NSE block', 'NSE sast'] note='BSE KALYANI is a different company; only the NSE feed is served' err=''
+deals              RAJPUTANA.BO n=  25 cov=covered sym=539090 sources=['BSE bulk', 'BSE block'] note='' err=''
+deals              539090     n=  25 cov=covered sym=539090 sources=['BSE bulk', 'BSE block'] note='' err=''
+deals              RAJPUTANA  n=   5 cov=covered sym=RAJPUTANA sources=['NSE bulk', 'NSE block', 'NSE sast'] note='BSE RAJPUTANA is a different company; only the NSE feed is served' err=''
+deals              MAL.BO     n=   2 cov=covered sym=531613 sources=['BSE bulk', 'BSE block'] note='' err=''
+deals              531613     n=   2 cov=covered sym=531613 sources=['BSE bulk', 'BSE block'] note='' err=''
+deals              MAL        n=   6 cov=covered sym=MAL sources=['NSE bulk', 'NSE block', 'NSE sast'] note='BSE MAL is a different company; only the NSE feed is served' err=''
+deals              SEL.BO     n=  10 cov=covered sym=509423 sources=['BSE bulk', 'BSE block'] note='' err=''
+deals              509423     n=  10 cov=covered sym=509423 sources=['BSE bulk', 'BSE block'] note='' err=''
+deals              SEL        n=   4 cov=covered sym=SEL sources=['NSE bulk', 'NSE block', 'NSE sast'] note='BSE SEL is a different company; only the NSE feed is served' err=''
+deals              ZEAL.BO    n=  23 cov=covered sym=539963 sources=['BSE bulk', 'BSE block'] note='' err=''
+deals              539963     n=  23 cov=covered sym=539963 sources=['BSE bulk', 'BSE block'] note='' err=''
+deals              ZEAL       n=   0 cov=covered sym=ZEAL sources=['NSE bulk', 'NSE block', 'NSE sast'] note='BSE ZEAL is a different company; only the NSE feed is served' err=''
+deals              AMAL.BO    n=  18 cov=covered sym=AMAL sources=['NSE bulk', 'NSE block', 'NSE sast', 'BSE bulk', 'BSE block'] note='' err=''
+deals              AMAL       n=  18 cov=covered sym=AMAL sources=['NSE bulk', 'NSE block', 'NSE sast', 'BSE bulk', 'BSE block'] note='' err=''
+deals              INFY.NS    n= 219 cov=covered sym=INFY sources=['NSE bulk', 'NSE block', 'NSE sast', 'BSE bulk', 'BSE block'] note='' err=''
+deals              HDFCBANK   n= 120 cov=covered sym=HDFCBANK sources=['NSE bulk', 'NSE block', 'NSE sast', 'BSE bulk', 'BSE block'] note='' err=''
+  CHECK deals FOCUS.BO == 543312: True (n=39)
+  CHECK deals KALYANI.BO == 544023: True (n=31)
+  CHECK deals RAJPUTANA.BO == 539090: True (n=25)
+  CHECK deals MAL.BO == 531613: True (n=2)
+  CHECK deals SEL.BO == 509423: True (n=10)
+  CHECK deals ZEAL.BO == 539963: True (n=23)
+  CHECK deals AMAL.BO == AMAL: True

@@ -1,0 +1,20 @@
+# R15-CROSS-PLATFORM-007 in-process (candidate venv): os.replace raises PermissionError (WinError 5/32 stand-in)
+$ ./.venv/bin/python3 <script> (temp dir /var/folders/1s/3bgs17xd07z839yf5kj6mc3m0000gn/T/tmp.YycFr1HgRd)
+transient x2 -> saved after 3 replace calls; leftover: ['t7.vysted-workspace']
+permanent -> PermissionError after 5 attempts; leftover: ['t7.vysted-workspace']
+--- Rust half
+901-    #[test]
+902-    fn rename_failure_removes_tmp() {
+903:        // R15-CROSS-PLATFORM-007: a rename that fails for good (here the
+904-        // destination is a non-empty directory) reports the error and leaves no
+905-        // `<name>.tmp.<pid>` behind.
+906-        let dir = temp_dir("rename-fail");
+907-        let dest = dir.join("AAPL.md");
+908-        std::fs::create_dir_all(dest.join("occupied")).unwrap();
+909-        assert!(super::write_atomic(&dest.to_string_lossy(), b"body").is_err());
+910-        let names: Vec<_> = std::fs::read_dir(&dir)
+911-            .unwrap()
+912-            .map(|e| e.unwrap().file_name())
+913-            .collect();
+914-        assert_eq!(names, vec![std::ffi::OsString::from("AAPL.md")]);
+915-        let _ = std::fs::remove_dir_all(&dir);

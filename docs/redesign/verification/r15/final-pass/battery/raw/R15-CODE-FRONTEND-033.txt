@@ -1,0 +1,9 @@
+# R15-CODE-FRONTEND-033 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'arrange_layout pattern=focus resolves a panel ALIAS' src/lib/host-actions.test.ts; grep -n 'if (pattern === "focus")' src/lib/host-actions.ts; grep -n -A6 'if (pattern === "focus")' src/lib/host-actions.ts | grep -n 'resolvePanelToken' | head
+--- output ---
+147:  it("arrange_layout pattern=focus resolves a panel ALIAS, matching focus_panel", () => {
+1246:      if (pattern === "focus") {
+1638:      if (pattern === "focus") {
+
+EXIT=0 (0.0s)

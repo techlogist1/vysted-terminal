@@ -1,0 +1,185 @@
+{
+ "query": "RELIANCE.NS Reliance Industries",
+ "symbol": "RECX",
+ "mode": "DEEP",
+ "depth": "deep",
+ "markdown": "# Research Brief: Reliance Industries (RECX \u2013 Data Retrieval Error)\n\n**Symbol queried:** RELIANCE.NS  \n**Symbol actually returned:** RECX (Recreatives Industries, Inc.)  \n**As-of date:** 2026-06-11  \n\n## Key Finding\nA lookup intended for Reliance Industries returned fundamentals and pricing data for **Recreatives Industries (ticker: RECX)**. The working report confirms a ticker mix\u2011up and advises against retrying the same data path for Reliance. No Reliance\u2011specific financial or trading data were obtained in this run.\n\n## Data Retrieved for RECX (Not Reliance)\n\n| Metric | Value | Source |\n|--------|-------|--------|\n| Last price (USD) | $0.005 | [4] |\n| 52-week high | $0.09 | [5] |\n| 52-week low | $0.0028 | [5] |\n| Market cap | $1,248,445 | [5] |\n| Price to book | 0.42 | [5] |\n| Price to sales (TTM) | 33.57 | [5] |\n| Revenue (TTM) | $371 | [5] |\n| Gross margin | 37.60% | [5] |\n| Operating margin | -163.45% | [5] |\n| Debt to equity | 2.67 | [5] |\n| Current ratio | 0.32 | [5] |\n| Beta | -2.21 | [5] |\n| 52-week price change | -94.44% | [5] |\n\nNote: Dividends, EPS, and PE ratios were not available for RECX. [5]\n\n## Open Questions (Unresolved for Reliance)\n- **Reliance Industries fundamentals** (revenue, net income, EBITDA, debt) were **not retrieved**. A dedicated financial data source (e.g., screener.in, NSE filings) is needed.\n- **Trading volume** for RELIANCE.NS on June 11, 2026 was **not included** in the price data obtained. Exchange\u2011level data (e.g., NSE India) is required.\n\n## Sources\n[1] Recreatives Industries (RECX) stock page \u2013 Yahoo Finance  \n[2] Recreatives Industries share price \u2013 Investing.com India  \n[3] RECX overview \u2013 OTC Markets  \n[4] Price data for RECX (vysted://price/RECX)  \n[5] Fundamentals data for RECX (vysted://fundamentals/RECX)  \n\n**Conclusion:** All numeric data above correspond to RECX, not Reliance Industries. No reliable Reliance information was gathered in this run.",
+ "sources": [
+  {
+   "url": "https://finance.yahoo.com/quote/RECX/",
+   "title": "Recreatives Industries, Inc. (RECX) Stock Price, News, Quote & History - Yahoo Finance",
+   "excerpt": "More about Recreatives Industries, Inc. ... Trailing total returns as of 6/8/2026, which may include dividends or other distributions.",
+   "domain": "web"
+  },
+  {
+   "url": "https://in.investing.com/equities/planet-resource-reco",
+   "title": "Recreatives Industries Share Price Today | OTC: RECX Stock - Investing.com India",
+   "excerpt": "Recreatives Industries Inc stock price, this page displays OTC RECX stock exchange data. View the RECX premarket stock price ahead of the market session or assess the after hours quote. Monitor the latest movements within the Recreatives Industries Inc real time stock price chart below.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.otcmarkets.com/stock/RECX/overview",
+   "title": "RECX - Recreatives Industries, Inc. | Overview | OTC Markets",
+   "excerpt": "RECREATIVES INDUSTRIES, INC. (\"RECX\") is the manufacturer of MAX amphibious six-wheel-drive (6x6) all-terrain vehicles (www.maxatvs.com), originally manufactured by Recreatives Industries Inc. of Buffalo, NY, from 1970 to 2013.",
+   "domain": "web"
+  },
+  {
+   "url": "vysted://price/RECX",
+   "title": "Price for RECX",
+   "excerpt": "Structured price snapshot via yfinance gathered this run.",
+   "domain": "yfinance"
+  },
+  {
+   "url": "vysted://fundamentals/RECX",
+   "title": "Fundamentals for RECX",
+   "excerpt": "Structured fundamentals snapshot via yfinance gathered this run.",
+   "domain": "yfinance"
+  },
+  {
+   "url": "vysted://news/RECX",
+   "title": "News for RECX",
+   "excerpt": "Structured news pull.",
+   "domain": "vysted"
+  }
+ ],
+ "sourceCount": 6,
+ "cost": {
+  "tokens": 0,
+  "spendUsd": 0
+ },
+ "webAvailable": true,
+ "structured": {
+  "resolved": {
+   "ok": true,
+   "query": "RELIANCE.NS Reliance Industries",
+   "region": "US",
+   "resolved": {
+    "symbol": "RECX",
+    "name": "Recreatives Industries, Inc.",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "RECX",
+    "confidence": 0.69
+   },
+   "needs_disambiguation": true,
+   "candidates": [
+    {
+     "symbol": "RECX",
+     "name": "Recreatives Industries, Inc.",
+     "exchange": "US",
+     "region": "US",
+     "asset_class": "equity",
+     "yahoo_symbol": "RECX",
+     "confidence": 0.69
+    },
+    {
+     "symbol": "LNKS",
+     "name": "Linkers Industries Ltd",
+     "exchange": "US",
+     "region": "US",
+     "asset_class": "equity",
+     "yahoo_symbol": "LNKS",
+     "confidence": 0.684
+    },
+    {
+     "symbol": "HE",
+     "name": "HAWAIIAN ELECTRIC INDUSTRIES INC",
+     "exchange": "US",
+     "region": "US",
+     "asset_class": "equity",
+     "yahoo_symbol": "HE",
+     "confidence": 0.683
+    },
+    {
+     "symbol": "RELCHEMQ",
+     "name": "Reliance Chemotex Industries Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "RELCHEMQ.NS",
+     "confidence": 0.657
+    },
+    {
+     "symbol": "RELIANCE",
+     "name": "Reliance Industries Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "RELIANCE.NS",
+     "confidence": 0.655
+    },
+    {
+     "symbol": "BANSTEA",
+     "name": "Bansisons Tea Industries Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "BANSTEA.BO",
+     "confidence": 0.61
+    }
+   ]
+  },
+  "price": {
+   "ok": true,
+   "provider": "yfinance",
+   "data": {
+    "symbol": "RECX",
+    "price": 0.005,
+    "change": 0,
+    "change_percent": 0,
+    "volume": 0,
+    "currency": "USD",
+    "market_state": null,
+    "timestamp": "2026-06-11T15:27:09.567251Z",
+    "provider": "yfinance",
+    "freshness": null
+   }
+  },
+  "fundamentals": {
+   "ok": true,
+   "provider": "yfinance",
+   "data": {
+    "symbol": "RECX",
+    "name": "Recreatives Industries, Inc.",
+    "sector": "Consumer Cyclical",
+    "industry": "Recreational Vehicles",
+    "currency": "USD",
+    "market_cap": 1248445,
+    "pe_ratio": null,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 0.41666666,
+    "price_to_sales": 33.572983,
+    "ev_to_ebitda": null,
+    "book_value": 0.012,
+    "dividend_yield": null,
+    "dividend_per_share": null,
+    "eps": null,
+    "beta": -2.213,
+    "fifty_two_week_high": 0.09,
+    "fifty_two_week_low": 0.0028,
+    "fifty_two_week_change": -0.9444444,
+    "roe": null,
+    "roa": null,
+    "gross_margin": 0.37597,
+    "operating_margin": -1.63451,
+    "profit_margin": 0,
+    "debt_to_equity": 2.66614,
+    "current_ratio": 0.319,
+    "quick_ratio": 0.106,
+    "revenue_ttm": 37186,
+    "net_income_ttm": -191389,
+    "free_cash_flow": null,
+    "shares_outstanding": 249689097,
+    "revenue_growth": null,
+    "earnings_growth": null,
+    "held_percent_insiders": 0,
+    "held_percent_institutions": 0,
+    "provider": "yfinance"
+   }
+  }
+ },
+ "backend": "native",
+ "createdAt": 1781191763105
+}

@@ -1,0 +1,7 @@
+dii missing, total=fii+0.004 rounding -> 3.0 0.004 derived
+fii missing, dii 4.2 total 4.2 -> 0.0 4.2 derived
+fii missing, dii 4.2 total 6.0 -> 1.8 4.2 derived
+both missing total 0 -> 0.0 0.0 derived
+both missing total 5 -> None None None
+fii missing, dii > total by 0.5 (inconsistent) -> None 4.7 filed
+fii missing total None -> None 4.2 filed

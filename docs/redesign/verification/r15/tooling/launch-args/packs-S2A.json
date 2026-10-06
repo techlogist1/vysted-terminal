@@ -1,0 +1,20 @@
+{
+ "tag": "packs-S2A",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md, then docs/redesign/verification/r15/tooling/PROMPT_census.md's PACK section, then docs/redesign/verification/r15/tooling/PROMPT_data_s2.md, in that order. Continue from any existing file at your output path; never restart.",
+ "stages": [
+  {
+   "label": "pack",
+   "model": "sonnet",
+   "effort": "high",
+   "prompt": "Your slot is \"{{id}}\" (manifest.json symbol \"{{symbol}}\"). This pack does not exist yet at docs/redesign/verification/r15/battery/packs/{{id}}_{{symbol}}.json (write it, don't restart later). Follow PROMPT_data_s2.md's PACK stage; return the RESULT object."
+  }
+ ],
+ "items": [
+  {"id": "P7", "symbol": "JUMBO"},
+  {"id": "P8", "symbol": "NAPEROL"},
+  {"id": "P11", "symbol": "FUSION"},
+  {"id": "P16", "symbol": "CREST"},
+  {"id": "P17", "symbol": "SIFY"},
+  {"id": "S4", "symbol": "TTC"}
+ ]
+}

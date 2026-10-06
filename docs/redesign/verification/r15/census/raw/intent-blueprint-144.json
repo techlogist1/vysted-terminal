@@ -1,0 +1,102 @@
+[
+  {
+    "raw_id": "INT-blueprint-144-1",
+    "title": "No GitHub release pipeline exists — bundles never leave CI as artifacts a user can download",
+    "severity": "high",
+    "area": "release",
+    "subsystem": "CI / distribution (.github/workflows/build.yml, tauri.conf.json)",
+    "repro": "git tag a release and push -> no workflow listens for a tag or `release:` event; build.yml only triggers on push-to-main/pull_request and uploads to actions/upload-artifact@v4 (ephemeral, expires, not attached to a Release).",
+    "evidence": ".github/workflows/build.yml:3-6, :76, :79-84; src-tauri/tauri.conf.json:45 createUpdaterArtifacts=false; docs/CURRENT_STATE.md:896, :681.",
+    "notes": "BLUEPRINT §4 (L312) promises a GitHub Releases pipeline with Tauri auto-update; none of the release-side machinery exists — no tag trigger, no release-creation step, no asset attach, no latest.json/sig production. Smallest fix shape: a release.yml triggered on `v*` tags that builds all three platforms, runs `tauri-apps/tauri-action` (or an explicit `gh release create` + asset upload), and flips createUpdaterArtifacts to true."
+  },
+  {
+    "raw_id": "INT-blueprint-144-2",
+    "title": "No code-signing pipeline for any platform — every bundle is unsigned",
+    "severity": "high",
+    "area": "release",
+    "subsystem": "CI / build signing (.github/workflows/build.yml, tauri.conf.json)",
+    "repro": "Build any platform's bundle via CI -> macOS: Gatekeeper 'app is damaged / cannot be opened'; Windows: SmartScreen flags the installer as unrecognized.",
+    "evidence": ".github/workflows/build.yml:76 'Build Tauri bundle (unsigned)' is the only signing-adjacent line in the whole workflows dir; tauri.conf.json has no macOS signingIdentity block and no Windows certificate block; docs/CURRENT_STATE.md:680-681.",
+    "notes": "BLUEPRINT §4 (L313) promises SignPath for Windows + ad-hoc signing for Mac; scripts/macos-dev-sign.mjs exists but only stabilizes the local `tauri dev` keychain ACL, not a release bundle. A first-time user on either platform hits an OS-level 'this is untrusted' wall before ever opening the app — this is the top-of-funnel blocker for every other release promise (185/186/187/188 all inherit this gap)."
+  },
+  {
+    "raw_id": "INT-blueprint-144-3",
+    "title": "macOS CI bundle ships unsigned — no ad-hoc first-launch bypass as promised",
+    "severity": "high",
+    "area": "release",
+    "subsystem": "CI macOS build (.github/workflows/build.yml)",
+    "repro": "Download the CI-built .dmg on macOS and open it -> Gatekeeper blocks with 'app is damaged', not the documented right-click-Open bypass.",
+    "evidence": ".github/workflows/build.yml:13, :54-61, :76; src-tauri/tauri.conf.json:32 targets include dmg/app but no signingIdentity; docs/CURRENT_STATE.md:680-681.",
+    "notes": "BLUEPRINT §6.2 (L371) specifically promises an ad-hoc-signed .dmg with a $0-cost bypass path; what ships is fully unsigned, so the documented bypass instructions (right-click Open) don't even apply — the user gets Gatekeeper's harsher 'damaged' dialog instead of the milder 'unidentified developer' one."
+  },
+  {
+    "raw_id": "INT-blueprint-144-4",
+    "title": "Windows CI bundle is an unsigned .exe (nsis), not the promised signed .msi",
+    "severity": "high",
+    "area": "release",
+    "subsystem": "CI Windows build (.github/workflows/build.yml, tauri.conf.json)",
+    "repro": "Download the CI-built Windows installer -> it is an nsis .exe (no .msi bundler configured) with no publisher signature, so SmartScreen flags every download.",
+    "evidence": "src-tauri/tauri.conf.json:32 targets = [deb, appimage, nsis, app, dmg] (no msi); .github/workflows/build.yml:13, :76 (unsigned), no SignPath step/secret anywhere in .github/workflows/.",
+    "notes": "BLUEPRINT §6.2 (L372) promises a SignPath-signed .msi on the free OSS tier; two independent drifts (wrong bundle format, no signing) compound the top-of-funnel Gatekeeper/SmartScreen problem for the majority-share desktop OS."
+  },
+  {
+    "raw_id": "INT-blueprint-144-5",
+    "title": "Auto-updater is wired on both ends but dead end-to-end — no user on an existing install can ever update",
+    "severity": "high",
+    "area": "release",
+    "subsystem": "Tauri updater (src-tauri/src/lib.rs, tauri.conf.json, frontend)",
+    "repro": "Install any build, wait for a new release, open the app -> nothing checks for or downloads an update; even if it did, the endpoint the client is pointed at has never had a latest.json published to it.",
+    "evidence": "src-tauri/src/lib.rs:393 registers tauri_plugin_updater; tauri.conf.json:47-53 configures the endpoint + minisign pubkey but :45 createUpdaterArtifacts=false; grep across src/ for `.check()`/`downloadAndInstall`/`@tauri-apps/plugin-updater` returns only the package.json dependency line (no caller); docs/CURRENT_STATE.md:232-235.",
+    "notes": "BLUEPRINT §6.2 (L376) promises the Tauri auto-updater pulls updates on existing installs. Producer side (no release artifacts) and consumer side (no UI ever calls check()) are both unbuilt — a real user has no path off their install-day version short of manually re-downloading, which itself requires the still-missing release pipeline (raw finding 1)."
+  },
+  {
+    "raw_id": "INT-blueprint-144-6",
+    "title": "Panels cannot pop out to a second window — no multi-monitor path for the dockview layout",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "PanelHost / dockview (src/components/PanelHost.tsx)",
+    "repro": "On a two-monitor desk, try to drag a chart panel off the main window onto the second monitor -> no gesture exists; grep for popout/addFloatingGroup/WebviewWindow across src/ returns zero non-test hits.",
+    "evidence": "src/components/PanelHost.tsx (DockviewReact host, no addPopoutGroup wiring); grep 'popout|addFloatingGroup|WebviewWindow' src/ -> no matches.",
+    "notes": "BLUEPRINT §5.2 (L332) promises drag-drop panel layout including pop-out to a second window; dockview ships addPopoutGroup and Tauri ships multi-window support, neither is connected. A finance terminal's classic multi-monitor use case (chart on one screen, news/chat on the other) is unavailable."
+  },
+  {
+    "raw_id": "INT-blueprint-144-7",
+    "title": "No workspace export/import gesture — the .vysted-workspace file format exists but nothing in the UI produces or consumes one",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "Workspace persistence (sidecar/services/workspace_store.py, src/components/SettingsPanel.tsx)",
+    "repro": "Try to share your panel layout with a teammate or back it up -> Settings Export/Import only exports vysted-settings.json (keybindings + prefs); no control anywhere writes/reads a .vysted-workspace file.",
+    "evidence": "sidecar/services/workspace_store.py:1-11, :26 (format exists); src/components/SettingsPanel.tsx:1775-1812 (Export/Import section handles settings only, writes vysted-settings.json at :1790); grep 'vysted-workspace|Export.*[Ww]orkspace|Import.*[Ww]orkspace' across src/components/*.tsx returns no UI hits.",
+    "notes": "BLUEPRINT §5.2 (L335) promises workspace export/import as .vysted-workspace JSON files. The on-disk format and serializer already exist server-side; the missing piece is purely a UI gesture (a button + file picker) wiring WorkspaceDialog/SettingsPanel to the existing store — small, well-bounded fix."
+  },
+  {
+    "raw_id": "INT-blueprint-144-8",
+    "title": "No per-module settings surface exists — chart timeframe/indicator defaults are hardcoded, not user preferences",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "Settings store (src/store/settings.ts, src/components/SettingsPanel.tsx)",
+    "repro": "Set a preferred default chart timeframe (e.g. 15m) -> every fresh chart panel opens back on the hardcoded default; no setting persists it.",
+    "evidence": "src/store/settings.ts:59-68 — the entire persisted settings bundle is 3 fields (defaultAgentId, region, deepResearchBackend); src/lib/indicator-presets.ts:22-55 presets are keyed by asset class only, not user preference; ChartPanel.tsx DEFAULT_SYMBOL is a constant.",
+    "notes": "BLUEPRINT §5.2 (L338) promises module-specific settings (e.g. chart timeframe defaults, color schemes per module). None of the Settings panel's sections (AI Providers/Research/Region/Keybindings/Advanced) are module-scoped — this is a structural gap, not a missing toggle, so the fix is a new settings-store slice plus per-module read points, not a one-line change."
+  },
+  {
+    "raw_id": "INT-blueprint-144-9",
+    "title": "COMMERCIAL_LICENSE.md pricing and contact are still placeholders post-relicense — a paying customer has no price or working contact",
+    "severity": "medium",
+    "area": "docs",
+    "subsystem": "Licensing (COMMERCIAL_LICENSE.md)",
+    "repro": "A commercial user reads the PolyForm Strict notice, wants to buy the commercial license, opens COMMERCIAL_LICENSE.md -> every dollar figure and the contact address are marked DRAFT/placeholder.",
+    "evidence": "COMMERCIAL_LICENSE.md:3 'STATUS: DRAFT. Commercial terms and pricing below are placeholders'; :50 'Pricing tiers (DRAFT — TBD, finalized at v1.0 launch)'; :63 'commercial@vysted.com (placeholder address'.",
+    "notes": "Pre-existing gap (BLUEPRINT §6.1 / L354), reconfirmed unchanged by the D83 relicense (23 Sep, same session) which rewrote the licensing-paths section but left pricing/contact untouched. Blocks the actual monetization path the dual-license model exists for; smallest fix is filling in real figures and a real inbox before any public 0.9.0 announcement."
+  },
+  {
+    "raw_id": "INT-blueprint-144-10",
+    "title": "CLA process has no enforcement gate and is not yet legally effective, even though CONTRIBUTING.md asks for it",
+    "severity": "low",
+    "area": "docs",
+    "subsystem": "Contribution process (.github/workflows/, CONTRIBUTING.md)",
+    "repro": "Open a PR with no CLA statement in the description -> nothing blocks merge; no CLA-assistant action or PR-check exists in .github/workflows/.",
+    "evidence": ".github/workflows/ holds build.yml, lint.yml, test.yml only (no CLA gate); CONTRIBUTING.md:3 'Contributions are closed for now'; :95 'The formal CLA process is still being finalized'.",
+    "notes": "BLUEPRINT §4 (L314) and §6.1 (L356) promise a CLA gate so the dual-license/commercial posture stays clean. Low severity because contributions are currently closed (CONTRIBUTING.md:3) so the gate has no live PRs to protect yet — but the promise as written (an enforced gate) is still unbuilt and should land before contributions reopen, not after the first external PR."
+  }
+]

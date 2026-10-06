@@ -1,0 +1,36 @@
+# R15-CODE-AGENT-029 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:09+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- test_connect_is_idempotent sidecar/tests/test_agents_store.py | head -3; test -f sidecar/tests/test_agents_store.py || echo 'MISSING sidecar/tests/test_agents_store.py'
+[exit 0] [0.00s]
+52:def test_connect_is_idempotent(temp_data_dir: object) -> None:
+
+
+$ grep -n -F -- test_connect_is_idempotent sidecar/tests/test_plugins.py | head -3; test -f sidecar/tests/test_plugins.py || echo 'MISSING sidecar/tests/test_plugins.py'
+[exit 0] [0.00s]
+41:def test_connect_is_idempotent(temp_data_dir: object) -> None:
+
+
+$ grep -n -F -- test_connect_is_idempotent sidecar/tests/test_portfolio.py | head -3; test -f sidecar/tests/test_portfolio.py || echo 'MISSING sidecar/tests/test_portfolio.py'
+[exit 0] [0.01s]
+62:def test_connect_is_idempotent(temp_data_dir: object) -> None:
+
+
+$ test -e sidecar/tests/test_schema_version.py && echo 'present sidecar/tests/test_schema_version.py' && grep -c 'test\|it(' sidecar/tests/test_schema_version.py || echo 'MISSING sidecar/tests/test_schema_version.py'
+[exit 0] [0.01s]
+present sidecar/tests/test_schema_version.py
+22
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-AGENT-029\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+
+
+$ grep -rn '_ensure_schema' sidecar/services | head; echo "_ensure_schema hits in services: $(grep -rn '_ensure_schema' sidecar/services | wc -l)"
+[exit 0] [0.19s]
+_ensure_schema hits in services:        0
+

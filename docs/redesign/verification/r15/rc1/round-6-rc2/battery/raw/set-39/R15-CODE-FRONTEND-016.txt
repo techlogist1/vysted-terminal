@@ -1,0 +1,50 @@
+COMMAND: same node probe (kb2.mts) + grep of dispatcher; entry repro: remap changes.acceptAll to mod+shift+a, press Cmd+S/O/,/1, matchesEvent(mod+b) on Cmd+Shift+B
+EXIT: 0
+OUTPUT:
+default ids: 13
+palette.open [⌘K] -> palette.open
+agent.mode.agent [⌥1] -> agent.mode.agent
+agent.mode.delegate [⌥2] -> agent.mode.delegate
+agent.toggle [⌘B] -> agent.toggle
+changes.acceptAll [⌘↵] -> changes.acceptAll
+changes.rejectAll [⌘⌫] -> changes.rejectAll
+platform.save-workspace [⌘S] -> platform.save-workspace
+platform.load-workspace [⌘O] -> platform.load-workspace
+platform.open-settings [⌘,] -> platform.open-settings
+chart.open [⌘1] -> chart.open
+watchlist.open [⌘2] -> watchlist.open
+news.open [⌘3] -> news.open
+portfolio.open [⌘4] -> portfolio.open
+unresolved/mismatched defaults: []
+after remap palette.open=mod+p: Cmd+K -> undefined; Cmd+P -> palette.open
+changes remap present: changes.acceptAll,changes.rejectAll
+mod+b vs Cmd+Shift+B matchesEvent: false
+setOverrides merge w/ bogus: overrides={"changes.acceptAll":"mod+shift+a"}
+regions: DEFAULT_REGION=IN regionConfig(IN).label=India
+  // action's (possibly remapped) binding and calls these. `changes.acceptAll`/
+  // `changes.rejectAll` are non-global (the dispatcher already skips them
+  // while typing — ⌘⌫ is the macOS "delete to line start" the composer
+  // needs), and each handler still no-ops with nothing pending.
+  useEffect(() => {
+    const unregisters = AGENT_MODES.map((m) =>
+      registerAction(`agent.mode.${m.id}`, () => setMode(m.id)),
+    );
+    return () => unregisters.forEach((unregister) => unregister());
+  }, [setMode]);
+
+  useEffect(() => {
+    const unregisterAccept = registerAction("changes.acceptAll", () => {
+      if (pendingChangeCount > 0) {
+        void acceptAllChanges();
+      }
+    });
+    const unregisterReject = registerAction("changes.rejectAll", () => {
+      if (pendingChangeCount > 0) {
+        rejectAllChanges();
+      }
+    });
+    return () => {
+      unregisterAccept();
+      unregisterReject();
+    };
+  }, [pendingChangeCount, acceptAllChanges, rejectAllChanges]);

@@ -1,0 +1,30 @@
+# R15-CODE-PLATFORM-020 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:49:09+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+D=$B/../final-data-final-battery-0
+python3 - "$D/workflows.db" <<'PY'
+import sqlite3, sys, json
+c=sqlite3.connect(sys.argv[1]); cols=[r[1] for r in c.execute("PRAGMA table_info(workflows)")]; print("columns",cols)
+good={"id":"fb0-good","name":"good","version":1,"nodes":[],"edges":[]}
+bad={**good,"id":"fb0-bad","name":"bad","removedField":1}
+v2={**good,"id":"fb0-v2","name":"v2","version":2}
+for s in (good,bad,v2): c.execute("INSERT OR REPLACE INTO workflows(id,name,spec_json,updated_at) VALUES(?,?,?,1)",(s["id"],s["name"],json.dumps(s)))
+c.commit()
+PY
+echo '$ GET /workflow/saved'; curl -s -m 30 -w ' [%{http_code}]\n' "$H/workflow/saved" | python3 -c "
+import sys;raw=sys.stdin.read();body,code=raw.rsplit(' [',1);import json;d=json.loads(body)
+print(code.strip(), 'workflows=',[w['id'] for w in d.get('workflows',[]) if w['id'].startswith('fb0')],'unreadable=',[(u['id'],u['reason'][:90]) for u in d.get('unreadable',[]) if u['id'].startswith('fb0')])"
+for id in fb0-good fb0-v2; do echo "\$ GET /workflow/saved/$id"; curl -s -m 30 -w ' [%{http_code}]\n' "$H/workflow/saved/$id"; done
+for id in fb0-good fb0-bad fb0-v2; do curl -s -m 30 -o /dev/null -w "cleanup DELETE $id %{http_code}\n" -X DELETE "$H/workflow/saved/$id"; done
+--- output ---
+columns ['id', 'name', 'spec_json', 'updated_at']
+$ GET /workflow/saved
+200] workflows= ['fb0wf', 'fb0-good'] unreadable= [('fb0-bad', '1 validation error for WorkflowSpec\nremovedField\n  Extra inputs are not permitted [type=ex'), ('fb0-v2', 'saved with workflow schema version 2; this build reads version 1')]
+$ GET /workflow/saved/fb0-good
+{"id":"fb0-good","name":"good","description":null,"version":1,"nodes":[],"edges":[],"updatedAt":0} [200]
+$ GET /workflow/saved/fb0-v2
+{"detail":"saved with workflow schema version 2; this build reads version 1"} [409]
+cleanup DELETE fb0-good 200
+cleanup DELETE fb0-bad 200
+cleanup DELETE fb0-v2 200
+
+EXIT=0 (0.1s)

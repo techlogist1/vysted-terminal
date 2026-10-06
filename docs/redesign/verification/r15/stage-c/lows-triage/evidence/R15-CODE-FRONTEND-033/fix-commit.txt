@@ -1,0 +1,8 @@
+124b3160 fix(host-actions): parse each action once into a bound intent shared by describe and apply (R15-CODE-FRONTEND-011)
+
+ src/lib/host-actions.test.ts       |  215 +++++++
+ src/lib/host-actions.ts            | 1162 ++++++++++++++++++++++--------------
+ src/store/proposed-changes.test.ts |   30 +-
+ src/store/proposed-changes.ts      |   15 +-
+ types/proposed-change.ts           |    5 +
+ 5 files changed, 949 insertions(+), 478 deletions(-)

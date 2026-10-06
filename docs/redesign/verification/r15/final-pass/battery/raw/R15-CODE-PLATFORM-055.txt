@@ -1,0 +1,15 @@
+# R15-CODE-PLATFORM-055 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'fn write_atomic\|write_atomic(\|fn write_atomic_text_and_bytes' src-tauri/src/lib.rs | head
+--- output ---
+547:    write_atomic(&file.to_string_lossy(), &bytes)
+570:fn write_atomic(path: &str, bytes: &[u8]) -> Result<(), String> {
+618:    write_atomic(&path, contents.as_bytes())
+628:    write_atomic(&path, &contents)
+877:    fn write_atomic_text_and_bytes() {
+891:    fn write_atomic_round_trip_leaves_no_tmp() {
+897:        super::write_atomic(&path, b"first").unwrap();
+898:        super::write_atomic(&path, b"second").unwrap();
+916:        assert!(super::write_atomic(&dest.to_string_lossy(), b"body").is_err());
+
+EXIT=0 (0.0s)

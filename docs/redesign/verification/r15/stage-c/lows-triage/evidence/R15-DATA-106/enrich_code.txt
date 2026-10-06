@@ -1,0 +1,85 @@
+## enrich_nse_sectors.py:50-90 @sha
+    todo = [s for s in nse if not (by_symbol.get(s) or {}).get("sector")]
+    print(
+        f"NSE symbols={len(nse)} | already sectored={len(nse) - len(todo)} | to fetch={len(todo)}"
+    )
+
+    filled = 0
+    for i, sym in enumerate(todo):
+        try:
+            info = yf.Ticker(f"{sym}.NS").info
+            sector = (info.get("sector") or "").strip()
+            industry = (info.get("industry") or "").strip()
+        except Exception:  # noqa: BLE001 — one bad symbol never stops the crawl
+            sector, industry = "", ""
+        if sector:
+            rec = by_symbol.get(sym)
+            if rec is None:
+                rec = {"symbol": sym}
+                records.append(rec)
+                by_symbol[sym] = rec
+            rec["sector"] = sector
+            rec["industry"] = industry or rec.get("industry")
+            rec["sector_source"] = "yfinance"
+            filled += 1
+        # Persist every 50 so a throttle-kill keeps progress (resumable).
+        if (i + 1) % 50 == 0:
+            path.write_text(json.dumps(doc, indent=1, ensure_ascii=False))
+            print(f"  {i + 1}/{len(todo)} processed, {filled} filled", flush=True)
+        time.sleep(0.4)  # gentle pacing for yfinance
+
+    # Refresh the coverage header if present.
+    if isinstance(doc, dict) and "coverage" in doc:
+        with_sector = sum(1 for r in records if r.get("sector"))
+        doc["coverage"]["with_sector"] = with_sector
+        doc["coverage"].setdefault("sector_sources", {})["yfinance"] = filled
+    path.write_text(json.dumps(doc, indent=1, ensure_ascii=False))
+    print(
+        f"DONE — filled {filled} sectors; total with_sector now "
+        f"{sum(1 for r in records if r.get('sector'))}"
+    )
+    return 0
+
+## test_india_sector_map.py:20-35,56-80
+from collections import Counter
+
+from services import symbol_resolver
+
+#: The ONE record shape every row carries after the D59 hygiene pass.
+_CANONICAL_KEYS = {
+    "symbol",
+    "isin",
+    "scrip_code",
+    "industry_raw",
+    "sector",
+    "sector_source",
+    "shares_outstanding",
+}
+
+
+def test_shipped_map_no_record_carries_industry_without_industry_raw() -> None:
+    """The D59 defect class: enrichment data written under a key nothing reads.
+    After the hygiene pass the orphan ``industry`` key must not exist at all —
+    every industry string lives in ``industry_raw`` (the one key readers
+    consume)."""
+    for rec in _shipped_map()["records"]:
+        assert "industry" not in rec, (
+            f"{rec['symbol']}: orphaned 'industry' key — readers only consume industry_raw"
+        )
+        assert "industry_raw" in rec, f"{rec['symbol']}: missing the industry_raw key"
+
+
+def test_shipped_map_records_have_one_canonical_shape() -> None:
+    """Every record carries the same 7-key shape with sane value types — no
+    partial-shape rows (the pre-D59 file had three coexisting shapes)."""
+    records = _shipped_map()["records"]
+    assert len(records) > 4000  # a full regeneration, not a seed
+    seen: set[str] = set()
+    for rec in records:
+        assert set(rec) == _CANONICAL_KEYS, (rec.get("symbol"), sorted(rec))
+        sym = rec["symbol"]
+        assert isinstance(sym, str) and sym and sym == sym.upper(), sym
+        assert sym not in seen, f"duplicate record for {sym}"
+        seen.add(sym)
+        for key in ("isin", "scrip_code", "industry_raw", "sector", "sector_source"):
+## git log enrich

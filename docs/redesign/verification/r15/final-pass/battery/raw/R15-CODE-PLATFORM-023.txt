@@ -1,0 +1,13 @@
+# R15-CODE-PLATFORM-023 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:50+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$PATH
+curl -s -m 100 -H 'X-Vysted-Region: IN' "$H/history/INFY.NS?timeframe=1d&range=1y" > $B/out/p22_a.json; curl -s -m 100 "$H/history/%5ENSEI?timeframe=1d&range=1y" > $B/out/p22_b.json
+python3 -c "import json;[print(f, len(json.load(open('$B/out/'+f))['bars'])) for f in ('p22_a.json','p22_b.json')]"
+node --experimental-strip-types --no-warnings $B/sc/p22_023f.mts; python3 $B/sc/p22_023f.py
+--- output ---
+p22_a.json 257
+p22_b.json 246
+{"n":246,"vol":0.3068563768829883,"sharpe":-0.9682389900886818,"sortino":-1.32422110260494,"maxDD":-0.4169132441709079,"calmar":-0.712643008130632,"var95":0.03087547043718497,"corr":0.300289343569549,"beta":0.6894549891554298}
+{"vol": 0.3068563768829883, "sharpe": -0.9682389900886818, "maxDD": -0.4169132441709079, "corr": 0.30028934356954895, "beta": 0.6894549891554299, "sortino_alt": -1.32422110260494, "calmar": -0.712643008130632, "var95_idx": 0.031180968564146205}
+
+EXIT=0 (5.3s)
