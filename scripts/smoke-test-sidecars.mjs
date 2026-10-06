@@ -141,6 +141,10 @@ const _SMOKE_MARKER = "vysted-smoke-test-v1";
 const _STATE_DIR = join(tmpdir(), "vysted-smoke-test");
 const _STATE_FILE_RE = /^live-children-(\d+)\.json$/;
 const _STATE_FILE = join(_STATE_DIR, `live-children-${process.pid}.json`);
+// Windows keeps a killed PyInstaller worker's SQLite handle (data_cache.db) open
+// for a moment after taskkill returns, so a single rm hits EBUSY; rm's built-in
+// retry (linear backoff, ~11 s worst case) waits the lock out.
+const _RM_DATA_DIR_OPTS = { recursive: true, force: true, maxRetries: 10, retryDelay: 200 };
 
 /** Every per-run ledger file (this run's and any others') found in _STATE_DIR. */
 function _listStateFiles() {
@@ -671,7 +675,7 @@ async function _smokeTestMainSidecar(triple) {
     if (exited) {
       const tail = output().split("\n").slice(-30).join("\n");
       await _teardown(child);
-      await rm(dataDir, { recursive: true, force: true });
+      await rm(dataDir, _RM_DATA_DIR_OPTS);
       throw new Error(
         `[smoke] vysted-sidecar CRASHED before /health was ready ` +
           `(exit code=${exitCode}, signal=${exitSignal}). Most likely a PyInstaller ` +
@@ -690,7 +694,7 @@ async function _smokeTestMainSidecar(triple) {
   if (!healthy) {
     const tail = output().split("\n").slice(-30).join("\n");
     await _teardown(child);
-    await rm(dataDir, { recursive: true, force: true });
+    await rm(dataDir, _RM_DATA_DIR_OPTS);
     throw new Error(
       `[smoke] vysted-sidecar HUNG — bound the port but /health did not respond within ` +
         `${MAIN_BOOT_TIMEOUT_MS}ms. Tail:\n${tail}`,
@@ -780,7 +784,7 @@ async function _smokeTestMainSidecar(triple) {
   }
 
   await _teardown(child);
-  await rm(dataDir, { recursive: true, force: true });
+  await rm(dataDir, _RM_DATA_DIR_OPTS);
   if (!versionOk) {
     throw new Error(
       `[smoke] vysted-sidecar FAILED version check: /health reported version ` +
