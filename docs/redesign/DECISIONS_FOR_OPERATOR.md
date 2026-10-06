@@ -4,7 +4,9 @@ Things R15 did that reverse a standing rule of yours, or that are yours alone to
 (Tier-4). Newest concerns at the top of each section. Each entry: what, why, my
 recommendation, and how to undo it in one step.
 
-## 0. Start here — priority order at close-out (01:30 IST Sun 4 Oct 2026, updated 21:45 IST after the LEAD-145 fix round and its on-screen re-run; r15-launch moved to the release-docs commit above `9f6bd4be`, which carries the fix; r15-rc2 stays at `1fddb2b1`)
+## 0. Start here — priority order at close-out (01:30 IST Sun 4 Oct 2026; updated 21:45 IST 4 Oct after the LEAD-145 fix round; closed out by the operator 14:52 IST Tue 6 Oct; r15-launch at `dd0670fb`, code == `9f6bd4be`, which carries the fix; r15-rc2 stays at `1fddb2b1`)
+
+**Session closed (6 Oct).** The rig activation fix is done and tested (`scripts/rig/rig.py`; 7a07c82f, 8fc82619, d1d6632d). The GUI round of brief 2 step 2 — the six parked scenarios, UI-022, LIFECYCLE-008's Copy diagnostics click, the on-screen 0.8.0 to 0.9.0 upgrade — is **optional and pending** at the moved tag; the paste-ready resume prompt with its presence prerequisites is in the run-state header (`docs/redesign/verification/vysted-r15-run-state.md`). Your next steps, in order: the hand-test from `docs/HAND_TESTING_GUIDE.md` including a true first run on a second macOS user account; the commercial contact address; then merge, the v0.9.0 tag, signing, rebuild and swap the dmg on the draft, publish; Windows on the ROG. Nothing is running on this Mac.
 
 Do these in this order; each line names where the detail lives.
 
@@ -43,20 +45,7 @@ build`) and swap the dmg before you publish. The run did not build a release bun
    the fail-safe fixed both highs).
 6. **The Tier-4 bucket** (35 `blocked_tier4` entries, unfunded lanes 2.1, Docker, CI, plugin model):
    sequenced in `docs/redesign/BACKLOG_0.9.1.md`; nothing in it blocks 0.9.0.
-7. **Rig exit 4 ("frontmost app is 'Zed'") is fixed (4 Oct).** Activation was never what failed. A
-   test at about 14:10 IST showed every route bringing Vysted in front of Zed on macOS 26.3, including the
-   old `activateWithOptions_`. The rig's re-check read `NSWorkspace.frontmostApplication()`, which is
-   cached and never updates in a process without a run loop. `scripts/rig/rig.py` now reads the
-   frontmost app fresh (`lsappinfo`), brings Vysted forward with `open -a <running bundle>` before
-   every acting step, and waits up to 10 min for a locked screen or sleeping display. For an
-   unattended run, the screen must not lock on its own. **The setting did not hold on 4 Oct.** After
-   you set the screen saver to Never, `defaults -currentHost read com.apple.screensaver` still showed
-   no domain, and `sysadminctl -screenLock status` showed a 300 s delay. presence.log shows
-   loginwindow in front at 11:54Z, cleared within two minutes, and again from 13:06Z (18:36 IST)
-   onward. So a screen saver started twice, and the second one ran past the lock delay and locked
-   the Mac. Re-check "Start Screen Saver when inactive → Never". As a backstop, also set "Require
-   password after screen saver begins" to a long delay or Never. Then read
-   `sysadminctl -screenLock status` again.
+7. **Rig exit 4 is fixed and tested (4 Oct); the screen lock is resolved.** `scripts/rig/rig.py` reads the frontmost app fresh (`lsappinfo`), brings Vysted forward with `open -a` before every acting step, and waits up to 10 min for a locked screen. The 18:36 IST lock on 4 Oct came from a 300 s lock delay despite "screen saver Never"; after your fix (Amphetamine keeping the display awake) the 88-minute LEAD-145 re-run held. You also ran `pmset` sleep 0 / displaysleep 0 / disksleep 0 / disablesleep 1 during the run and reverted them on 6 Oct (`disablesleep 0` + `restoredefaults`; `SleepDisabled` reads 0) — recorded in `r15/stage-d/release/PMSET_REVERT.md`. For the next unattended rig run, keep the display awake again the same way.
 8. **One leftover worktree for you to keep or discard:** `.claude/worktrees/wf_4ed38558-4d0-26`
    (branch `worktree-agent-rc1-4c6dfe8-fix-r1-W1-citation-pseudo-class`) holds 346 lines of
    uncommitted rc1-round-2 citation-grammar writer code (26 Sep) that a later round superseded. The

@@ -4,6 +4,8 @@ Sources read: `docs/redesign/verification/vysted-r15-run-state.md` (every `pmset
 
 ## pmset
 
+**Operator record (Tue 6 Oct 2026):** during the run the operator ran, by hand, `sudo pmset sleep 0`, `sudo pmset displaysleep 0`, `sudo pmset disksleep 0` and `sudo pmset disablesleep 1`. No agent ran them. The operator reverted them on 6 Oct with `sudo pmset disablesleep 0` and `sudo pmset restoredefaults`. Read at 14:52 IST 6 Oct: `pmset -g` shows `SleepDisabled 0` (sleep 1, displaysleep 2, disksleep 10). The paragraph below predates this record.
+
 **No `pmset` setting change is recorded anywhere in the run-state, ledger or evidence.** The only `pmset` fact on disk is a read: at 04:01 IST Fri 25 Sep the run read `pmset -g log` to confirm that an isolated stack and a caffeinate process had died with no sleep event. If a `pmset` change was made by hand during the burst window (14:35 IST Sat 3 Oct onward) or at any other time, it is not recorded, so its prior value is unknown.
 
 To see the current state and decide for yourself:

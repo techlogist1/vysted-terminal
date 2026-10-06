@@ -129,10 +129,11 @@ attached (228,480,607 bytes). The button sequence — merge, tag, sign, swap the
 publish — is section 2 of `docs/redesign/OPERATOR_BRIEFING.md`; the decisions in priority order are at
 the top of `docs/redesign/DECISIONS_FOR_OPERATOR.md`.
 
-State left on this Mac. The isolated stack runs on 127.0.0.1:52152 (sidecar from source, version
-0.9.0) with the two MCP sidecars from the launch bundle on 52153/52154, data in the session
-scratchpad. The run's caffeinate (pid 91760) was released at 01:23 IST 4 Oct; no `pmset` setting
-was ever changed (`r15/stage-d/release/PMSET_REVERT.md`). The app itself was not left running: a
+State left on this Mac (6 Oct). No Vysted process runs and nothing listens on 127.0.0.1:52152-52154;
+the rig sentinel is absent. The run's caffeinate (pid 91760) was released at 01:23 IST 4 Oct. The
+operator set `pmset` sleep 0 / displaysleep 0 / disksleep 0 / disablesleep 1 by hand during the run
+and reverted them on 6 Oct (`disablesleep 0` + `restoredefaults`; `SleepDisabled` reads 0); no agent
+changed a `pmset` setting (`r15/stage-d/release/PMSET_REVERT.md`). The app itself was not left running: a
 release launch raises the login-keychain prompt the run may not answer (R15-LEAD-143), and a dev launch
 needs the attended rig. The run never wrote your installed `/Applications/Vysted.app` (0.8.0), your real
 app data or your keystore; how the 23:47 IST keychain prompt was dismissed (Allow, Deny or timeout) is
