@@ -8,6 +8,16 @@ recommendation, and how to undo it in one step.
 
 **Session closed (6 Oct).** The rig activation fix is done and tested (`scripts/rig/rig.py`; 7a07c82f, 8fc82619, d1d6632d). The GUI round of brief 2 step 2 — the six parked scenarios, UI-022, LIFECYCLE-008's Copy diagnostics click, the on-screen 0.8.0 to 0.9.0 upgrade — is **optional and pending** at the moved tag; the paste-ready resume prompt with its presence prerequisites is in the run-state header (`docs/redesign/verification/vysted-r15-run-state.md`). Your next steps, in order: the hand-test from `docs/HAND_TESTING_GUIDE.md` including a true first run on a second macOS user account; the commercial contact address; then merge, the v0.9.0 tag, signing, rebuild and swap the dmg on the draft, publish; Windows on the ROG. Nothing is running on this Mac.
 
+**0.9.0 merged and tagged (14 Oct).** PR #3 (https://github.com/techlogist1/vysted-terminal/pull/3) was merged into `main` with a merge commit, `6e1b52b9` (parents `cfcf5bef` main and `2102780a` 004). `v0.9.0` is tagged on that commit and pushed. Final checks at `2102780a`: **9/9 green**: lint, build and test on macos-latest, ubuntu-latest and windows-latest. This was the first time Windows pytest ever ran. The CI fixes are in tests and scripts only, with no app code changed, so the merge differs from `r15-launch` in 4 files outside `docs/`:
+
+- the smoke test's data-dir `rm` now retries EBUSY on Windows (87ed623a);
+- the FOCUS.BO disclosure test now stubs the live BSE XBRL fetch (19537bb3);
+- the Docker-resolver tests now use an empty PATH, since ubuntu-latest ships `/usr/bin/docker` (19537bb3);
+- `source-guards.test.ts` now normalises Windows path separators (19537bb3);
+- Windows gets an executable fake `docker.cmd` (2102780a).
+
+No test was skipped or weakened, and the workflows did not need changes. One known flake was left as is: `test_symbol_resolver.py::test_autocomplete_stays_keystroke_fast_over_full_masters` took 1.16 s against its 1.0 s budget once on ubuntu-latest (the run at 19537bb3) and passed on rerun; the budget was not raised. The v0.9.0 draft release stays **unpublished** by your decision, because the public launch is 0.10.0. It now resolves to the `v0.9.0` tag, but its dmg is still the `1fddb2b1` build. This closes the Mac side; the next run is Windows on the ROG (item 4).
+
 Do these in this order; each line names where the detail lives.
 
 1. **Finish the hand-test of the unsigned dmg** before anything public (`docs/HAND_TESTING_GUIDE.md`
