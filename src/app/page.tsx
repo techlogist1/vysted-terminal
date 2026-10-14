@@ -33,6 +33,7 @@ import { useAgentDockStore } from "@/store/agent-dock";
 import { useAppStore } from "@/store/app";
 import { useCommandPalette } from "@/store/command-palette";
 import { useLLMProvidersStore } from "@/store/llm-providers";
+import { initLocalModels } from "@/store/local-models";
 import { useModelCatalogStore } from "@/store/model-catalog";
 import {
   formatBinding,
@@ -63,6 +64,11 @@ export default function Page() {
     // before its `onReady` fires the restore.
     useModulesStore.getState().registerModules(vystedModules);
     void useAppStore.getState().connectSidecar();
+    // On-computer model: restart the active one and resume a paused download
+    // once the data engine answers (R16).
+    void initLocalModels().catch((error: unknown) =>
+      console.warn("[local-models] boot wiring failed", error),
+    );
 
     // One-time dev-keystore migration (R9): in a dev build, copy existing
     // secrets from the OS keychain into the git-ignored local keystore so
