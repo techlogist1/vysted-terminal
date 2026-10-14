@@ -88,5 +88,6 @@ async def delete_model(model_id: str) -> Response:
 
 @router.put("/engine")
 async def put_engine(body: EngineConfigRequest) -> EngineConfigResponse:
-    engine.set_engine(body.port, body.modelId)
+    n_ctx = await engine.fetch_n_ctx(body.port) if body.port is not None else None
+    engine.set_engine(body.port, body.modelId, n_ctx)
     return EngineConfigResponse(baseUrl=engine.base_url(), modelId=engine.active_model_id())
