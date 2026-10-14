@@ -25,7 +25,7 @@ from pydantic import BaseModel, ConfigDict, Field
 #: is a unified BROKER — one key, all upstreams — that rides the OpenAI-shaped
 #: adapter via a base-url override, exactly like deepseek/xai.
 LLMProviderId = Literal[
-    "anthropic", "openai", "gemini", "groq", "ollama", "deepseek", "xai", "openrouter"
+    "anthropic", "openai", "gemini", "groq", "ollama", "deepseek", "xai", "openrouter", "local"
 ]
 
 #: Free-form model identifier — providers ship new models between Vysted

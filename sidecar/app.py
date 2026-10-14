@@ -34,6 +34,7 @@ from routers import (
     history,
     indicators,
     llm,
+    local_models,
     macro,
     mcp,
     news,
@@ -97,6 +98,7 @@ _ROUTERS = (
     search_status,
     search_tiers,
     system,
+    local_models,
 )
 
 _log = logging.getLogger(__name__)

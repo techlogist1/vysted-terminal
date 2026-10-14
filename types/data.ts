@@ -741,3 +741,117 @@ export interface IndicatorResponse {
    * pre-fix cached envelope. */
   freshness?: Freshness | null;
 }
+
+// ---------------------------------------------------------------------------
+// On-computer models (R16) — mirrors `sidecar/models/local_models.py`; the
+// `/local-models` wire is camelCase.
+// ---------------------------------------------------------------------------
+
+export type LocalModelTier = "under-8gb" | "8gb" | "16gb" | "32gb";
+export type LocalModelFit = "good" | "tight" | "too-big";
+
+export interface LocalGpuInfo {
+  name: string;
+  /** `null` on unified memory (Apple Silicon) or when not reported. */
+  vramBytes: number | null;
+  unifiedMemory: boolean;
+}
+
+/** `GET /local-models/hardware`. */
+export interface LocalHardwareInfo {
+  os: string;
+  arch: string;
+  totalRamBytes: number;
+  availableRamBytes: number;
+  gpu: LocalGpuInfo | null;
+  freeDiskBytes: number;
+  modelsDir: string;
+}
+
+export interface LocalModelLicence {
+  id: string;
+  name: string;
+  url: string;
+}
+
+export interface CatalogModel {
+  id: string;
+  name: string;
+  family: string;
+  params: string;
+  quant: string;
+  sizeBytes: number;
+  diskNeededBytes: number;
+  minRamBytes: number;
+  /** Shown before download. */
+  licence: LocalModelLicence;
+  /** One plain sentence. */
+  purpose: string;
+  url: string;
+  /** Pinned to a commit-addressed URL. */
+  sha256: string;
+  /** For this machine. */
+  fits: LocalModelFit;
+}
+
+/** `GET /local-models/catalog`. */
+export interface LocalModelCatalog {
+  models: CatalogModel[];
+  recommendedId: string | null;
+  tier: LocalModelTier;
+  reason: string;
+}
+
+export interface InstalledModel {
+  /** A catalog id, a bare file stem, or `ollama:<name>` for an Ollama blob. */
+  id: string;
+  name: string;
+  path: string;
+  sizeBytes: number;
+  /** True only when Vysted's own sha256 check produced this file. */
+  verified: boolean;
+  active: boolean;
+}
+
+/** `GET /local-models/installed`. */
+export interface InstalledModelsResponse {
+  models: InstalledModel[];
+  ollama: { running: boolean; models: string[] };
+}
+
+export type DownloadPhase =
+  | "queued"
+  | "downloading"
+  | "verifying"
+  | "done"
+  | "paused"
+  | "failed"
+  | "cancelled";
+
+export interface DownloadState {
+  id: string;
+  state: DownloadPhase;
+  receivedBytes: number;
+  totalBytes: number;
+  bytesPerSec: number | null;
+  /** Plain language, e.g. "No internet connection". */
+  error: string | null;
+  retryable: boolean;
+}
+
+/** `GET /local-models/downloads`. */
+export interface DownloadsResponse {
+  downloads: DownloadState[];
+}
+
+/** `PUT /local-models/engine` body. */
+export interface LocalEngineConfigRequest {
+  port: number | null;
+  modelId: string | null;
+}
+
+/** `PUT /local-models/engine` response; `baseUrl` is `http://127.0.0.1:<port>/v1`. */
+export interface LocalEngineConfigResponse {
+  baseUrl: string | null;
+  modelId: string | null;
+}

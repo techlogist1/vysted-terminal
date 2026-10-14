@@ -48,7 +48,9 @@ export type LLMProviderId =
   | "ollama"
   | "deepseek"
   | "xai"
-  | "openrouter";
+  | "openrouter"
+  /** The bundled llama.cpp engine running a downloaded model (R16). */
+  | "local";
 
 /**
  * A free-form model identifier (e.g. `"claude-opus-4-8"`, `"gpt-4.1-mini"`,

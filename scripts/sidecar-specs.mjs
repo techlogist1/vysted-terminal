@@ -59,6 +59,8 @@ const UVICORN_HIDDEN = [
 //   (services/research/finance.py reads it by path via `Path(__file__).parent`);
 //   without it domain_tier()'s registrable-domain check raises at first call
 //   (R15-RESEARCH-007).
+// - `services/local_models/` holds catalog.json (catalog.py reads it via
+//   `Path(__file__).parent`); without it GET /local-models/catalog 500s (R16).
 // SOURCE is absolute because PyInstaller resolves it against --specpath (the
 // build/ dir), not cwd. The separator is ';' on Windows and ':' on POSIX, and
 // the value is quoted because cmd.exe treats an unquoted ';' as a command
@@ -69,6 +71,7 @@ const MAIN_ADD_DATA = [
   [join(SIDECAR_DIR, "services", "resolver_masters"), "services/resolver_masters"],
   [join(SIDECAR_DIR, "config"), "config"],
   [join(SIDECAR_DIR, "services", "research", "psl"), "services/research/psl"],
+  [join(SIDECAR_DIR, "services", "local_models"), "services/local_models"],
 ];
 
 // Editing the build recipe must invalidate every binary.

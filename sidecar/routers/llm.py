@@ -36,8 +36,14 @@ from models.llm import (
 )
 from services import budget_guard, model_registry
 from services.errors import error_frame, humanize
-from services.llm import get_provider, list_provider_info, scrub_adapter_options
+from services.llm import (
+    LOCAL_NOT_RUNNING,
+    get_provider,
+    list_provider_info,
+    scrub_adapter_options,
+)
 from services.llm.base import LLMStreamEvent
+from services.local_models import engine as local_engine
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +116,8 @@ async def validate_key(payload: LLMKeyValidationRequest) -> LLMKeyValidationResp
     """
     api_key = (payload.api_key or "").strip() or None
     info = next(p for p in list_provider_info() if p.id == payload.provider)
+    if payload.provider == "local" and local_engine.base_url() is None:
+        return LLMKeyValidationResponse(ok=False, reason="not_configured", detail=LOCAL_NOT_RUNNING)
     if info.requires_key and api_key is None:
         return LLMKeyValidationResponse(
             ok=False, reason="not_configured", detail=f"No API key is set for {info.label}."
@@ -129,7 +137,8 @@ async def validate_key(payload: LLMKeyValidationRequest) -> LLMKeyValidationResp
         return LLMKeyValidationResponse(
             ok=False, reason="invalid", detail=f"{info.label} rejected this key."
         )
-    if not info.requires_key and payload.model:
+    # ``local`` serves whichever model the engine loaded; nothing to "pull".
+    if not info.requires_key and payload.model and payload.provider != "local":
         # A keyless provider's live catalog is what is installed locally.
         pulled = {m.id for m in await adapter.list_models(None)}
         if payload.model not in pulled and f"{payload.model}:latest" not in pulled:

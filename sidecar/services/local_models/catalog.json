@@ -1,0 +1,88 @@
+{
+  "_comment": "Curated on-computer models (R16). Every entry: Apache-2.0 or MIT licence only, instruction-tuned, OpenAI-style tool calling through llama.cpp --jinja, GGUF Q4_K_M. url is pinned to a Hugging Face commit; sizeBytes + sha256 are that commit's LFS size + oid (verified 2026-10-15 via the HF API /tree/main). minRamBytes = sizeBytes + 1.5 GiB (1610612736) headroom for an 8k-token KV cache + llama-server runtime. diskNeededBytes = sizeBytes + 10%, rounded up.",
+  "_recommendedByTier_comment": "PROVISIONAL defaults; the lead sets the final ones after on-device measurement.",
+  "recommendedByTier": {
+    "under-8gb": "granite-4.2-3b",
+    "8gb": "qwen3.5-4b",
+    "16gb": "qwen3.5-9b",
+    "32gb": "qwen3.5-9b"
+  },
+  "models": [
+    {
+      "id": "granite-4.2-3b",
+      "name": "IBM Granite 4.2 3B",
+      "family": "granite",
+      "params": "3B",
+      "quant": "Q4_K_M",
+      "file": "granite-4.2-3b-Q4_K_M.gguf",
+      "url": "https://huggingface.co/ibm-granite/granite-4.2-3b-GGUF/resolve/c40945d71cd90f249a56985e8155551a9188dc30/granite-4.2-3b-Q4_K_M.gguf",
+      "sizeBytes": 2244011552,
+      "sha256": "e0406663965846ae22a403456eb826ccce5f450840491f71952f18a7cb78e7d5",
+      "minRamBytes": 3854624288,
+      "diskNeededBytes": 2468412708,
+      "licence": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0"
+      },
+      "purpose": "The smallest and quickest option, good for everyday questions on a computer with little memory."
+    },
+    {
+      "id": "qwen3.5-4b",
+      "name": "Qwen 3.5 4B",
+      "family": "qwen",
+      "params": "4B",
+      "quant": "Q4_K_M",
+      "file": "Qwen3.5-4B-Q4_K_M.gguf",
+      "url": "https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/e87f176479d0855a907a41277aca2f8ee7a09523/Qwen3.5-4B-Q4_K_M.gguf",
+      "sizeBytes": 2740937888,
+      "sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+      "minRamBytes": 4351550624,
+      "diskNeededBytes": 3015031677,
+      "licence": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0"
+      },
+      "purpose": "A small, capable all-rounder that answers research questions and looks up market data well on most laptops."
+    },
+    {
+      "id": "granite-4.2-8b",
+      "name": "IBM Granite 4.2 8B",
+      "family": "granite",
+      "params": "8B",
+      "quant": "Q4_K_M",
+      "file": "granite-4.2-8b-Q4_K_M.gguf",
+      "url": "https://huggingface.co/ibm-granite/granite-4.2-8b-GGUF/resolve/93f3f6a8938ee922b784cf4e5b4203cd3428df8f/granite-4.2-8b-Q4_K_M.gguf",
+      "sizeBytes": 5347917952,
+      "sha256": "16a9369d0805f80b7377d25d87f937a90c05dc04ad79173a52001e42c9aab311",
+      "minRamBytes": 6958530688,
+      "diskNeededBytes": 5882709748,
+      "licence": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0"
+      },
+      "purpose": "A larger, careful model that follows step-by-step instructions reliably, for computers with 16 GB of memory or more."
+    },
+    {
+      "id": "qwen3.5-9b",
+      "name": "Qwen 3.5 9B",
+      "family": "qwen",
+      "params": "9B",
+      "quant": "Q4_K_M",
+      "file": "Qwen3.5-9B-Q4_K_M.gguf",
+      "url": "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/3885219b6810b007914f3a7950a8d1b469d598a5/Qwen3.5-9B-Q4_K_M.gguf",
+      "sizeBytes": 5680522464,
+      "sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+      "minRamBytes": 7291135200,
+      "diskNeededBytes": 6248574711,
+      "licence": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0"
+      },
+      "purpose": "The strongest option here, giving the most thorough research answers on computers with 16 GB of memory or more."
+    }
+  ]
+}
