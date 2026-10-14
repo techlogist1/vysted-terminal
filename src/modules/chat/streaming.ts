@@ -54,6 +54,7 @@ const PROVIDER_FAILURE_CODES = new Set([
   "provider_402",
   "insufficient_credit",
   "network",
+  "local_not_running",
   "ollama_not_running",
   "provider_5xx",
 ]);
