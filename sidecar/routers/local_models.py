@@ -29,7 +29,7 @@ def _not_found(model_id: str) -> HTTPException:
 
 
 @router.get("/hardware")
-async def get_hardware() -> HardwareInfo:
+def get_hardware() -> HardwareInfo:  # sync: vm_stat / nvidia-smi run in the threadpool
     return hardware.hardware(store.get_store().dir)
 
 
