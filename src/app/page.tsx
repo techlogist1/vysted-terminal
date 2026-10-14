@@ -13,6 +13,7 @@ import {
 import { AgentDock } from "@/components/AgentDock";
 import { CommandPalette } from "@/components/CommandPalette";
 import { OnboardingBanner } from "@/components/OnboardingBanner";
+import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { PanelHost } from "@/components/PanelHost";
 import { useDesktopNotificationBridge } from "@/lib/desktop-notification";
@@ -285,6 +286,7 @@ export default function Page() {
           />
         </header>
         <OnboardingBanner />
+        <UpdatePrompt />
         <div className="min-h-0 flex-1">
           <AgentDock>
             <PanelHost />
