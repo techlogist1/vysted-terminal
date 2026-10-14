@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 
 import pytest
 
@@ -109,6 +110,10 @@ def _manager(fake: FakeDocker, tmp_path, **overrides) -> SearxngManager:
 
 
 def _write_fake_docker(tmp_path, echoed: str) -> str:
+    if os.name == "nt":
+        fake = tmp_path / "docker.cmd"
+        fake.write_text(f"@echo off\r\necho {echoed}\r\n", encoding="utf-8")
+        return str(fake)
     fake = tmp_path / "docker"
     fake.write_text(f"#!/bin/sh\necho {echoed}\n", encoding="utf-8")
     fake.chmod(0o755)
