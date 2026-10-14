@@ -147,6 +147,18 @@ describe("local-models store", () => {
     expect(useModelSelectionStore.getState().modelFor("local")).toBe("qwen");
   });
 
+  it("activate leaves the choice unsaved when the engine start fails", async () => {
+    useLocalModelsStore.setState({ installed: [qwen] });
+    const failed = { ...ready, state: "failed", port: null, error: "out of memory" };
+    engine.start.mockResolvedValue(failed);
+    const status = await useLocalModelsStore.getState().activate("qwen");
+    expect(status).toEqual(failed);
+    expect(useLocalModelsStore.getState().activeModelId).toBeNull();
+    expect(meta.has(LOCAL_MODEL_ACTIVE_KEY)).toBe(false);
+    expect(useLLMProvidersStore.getState().defaultProviderId).toBe("ollama");
+    expect(useModelSelectionStore.getState().modelFor("local")).not.toBe("qwen");
+  });
+
   it("remove stops the engine first when the model is active", async () => {
     useLocalModelsStore.setState({ installed: [qwen], activeModelId: "qwen" });
     const order: string[] = [];

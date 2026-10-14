@@ -168,6 +168,8 @@ export const useLocalModelsStore = create<LocalModelsState>((set, get) => ({
 
   activate: async (id) => {
     const status = await engineStart(id);
+    // The core resolves (not rejects) a failed start: leave the choice unsaved.
+    if (status.state === "failed") return status;
     set({ activeModelId: id });
     await persistActive(id);
     useLLMProvidersStore.getState().setDefaultProviderId("local");
