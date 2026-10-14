@@ -4,6 +4,7 @@ mod diag_log;
 mod keychain;
 mod openbb_mcp;
 mod sec_edgar_mcp;
+mod updater;
 
 use std::net::TcpStream;
 use std::path::{Path, PathBuf};
@@ -704,6 +705,8 @@ pub fn run() {
             keychain::keychain_migrate,
             openbb_mcp::get_openbb_mcp_port,
             sec_edgar_mcp::get_sec_edgar_mcp_port,
+            updater::update_check,
+            updater::update_download_and_install,
         ])
         // macOS Layout menu CLICK handler. Registered on the BUILDER (not via
         // `app.on_menu_event` in setup, which rendered the items but never fired on
@@ -770,7 +773,11 @@ pub fn run() {
 
             Ok(())
         })
-        .build(tauri::generate_context!())
+        .build({
+            let mut context = tauri::generate_context!();
+            updater::allow_loopback_override(&mut context);
+            context
+        })
         .expect("error while building Vysted Terminal");
 
     app.run(|app_handle, event| {
