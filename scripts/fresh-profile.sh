@@ -71,7 +71,11 @@ case "$cmd" in
       deleted=$((deleted + 1))
       [ "$deleted" -lt 1000 ] || die "keychain delete loop did not terminate"
     done
-    rm -rf "$(canonical_dir "$2")"
+    dir=$(canonical_dir "$2")
+    # Quit the app first (kill the printed PID); a SIGTERM'd app leaves its sidecars running,
+    # so stop any process still bound to this profile dir.
+    pkill -f -- "--data-dir $dir" 2>/dev/null || true
+    rm -rf "$dir"
     echo "wiped $2 ($deleted keychain item(s) from $service)"
     ;;
   *)
