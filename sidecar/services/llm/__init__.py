@@ -21,8 +21,9 @@ from __future__ import annotations
 import logging
 from typing import Any, cast
 
-from models.llm import LLMProviderId, LLMProviderInfo
+from models.llm import LLMModelOption, LLMProviderId, LLMProviderInfo
 from services import model_registry
+from services.local_models import engine as local_engine
 
 from .anthropic import AnthropicProvider
 from .base import LLMProvider
@@ -63,6 +64,37 @@ PROVIDER_INFO: tuple[LLMProviderInfo, ...] = tuple(
 
 
 logger = logging.getLogger(__name__)
+
+#: llama-server takes no key, but the OpenAI SDK refuses to build without one.
+LOCAL_ENGINE_DUMMY_KEY = "local-engine"
+LOCAL_NOT_RUNNING = "The on-computer model isn't running"
+
+
+class LocalEngineNotRunning(RuntimeError):
+    def __init__(self) -> None:
+        super().__init__(LOCAL_NOT_RUNNING)
+
+
+class LocalEngineProvider(OpenAIProvider):
+    """Provider ``local``: the bundled llama-server's OpenAI-compatible ``/v1``,
+    resolved from the engine port at call time (it moves on every restart)."""
+
+    def __init__(self) -> None:
+        super().__init__(base_url=local_engine.base_url(), provider_id="local")
+
+    def _client(self, api_key: str | None) -> Any:
+        self._base_url = local_engine.base_url()
+        if self._base_url is None:
+            raise LocalEngineNotRunning()
+        return super()._client(api_key or LOCAL_ENGINE_DUMMY_KEY)
+
+    async def validate_key(self, api_key: str | None = None) -> bool:
+        return await super().validate_key(api_key or LOCAL_ENGINE_DUMMY_KEY)
+
+    async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+        active = local_engine.active_model_id()
+        return [LLMModelOption(id=active, label=active)] if active else []
+
 
 #: Option keys an adapter's ``stream_chat`` consumes (``**options``): provider
 #: tuning params + the runtime's web-search flags. The ONE allowlist for every
@@ -116,6 +148,10 @@ def get_provider(provider_id: LLMProviderId, base_url: str | None = None) -> LLM
         return GroqProvider(base_url=base_url)
     if provider_id == "ollama":
         return OllamaProvider(base_url=base_url)
+    if provider_id == "local":
+        # The URL comes only from the engine's port (PUT /local-models/engine),
+        # never from a request: a caller-supplied base_url is ignored.
+        return LocalEngineProvider()
     if provider_id in ("deepseek", "xai", "openrouter"):
         return OpenAIProvider(
             base_url=base_url or model_registry.default_base_url_for(provider_id),
@@ -126,6 +162,7 @@ def get_provider(provider_id: LLMProviderId, base_url: str | None = None) -> LLM
 
 __all__ = [
     "ADAPTER_OPTION_KEYS",
+    "LOCAL_NOT_RUNNING",
     "DEEPSEEK_BASE_URL",
     "OPENROUTER_BASE_URL",
     "PROVIDER_INFO",
