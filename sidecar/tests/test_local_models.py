@@ -170,7 +170,7 @@ async def test_transient_errors_exhaust_to_paused_then_relaunch_resumes(tmp_path
     half = int(len(DATA) * 0.4)
     (tmp_path / f"{FILE}.part").write_bytes(DATA[:half])
     (tmp_path / f"{FILE}.part.json").write_text(
-        json.dumps({"url": URL, "sha256": SHA, "totalBytes": len(DATA)})
+        json.dumps({"url": URL, "sha256": SHA, "totalBytes": len(DATA)}), encoding="utf-8"
     )
 
     offline = store.ModelStore(
@@ -206,7 +206,7 @@ async def test_cancel_keeps_part_and_discard_removes(tmp_path: Path) -> None:
     assert st.state == "cancelled"
     part = tmp_path / f"{FILE}.part"
     assert part.stat().st_size == 65536
-    meta = json.loads((tmp_path / f"{FILE}.part.json").read_text())
+    meta = json.loads((tmp_path / f"{FILE}.part.json").read_text(encoding="utf-8"))
     assert meta == {"url": URL, "sha256": SHA, "totalBytes": len(DATA), "etag": '"strong-etag"'}
 
     [paused] = _store(tmp_path, Server()).downloads()
@@ -268,7 +268,8 @@ async def test_ollama_models_resolve_to_gguf_blobs(
                     }
                 ]
             }
-        )  # fmt: skip
+        ),  # fmt: skip
+        encoding="utf-8",
     )
     monkeypatch.setenv("OLLAMA_MODELS", str(tmp_path))
 
