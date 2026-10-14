@@ -61,7 +61,7 @@ function fixtureBrief(overrides: Partial<ResearchBriefData> = {}): ResearchBrief
   };
 }
 
-const NUDGE_TEXT = /limited keyless search/i;
+const NUDGE_TEXT = /free web search/i;
 
 describe("BriefPanel keyless-fallback nudge (R9 gate 2)", () => {
   beforeEach(() => {
@@ -77,7 +77,7 @@ describe("BriefPanel keyless-fallback nudge (R9 gate 2)", () => {
     render(<BriefPanel />);
     expect(screen.getAllByText(NUDGE_TEXT)).toHaveLength(1);
     expect(
-      screen.getByRole("button", { name: /set up unlimited local research/i }),
+      screen.getByRole("button", { name: /dismiss the keyless search notice/i }),
     ).toBeInTheDocument();
   });
 
@@ -125,15 +125,18 @@ describe("BriefPanel keyless-fallback nudge (R9 gate 2)", () => {
     expect(screen.getByText(NUDGE_TEXT)).toBeInTheDocument();
   });
 
-  it("the setup link opens the Settings panel (Settings → Research)", () => {
+  it("R16: the plain note points at no setup and never names Docker or SearXNG", () => {
     const openPanel = vi.fn();
     const original = useWorkspaceStore.getState().openPanel;
     useWorkspaceStore.setState({ openPanel });
     try {
       useBriefStore.setState({ brief: fixtureBrief({ backend: "keyless-fallback" }) });
       render(<BriefPanel />);
-      fireEvent.click(screen.getByRole("button", { name: /set up unlimited local research/i }));
-      expect(openPanel).toHaveBeenCalledWith("settings");
+      const note = screen.getByText(NUDGE_TEXT);
+      expect(note.textContent).not.toMatch(/docker|searxng|set up/i);
+      expect(screen.queryByRole("button", { name: /set up/i })).toBeNull();
+      expect(note.querySelector("button")).toBeNull();
+      expect(openPanel).not.toHaveBeenCalled();
     } finally {
       useWorkspaceStore.setState({ openPanel: original });
     }
