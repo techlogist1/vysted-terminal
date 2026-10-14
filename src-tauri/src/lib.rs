@@ -2,6 +2,7 @@
 #[macro_use]
 mod diag_log;
 mod keychain;
+mod local_engine;
 mod openbb_mcp;
 mod sec_edgar_mcp;
 
@@ -704,6 +705,9 @@ pub fn run() {
             keychain::keychain_migrate,
             openbb_mcp::get_openbb_mcp_port,
             sec_edgar_mcp::get_sec_edgar_mcp_port,
+            local_engine::local_engine_start,
+            local_engine::local_engine_stop,
+            local_engine::local_engine_status,
         ])
         // macOS Layout menu CLICK handler. Registered on the BUILDER (not via
         // `app.on_menu_event` in setup, which rendered the items but never fired on
@@ -729,6 +733,7 @@ pub fn run() {
             // shows disconnected rather than panicking at boot.
             let port = pick_free_port().unwrap_or(0);
             app.manage(SidecarStatus::new(port));
+            local_engine::init(app.handle());
 
             // Boot the three children off the main thread so the window paints
             // at once (R15-LIFECYCLE-001): the MCP starts pick their ports, the
@@ -786,6 +791,8 @@ pub fn run() {
             openbb_mcp::kill(app_handle);
             // Reap the sec-edgar-mcp subprocess alongside the main sidecar.
             sec_edgar_mcp::kill(app_handle);
+            // Reap the bundled llama-server (R16 local engine).
+            local_engine::kill(app_handle);
             clear_mcp_endpoint_file(&app_data_dir(app_handle).to_string_lossy());
         }
     });
