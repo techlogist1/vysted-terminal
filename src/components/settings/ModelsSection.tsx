@@ -72,7 +72,7 @@ function Badge({ className, children }: { className?: string; children: React.Re
   return (
     <span
       className={cn(
-        "rounded-control text-micro border px-1.5 py-px whitespace-nowrap",
+        "rounded-control text-micro border px-2 py-px whitespace-nowrap",
         className ?? "text-charcoal-300 border-charcoal-600",
       )}
     >
