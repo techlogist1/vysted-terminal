@@ -42,7 +42,15 @@
       "binaries/vysted-openbb-mcp-sidecar",
       "binaries/vysted-sec-edgar-mcp-sidecar"
     ],
-    "createUpdaterArtifacts": false
+    "createUpdaterArtifacts": false,
+    "macOS": {
+      "dmg": {
+        "background": "dmg/background.png",
+        "windowSize": { "width": 660, "height": 400 },
+        "appPosition": { "x": 180, "y": 150 },
+        "applicationFolderPosition": { "x": 480, "y": 150 }
+      }
+    }
   },
   "plugins": {
     "updater": {
