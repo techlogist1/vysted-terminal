@@ -76,6 +76,40 @@ jobs:
       - name: Build Tauri bundle (unsigned)
         run: pnpm tauri build
 
+      - name: Smoke-test bundled llama-server (macOS)
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP="$(find src-tauri/target/release/bundle/macos -maxdepth 1 -name '*.app' | head -1)"
+          "$APP/Contents/MacOS/llama-server" --version
+
+      - name: Smoke-test bundled llama-server (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          set -euo pipefail
+          APPIMAGE="$(find src-tauri/target/release/bundle/appimage -maxdepth 1 -name '*.AppImage' | head -1)"
+          chmod +x "$APPIMAGE"
+          "$APPIMAGE" --appimage-extract
+          LLAMA_BIN="$(find squashfs-root -type f -name 'llama-server' | head -1)"
+          LLAMA_LIB_DIR="$(dirname "$(find squashfs-root -type d -name 'llama-libs' | head -1)")/llama-libs"
+          LD_LIBRARY_PATH="$LLAMA_LIB_DIR" "$LLAMA_BIN" --version
+
+      - name: Smoke-test bundled llama-server (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          set -euo pipefail
+          NSIS="$(find src-tauri/target/release/bundle/nsis -maxdepth 1 -iname '*-setup.exe' | head -1)"
+          INSTDIR="${RUNNER_TEMP}\\llama-smoke"
+          "$NSIS" /S "/D=$INSTDIR"
+          for i in $(seq 1 30); do
+            [ -f "$INSTDIR/llama-server.exe" ] && break
+            sleep 2
+          done
+          "$INSTDIR/llama-server.exe" --version
+
       - name: Upload bundle artifacts
         uses: actions/upload-artifact@v4
         with:
