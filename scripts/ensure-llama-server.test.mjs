@@ -1,15 +1,28 @@
 // @vitest-environment node
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import https from "node:https";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { Readable } from "node:stream";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   ASSET_MAP,
+  LIB_STAGE_ROOT,
   binaryOutPath,
   needsStage,
   resolveAsset,
   sha256OfFile,
+  stageTriple,
 } from "./ensure-llama-server.mjs";
 
 const TRIPLES = ["aarch64-apple-darwin", "x86_64-pc-windows-msvc", "x86_64-unknown-linux-gnu"];
@@ -99,5 +112,102 @@ describe("needsStage", () => {
 
   it("an unknown triple needs staging (no marker can exist for it) without throwing", () => {
     expect(needsStage("not-a-real-triple")).toBe(true);
+  });
+});
+
+describe("stageTriple", () => {
+  const triple = `x-test-fake-${process.pid}`;
+  let src;
+  let archive;
+  let archiveSha;
+
+  beforeEach(() => {
+    // A stand-in release archive: <root>/llama-server + two libs, tarred.
+    src = mkdtempSync(join(tmpdir(), "llama-stage-"));
+    const root = join(src, "llama-fake");
+    mkdirSync(root);
+    writeFileSync(join(root, "llama-server"), "#!/bin/sh\necho fake\n");
+    writeFileSync(join(root, "libone.so"), "one");
+    writeFileSync(join(root, "libtwo.so"), "two");
+    writeFileSync(join(root, "libunused.so"), "never staged");
+    archive = join(src, "fake.tar.gz");
+    execFileSync("tar", ["-czf", archive, "-C", src, "llama-fake"]);
+    archiveSha = sha256OfFile(archive);
+    ASSET_MAP[triple] = {
+      assetName: `fake-${process.pid}.tar.gz`,
+      sha256: archiveSha,
+      archiveRoot: "llama-fake",
+      binaryName: "llama-server",
+      libs: ["libone.so", "libtwo.so"],
+    };
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    rmSync(join(LIB_STAGE_ROOT, triple), { recursive: true, force: true });
+    rmSync(join(LIB_STAGE_ROOT, ".cache", ASSET_MAP[triple].assetName), { force: true });
+    rmSync(binaryOutPath(triple), { force: true });
+    delete ASSET_MAP[triple];
+    rmSync(src, { recursive: true, force: true });
+  });
+
+  /** Serve `body` for the next https.get (then a 302 hop first when `redirect`). */
+  function stubDownload(body, { redirect = false } = {}) {
+    let calls = 0;
+    vi.spyOn(https, "get").mockImplementation((_url, _opts, onResponse) => {
+      calls += 1;
+      const hop = redirect && calls === 1;
+      const resp = Readable.from(hop ? [] : [body]);
+      resp.statusCode = hop ? 302 : 200;
+      resp.headers = hop ? { location: "https://cdn.example/fake" } : {};
+      setImmediate(() => onResponse(resp));
+      return { on: () => undefined };
+    });
+  }
+
+  it("downloads, verifies, and stages the binary plus exactly the declared libs", async () => {
+    stubDownload(readFileSync(archive), { redirect: true });
+    expect(needsStage(triple)).toBe(true);
+    await stageTriple(triple);
+    const stageDir = join(LIB_STAGE_ROOT, triple);
+    expect(readFileSync(binaryOutPath(triple), "utf8")).toContain("echo fake");
+    expect(readdirSync(stageDir).sort()).toEqual([".staged.json", "libone.so", "libtwo.so"]);
+    const marker = JSON.parse(readFileSync(join(stageDir, ".staged.json"), "utf8"));
+    expect(marker.sha256).toBe(archiveSha);
+    expect(needsStage(triple)).toBe(false);
+    expect(https.get).toHaveBeenCalledTimes(2);
+  });
+
+  it("re-stages from a verified cache without touching the network", async () => {
+    stubDownload(readFileSync(archive));
+    await stageTriple(triple);
+    await stageTriple(triple, { force: true });
+    expect(https.get).toHaveBeenCalledTimes(1);
+    expect(existsSync(binaryOutPath(triple))).toBe(true);
+  });
+
+  it("is a no-op when already staged and fresh", async () => {
+    stubDownload(readFileSync(archive));
+    await stageTriple(triple);
+    await stageTriple(triple);
+    expect(https.get).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses an archive whose sha256 does not match the pin and deletes it", async () => {
+    stubDownload(Buffer.from("tampered bytes"));
+    await expect(stageTriple(triple)).rejects.toThrow(/sha256 mismatch/);
+    expect(existsSync(join(LIB_STAGE_ROOT, ".cache", ASSET_MAP[triple].assetName))).toBe(false);
+    expect(existsSync(binaryOutPath(triple))).toBe(false);
+  });
+
+  it("surfaces a non-200 download as an error", async () => {
+    vi.spyOn(https, "get").mockImplementation((_url, _opts, onResponse) => {
+      const resp = Readable.from([]);
+      resp.statusCode = 404;
+      resp.headers = {};
+      setImmediate(() => onResponse(resp));
+      return { on: () => undefined };
+    });
+    await expect(stageTriple(triple)).rejects.toThrow(/HTTP 404/);
   });
 });

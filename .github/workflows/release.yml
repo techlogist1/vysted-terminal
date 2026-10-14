@@ -255,15 +255,17 @@ jobs:
           if [ ! -f "$NOTES_FILE" ]; then
             NOTES_FILE=""
           fi
+          PRERELEASE=""
+          case "$VERSION" in *-*) PRERELEASE="--prerelease" ;; esac
           if gh release view "$TAG" >/dev/null 2>&1; then
             if [ -n "$NOTES_FILE" ]; then
               gh release edit "$TAG" --draft --notes-file "$NOTES_FILE"
             fi
           else
             if [ -n "$NOTES_FILE" ]; then
-              gh release create "$TAG" --draft --title "$TAG" --notes-file "$NOTES_FILE"
+              gh release create "$TAG" --draft $PRERELEASE --title "$TAG" --notes-file "$NOTES_FILE"
             else
-              gh release create "$TAG" --draft --title "$TAG" --notes "See release-assets/latest.json for build metadata."
+              gh release create "$TAG" --draft $PRERELEASE --title "$TAG" --notes "See release-assets/latest.json for build metadata."
             fi
           fi
           gh release upload "$TAG" release-assets/* --clobber
