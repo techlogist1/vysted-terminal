@@ -34,6 +34,7 @@ from datetime import UTC, datetime
 from models.fundamentals import CompanyNarrative, Fundamentals, UnverifiedClaim
 from models.market import Quote
 from services import correctness_gate, provider_registry
+from services.llm.base import ON_DEVICE_PROVIDERS
 from services.llm.oneshot import complete
 
 logger = logging.getLogger(__name__)
@@ -498,7 +499,7 @@ async def generate_narrative(
             source_provider=source_provider,
             reason="No AI provider configured. Add a key in Settings → AI Providers.",
         )
-    if not api_key and provider != "ollama":
+    if not api_key and provider not in ON_DEVICE_PROVIDERS:
         return CompanyNarrative(
             symbol=normalized,
             source_provider=source_provider,

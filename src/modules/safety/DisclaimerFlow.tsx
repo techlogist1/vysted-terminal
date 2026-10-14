@@ -3,12 +3,14 @@
 /**
  * DisclaimerFlow — the first-launch research terms (onboarding gate).
  *
- * Keychain-backed (`KEYCHAIN_NAMESPACES.appMeta("first-launch-terms")`).
+ * The ack lives in app-meta `first-launch-terms` (legacy keychain item read as a
+ * fallback, see `src/store/safety.ts`).
  * Renders a blocking modal on the very first launch; `OnboardingFlow`
  * sequences after the ack. It is the product's only in-app
  * "not investment advice" notice.
  *
- * No `localStorage` / `sessionStorage`. The ack lives in the OS keychain.
+ * No `localStorage` / `sessionStorage`. Nothing dismisses it but the explicit
+ * accept button, and only a saved ack closes it.
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -55,11 +57,7 @@ export function FirstLaunchTosDialog() {
     try {
       await ackFirstLaunchTos();
     } catch (err: unknown) {
-      setAckError(
-        err instanceof Error
-          ? err.message
-          : "Could not save acknowledgement — check your OS keychain permissions.",
-      );
+      setAckError(err instanceof Error ? err.message : "Couldn't save your answer. Try again.");
     } finally {
       setBusy(false);
     }

@@ -62,6 +62,7 @@ from services.llm import get_provider, native_search, oneshot, scrub_adapter_opt
 from services.llm.base import (
     IDLE_TIMEOUT_S,
     LOCAL_IDLE_TIMEOUT_S,
+    ON_DEVICE_PROVIDERS,
     LLMStreamEvent,
     is_length_finish,
 )
@@ -3366,7 +3367,7 @@ async def invoke_agent(
     for message in run.messages:
         if message.role != "assistant" and message.content != spec.system_prompt:
             turn.grounding.seed(message.content)
-    idle = LOCAL_IDLE_TIMEOUT_S if run.provider_id == "ollama" else IDLE_TIMEOUT_S
+    idle = LOCAL_IDLE_TIMEOUT_S if run.provider_id in ON_DEVICE_PROVIDERS else IDLE_TIMEOUT_S
     while True:
         rnd = _open_round(run, turn)
         stream = _relay_provider(

@@ -44,6 +44,8 @@ import {
   orderedProviders,
   useLLMProvidersStore,
 } from "@/store/llm-providers";
+import { useLocalEngineStore } from "@/store/local-engine";
+import { useLocalModelsStore } from "@/store/local-models";
 import { useModelCatalog, useModelCatalogStore } from "@/store/model-catalog";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { usePanelContextBus } from "@/store/panel-context";
@@ -848,6 +850,25 @@ export function ChatSidebar() {
                 "charts, news and screeners already work without a model.)",
             );
             useOnboardingStore.getState().open("local");
+          } else if (
+            readiness.reason === "not_configured" &&
+            provider === "local" &&
+            useLocalModelsStore.getState().installed.length > 0
+          ) {
+            // A model is on this computer but the engine is off: start it rather
+            // than re-run setup; the user resends once it is ready.
+            const engine = useLocalEngineStore.getState().status;
+            if (engine.state === "starting" || engine.state === "crashed") {
+              setStatusLine(
+                "The on-computer model is starting — send your question again in a moment.",
+              );
+            } else {
+              const { activeModelId, installed, activate } = useLocalModelsStore.getState();
+              activate(activeModelId ?? engine.modelId ?? installed[0].id).catch(() => undefined);
+              setStatusLine(
+                "Starting the on-computer model — send your question again once it's ready.",
+              );
+            }
           } else if (readiness.reason === "not_configured") {
             setStatusLine(
               "No AI model is set up yet — opening setup. (Quotes, charts, news and " +

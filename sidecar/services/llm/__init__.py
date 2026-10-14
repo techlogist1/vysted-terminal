@@ -26,7 +26,7 @@ from services import model_registry
 from services.local_models import engine as local_engine
 
 from .anthropic import AnthropicProvider
-from .base import LLMProvider
+from .base import LOCAL_IDLE_TIMEOUT_S, LLMProvider, client_timeout
 from .gemini import GeminiProvider
 from .groq import GroqProvider
 from .ollama import OllamaProvider
@@ -86,7 +86,13 @@ class LocalEngineProvider(OpenAIProvider):
         self._base_url = local_engine.base_url()
         if self._base_url is None:
             raise LocalEngineNotRunning()
-        return super()._client(api_key or LOCAL_ENGINE_DUMMY_KEY)
+        # A model on this computer may sit silent for minutes reading a long
+        # prompt on a CPU: the local idle bound, not the hosted one.
+        return (
+            super()
+            ._client(api_key or LOCAL_ENGINE_DUMMY_KEY)
+            .with_options(timeout=client_timeout(LOCAL_IDLE_TIMEOUT_S))
+        )
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         return await super().validate_key(api_key or LOCAL_ENGINE_DUMMY_KEY)

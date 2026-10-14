@@ -504,3 +504,18 @@ describe("streaming — error layer", () => {
     expect(await agentErrors()).toEqual([SIDECAR_UNREACHABLE]);
   });
 });
+
+import { isProviderFailure } from "./streaming";
+
+describe("streaming — provider-failure codes that trigger fallback", () => {
+  it("falls back when the on-computer engine or Ollama is off", () => {
+    expect(isProviderFailure("local_not_running")).toBe(true);
+    expect(isProviderFailure("ollama_not_running")).toBe(true);
+  });
+
+  it("does not fall back on a self-restarting engine or a content error", () => {
+    expect(isProviderFailure("local_stopped")).toBe(false);
+    expect(isProviderFailure("context_overflow")).toBe(false);
+    expect(isProviderFailure(undefined)).toBe(false);
+  });
+});

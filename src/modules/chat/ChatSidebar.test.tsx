@@ -19,11 +19,14 @@ import { useChartSyncBus } from "@/store/chart-sync";
 import { useChatHistoryStore } from "@/store/chat-history";
 import { useChatPendingStore } from "@/store/chat-pending";
 import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useLocalEngineStore } from "@/store/local-engine";
+import { useLocalModelsStore } from "@/store/local-models";
 import { useOnboardingStore } from "@/store/onboarding";
 import { usePanelContextBus } from "@/store/panel-context";
 import { useNotesStore } from "@/store/notes";
 import { useProposedChangesStore } from "@/store/proposed-changes";
 import { resetResearchDepthStoreForTests, useResearchDepthStore } from "@/store/research-depth";
+import type { EngineStatus } from "@/lib/local-engine";
 import type { ProposedChange } from "../../../types/proposed-change";
 
 // ---- Mocks ----
@@ -706,6 +709,98 @@ describe("ChatSidebar", () => {
     await waitFor(() => expect(screen.getByText(/not downloaded yet/i)).toBeInTheDocument());
     expect(useOnboardingStore.getState()).toMatchObject({ forceOpen: true, forceStep: "local" });
     expect(streamChatMock).not.toHaveBeenCalled();
+  });
+
+  describe("the on-computer lane with a model installed but the engine off", () => {
+    const qwen = {
+      id: "qwen",
+      name: "Qwen",
+      path: "/m/qwen.gguf",
+      sizeBytes: 1,
+      verified: true,
+      active: false,
+    };
+    const engineAt = (state: EngineStatus["state"]): EngineStatus => ({
+      state,
+      port: null,
+      modelId: null,
+      restarts: 0,
+      error: null,
+      detail: null,
+    });
+    const activateMock = vi.fn(async () => engineAt("starting"));
+    const realLocal = useLocalModelsStore.getState();
+    const realEngine = useLocalEngineStore.getState().status;
+
+    afterEach(() => {
+      useLocalModelsStore.setState(realLocal, true);
+      useLocalEngineStore.setState({ status: realEngine });
+    });
+
+    beforeEach(() => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(
+          async () =>
+            new Response(JSON.stringify({ ok: false, reason: "not_configured" }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }),
+        ),
+      );
+      activateMock.mockClear();
+      useOnboardingStore.setState({ forceOpen: false, forceStep: null });
+      useLLMProvidersStore.setState({
+        providers: [{ id: "local", label: "On this computer", requiresKey: false }],
+        defaultProviderId: "local",
+      });
+      useLocalModelsStore.setState({
+        installed: [qwen],
+        activeModelId: null,
+        activate: activateMock,
+      });
+    });
+
+    const send = async (text: string) => {
+      render(<ChatSidebar />);
+      const input = screen.getByLabelText("Chat input") as HTMLInputElement;
+      fireEvent.change(input, { target: { value: text } });
+      fireEvent.submit(input.closest("form")!);
+      return input;
+    };
+
+    it("starts the engine instead of opening setup and keeps the prompt", async () => {
+      useLocalEngineStore.setState({ status: engineAt("stopped") });
+      const input = await send("/ask hi");
+      await waitFor(() =>
+        expect(screen.getByText(/Starting the on-computer model/i)).toBeInTheDocument(),
+      );
+      expect(activateMock).toHaveBeenCalledWith("qwen");
+      expect(useOnboardingStore.getState().forceOpen).toBe(false);
+      expect(input.value).toBe("/ask hi");
+      expect(streamChatMock).not.toHaveBeenCalled();
+    });
+
+    it("only asks for a resend while the engine is already starting", async () => {
+      useLocalEngineStore.setState({ status: engineAt("starting") });
+      const input = await send("/ask hi");
+      await waitFor(() =>
+        expect(screen.getByText(/The on-computer model is starting/i)).toBeInTheDocument(),
+      );
+      expect(activateMock).not.toHaveBeenCalled();
+      expect(useOnboardingStore.getState().forceOpen).toBe(false);
+      expect(input.value).toBe("/ask hi");
+    });
+
+    it("still opens setup when no model is on this computer", async () => {
+      useLocalModelsStore.setState({ installed: [] });
+      await send("/ask hi");
+      await waitFor(() =>
+        expect(screen.getByText(/No AI model is set up yet/i)).toBeInTheDocument(),
+      );
+      expect(activateMock).not.toHaveBeenCalled();
+      expect(useOnboardingStore.getState().forceOpen).toBe(true);
+    });
   });
 
   it("a data engine that does not answer the probe is not 'no model set up' (R15-UI-013)", async () => {
