@@ -7,16 +7,16 @@ ownership, put the exact hunk in your final report instead.
 
 ## Shared names (fixed)
 
-| Thing | Name |
-| --- | --- |
-| Bundled engine binary (externalBin) | `binaries/llama-server` → `src-tauri/binaries/llama-server-<triple>[.exe]` |
-| Engine shared libs staging dir | `src-tauri/llama-libs/<triple>/` (git-ignored) |
-| Pinned llama.cpp build | `b11429` (= release `v0.6.0`), assets verified by the GitHub asset `digest` sha256 |
-| Asset per triple | `aarch64-apple-darwin` → `llama-b11429-bin-macos-arm64.tar.gz`; `x86_64-pc-windows-msvc` → `llama-b11429-bin-win-vulkan-x64.zip`; `x86_64-unknown-linux-gnu` → `llama-b11429-bin-ubuntu-x64.tar.gz` |
-| LLM provider id for the bundled engine | `local` (label "On this computer") |
-| Models dir | `<app-data-dir>/models/` (`<file>.gguf`, in-flight `<file>.gguf.part` + `<file>.gguf.part.json`) |
-| Profile isolation env | existing `VYSTED_DATA_DIR`; when set, the keychain service becomes `vysted-terminal.profile.<first 12 hex of sha256(abs data dir)>` |
-| Updater test endpoint env | `VYSTED_UPDATER_ENDPOINT` (only honoured when it is an `http://127.0.0.1:` or `https://` URL; signature check unchanged) |
+| Thing                                  | Name                                                                                                                                                                                                |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bundled engine binary (externalBin)    | `binaries/llama-server` → `src-tauri/binaries/llama-server-<triple>[.exe]`                                                                                                                          |
+| Engine shared libs staging dir         | `src-tauri/llama-libs/<triple>/` (git-ignored)                                                                                                                                                      |
+| Pinned llama.cpp build                 | `b11429` (= release `v0.6.0`), assets verified by the GitHub asset `digest` sha256                                                                                                                  |
+| Asset per triple                       | `aarch64-apple-darwin` → `llama-b11429-bin-macos-arm64.tar.gz`; `x86_64-pc-windows-msvc` → `llama-b11429-bin-win-vulkan-x64.zip`; `x86_64-unknown-linux-gnu` → `llama-b11429-bin-ubuntu-x64.tar.gz` |
+| LLM provider id for the bundled engine | `local` (label "On this computer")                                                                                                                                                                  |
+| Models dir                             | `<app-data-dir>/models/` (`<file>.gguf`, in-flight `<file>.gguf.part` + `<file>.gguf.part.json`)                                                                                                    |
+| Profile isolation env                  | existing `VYSTED_DATA_DIR`; when set, the keychain service becomes `vysted-terminal.profile.<first 12 hex of sha256(abs data dir)>`                                                                 |
+| Updater test endpoint env              | `VYSTED_UPDATER_ENDPOINT` (only honoured when it is an `http://127.0.0.1:` or `https://` URL; signature check unchanged)                                                                            |
 
 ## Rust ↔ frontend: local engine (writer: engine lifecycle)
 
@@ -31,10 +31,10 @@ Tauri commands (all `async`, return `Result<T, String>`):
 type EngineState = "stopped" | "starting" | "ready" | "crashed" | "failed";
 interface EngineStatus {
   state: EngineState;
-  port: number | null;        // set only when ready
+  port: number | null; // set only when ready
   modelId: string | null;
-  restarts: number;            // crash restarts in the current window
-  error: string | null;        // plain-language reason when crashed/failed (last stderr line kept in `detail`)
+  restarts: number; // crash restarts in the current window
+  error: string | null; // plain-language reason when crashed/failed (last stderr line kept in `detail`)
   detail: string | null;
 }
 ```
@@ -56,18 +56,35 @@ Router prefix `/local-models` (GET/PUT/POST/DELETE; no trading verbs in any name
 
 ```ts
 interface CatalogModel {
-  id: string; name: string; family: string; params: string; quant: string;
-  sizeBytes: number; diskNeededBytes: number; minRamBytes: number;
-  licence: { id: string; name: string; url: string };   // shown before download
-  purpose: string;                                      // one plain sentence
-  url: string; sha256: string;                          // pinned to a commit-addressed URL
-  fits: "good" | "tight" | "too-big";                   // for this machine
+  id: string;
+  name: string;
+  family: string;
+  params: string;
+  quant: string;
+  sizeBytes: number;
+  diskNeededBytes: number;
+  minRamBytes: number;
+  licence: { id: string; name: string; url: string }; // shown before download
+  purpose: string; // one plain sentence
+  url: string;
+  sha256: string; // pinned to a commit-addressed URL
+  fits: "good" | "tight" | "too-big"; // for this machine
 }
-interface InstalledModel { id: string; name: string; path: string; sizeBytes: number; verified: boolean; active: boolean }
+interface InstalledModel {
+  id: string;
+  name: string;
+  path: string;
+  sizeBytes: number;
+  verified: boolean;
+  active: boolean;
+}
 interface DownloadState {
-  id: string; state: "queued" | "downloading" | "verifying" | "done" | "paused" | "failed" | "cancelled";
-  receivedBytes: number; totalBytes: number; bytesPerSec: number | null;
-  error: string | null;        // plain language: "No internet connection", "Not enough disk space (needs 5.1 GB, 2.0 GB free)", "Download was interrupted — resume to continue"
+  id: string;
+  state: "queued" | "downloading" | "verifying" | "done" | "paused" | "failed" | "cancelled";
+  receivedBytes: number;
+  totalBytes: number;
+  bytesPerSec: number | null;
+  error: string | null; // plain language: "No internet connection", "Not enough disk space (needs 5.1 GB, 2.0 GB free)", "Download was interrupted — resume to continue"
   retryable: boolean;
 }
 ```
