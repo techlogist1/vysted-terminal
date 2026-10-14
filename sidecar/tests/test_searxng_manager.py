@@ -118,7 +118,7 @@ def _write_fake_docker(tmp_path, echoed: str) -> str:
 def test_resolve_docker_binary_falls_back_to_a_known_install_location(
     tmp_path, monkeypatch
 ) -> None:
-    monkeypatch.setenv("PATH", "/usr/bin:/bin")  # no docker on this PATH
+    monkeypatch.setenv("PATH", str(tmp_path / "empty-path"))  # no docker on this PATH
     fake_path = _write_fake_docker(tmp_path, "fake-docker")
     monkeypatch.setattr(searxng_manager, "_KNOWN_DOCKER_LOCATIONS", (fake_path,))
 
@@ -126,7 +126,7 @@ def test_resolve_docker_binary_falls_back_to_a_known_install_location(
 
 
 def test_resolve_docker_binary_returns_none_when_nothing_matches(tmp_path, monkeypatch) -> None:
-    monkeypatch.setenv("PATH", "/usr/bin:/bin")
+    monkeypatch.setenv("PATH", str(tmp_path / "empty-path"))
     monkeypatch.setattr(
         searxng_manager, "_KNOWN_DOCKER_LOCATIONS", (str(tmp_path / "nope" / "docker"),)
     )
@@ -138,7 +138,7 @@ def test_resolve_docker_binary_returns_none_when_nothing_matches(tmp_path, monke
 async def test_run_docker_invokes_the_resolved_known_install_location(
     tmp_path, monkeypatch
 ) -> None:
-    monkeypatch.setenv("PATH", "/usr/bin:/bin")
+    monkeypatch.setenv("PATH", str(tmp_path / "empty-path"))
     fake_path = _write_fake_docker(tmp_path, "ran-fake-docker")
     monkeypatch.setattr(searxng_manager, "_KNOWN_DOCKER_LOCATIONS", (fake_path,))
 
@@ -150,7 +150,7 @@ async def test_run_docker_invokes_the_resolved_known_install_location(
 
 @pytest.mark.asyncio
 async def test_run_docker_reports_not_found_when_no_binary_resolves(tmp_path, monkeypatch) -> None:
-    monkeypatch.setenv("PATH", "/usr/bin:/bin")
+    monkeypatch.setenv("PATH", str(tmp_path / "empty-path"))
     monkeypatch.setattr(
         searxng_manager, "_KNOWN_DOCKER_LOCATIONS", (str(tmp_path / "nope" / "docker"),)
     )

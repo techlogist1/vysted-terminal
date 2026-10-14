@@ -14,7 +14,7 @@ function sourceFiles(dir: string): string[] {
   });
 }
 
-const relative = (file: string) => path.relative(REPO_ROOT, file);
+const relative = (file: string) => path.relative(REPO_ROOT, file).split(path.sep).join("/");
 
 /** Every string the file renders or passes around — literals, template chunks
  *  and JSX text. Comments are not nodes, so they are never visited. */

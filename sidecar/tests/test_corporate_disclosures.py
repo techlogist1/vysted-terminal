@@ -1274,6 +1274,8 @@ _ALL_LANES = (
 
 
 def _nse_unreachable_bse_recorder(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services import bse_provider
+
     def boom(*args: object, **kwargs: object) -> None:
         raise AssertionError("the NSE company's feed must not be served")
 
@@ -1288,6 +1290,27 @@ def _nse_unreachable_bse_recorder(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(nse_provider, name, boom)
     monkeypatch.setattr(
         corporate_disclosures, "_bse_get_json", lambda url, params: {"Table": [], "Table1": []}
+    )
+    # The shareholding lane reads BSE's XBRL filings through bse_provider, not
+    # _bse_get_json; left live, two calls in one test parse differently whenever
+    # BSE throttles a filing. Only 543312 has a filing, so a misrouted pin differs.
+    monkeypatch.setattr(
+        bse_provider,
+        "get_shareholding",
+        lambda code: (
+            [
+                {
+                    "quarter_end": date(2026, 3, 31),
+                    "submission_date": date(2026, 4, 20),
+                    "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/543312_SP.html",
+                    "source": "BSE",
+                    "promoter_percent": 74.67,
+                    "public_percent": 25.33,
+                }
+            ]
+            if code == "543312"
+            else []
+        ),
     )
 
 
