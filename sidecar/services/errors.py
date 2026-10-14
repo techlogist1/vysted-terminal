@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
@@ -171,6 +171,7 @@ _PROVIDER_LABELS: dict[str, str] = {
     "deepseek": "DeepSeek",
     "xai": "xAI",
     "openrouter": "OpenRouter",
+    "local": "the on-computer model",
 }
 
 
@@ -377,6 +378,65 @@ def _match_body_rule(
     return None
 
 
+#: Plain-language frames for provider ``local`` (the bundled engine): it runs on
+#: this computer, so a refused or dropped connection is the engine stopping,
+#: never the user's network.
+LOCAL_NOT_RUNNING_ERROR = HumanError(
+    message="The on-computer model isn't running. Start it from Settings → Models.",
+    action=None,  # the message already says what to do
+    detail=None,
+    code="local_not_running",
+)
+LOCAL_STOPPED_ERROR = HumanError(
+    message=(
+        "The on-computer model stopped while answering. It restarts on its own — "
+        "send your question again in a few seconds."
+    ),
+    action=None,
+    detail=None,
+    code="local_stopped",
+)
+
+#: Transport failures that mean the engine went away: a refused/reset socket, a
+#: body cut mid-stream, a read that never came back (openai, httpx, builtins).
+_LOCAL_DROP_NAMES = frozenset(
+    {
+        "APIConnectionError",
+        "ConnectError",
+        "ConnectionError",
+        "RemoteProtocolError",
+        "ReadError",
+        "WriteError",
+        "TimeoutException",
+        "TimeoutError",
+    }
+)
+
+#: llama-server's context overflow 400 ("exceeds the available context size").
+_LOCAL_CONTEXT_MARKERS = ("context size", "exceed_context_size")
+
+
+def _humanize_local(exc: Exception | None, status: int | None, raw: str | None) -> HumanError:
+    """:func:`humanize` for provider ``local``: never blames a key or a network."""
+    if exc is not None and type(exc).__name__ == "LocalEngineNotRunning":
+        return replace(LOCAL_NOT_RUNNING_ERROR, detail=raw)
+    if exc is not None and any(cls.__name__ in _LOCAL_DROP_NAMES for cls in type(exc).__mro__):
+        return replace(LOCAL_STOPPED_ERROR, detail=raw)
+    if raw and any(marker in raw.lower() for marker in _LOCAL_CONTEXT_MARKERS):
+        return HumanError(
+            message="The conversation is too long for the on-computer model.",
+            action="Start a new chat.",
+            detail=raw,
+            code="context_overflow",
+        )
+    return HumanError(
+        message="The on-computer model couldn't answer that.",
+        action="Try again. If it keeps happening, restart it from Settings → Models.",
+        detail=raw,
+        code="provider_5xx" if status is not None and status >= 500 else "unknown",
+    )
+
+
 def humanize(
     provider_id: str | None,
     exc: Exception | None = None,
@@ -420,6 +480,9 @@ def humanize(
                     status = val
         if status is None and raw:
             status = _extract_status_from_str(raw)
+
+    if provider_id == "local":
+        return _humanize_local(exc, status, raw)
 
     if raw:
         matched = _match_body_rule(provider_id, status, raw, label)
