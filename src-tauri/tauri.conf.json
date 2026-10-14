@@ -43,7 +43,15 @@
       "binaries/vysted-sec-edgar-mcp-sidecar",
       "binaries/llama-server"
     ],
-    "createUpdaterArtifacts": false
+    "createUpdaterArtifacts": false,
+    "macOS": {
+      "dmg": {
+        "background": "dmg/background.png",
+        "windowSize": { "width": 660, "height": 400 },
+        "appPosition": { "x": 180, "y": 150 },
+        "applicationFolderPosition": { "x": 480, "y": 150 }
+      }
+    }
   },
   "plugins": {
     "updater": {
