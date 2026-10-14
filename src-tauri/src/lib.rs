@@ -223,13 +223,13 @@ pub(crate) fn wait_for_port_with_retries(
 /// Without it, the only way to isolate a rehearsal or a second profile was a
 /// full `$HOME` override — which WKWebView does not honour, leaking its cache
 /// into the real `~/Library/WebKit` and `~/Library/Caches`.
-const DATA_DIR_OVERRIDE_ENV: &str = "VYSTED_DATA_DIR";
+pub(crate) const DATA_DIR_OVERRIDE_ENV: &str = "VYSTED_DATA_DIR";
 
 /// Parse a `VYSTED_DATA_DIR` lookup into an override path: `Some` when the var
 /// is set to a non-blank value, `None` otherwise (falls back to the platform
 /// default). Takes the raw lookup result so it is unit-testable without
 /// touching the real process environment.
-fn parse_data_dir_override(raw: Result<String, std::env::VarError>) -> Option<String> {
+pub(crate) fn parse_data_dir_override(raw: Result<String, std::env::VarError>) -> Option<String> {
     match raw {
         Ok(value) if !value.trim().is_empty() => Some(value),
         _ => None,

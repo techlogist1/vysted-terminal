@@ -7,7 +7,8 @@
 //!   `keyring` crate (macOS Keychain, Windows Credential Manager, freedesktop
 //!   Secret Service). This is the production path and is bit-for-bit the
 //!   behaviour shipped before R9 — service `"vysted-terminal"`, account = the
-//!   secret id namespaced by `src/lib/keychain.ts`.
+//!   secret id namespaced by `src/lib/keychain.ts`. A `VYSTED_DATA_DIR`
+//!   override switches to a per-profile service (`service_for`).
 //! - **Dev** (`cfg(debug_assertions)`): a local JSON keystore file
 //!   (`<app-data-dir>/dev-keystore.json`, `0600`). `tauri dev` re-signs the
 //!   binary with a fresh cdhash on every rebuild, and a self-signed identity has
@@ -34,8 +35,37 @@
 
 use serde::Serialize;
 
-/// Service name for every Vysted secret in the OS keychain.
+/// Service name for every Vysted secret in the OS keychain (the default profile).
 pub const SERVICE: &str = "vysted-terminal";
+
+/// The keychain service for a profile. No `VYSTED_DATA_DIR` override = the
+/// default [`SERVICE`] (existing users keep their keys). An override gets its
+/// own `vysted-terminal.profile.<first 12 hex of sha256(canonical dir)>`, so a
+/// fresh data dir is a genuinely fresh profile: no terms ack, onboarding marker
+/// or BYOK key leaks in from the real one. `scripts/fresh-profile.sh service`
+/// derives the same name (`cd <dir> && pwd -P`, sha256 of the bytes).
+pub fn service_for(data_dir_override: Option<&std::path::Path>) -> String {
+    use sha2::{Digest, Sha256};
+    let Some(dir) = data_dir_override else {
+        return SERVICE.to_string();
+    };
+    // The dir may not exist yet on the very first call; create it so the
+    // canonical form (symlinks resolved) is stable from the first read on.
+    let _ = std::fs::create_dir_all(dir);
+    let canonical = std::fs::canonicalize(dir).unwrap_or_else(|_| dir.to_path_buf());
+    let digest = Sha256::digest(canonical.to_string_lossy().as_bytes());
+    let hex: String = digest.iter().take(6).map(|b| format!("{b:02x}")).collect();
+    format!("{SERVICE}.profile.{hex}")
+}
+
+/// This process's keychain service, derived once from `VYSTED_DATA_DIR`.
+pub fn service() -> &'static str {
+    static SERVICE_NAME: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    SERVICE_NAME.get_or_init(|| {
+        let raw = crate::parse_data_dir_override(std::env::var(crate::DATA_DIR_OVERRIDE_ENV));
+        service_for(raw.as_deref().map(std::path::Path::new))
+    })
+}
 
 /// `true` in dev builds (the file keystore replaces the OS keychain); `false`
 /// in release (the OS keychain is the ONLY path). Mirrors the build profile so
@@ -64,7 +94,7 @@ pub struct MigrateReport {
 // the dev migration reads from) -------------------------------------------
 #[cfg_attr(debug_assertions, allow(dead_code))] // set/delete are the release path; in debug only get() (migration) runs
 mod os_keychain {
-    use super::SERVICE;
+    use super::service;
     use keyring::Entry;
 
     /// Prefix on an error the OS secret store itself raised (no Secret Service
@@ -82,12 +112,12 @@ mod os_keychain {
     }
 
     pub fn set(account: &str, secret: &str) -> Result<(), String> {
-        let entry = Entry::new(SERVICE, account).map_err(describe)?;
+        let entry = Entry::new(service(), account).map_err(describe)?;
         entry.set_password(secret).map_err(describe)
     }
 
     pub fn get(account: &str) -> Result<Option<String>, String> {
-        let entry = Entry::new(SERVICE, account).map_err(describe)?;
+        let entry = Entry::new(service(), account).map_err(describe)?;
         match entry.get_password() {
             Ok(p) => Ok(Some(p)),
             Err(keyring::Error::NoEntry) => Ok(None),
@@ -96,7 +126,7 @@ mod os_keychain {
     }
 
     pub fn delete(account: &str) -> Result<(), String> {
-        let entry = Entry::new(SERVICE, account).map_err(describe)?;
+        let entry = Entry::new(service(), account).map_err(describe)?;
         match entry.delete_credential() {
             Ok(()) => Ok(()),
             Err(keyring::Error::NoEntry) => Ok(()),
@@ -422,6 +452,55 @@ mod tests {
             !USE_DEV_KEYSTORE,
             "a release build must never use the dev keystore file path"
         );
+    }
+
+    #[test]
+    fn default_profile_keeps_the_legacy_service() {
+        assert_eq!(service_for(None), "vysted-terminal");
+    }
+
+    #[test]
+    fn profile_service_is_stable_and_differs_per_dir() {
+        let base = std::env::temp_dir().join(format!("vysted-svc-test-{}", std::process::id()));
+        let a = base.join("a");
+        let b = base.join("b");
+        let sa = service_for(Some(&a));
+        assert_eq!(sa, service_for(Some(&a)), "stable across calls");
+        assert_ne!(sa, service_for(Some(&b)), "differs per data dir");
+        assert_ne!(sa, SERVICE);
+        let suffix = sa.strip_prefix("vysted-terminal.profile.").unwrap();
+        assert_eq!(suffix.len(), 12);
+        assert!(suffix
+            .chars()
+            .all(|c| c.is_ascii_hexdigit() && !c.is_uppercase()));
+        // A non-canonical spelling of the same dir maps to the same profile.
+        assert_eq!(sa, service_for(Some(&a.join("..").join("a"))));
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    /// The shell helper derives the same name (`scripts/fresh-profile.sh service`).
+    #[cfg(unix)]
+    #[test]
+    fn fresh_profile_script_agrees_with_rust() {
+        let dir = std::env::temp_dir().join(format!("vysted-svc-script-{}", std::process::id()));
+        let script =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../scripts/fresh-profile.sh");
+        let out = std::process::Command::new("bash")
+            .arg(&script)
+            .arg("service")
+            .arg(&dir)
+            .output()
+            .expect("run fresh-profile.sh");
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        assert_eq!(
+            String::from_utf8_lossy(&out.stdout).trim(),
+            service_for(Some(&dir))
+        );
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[cfg(debug_assertions)]
