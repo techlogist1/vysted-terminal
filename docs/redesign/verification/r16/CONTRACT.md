@@ -99,3 +99,41 @@ Tauri commands `update_check()` → `{ available: bool, version?, notes?, date? 
 
 Stable asset names on every release (in addition to Tauri's versioned names and the updater files):
 `Vysted-Terminal-macOS-AppleSilicon.dmg`, `Vysted-Terminal-Windows-x64-Setup.exe`, `Vysted-Terminal-Linux-x86_64.AppImage`, plus `SHA256SUMS.txt` and `latest.json`. Stable URL form: `https://github.com/techlogist1/vysted-terminal/releases/latest/download/<stable name>` (resolves only once the operator publishes).
+
+## Wave 2 (base `ac78b43c`, the integrated wave-1 head)
+
+### Local-models store (writer: wizard; everyone else imports it, never re-implements it)
+
+`src/store/local-models.ts` exports `useLocalModelsStore` (zustand) and `initLocalModels()`:
+
+```ts
+interface LocalModelsState {
+  hardware: LocalHardwareInfo | null;
+  catalog: LocalModelCatalog | null;
+  installed: InstalledModel[]; // Vysted's own + resolvable Ollama blobs ("ollama:<name>")
+  ollama: { running: boolean; models: string[] };
+  downloads: Record<string, DownloadState>; // polled every 1 s while any is queued/downloading/verifying
+  activeModelId: string | null; // persisted in app-meta "local-model-active"
+  loadError: string | null; // plain language, e.g. sidecar still starting
+  refresh(): Promise<void>; // hardware + catalog + installed + downloads
+  download(id: string): Promise<DownloadState>; // a 409 rejects with LocalModelsError{kind:"disk", message, neededBytes, freeBytes}
+  cancel(id: string, discard?: boolean): Promise<void>;
+  remove(id: string): Promise<void>; // stops the engine first when id is active
+  activate(id: string): Promise<EngineStatus>; // engine start with the installed path, persist active, make `local` + id the default provider/model
+  deactivate(): Promise<void>; // engine stop, clear active
+}
+```
+
+- When a download the user started reaches `done`, the store activates it automatically if no other model is active.
+- On app launch (sidecar connected): a persisted active model that is installed → engine auto-starts; a `paused` download whose `.part` exists → auto-resumes once (the user asked for it; the strip shows Pause).
+- `src/components/LocalModelStrip.tsx` (wizard writer): the global one-line strip under the header for download progress / engine starting / engine failed, with the next-step button for each state. Mounted in `page.tsx` beside `UpdatePrompt`.
+
+### First-run state (writer: wizard)
+
+- Terms ack moves to app-meta `first-launch-terms` with the keychain item read as a legacy fallback (same pattern as `onboarding-complete`), so Linux without a Secret Service shows it once.
+- The wizard shows when `onboarding-complete` is absent; every exit path (finish, skip) writes it. A fresh `VYSTED_DATA_DIR` reproduces the never-run state (`scripts/fresh-profile.sh`).
+
+### Example question per path (tour's last step; must work on that path)
+
+- On this computer / own key: "How has Reliance Industries done over the past year?" (agent, tool-grounded).
+- Skip: open RELIANCE.NS in the chart from the command palette (keyless data, no model).
