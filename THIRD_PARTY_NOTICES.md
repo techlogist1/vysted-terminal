@@ -1088,6 +1088,19 @@ _Note on `r-efi`: flagged by the Stage D scan because its licence string contain
 
 None. The four packages the Stage D scan flagged with empty registry licence metadata (`caio`, `fredapi`, `peewee`, `httpxthrottlecache`) were each resolved from their own shipped `LICENSE`/`COPYING` file in the relevant venv's dist-info (see DECISIONS §5.3); all four are permissive (Apache-2.0 or MIT) and appear in Section B above.
 
+## Section D — Bundled external binaries (prebuilt, not resolved by a package manager)
+
+The on-computer local model engine bundles llama.cpp's prebuilt `llama-server` release
+(build `b11429`, [https://github.com/ggml-org/llama.cpp/releases/tag/b11429](https://github.com/ggml-org/llama.cpp/releases/tag/b11429)) as a Tauri `externalBin`, staged
+by `scripts/ensure-llama-server.mjs` (asset + sha256 pinned from the release's own GitHub
+asset digest). Unlike Section A/B, these are not a cargo/npm/pip dependency — they are
+unmodified prebuilt binaries copied verbatim into the bundle.
+
+| Component                                                    | Version                       | Binary                                                      | Licence                                 | Process boundary                                                         | Corresponding source                                                                                                                                                                                                                                                                             |
+| ------------------------------------------------------------ | ----------------------------- | ----------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| llama.cpp / ggml (`llama-server` + shared libs)              | b11429 (release v0.6.0)       | `binaries/llama-server` + `src-tauri/llama-libs/<triple>/*` | MIT                                     | spawned as a separate process via Tauri `externalBin`, unmodified binary | upstream [https://github.com/ggml-org/llama.cpp](https://github.com/ggml-org/llama.cpp); release asset verified by its GitHub digest sha256 in `scripts/ensure-llama-server.mjs`. licence text: the release asset's own `LICENSE` file ("MIT License, Copyright (c) 2023-2026 The ggml authors") |
+| LLVM OpenMP runtime (`libomp.dll`, Windows CPU backend only) | bundled with llama.cpp b11429 | `src-tauri/llama-libs/x86_64-pc-windows-msvc/libomp.dll`    | Apache License 2.0 WITH LLVM Exceptions | loaded in-process by the bundled `ggml-base.dll` (OpenMP threading)      | upstream [https://github.com/llvm/llvm-project](https://github.com/llvm/llvm-project) (`openmp/`); licence text: the release asset's own `LICENSE-LLVM-OpenMP` file                                                                                                                              |
+
 ## Appendix — full licence texts
 
 Each text below is taken verbatim from a package's own shipped `LICENSE` file in one of the inspected venvs (never reconstructed from memory), and covers every package above under the same SPDX id.

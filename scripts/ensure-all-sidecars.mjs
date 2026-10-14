@@ -12,7 +12,8 @@
 // Run via: `node scripts/ensure-all-sidecars.mjs [--force]`
 // Or:      `pnpm sidecars:build` (passes --force)
 
-import { SIDECAR_SPECS, buildSidecar } from "./sidecar-specs.mjs";
+import { SIDECAR_SPECS, buildSidecar, targetTriple } from "./sidecar-specs.mjs";
+import { stageTriple } from "./ensure-llama-server.mjs";
 
 const force = process.argv.includes("--force");
 
@@ -24,6 +25,14 @@ for (const spec of SIDECAR_SPECS) {
     console.error(`[ensure-all-sidecars] ${spec.name} failed: ${err.message}; aborting.`);
     process.exit(1);
   }
+}
+
+console.log(`[ensure-all-sidecars] → llama-server${force ? " --force" : ""}`);
+try {
+  await stageTriple(targetTriple(), { force });
+} catch (err) {
+  console.error(`[ensure-all-sidecars] llama-server failed: ${err.message}; aborting.`);
+  process.exit(1);
 }
 
 console.log("[ensure-all-sidecars] all sidecars present.");
