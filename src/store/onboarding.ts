@@ -11,7 +11,9 @@
  * The keychain id it used to live under is read as a fallback and carried over.
  * `seen === null` means "not probed yet" so the overlay can wait before
  * deciding to render. `forceOpen` lets a CTA (e.g. the keyless chat empty-state)
- * re-open the flow on demand even after it was seen.
+ * re-open the flow on demand even after it was seen. `waitingQuestion` is the
+ * tour's example question parked while the on-computer model finishes; the
+ * model strip offers it once the model is ready.
  */
 
 import { create } from "zustand";
@@ -27,13 +29,15 @@ const BANNER_KEY = "onboarding-banner-dismissed";
  * (carried over into the file once found). `null` when neither has it or
  * neither store is reachable (outside the Tauri shell).
  */
-async function readFlag(key: string): Promise<string | null> {
+export async function readFlag(key: string): Promise<string | null> {
   const value = await getAppMeta(key).catch(() => null);
   if (value) return value;
   const legacy = await getSecret(KEYCHAIN_NAMESPACES.appMeta(key)).catch(() => null);
   if (legacy) await setAppMeta(key, legacy).catch(() => undefined);
   return legacy;
 }
+
+export type OnboardingStep = "local" | "key";
 
 interface OnboardingState {
   /** Whether the first-run flow has been completed/skipped. `null` until probed. */
@@ -42,8 +46,11 @@ interface OnboardingState {
   bannerDismissed: boolean | null;
   /** Force the flow open from a CTA, regardless of `seen`. */
   forceOpen: boolean;
-  /** The step a forced open lands on (`local` = the model download step). */
-  forceStep: "local" | null;
+  /** The step a forced open lands on (`local` = the model list, `key` = own key). */
+  forceStep: OnboardingStep | null;
+  /** The example question waiting for the on-computer model (session only). */
+  waitingQuestion: string | null;
+  setWaitingQuestion: (question: string | null) => void;
   /** Probe the app-meta file for the completion marker (call once on boot). */
   refresh: () => Promise<void>;
   /** Probe the app-meta file for the banner-dismissed marker. */
@@ -52,8 +59,8 @@ interface OnboardingState {
   dismissBanner: () => Promise<void>;
   /** Persist completion (durable) + close. `choice` records the path taken. */
   markSeen: (choice: string) => Promise<void>;
-  /** Re-open the flow on demand (CTA), optionally at the local-model step. */
-  open: (step?: "local") => void;
+  /** Re-open the flow on demand (CTA), optionally at a given step. */
+  open: (step?: OnboardingStep) => void;
   /** Close without marking seen (used internally; markSeen is the real exit). */
   close: () => void;
 }
@@ -63,6 +70,8 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   bannerDismissed: null,
   forceOpen: false,
   forceStep: null,
+  waitingQuestion: null,
+  setWaitingQuestion: (question) => set({ waitingQuestion: question }),
   // Outside the Tauri shell (browser dev) both stores reject — "not seen", so
   // the flow is exercisable in dev.
   refresh: async () => {

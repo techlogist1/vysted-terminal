@@ -7,16 +7,21 @@ import { resetSafetyStoreForTests, useSafetyStore } from "@/store/safety";
 import { DisclaimerFlow, FirstLaunchTosDialog } from "./DisclaimerFlow";
 
 const keychainStore: Record<string, string> = {};
+const appMeta: Record<string, string> = {};
 
 beforeEach(() => {
-  for (const key of Object.keys(keychainStore)) {
-    delete keychainStore[key];
+  for (const store of [keychainStore, appMeta]) {
+    for (const key of Object.keys(store)) delete store[key];
   }
   vi.spyOn(keychain, "getSecret").mockImplementation(
     async (account) => keychainStore[account] ?? null,
   );
   vi.spyOn(keychain, "setSecret").mockImplementation(async (account, secret) => {
     keychainStore[account] = secret;
+  });
+  vi.spyOn(keychain, "getAppMeta").mockImplementation(async (key) => appMeta[key] ?? null);
+  vi.spyOn(keychain, "setAppMeta").mockImplementation(async (key, value) => {
+    appMeta[key] = value;
   });
   resetSafetyStoreForTests();
 });
@@ -27,15 +32,15 @@ afterEach(() => {
 });
 
 describe("FirstLaunchTosDialog", () => {
-  it("renders the dialog when no TOS ack is in keychain (cold launch)", async () => {
+  it("renders the dialog when no terms ack is stored (cold launch)", async () => {
     render(<FirstLaunchTosDialog />);
     await waitFor(() => {
       expect(screen.getByTestId("first-launch-tos-dialog")).toBeInTheDocument();
     });
   });
 
-  it("does NOT render when the keychain already has the ack (warm launch)", async () => {
-    keychainStore["app-meta:first-launch-terms"] = new Date().toISOString();
+  it("does NOT render when app-meta already has the ack (warm launch)", async () => {
+    appMeta["first-launch-terms"] = new Date().toISOString();
     render(<FirstLaunchTosDialog />);
     await waitFor(() => {
       expect(useSafetyStore.getState().firstLaunchTosAcked).toBe(true);
@@ -43,7 +48,17 @@ describe("FirstLaunchTosDialog", () => {
     expect(screen.queryByTestId("first-launch-tos-dialog")).toBeNull();
   });
 
-  it("Accept writes the ack to keychain and dismisses the dialog", async () => {
+  it("does NOT render when only the legacy keychain ack exists, and carries it over", async () => {
+    keychainStore["app-meta:first-launch-terms"] = "2026-06-01T00:00:00.000Z";
+    render(<FirstLaunchTosDialog />);
+    await waitFor(() => {
+      expect(useSafetyStore.getState().firstLaunchTosAcked).toBe(true);
+    });
+    expect(screen.queryByTestId("first-launch-tos-dialog")).toBeNull();
+    expect(appMeta["first-launch-terms"]).toBe("2026-06-01T00:00:00.000Z");
+  });
+
+  it("Accept writes the ack to app-meta and dismisses the dialog", async () => {
     render(<FirstLaunchTosDialog />);
     const button = await screen.findByTestId("first-launch-tos-accept");
     await act(async () => {
@@ -52,7 +67,20 @@ describe("FirstLaunchTosDialog", () => {
     await waitFor(() => {
       expect(useSafetyStore.getState().firstLaunchTosAcked).toBe(true);
     });
-    expect(keychainStore["app-meta:first-launch-terms"]).toBeTruthy();
+    expect(appMeta["first-launch-terms"]).toBeTruthy();
+    expect(screen.queryByTestId("first-launch-tos-dialog")).toBeNull();
+  });
+
+  it("a failed save keeps the terms up with a plain error (no way around them)", async () => {
+    vi.mocked(keychain.setAppMeta).mockRejectedValue(new Error("disk full"));
+    render(<FirstLaunchTosDialog />);
+    const button = await screen.findByTestId("first-launch-tos-accept");
+    await act(async () => {
+      fireEvent.click(button);
+    });
+    expect(useSafetyStore.getState().firstLaunchTosAcked).toBe(false);
+    expect(screen.getByTestId("first-launch-tos-dialog")).toBeInTheDocument();
+    expect(screen.getByText(/disk full/)).toBeInTheDocument();
   });
 
   it("states research-only terms and promises no order routing or kill switch", async () => {
@@ -69,7 +97,7 @@ describe("FirstLaunchTosDialog", () => {
 });
 
 describe("DisclaimerFlow host", () => {
-  it("mounts the TOS modal at the app shell level (cold launch)", async () => {
+  it("mounts the terms modal at the app shell level (cold launch)", async () => {
     render(<DisclaimerFlow />);
     await waitFor(() => {
       expect(screen.getByTestId("first-launch-tos-dialog")).toBeInTheDocument();
