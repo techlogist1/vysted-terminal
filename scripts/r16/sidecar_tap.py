@@ -8,6 +8,11 @@ never its payload, so the invented-figure check (``scripts/agent_eval/grounding.
 has nothing to compare an answer against; this wrapper appends one JSON line per
 dispatched tool - ``{name, tool_call_id, ok, result}`` - to ``$VYSTED_TAP_FILE``.
 No app code is edited: ``agent_runtime._tool_result_event`` is wrapped in-process.
+
+``VYSTED_LOCAL_WINDOW=N`` additionally makes provider ``local`` report an N-token
+context window, which is what an Ollama-style window-bound lane does so the
+runtime's context admission subsets the tool set. Without it ``LocalEngineProvider``
+reports none and the full tool set (about 10k tokens) is always sent.
 """
 
 from __future__ import annotations
@@ -41,6 +46,11 @@ def main() -> None:
         return outcome
 
     agent_runtime._tool_result_event = tapped
+    if os.environ.get("VYSTED_LOCAL_WINDOW"):
+        from services.llm import LocalEngineProvider
+
+        window = int(os.environ["VYSTED_LOCAL_WINDOW"])
+        LocalEngineProvider.context_window = lambda self, model: window
     import main as sidecar_main
 
     sidecar_main.main()

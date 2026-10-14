@@ -2,7 +2,13 @@
 """Which on-computer model to recommend per RAM tier (R16): measure, don't guess.
 
   measure_local.py [MODEL_ID ...] [--k 1] [--probe-repeats 2] [--skip-probes]
-                   [--only scenario,ids] [--scratch DIR] [--summary-only]
+                   [--only scenario,ids] [--ctx 8192] [--window N] [--scratch DIR]
+                   [--summary-only]
+
+``--ctx`` is llama-server's ``-c`` (the contract says 8192). ``--window N`` makes
+provider ``local`` report an N-token window (see ``sidecar_tap.py``), i.e. what the
+product would do if ``LocalEngineProvider`` reported its window. A non-default
+``--ctx``/``--window`` writes ``<id>@ctx<C>[-win<N>].json`` beside the default run.
 
 For each catalog model id (default: all of ``sidecar/services/local_models/catalog.json``):
 
@@ -152,9 +158,11 @@ signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
 
 
 class Sidecar:
-    def __init__(self, port: int, data_dir: Path, tap: Path, logfile: Path) -> None:
+    def __init__(self, port: int, data_dir: Path, tap: Path, logfile: Path, window: int | None) -> None:
         self.port = port
         env = {**os.environ, "VYSTED_TAP_FILE": str(tap)}
+        if window:
+            env["VYSTED_LOCAL_WINDOW"] = str(window)
         self.log = logfile.open("w")
         self.proc = subprocess.Popen(  # noqa: S603
             [sys.executable, str(HERE / "sidecar_tap.py"), "--host", "127.0.0.1",
@@ -339,6 +347,9 @@ def timed_trial(ns: Namespace, scenario: dict, model_id: str, trial: int, llama_
         pt, ps = d.get("llamacpp:prompt_tokens_total", 0), d.get("llamacpp:prompt_seconds_total", 0)
         row.update(gen_tokens=int(gt), gen_secs=round(gs, 2), gen_tok_s=round(gt / gs, 2) if gs else None,
                    prompt_tokens=int(pt), prompt_secs=round(ps, 2), prompt_tok_s=round(pt / ps, 2) if ps else None)  # fmt: skip
+    events = agent_eval._read_events(Path(row["events"])) if row.get("events") else []
+    errs = [e for e in events if e.get("kind") == "error"]
+    row["error_detail"] = str(errs[0].get("detail") or errs[0].get("message"))[:400] if errs else None
     base = [f for f in row["failures"] if not f.startswith("ungrounded figures")]
     row["pass_base"] = not base
     if kind == "probe":
@@ -382,23 +393,31 @@ def aggregate(trials: list[dict]) -> dict:
     }
 
 
+def run_key(model_id: str, args) -> str:
+    if args.ctx == CTX and not args.window:
+        return model_id
+    return f"{model_id}@ctx{args.ctx}" + (f"-win{args.window}" if args.window else "")
+
+
 def measure(model: dict, args, scratch: Path) -> dict:
     results = scratch / "results"
-    out = results / model["id"]
+    key = run_key(model["id"], args)
+    out = results / key
     out.mkdir(parents=True, exist_ok=True)
     data_dir = scratch / "data"
     models_dir = data_dir / "models"
     models_dir.mkdir(parents=True, exist_ok=True)
     tap = out / "tool-tap.jsonl"
     tap.write_text("")
-    rec: dict = {"model": {k: v for k, v in model.items() if k != "licence"}, "started": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                 "findings": [], "trials": []}  # fmt: skip
+    rec: dict = {"key": key, "ctx": args.ctx, "window": args.window,
+                 "model": {k: v for k, v in model.items() if k != "licence"},
+                 "started": time.strftime("%Y-%m-%dT%H:%M:%S"), "findings": [], "trials": []}  # fmt: skip
     t_start = time.time()
     side = eng = None
     try:
         port = pick_port(PORTS)
-        log(f"== {model['id']}: sidecar on :{port}, data dir {data_dir}")
-        side = Sidecar(port, data_dir, tap, out / "sidecar.log")
+        log(f"== {key}: sidecar on :{port}, data dir {data_dir}")
+        side = Sidecar(port, data_dir, tap, out / "sidecar.log", args.window)
         rec["sidecar_boot_secs"] = round(side.wait_ready(), 1)
         rec["hardware"] = http("GET", port, "/local-models/hardware")[1]
         cat = http("GET", port, "/local-models/catalog")[1]
@@ -412,7 +431,7 @@ def measure(model: dict, args, scratch: Path) -> dict:
         inst = http("GET", port, "/local-models/installed")[1]
         rec["installed_view"] = next((m for m in inst["models"] if m["id"] == model["id"]), None)
 
-        eng = Engine(path, scratch / "engine" / model["id"], out / "llama-server.stderr.log", args.ctx)
+        eng = Engine(path, scratch / "engine" / key, out / "llama-server.stderr.log", args.ctx)
         rec["engine"] = {"cmd": eng.cmd}
         try:
             rec["engine"]["load_secs"] = round(eng.wait_ready(), 1)
@@ -437,12 +456,17 @@ def measure(model: dict, args, scratch: Path) -> dict:
         for scenario in scenarios:
             for trial in range(args.k):
                 rec["trials"].append(timed_trial(ns, scenario, model["id"], trial, eng.port, "scenario"))
-                _save(rec, results, model["id"])
+                _save(rec, results, key)
         for probe in probes:
             for trial in range(args.probe_repeats):
                 rec["trials"].append(timed_trial(ns, probe, model["id"], trial, eng.port, "probe"))
-                _save(rec, results, model["id"])
+                _save(rec, results, key)
         rec["aggregate"] = aggregate(rec["trials"])
+        errored = [t for t in rec["trials"] if t.get("error_detail")]
+        if errored:
+            rec["findings"].append(
+                f"{len(errored)} of {len(rec['trials'])} trials ended in a stream error; first: {errored[0]['error_detail']}"
+            )
         if rec["aggregate"]["tool_calls_total"] == 0:
             rec["findings"].append("no tool call was ever made across all trials")
         if not any(t.get("gen_tok_s") for t in rec["trials"]):
@@ -456,7 +480,7 @@ def measure(model: dict, args, scratch: Path) -> dict:
         if side:
             side.stop()
         time.sleep(1)
-        orphans = pgrep(str(scratch / "engine" / model["id"])) + pgrep("sidecar_tap.py")
+        orphans = pgrep(str(scratch / "engine" / key)) + pgrep("sidecar_tap.py")
         rec["teardown"] = {
             "orphans": orphans,
             "sidecar_port_free": port_free(port) if side else None,
@@ -465,7 +489,7 @@ def measure(model: dict, args, scratch: Path) -> dict:
         log(f"teardown: {rec['teardown']}")
         rec["run_secs"] = round(time.time() - t_start, 1)
         rec["finished"] = time.strftime("%Y-%m-%dT%H:%M:%S")
-        _save(rec, results, model["id"])
+        _save(rec, results, key)
 
 
 def _save(rec: dict, results: Path, model_id: str) -> None:
@@ -480,6 +504,8 @@ def _save(rec: dict, results: Path, model_id: str) -> None:
 def write_summary(results: Path) -> Path:
     recs = [json.loads(p.read_text()) for p in sorted(results.glob("*.json"))]
     recs = [r for r in recs if "model" in r]
+    for r in recs:
+        r.setdefault("key", r["model"]["id"])
     scored = [r for r in recs if r.get("aggregate")]
     scored.sort(key=lambda r: (-(r["aggregate"]["clean_rate"] or 0), -(r["aggregate"]["gen_tok_s"] or 0)))
     gb = lambda b: f"{b / 1e9:.2f}" if b else "n/a"  # noqa: E731
@@ -496,7 +522,7 @@ def write_summary(results: Path) -> Path:
     for i, r in enumerate(scored, 1):
         a, e = r["aggregate"], r.get("engine", {})
         lines.append(
-            f"| {i} | {r['model']['id']} | {r['model']['sizeBytes'] / 1e9:.2f} | {a['scenario_pass_base']}/{a['scenario_trials']} "
+            f"| {i} | {r['key']} | {r['model']['sizeBytes'] / 1e9:.2f} | {a['scenario_pass_base']}/{a['scenario_trials']} "
             f"| {a['scenario_clean']}/{a['scenario_trials']} | {a['probe_clean']}/{a['probe_trials']} "
             f"| {a['trials_with_invented_figures']} | {a['invented_figures_total']} "
             f"| {a['tool_calls_total']} ({a['malformed_tool_calls']}) | {a['gen_tok_s']} | {a['prompt_tok_s']} "
@@ -504,8 +530,8 @@ def write_summary(results: Path) -> Path:
         )
     for r in recs:
         if not r.get("aggregate"):
-            lines.append(f"| - | {r['model']['id']} | {r['model']['sizeBytes'] / 1e9:.2f} | not measured | | | | | | | | | | |")
-    ids = [r["model"]["id"] for r in scored]
+            lines.append(f"| - | {r['key']} | {r['model']['sizeBytes'] / 1e9:.2f} | not measured | | | | | | | | | | |")
+    ids = [r["key"] for r in scored]
     if scored:
         sids = []
         for r in scored:
@@ -521,11 +547,11 @@ def write_summary(results: Path) -> Path:
                 inv = " INV" if any(t["ungrounded"] for t in ts) else ""
                 cells.append(f"{sum(t['clean'] for t in ts)}/{len(ts)}{inv}" if ts else "-")
             lines.append(f"| {sid} | " + " | ".join(cells) + " |")
-    notes = [(r["model"]["id"], f) for r in recs for f in r.get("findings", [])]
+    notes = [(r["key"], f) for r in recs for f in r.get("findings", [])]
     for r in recs:
         td = r.get("teardown") or {}
         if td.get("orphans"):
-            notes.append((r["model"]["id"], f"orphan processes after teardown: {td['orphans']}"))
+            notes.append((r["key"], f"orphan processes after teardown: {td['orphans']}"))
     if notes:
         lines += ["", "## Findings", ""] + [f"- {m}: {f}" for m, f in notes]
     path = results / "summary.md"
@@ -541,6 +567,7 @@ def main() -> int:
     ap.add_argument("--skip-probes", action="store_true")
     ap.add_argument("--only", help="comma-separated battery scenario ids")
     ap.add_argument("--ctx", type=int, default=CTX)
+    ap.add_argument("--window", type=int, help="make provider local report this context window")
     ap.add_argument("--scratch", default=str(DEFAULT_SCRATCH))
     ap.add_argument("--summary-only", action="store_true")
     args = ap.parse_args()
