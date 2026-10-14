@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { ConfirmButton } from "@/components/ConfirmButton";
+import { openExternal } from "@/components/onboarding/shared";
 import { Button } from "@/components/ui/button";
 import type { EngineStatus } from "@/lib/local-engine";
 import { cn } from "@/lib/utils";
@@ -332,8 +333,10 @@ export function ModelsSection() {
                         of free disk space · Licence:{" "}
                         <a
                           href={m.licence.url}
-                          target="_blank"
-                          rel="noreferrer"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            void openExternal(m.licence.url);
+                          }}
                           className="text-charcoal-200 underline underline-offset-2"
                         >
                           {m.licence.name}

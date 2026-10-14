@@ -7,6 +7,9 @@ import { useLocalEngineStore } from "@/store/local-engine";
 import { useLocalModelsStore } from "@/store/local-models";
 import type { CatalogModel, DownloadState, InstalledModel } from "../../../types/data";
 
+const shellOpen = vi.hoisted(() => vi.fn(async () => {}));
+vi.mock("@tauri-apps/plugin-shell", () => ({ open: shellOpen }));
+
 const actions = vi.hoisted(() => ({
   refresh: vi.fn(async () => {}),
   download: vi.fn(),
@@ -149,7 +152,7 @@ describe("ModelsSection", () => {
     expect(actions.refresh).toHaveBeenCalled();
   });
 
-  it("shows size, disk needed and a linked licence BEFORE the Download button, plus fit and recommended", () => {
+  it("shows size, disk needed and a linked licence BEFORE the Download button, plus fit and recommended", async () => {
     render(<ModelsSection />);
     const row = screen.getByTestId("catalog-qwen-small");
     expect(within(row).getByText("Recommended for you")).toBeInTheDocument();
@@ -158,6 +161,8 @@ describe("ModelsSection", () => {
     const info = within(row).getByText(/2\.5 GB download · needs 3\.0 GB of free disk space/);
     const link = within(info).getByRole("link", { name: "Apache 2.0" });
     expect(link).toHaveAttribute("href", "https://example.test/apache");
+    expect(fireEvent.click(link)).toBe(false);
+    await waitFor(() => expect(shellOpen).toHaveBeenCalledWith("https://example.test/apache"));
     const button = within(row).getByRole("button", { name: "Download Qwen Small" });
     // Document order: the licence paragraph comes before the button.
     expect(info.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
