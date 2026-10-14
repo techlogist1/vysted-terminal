@@ -580,7 +580,7 @@ describe("SettingsPanel", () => {
   // R16: Docker / SearXNG live only behind Settings -> Research -> Advanced.
   function renderAdvanced() {
     const view = render(<SettingsPanel />);
-    fireEvent.click(screen.getByRole("button", { name: "Advanced", expanded: false }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced search options", expanded: false }));
     return view;
   }
 
@@ -592,14 +592,14 @@ describe("SettingsPanel", () => {
     expect(screen.queryByTestId("searxng-status-chip")).toBeNull();
     // The keyless path is the plain default and says so.
     expect(within(research).getByText(/Works out of the box/)).toBeInTheDocument();
-    fireEvent.click(within(research).getByRole("button", { name: "Advanced", expanded: false }));
+    fireEvent.click(within(research).getByRole("button", { name: "Advanced search options", expanded: false }));
     expect(research.textContent).toMatch(/Docker/);
   });
 
   it("R16: a user who already set a SearXNG URL finds the Advanced block open", () => {
     useSearchSettingsStore.getState().setSearxngUrl("http://10.0.0.5:8080");
     render(<SettingsPanel />);
-    expect(screen.getByRole("button", { name: "Advanced", expanded: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Advanced search options", expanded: true })).toBeInTheDocument();
     expect(screen.getByLabelText("SearXNG URL")).toHaveValue("http://10.0.0.5:8080");
   });
 

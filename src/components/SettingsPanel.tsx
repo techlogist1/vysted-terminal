@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
+import { ModelsSection } from "@/components/settings/ModelsSection";
 import { formatModelLabel } from "@/components/StatusChrome";
 import { DEFAULT_REGION, type Region, REGIONS, regionConfig } from "@/lib/region";
 import { cn } from "@/lib/utils";
@@ -126,6 +127,14 @@ export const SettingsPanel: FunctionComponent = () => {
             <SectionNav />
           </header>
           <ProvidersSection />
+          <section aria-labelledby="settings-models">
+            <SectionHeader
+              id="settings-models"
+              title="Models"
+              hint="Add, switch and remove the AI models that run on this computer. They work without internet and cost nothing."
+            />
+            <ModelsSection />
+          </section>
           <ResearchSection />
           <RegionSection />
           <KeybindingsSection />
@@ -146,6 +155,7 @@ const ICON_14 = "size-3.5"; // tokens-ok: the law's 14px icon step inside 28/32p
 
 const SECTION_NAV: { id: string; label: string; short: string }[] = [
   { id: "settings-providers", label: "AI Providers", short: "Providers" },
+  { id: "settings-models", label: "Models", short: "Models" },
   { id: "settings-research", label: "Research", short: "Research" },
   { id: "settings-region", label: "Region & locale", short: "Region" },
   { id: "settings-keybindings", label: "Keybindings", short: "Keys" },
@@ -159,8 +169,8 @@ const SECTION_NAV: { id: string; label: string; short: string }[] = [
  * Thresholds = the MEASURED chip-row widths (text-micro uppercase JetBrains
  * Mono, h-6, px-3, gap-2 — full row 578px, short row ≈432px) + slack.
  */
-const NAV_FULL_MIN_W = 592;
-const NAV_SHORT_MIN_W = 440;
+const NAV_FULL_MIN_W = 672;
+const NAV_SHORT_MIN_W = 520;
 
 /** Smooth-scroll one section head into view. */
 function jumpToSection(id: string) {
@@ -1363,7 +1373,7 @@ function ResearchAdvanced() {
           className={cn("size-3 transition-transform", !open && "-rotate-90")}
           aria-hidden
         />
-        Advanced
+        Advanced search options
       </button>
       {open && (
         <div id="settings-research-advanced" className="mt-3 flex flex-col gap-2">
