@@ -1,0 +1,6 @@
+[vysted] updater using loopback test endpoint from VYSTED_UPDATER_ENDPOINT
+[vysted] update 0.10.0-beta.2 installed, relaunching
+[vysted] updater using loopback test endpoint from VYSTED_UPDATER_ENDPOINT
+[vysted] Python sidecar not up yet on port 55981 after attempt 1/6 (45s); cold PyInstaller extraction may be slow — retrying.
+[vysted] Python sidecar healthy on 127.0.0.1:55981
+[vysted] wrote MCP endpoint discovery file "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/9500707c-bdb2-4a31-adb3-975aa91d7edf/scratchpad/upd/profile/mcp-endpoint.json"

@@ -1,0 +1,8 @@
+Serving /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/9500707c-bdb2-4a31-adb3-975aa91d7edf/scratchpad/upd/b2 on http://127.0.0.1:8787 (latest.json URLs rewritten)
+VYSTED_UPDATER_ENDPOINT=http://127.0.0.1:8787/latest.json
+200 GET /latest.json
+200 GET /latest.json
+200 GET /latest.json
+200 GET /latest.json
+200 GET /Vysted-Terminal.app.tar.gz
+200 GET /latest.json
