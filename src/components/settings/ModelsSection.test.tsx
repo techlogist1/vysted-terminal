@@ -294,7 +294,9 @@ describe("ModelsSection", () => {
     setEngine({ state: "failed", error: "Not enough memory to load this model" });
     actions.activate.mockResolvedValue(STOPPED_ENGINE);
     render(<ModelsSection />);
-    expect(screen.getByRole("status")).toHaveTextContent("Not enough memory to load this model");
+    expect(screen.getByTestId("models-engine-line")).toHaveTextContent(
+      "Not enough memory to load this model",
+    );
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     await waitFor(() => expect(actions.activate).toHaveBeenCalledWith("qwen-small"));
   });
@@ -302,7 +304,7 @@ describe("ModelsSection", () => {
   it("surfaces the store's load error in plain words", () => {
     setModels({ loadError: "Vysted is still starting. Try again in a moment." });
     render(<ModelsSection />);
-    expect(screen.getByRole("alert")).toHaveTextContent("still starting");
+    expect(screen.getByTestId("models-load-error")).toHaveTextContent("still starting");
   });
 });
 

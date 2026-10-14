@@ -148,7 +148,11 @@ export function ModelsSection() {
   return (
     <div className="flex flex-col gap-6">
       {loadError !== null && (
-        <p className="text-negative text-caption" role="alert">
+        <p
+          className="text-negative text-caption"
+          aria-live="polite"
+          data-testid="models-load-error"
+        >
           {loadError}
         </p>
       )}
@@ -165,7 +169,11 @@ export function ModelsSection() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <p className={cn("text-caption min-w-0 flex-1", TONE_CLASS[line.tone])} role="status">
+        <p
+          className={cn("text-caption min-w-0 flex-1", TONE_CLASS[line.tone])}
+          aria-live="polite"
+          data-testid="models-engine-line"
+        >
           {line.text}
         </p>
         {engine.state === "failed" && activeModelId && (
