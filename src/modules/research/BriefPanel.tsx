@@ -43,7 +43,6 @@ import { DUR, STAGGER } from "@/lib/motion";
 import { formatElapsed, ResearchActivity } from "@/modules/chat/ResearchActivity";
 import { researchDepthPrompt, useAgentCommandStore } from "@/store/agent-command";
 import { useBriefStore, type BriefPanelState } from "@/store/brief";
-import { useWorkspaceStore } from "@/store/workspace";
 import type { ResearchStepView } from "@/store/chat-history";
 import { BriefBody, deriveMetrics, parseBodyBlocks } from "./brief-blocks";
 
@@ -402,17 +401,16 @@ function Tray({
 // --- keyless-fallback nudge --------------------------------------------------
 
 /**
- * The honest keyless-fallback nudge (R9 gate 2): when the published brief's
- * backend id is `keyless-fallback` — SearXNG wasn't ready, the run silently
- * fell back to the rate-limited keyless engines — ONE quiet banner says so and
- * links to Settings → Research. Never rendered for the searxng /
- * research-model backends; dismissible per-brief (the parent keys dismissal
- * on the brief identity, so the next run's banner re-appears honestly).
+ * The honest keyless-fallback note (R9 gate 2, R16 plain language): when the
+ * published brief's backend id is `keyless-fallback`, ONE quiet line says the
+ * answer used free web search, which can be limited when busy. It points
+ * nowhere: Docker / SearXNG live only behind Settings → Research → Advanced.
+ * Never rendered for the searxng / research-model backends; dismissible
+ * per-brief (the parent keys dismissal on the brief identity).
  *
- * R15-RESEARCH-028 (C10): `webReason === "searxng_degraded"` means the
- * managed container IS running — its engines are the problem (CAPTCHA'd,
- * timing out), not a missing setup — so the copy and the CTA both change:
- * no "set up" link (it's already set up), just the honest state.
+ * R15-RESEARCH-028 (C10): `webReason === "searxng_degraded"` means the user's
+ * own private search server IS running and its engines are the problem, so
+ * the copy says exactly that.
  */
 function KeylessFallbackNudge({
   degraded,
@@ -421,29 +419,13 @@ function KeylessFallbackNudge({
   degraded: boolean;
   onDismiss: () => void;
 }) {
-  const openSettings = useCallback(() => {
-    useWorkspaceStore.getState().openPanel("settings");
-  }, []);
   return (
     <div className="border-charcoal-700 bg-charcoal-925 mx-3 mt-3 flex items-start gap-2 rounded-none border px-3 py-2">
       <Globe className="text-charcoal-400 mt-0.5 size-3 shrink-0" aria-hidden />
       <p className="text-charcoal-300 text-caption min-w-0 flex-1 leading-relaxed">
-        {degraded ? (
-          "SearXNG is running but its search engines are blocked — falling back to limited keyless search."
-        ) : (
-          <>
-            Limited keyless search —{" "}
-            <button
-              type="button"
-              onClick={openSettings}
-              className="text-charcoal-100 hover:text-lume cursor-pointer underline underline-offset-2 transition-colors"
-              title="Open Settings → Research"
-            >
-              set up Unlimited local research
-            </button>{" "}
-            for full capability.
-          </>
-        )}
+        {degraded
+          ? "SearXNG is running but its search engines are blocked — falling back to limited keyless search."
+          : "Answered with free web search, which can be limited when it is busy."}
       </p>
       <button
         type="button"

@@ -577,6 +577,32 @@ describe("SettingsPanel", () => {
     expect(searxngChipMeta("rebooting").label).toBe("rebooting");
   });
 
+  // R16: Docker / SearXNG live only behind Settings -> Research -> Advanced.
+  function renderAdvanced() {
+    const view = render(<SettingsPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Advanced", expanded: false }));
+    return view;
+  }
+
+  it("R16: a fresh Settings never mentions Docker or SearXNG until Advanced is opened", () => {
+    routeFetch({ "/search/searxng/status": searxngStatus("not_installed_docker") });
+    render(<SettingsPanel />);
+    const research = document.getElementById("settings-research")!.closest("section")!;
+    expect(research.textContent).not.toMatch(/docker|searxng/i);
+    expect(screen.queryByTestId("searxng-status-chip")).toBeNull();
+    // The keyless path is the plain default and says so.
+    expect(within(research).getByText(/Works out of the box/)).toBeInTheDocument();
+    fireEvent.click(within(research).getByRole("button", { name: "Advanced", expanded: false }));
+    expect(research.textContent).toMatch(/Docker/);
+  });
+
+  it("R16: a user who already set a SearXNG URL finds the Advanced block open", () => {
+    useSearchSettingsStore.getState().setSearxngUrl("http://10.0.0.5:8080");
+    render(<SettingsPanel />);
+    expect(screen.getByRole("button", { name: "Advanced", expanded: true })).toBeInTheDocument();
+    expect(screen.getByLabelText("SearXNG URL")).toHaveValue("http://10.0.0.5:8080");
+  });
+
   // The Tier A flow renders each sidecar state machine state VERBATIM.
   function searxngStatus(state: string, extra?: Partial<Record<string, unknown>>) {
     return { state, detail: null, reason: null, port: null, url: null, ...extra };
@@ -589,7 +615,7 @@ describe("SettingsPanel", () => {
 
   it("Tier A not_installed_docker: honest chip + copy + plain-text install hint (no link), no action", async () => {
     routeFetch({ "/search/searxng/status": searxngStatus("not_installed_docker") });
-    render(<SettingsPanel />);
+    renderAdvanced();
     expect(await chipText()).toBe("Docker not found");
     expect(screen.getByText(/Docker isn.t available on this machine/)).toBeInTheDocument();
     const hint = screen.getByText(/docs\.docker\.com/);
@@ -599,7 +625,7 @@ describe("SettingsPanel", () => {
 
   it("Tier A docker_present_not_setup: 'Not set up' chip + ONE [Set up] action", async () => {
     routeFetch({ "/search/searxng/status": searxngStatus("docker_present_not_setup") });
-    render(<SettingsPanel />);
+    renderAdvanced();
     expect(await chipText()).toBe("Not set up");
     expect(screen.getByRole("button", { name: "Set up" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Stop" })).toBeNull();
@@ -611,7 +637,7 @@ describe("SettingsPanel", () => {
         detail: "pulling searxng/searxng (first run can take a few minutes)",
       }),
     });
-    render(<SettingsPanel />);
+    renderAdvanced();
     expect(await chipText()).toBe("Pulling");
     expect(screen.getByText(/Pulling the SearXNG image/)).toBeInTheDocument();
     expect(screen.getByText(/first run can take a few minutes/)).toBeInTheDocument();
@@ -626,7 +652,7 @@ describe("SettingsPanel", () => {
         url: "http://127.0.0.1:8888",
       }),
     });
-    render(<SettingsPanel />);
+    renderAdvanced();
     expect(await chipText()).toBe("Ready");
     expect(
       screen.getByText(/Running at http:\/\/127\.0\.0\.1:8888 — research searches route/),
@@ -641,7 +667,7 @@ describe("SettingsPanel", () => {
         reason: "docker pull failed: no space left on device",
       }),
     });
-    render(<SettingsPanel />);
+    renderAdvanced();
     expect(await chipText()).toBe("Error");
     expect(
       screen.getByText(/Setup failed: docker pull failed: no space left on device/),
@@ -655,7 +681,7 @@ describe("SettingsPanel", () => {
         reason: "no results from any engine across 3 real queries",
       }),
     });
-    render(<SettingsPanel />);
+    renderAdvanced();
     expect(await chipText()).toBe("Degraded — engines blocked");
     expect(
       screen.getByText(/Degraded — engines blocked \(no results from any engine across 3 real/),
@@ -672,7 +698,7 @@ describe("SettingsPanel", () => {
         detail: "starting guided setup — checking docker",
       }),
     });
-    render(<SettingsPanel />);
+    renderAdvanced();
     fireEvent.click(await screen.findByRole("button", { name: "Set up" }));
     expect(await screen.findByText(/Pulling the SearXNG image/)).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith(
@@ -686,7 +712,7 @@ describe("SettingsPanel", () => {
       "/search/searxng/status": searxngStatus("ready", { url: "http://127.0.0.1:8888" }),
       "/search/searxng/teardown": searxngStatus("docker_present_not_setup"),
     });
-    render(<SettingsPanel />);
+    renderAdvanced();
     fireEvent.click(await screen.findByRole("button", { name: "Stop" }));
     expect(await screen.findByRole("button", { name: "Set up" })).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith(
@@ -697,7 +723,7 @@ describe("SettingsPanel", () => {
 
   it("Tier A shows the honest fallback note whenever the instance is not ready", async () => {
     routeFetch({ "/search/searxng/status": searxngStatus("docker_present_not_setup") });
-    render(<SettingsPanel />);
+    renderAdvanced();
     // Settle on the loaded state first: the loading branch shows the note too.
     expect(await chipText()).toBe("Not set up");
     expect(
@@ -706,7 +732,7 @@ describe("SettingsPanel", () => {
   });
 
   it("Tier A degrades honestly when the sidecar is unreachable", async () => {
-    render(<SettingsPanel />); // default fetch stub rejects
+    renderAdvanced(); // default fetch stub rejects
     expect(
       await screen.findByText(`SearXNG status unavailable: ${SIDECAR_UNREACHABLE}`),
     ).toBeInTheDocument();
@@ -726,7 +752,7 @@ describe("SettingsPanel", () => {
         ),
       ),
     );
-    render(<SettingsPanel />);
+    renderAdvanced();
     expect(
       await screen.findByText("SearXNG status unavailable: docker daemon not reachable"),
     ).toBeInTheDocument();
@@ -737,7 +763,7 @@ describe("SettingsPanel", () => {
 
   it("the tab turning visible re-reads the status, so a stale 'Ready' follows the container", async () => {
     routeFetch({ "/search/searxng/status": searxngStatus("ready") });
-    render(<SettingsPanel />);
+    renderAdvanced();
     expect(await chipText()).toBe("Ready");
 
     // The container died outside the app.
@@ -762,13 +788,13 @@ describe("SettingsPanel", () => {
           )
         : routed(input),
     );
-    render(<SettingsPanel />);
+    renderAdvanced();
     fireEvent.click(await screen.findByRole("button", { name: "Set up" }));
     expect(await screen.findByText(/docker pull denied/)).toBeInTheDocument();
   });
 
   it("the custom SearXNG URL lives behind the Advanced disclosure and writes the store", () => {
-    render(<SettingsPanel />);
+    renderAdvanced();
     // Collapsed by default — open the disclosure first (the honest user path).
     fireEvent.click(screen.getByText("Advanced: custom instance URL"));
     const url = screen.getByLabelText("SearXNG URL");
