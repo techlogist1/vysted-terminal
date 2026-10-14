@@ -787,22 +787,29 @@ pub fn run() {
 
     app.run(|app_handle, event| {
         if let RunEvent::Exit = event {
-            if let Some(state) = app_handle.try_state::<SidecarProcess>() {
-                // Take the child in its own statement so the guard drops before kill().
-                let child = state.0.lock().unwrap().take();
-                if let Some(child) = child {
-                    let _ = child.kill();
-                }
-            }
-            // Reap the openbb-mcp subprocess alongside the main sidecar.
-            openbb_mcp::kill(app_handle);
-            // Reap the sec-edgar-mcp subprocess alongside the main sidecar.
-            sec_edgar_mcp::kill(app_handle);
-            // Reap the bundled llama-server (R16 local engine).
-            local_engine::kill(app_handle);
-            clear_mcp_endpoint_file(&app_data_dir(app_handle).to_string_lossy());
+            teardown_children(app_handle);
         }
     });
+}
+
+/// Kill every child process and clear the MCP endpoint file. Runs on
+/// `RunEvent::Exit` and, on Windows, before the updater's installer exits the
+/// process directly (`std::process::exit`, which skips `RunEvent::Exit`).
+pub(crate) fn teardown_children(app_handle: &tauri::AppHandle) {
+    if let Some(state) = app_handle.try_state::<SidecarProcess>() {
+        // Take the child in its own statement so the guard drops before kill().
+        let child = state.0.lock().unwrap().take();
+        if let Some(child) = child {
+            let _ = child.kill();
+        }
+    }
+    // Reap the openbb-mcp subprocess alongside the main sidecar.
+    openbb_mcp::kill(app_handle);
+    // Reap the sec-edgar-mcp subprocess alongside the main sidecar.
+    sec_edgar_mcp::kill(app_handle);
+    // Reap the bundled llama-server (R16 local engine).
+    local_engine::kill(app_handle);
+    clear_mcp_endpoint_file(&app_data_dir(app_handle).to_string_lossy());
 }
 
 #[cfg(test)]

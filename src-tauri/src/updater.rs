@@ -76,7 +76,11 @@ pub fn allow_loopback_override<R: tauri::Runtime>(context: &mut tauri::Context<R
 }
 
 async fn find_update(app: &AppHandle) -> Result<Option<Update>, String> {
-    let mut builder = app.updater_builder();
+    let teardown = app.clone();
+    // The Windows installer exits the process itself, skipping RunEvent::Exit.
+    let mut builder = app
+        .updater_builder()
+        .on_before_exit(move || crate::teardown_children(&teardown));
     if let Some(url) = endpoint_override() {
         builder = builder.endpoints(vec![url]).map_err(|e| e.to_string())?;
     }
